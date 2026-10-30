@@ -136,6 +136,8 @@ public sealed class AppOperationsTests
         }
 
         public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
+        public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => _source.ResolveDirectory(path, ct);
+        public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => _source.EnumerateChildren(path, ct);
         public void Dispose() => _gate.Dispose();
     }
 }

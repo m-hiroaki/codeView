@@ -6,14 +6,19 @@
 
 | 型・配置 | 設計上のメソッド | 責務 |
 | --- | --- | --- |
-| `ISourceAccess` / Files | `InspectAsync(path, ct)`、`OpenReadAsync(path, ct)`、`EnumerateChildren(path, ct)` | OS差と読取I/Oの試験境界。書込メソッドなし |
+| `ISourceAccess` / Files | `OpenRead`、`GetStamp`、`ResolveDirectory`、`EnumerateChildren` | OS差と読取I/Oの試験境界。同期入口はワーカー専用。書込メソッドなし |
 | `SourceAccess` / Files | 上記の具体実装 | 通常ファイル確認・リンク確認・ストリーム・メタデータ |
 | `FileReader` / Files | `PrepareAsync(path, encodingChoice, ct)`、`ReadChunksAsync(prepared, consume, ct)`、`ReadChunks(prepared, consume, ct)` | 厳格な文字コード準備と逐次読込。同期版もUI外の本文構築用に限る |
 | `PreparedText` / Files | 選択文字コード、判定情報、SourceStamp、現在の読取資源 | 呼出元セッションが所有し、終了時に破棄する |
-| `DirectoryReader` / Files | `ReadChildrenAsync(folder, policy, ct)`、`WalkFilesAsync(root, policy, ct)` | ツリー直下列挙と検索用の逐次列挙 |
+| `DirectoryReader` / Files | `ResolveRootAsync`、`ReadChildrenAsync(folder, policy, ct)`、`WalkFiles(root, policy, ct)` | ツリー直下列挙とワーカー上の検索用逐次列挙 |
 | `ExclusionPolicy` / Files | `IsExcludedDirectory(name)`、`IsSearchTarget(entry)` | スナップショット化した名前リストとリンク規則 |
+| `SourceEntry` / Files | 指定パス・名前・Directory/FileCandidate/Other・リンク有無 | UI型を含まない列挙時点の情報。FileCandidateの通常ファイル確認はOpen境界で行う |
+| `DirectoryListing` / Files | 直下の読取専用一覧、Error、IsComplete | 部分一覧と失敗を同時に保持。空の成功と失敗を区別する |
+| `DirectoryWalkEvent` / Files | File/SkippedLink/SkippedDirectory/SkippedSpecialEntry/Failed、パス・エラー・ルート失敗フラグ | 全件保持せず逐次処理する。エラー代表例の上限は消費側が管理 |
 
 列挙・検証もI/OなのでUI上で実行しない。ReadChunksAsyncのconsumeは`ValueTask`相当の非同期コールバックで、借用チャンクの寿命は呼出から完了までに限定する。読み取り途中で例外が出ればPreparedTextを使い回さない。
+
+DirectoryReaderのルート解決・直下取得はTask.Runのワーカーへ送る。OSのディレクトリ列挙は同期APIなので、検索用WalkFilesは外側の検索ワーカーで列挙する同期IEnumerableとする。各項目にTaskやUI通知を作らない。列挙開始は最初のMoveNextで、呼出元のforeachを正常・取消・途中終了のいずれでも破棄する。本文ライブラリやUIに依存しないFiles部分はG2採否前に検証できるが、これを本文採用やツリーUIの完了としない。
 
 ## 2. パス・リンク・共有アクセス
 
@@ -78,6 +83,8 @@ PE判定はMZの2バイトだけでは行わない。先頭に64バイト以上�
 
 直下の並び替えは直下項目数に比例するメモリを使う。検索用の全階層パス保持と同一視しない。直下大量構成で予算を超えた場合は部分表示・並び替え方式を評価し、無断で無制限保持へ拡大しない。
 
+列挙はHidden/Systemを属性だけで黙って除外せず、共通の名前ポリシーを適用する。ディレクトリリンクは表示情報として返すが、直接の直下列挙では拒否する。利用者がルートとして明示指定する場合だけResolveRootAsyncで最終ターゲットを解決し、指定パスは呼出側のWorkspaceに保持して解決先を列挙する。リンク化の競合は入場時にも再確認するが、基本設計どおり外部更新を完全に防ぐサンドボックスとはしない。
+
 ## 7. 検索対象の逐次走査
 
 深さ優先で、現在階層の列挙器と戻り先だけを保持する。各階層で子一覧を配列化したり全ファイルをソートしたりしない。列挙器は進入時に作り、退出時に必ず破棄する。深い階層は再帰メソッドのスタックに任せず、明示的なフレーム列で扱う。
@@ -85,6 +92,10 @@ PE判定はMZの2バイトだけでは行わない。先頭に64バイト以上�
 除外名は`.git`、`bin`、`obj`、`node_modules`が既定で、完全なフォルダ名に適用する。大小文字比較は対象ファイルシステムの規則に従い、判定できない場合は完全一致とする。設定リストを処理開始時に固定する。globや`.gitignore`解釈は導入しない。
 
 権限不足は当該枝をスキップして件数と上限付き代表例を記録し、別の枝を続ける。ルート自体が読めない場合は全体失敗。リンクは追わず、ハードリンクは重複排除しない。全件数を調べる前走査・深さ制限による黙った打切り・常駐索引は行わない。
+
+WalkFilesは明示的な列挙フレームのスタックを持つ。想定内のI/O/権限例外はFailedイベントにし、取消はOperationCanceledException、予期しない例外はそのまま上位へ伝える。いずれも全フレームをfinallyで破棄する。子の失敗後は兄弟を継続し、ルート自身の失敗にはIsRootを付けて正常完了と区別する。FileCandidateは列挙上の候補であり、FIFO等が属性だけでは区別できないOSでも本文Open時の通常ファイル検査で拒否する。
+
+ExclusionPolicyは名前集合を複製し、既定はOrdinal完全一致とする。OrdinalIgnoreCaseを使うのは呼出側で対象ファイルシステムの比較規則が確認できた場合だけとし、OS名だけで無条件に決めない。現時点の先行実装は比較規則不明として完全一致を使い、Workspace接続時の規則確定をP3-01に残す。
 
 ## 8. テスト
 
