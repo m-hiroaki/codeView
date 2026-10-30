@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>codeView — 外観モック</title>
+<style>
+:root{color-scheme:dark;--page:#0d1015;--editor:#14181f;--side:#191e26;--chrome:#202630;--line:#2b323e;--text:#d8dce4;--muted:#8d98aa;--faint:#606d80;--accent:#94d4c3;--active:#263d3c;--hover:#272f3b;--purple:#c0afe8;--type:#8fc7d2;--string:#d8bf95;--comment:#7b899b;--sidebar:232px;--results:220px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;font-size:13px}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--text)}button,input,select{font:inherit}button{color:inherit;border:0;background:none;cursor:pointer}button:focus-visible,input:focus-visible,summary:focus-visible,[role=separator]:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}button:hover{background:var(--hover)}button:disabled{opacity:.4;cursor:default}svg.icon{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}button svg{pointer-events:none}.sprite{position:absolute;width:0;height:0;overflow:hidden}[hidden]{display:none!important}
+.preview{max-width:1540px;margin:0 auto;padding:22px 28px 18px}.preview-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:12px}.preview-title{font-weight:500;color:#d2dae5;letter-spacing:.03em}.preview-head .rule{width:1px;height:12px;background:var(--line)}.preview-head .tag{margin-left:auto;font-size:11px;border:1px solid var(--line);padding:3px 7px;border-radius:4px;color:var(--muted)}
+.app{position:relative;height:calc(100vh - 111px);min-height:660px;max-height:1060px;display:flex;flex-direction:column;overflow:hidden;background:var(--editor);border:1px solid #343d4b;border-radius:10px;box-shadow:0 20px 60px #0005}
+.titlebar{height:42px;display:flex;align-items:center;gap:14px;flex-shrink:0;padding:0 15px;background:var(--chrome);border-bottom:1px solid var(--line);position:relative}.traffic{display:flex;gap:7px;align-items:center;min-width:62px}.traffic i{height:10px;width:10px;border-radius:50%;background:#6c7583}.traffic i:nth-child(1){background:#dc7c79}.traffic i:nth-child(2){background:#d0ad66}.traffic i:nth-child(3){background:#80b28e}.brand{font-size:13px;font-weight:600;letter-spacing:.2px;display:flex;align-items:center;gap:7px}.brand-mark{color:var(--accent);font:500 16px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-3px;margin-right:4px}.project-title{position:absolute;left:50%;transform:translateX(-50%);font-size:12px;color:#a8b1bf;display:flex;align-items:center;gap:8px}.project-title span{color:var(--faint)}.title-actions{margin-left:auto;display:flex;gap:5px}.icon-button{height:27px;width:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:#a8b3c2}.icon-button[aria-pressed=true]{color:var(--accent);background:#30423f}
+.menubar{height:34px;background:var(--side);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:3px;flex-shrink:0}.menu-wrap{position:relative}.menu-trigger{padding:5px 10px;border-radius:4px;font-size:12px;color:#bcc5d2}.menu-trigger[aria-expanded=true]{background:var(--hover)}.menu{position:absolute;left:0;top:31px;min-width:252px;z-index:30;padding:5px;background:#242b36;border:1px solid #465062;border-radius:6px;box-shadow:0 12px 30px #0006}.menu button{width:100%;text-align:left;display:flex;gap:20px;justify-content:space-between;padding:8px 10px;border-radius:3px;font-size:12px}.menu kbd{color:var(--muted);font:11px inherit}.menu hr{border:0;border-top:1px solid #3b4554;margin:4px}.menu-note{margin-left:auto;font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center}.menu-note svg{width:12px;height:12px}
+.workspace{flex:1;min-height:0;display:flex;position:relative}.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--side);display:flex;flex-direction:column;overflow:auto}.side-head{display:flex;align-items:center;justify-content:space-between;height:42px;min-height:42px;padding:0 13px 0 17px;color:#abb6c6;font-size:11px;letter-spacing:.08em}.side-head .icon-button{height:24px;width:24px}.project-root{padding:4px 9px 8px}.root-name{font-weight:600;letter-spacing:.025em;display:flex;align-items:center;gap:7px;padding:5px 5px 7px;color:#d3dce7}.root-name svg{width:14px;color:var(--accent)}.tree{font-size:12px;line-height:1.3}.tree details{margin:0}.tree summary{list-style:none;display:flex;align-items:center;height:29px;gap:7px;padding:0 7px;cursor:pointer;color:#b9c4d4}.tree summary::-webkit-details-marker{display:none}.tree summary::before{content:'›';width:9px;color:#8996aa;font-size:16px;transform-origin:4px 50%}.tree details[open]>summary::before{transform:rotate(90deg)}.tree summary svg{color:#a5afbf;width:15px}.tree .children{margin-left:15px;border-left:1px solid #303846;padding-left:1px}.tree-file{width:100%;height:29px;display:flex;align-items:center;gap:7px;padding:0 8px 0 18px;text-align:left;white-space:nowrap;border-radius:3px;position:relative;color:#afbacb}.tree-file.is-active{color:#def2eb;background:#2b3a3d}.tree-file.is-active::before{position:absolute;content:'';left:-1px;top:4px;bottom:4px;width:2px;background:var(--accent)}.file-symbol{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:-1px;flex-shrink:0}.cs{color:#bca4df}.cpp,.h,.c{color:#89b4d4}.json{color:#d2b777}.md{color:#a6b6c9}.tree-footer{margin-top:auto;padding:16px;color:var(--faint);font-size:11px;display:flex;align-items:center;gap:7px}.tree-footer svg{width:13px;height:13px}.vsplit{width:5px;background:var(--editor);border-left:1px solid var(--line);cursor:col-resize;flex-shrink:0}.vsplit:hover,.vsplit.dragging{background:#94d4c36b}.app.tree-hidden .sidebar,.app.tree-hidden .vsplit{display:none}
+.editor{min-width:0;flex:1;display:flex;flex-direction:column;background:var(--editor)}.tabs{display:flex;min-height:40px;overflow-x:auto;background:#171c23;border-bottom:1px solid var(--line);flex-shrink:0;scrollbar-width:thin}.tab{display:flex;position:relative;align-items:center;border-right:1px solid #2c3440;min-width:135px;flex-shrink:0;background:#1b212a;color:var(--muted)}.tab.is-active{background:var(--editor);color:#e0e5ed}.tab.is-active::before{position:absolute;content:'';height:2px;top:0;left:0;right:0;background:var(--accent)}.tab-select{display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;height:39px;font-size:12px;flex:1}.tab-close{height:22px;width:22px;border-radius:3px;margin-right:7px;color:#8190a4;font-size:16px}.tab-close:hover{color:#e0e5ed}.tab.is-active .tab-close{color:#b6c2d0}.breadcrumb{height:36px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 20px;color:#8e9cb0;font-size:11px;border-bottom:1px solid #242c36;white-space:nowrap;overflow:hidden}.breadcrumb .arrow{color:#556274}.breadcrumb .current{color:#c4cedc}.breadcrumb .language{margin-left:auto;color:#7e8e9e;padding-left:15px}.find-bar{display:flex;align-items:center;gap:4px;background:#232b36;padding:7px 10px;border-bottom:1px solid #3a4655;flex-shrink:0}.find-bar input{flex:1;min-width:70px;background:#161d26;color:var(--text);border:1px solid #536675;border-radius:3px;padding:5px 8px;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}.find-count{min-width:64px;text-align:center;font-size:11px;color:#a4b2c4}
+.code-scroll{position:relative;flex:1;min-height:0;overflow:auto;padding:16px 0 30px;scrollbar-color:#495363 transparent;scrollbar-width:thin}.code{margin:0;min-width:max-content;font:13px/24px ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;tab-size:4}.code-line{display:flex;min-height:24px;position:relative;padding-right:40px;white-space:pre}.code-line.current{background:#202934}.code-line.current::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#78b7ae}.ln{width:61px;min-width:61px;user-select:none;text-align:right;padding-right:19px;color:#657286;font-size:11px;cursor:default;position:sticky;left:0;background:var(--editor);z-index:1}.current .ln{background:#202934;color:#c1d1df}.source{padding-left:12px;color:#cbd3df}.tok-keyword{color:var(--purple)}.tok-type{color:var(--type)}.tok-string{color:var(--string)}.tok-comment{color:var(--comment)}.tok-number{color:#b2c795}.tok-directive{color:#bba9d4}.tok-method{color:#d9cfab}mark{background:#778d5640;color:inherit;border:1px solid #b4cc735c;border-radius:2px;padding:0}.code-line.target .source{animation:targetPulse 1s ease-out}@keyframes targetPulse{from{background:#94d4c32b}to{background:transparent}}.empty-editor{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;color:var(--muted)}.empty-editor .brand-mark{font-size:34px;letter-spacing:-6px}.empty-editor p{margin:0;font-size:12px}.primary-button{padding:7px 15px;border-radius:4px;background:#344e48;color:#d9f4e9;border:1px solid #52796c}.primary-button:hover{background:#3c5c53}
+.hsplit{height:5px;border-top:1px solid var(--line);background:#181e27;flex-shrink:0;cursor:row-resize}.hsplit:hover,.hsplit.dragging{background:#94d4c36b}.results{height:var(--results);min-height:125px;flex-shrink:0;display:flex;flex-direction:column;background:#171d25}.app.results-hidden .results,.app.results-hidden .hsplit{display:none}.results-head{min-height:36px;padding:0 15px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #2a3440}.result-heading{display:flex;align-items:center;gap:7px;font-size:12px;color:#d0dce7}.result-heading svg{width:14px;height:14px;color:var(--accent)}.count-badge{background:#303b49;color:#b6c5d8;padding:1px 6px;border-radius:4px;font-size:10px;font-variant-numeric:tabular-nums}.result-summary{font-size:11px;color:#8595a9}.results-head .icon-button{margin-left:auto}.query-row{display:flex;align-items:center;padding:7px 17px;gap:10px;flex-shrink:0}.query-input{height:29px;background:#121923;border:1px solid #445363;border-radius:4px;display:flex;align-items:center;max-width:420px;flex:1;padding-left:9px;gap:7px}.query-input:focus-within{border-color:#85bfb0}.query-input svg{width:13px;height:13px;color:#8092a8}.query-input input{border:0;outline:none;background:none;min-width:40px;width:100%;padding:4px 0;color:#dce5ed;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}.search-options{display:flex;gap:2px;padding-right:4px}.option{border:1px solid transparent;min-width:24px;height:23px;font:11px ui-monospace,SFMono-Regular,Consolas,monospace;padding:0 4px;border-radius:3px;color:#a7b6c7}.option[aria-pressed=true]{border-color:#648f82;background:#2c443e;color:#c2e5d8}.search-submit{height:27px;border:1px solid #414f5f;border-radius:4px;font-size:11px;padding:0 11px;color:#bdc9d7}.search-scope{margin-left:auto;font-size:11px;white-space:nowrap;color:#8091a5}.result-list{overflow:auto;flex:1;scrollbar-width:thin;scrollbar-color:#435063 transparent}.result-group{padding:0 0 3px}.result-file{width:100%;text-align:left;display:flex;align-items:center;gap:7px;height:26px;padding:0 22px;font-size:11px;color:#b2c0d2}.result-file .file-path{color:#708299;margin-left:4px}.result-file .file-hits{color:#75889d;margin-left:auto;padding-right:4px}.result-row{height:26px;min-height:26px;width:100%;display:flex;align-items:center;padding:0 20px 0 49px;gap:12px;font:11px ui-monospace,SFMono-Regular,Consolas,monospace;text-align:left;white-space:nowrap}.result-row .result-line{width:23px;flex-shrink:0;color:#8a9ab0;text-align:right}.result-row .result-text{color:#a5b4c7;overflow:hidden;text-overflow:ellipsis}.result-row.is-selected{background:#263b3d}.result-row mark{background:#4e68413d;border-color:transparent;color:#d0e3ab}.result-message{padding:12px 22px;font-size:12px;color:#9cacc1}.result-message.error{color:#e6a6a6}
+.statusbar{height:27px;flex-shrink:0;background:#202a31;border-top:1px solid #33414b;display:flex;align-items:center;gap:18px;padding:0 12px;color:#a7bacb;font-size:10px;white-space:nowrap}.status-readonly{display:flex;align-items:center;gap:6px;color:#b0d8c9}.status-readonly svg{width:11px;height:11px}.status-path{color:#8ba0b6;overflow:hidden;text-overflow:ellipsis;min-width:0}.status-right{display:flex;gap:17px;margin-left:auto;flex-shrink:0}.status-right button{font-size:10px;padding:2px 4px}.preview-foot{font-size:11px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 2px 0;color:#78869a}.preview-foot kbd{font:10px ui-monospace,SFMono-Regular,Consolas,monospace;background:#1e2631;border:1px solid #333d4c;border-radius:3px;padding:1px 4px;color:#a7b8c9}.preview-foot .shortcuts{display:flex;gap:15px}.toast{position:absolute;right:18px;bottom:39px;z-index:45;background:#2b3943;color:#d6e4e9;border:1px solid #50646b;border-radius:6px;padding:10px 15px;box-shadow:0 5px 20px #0004;max-width:calc(100% - 36px);font-size:12px}
+dialog{background:#212934;color:var(--text);border:1px solid #506072;border-radius:9px;width:min(480px,90vw);padding:0;box-shadow:0 25px 70px #0009}dialog::backdrop{background:#060a10aa}dialog header{padding:17px 19px;border-bottom:1px solid #3b4757;display:flex;align-items:center;justify-content:space-between}dialog h2{font-size:14px;font-weight:500;margin:0}dialog p{margin:12px 19px;color:#99a9bd;font-size:12px}dialog .picker-files{padding:0 9px 12px}dialog .picker-files button{display:flex;gap:11px;align-items:center;width:100%;padding:10px;border-radius:4px;text-align:left;font-size:12px}dialog .picker-files small{margin-left:auto;color:#8497b1;font-size:10px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(min-width:1500px){.preview{padding-top:30px}.app{height:calc(100vh - 127px)}}@media(max-width:1000px){:root{--sidebar:205px}.preview{padding:14px 14px 10px}.app{height:calc(100vh - 94px)}.tab{min-width:120px}.tab-select{padding-left:10px}.project-title{font-size:11px}.search-scope{display:none}.statusbar{gap:10px}.preview-head .description{display:none}}
+@media(max-width:700px){.preview{padding:10px}.project-title{position:static;transform:none;margin-left:auto}.project-title span,.title-actions{display:none}.traffic{min-width:52px}.app{min-height:700px;height:calc(100vh - 90px)}.sidebar{position:absolute;top:0;bottom:0;left:0;z-index:20;width:225px;border-right:1px solid #465467;box-shadow:8px 0 25px #0007}.vsplit{display:none}.status-path,.status-right .eol,.search-scope,.preview-head .tag{display:none}.statusbar{font-size:10px;gap:8px}.status-right{gap:8px}.preview-foot .shortcuts{display:none}.code{font-size:12px}.ln{width:43px;min-width:43px;padding-right:11px}.source{padding-left:6px}.result-summary{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.query-row{padding-inline:10px;gap:6px}.result-row{padding-left:25px}.breadcrumb{padding-inline:13px}}
+@media(prefers-reduced-motion:reduce){.code-line.target .source{animation:none}}
+</style>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/><path d="M3 6V4h7l2 2"/></symbol>
+<symbol id="i-tree" viewBox="0 0 24 24"><path d="M4 3v14h6M4 8h6M14 5h6v6h-6zM14 14h6v6h-6z"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 14h18"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M5.5 8a7 7 0 0 1 11.8-2L20 9M4 15l2.7 3A7 7 0 0 0 18.5 16"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></symbol>
+<symbol id="i-refs" viewBox="0 0 24 24"><path d="M8 4H4v16h4M16 4h4v16h-4M9 8l-4 4 4 4M15 8l4 4-4 4"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+</defs></svg>
+<div class="preview">
+  <div class="preview-head"><span class="preview-title">codeView</span><span class="rule"></span><span class="description">コードリーディングのための、静かなワークスペース。</span><span class="tag">外観・操作モック</span></div>
+  <main class="app" id="app" aria-label="codeView アプリケーションのモック">
+    <header class="titlebar">
+      <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>codeView</div>
+      <div class="project-title"><svg class="icon"><use href="#i-folder"/></svg>Northwind <span>— ローカルフォルダ</span></div>
+      <div class="title-actions"><button class="icon-button" id="toggle-tree" aria-label="ファイルツリーの表示切替" aria-pressed="true" title="ファイルツリー"><svg class="icon"><use href="#i-tree"/></svg></button><button class="icon-button" id="toggle-results" aria-label="結果パネルの表示切替" aria-pressed="true" title="検索結果パネル"><svg class="icon"><use href="#i-panel"/></svg></button></div>
+    </header>
+    <nav class="menubar" aria-label="メニュー">
+      <div class="menu-wrap"><button class="menu-trigger" data-menu="file-menu" aria-expanded="false" aria-controls="file-menu">ファイル</button><div class="menu" id="file-menu" hidden><button data-action="open">ファイルを開く… <kbd>⌘ O</kbd></button><button data-action="folder">フォルダを開く… <kbd>⌘ ⇧ O</kbd></button><hr><button data-action="reload">再読み込み</button><button data-action="close-tab">タブを閉じる <kbd>⌘ W</kbd></button></div></div>
+      <div class="menu-wrap"><button class="menu-trigger" data-menu="view-menu" aria-expanded="false" aria-controls="view-menu">表示</button><div class="menu" id="view-menu" hidden><button data-action="tree">ファイルツリーの表示切替</button><button data-action="results">結果パネルの表示切替</button></div></div>
+      <div class="menu-wrap"><button class="menu-trigger" data-menu="search-menu" aria-expanded="false" aria-controls="search-menu">検索</button><div class="menu" id="search-menu" hidden><button data-action="find">ファイル内検索 <kbd>⌘ F</kbd></button><button data-action="search">フォルダを検索 <kbd>⌘ ⇧ F</kbd></button><hr><button data-action="definition">定義へジャンプ（簡易） <kbd>F12</kbd></button><button data-action="references">参照を検索 <kbd>⇧ F12</kbd></button></div></div>
+      <span class="menu-note"><svg class="icon"><use href="#i-lock"/></svg>読み取り専用</span>
+    </nav>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="ファイルツリー">
+        <div class="side-head"><span>エクスプローラー</span><button class="icon-button" id="refresh-tree" aria-label="ツリーを再読み込み" title="再読み込み"><svg class="icon"><use href="#i-refresh"/></svg></button></div>
+        <div class="project-root"><div class="root-name"><svg class="icon"><use href="#i-folder"/></svg>Northwind</div><div class="tree" id="tree"></div></div>
+        <div class="tree-footer"><svg class="icon"><use href="#i-folder"/></svg>ローカル ワークスペース</div>
+      </aside>
+      <div class="vsplit" id="vsplit" role="separator" aria-label="ツリーの幅" aria-orientation="vertical" aria-valuemin="170" aria-valuemax="400" aria-valuenow="232" tabindex="0"></div>
+      <section class="editor" aria-label="ソースコードビューア">
+        <div class="tabs" id="tabs" role="tablist" aria-label="開いているファイル"></div>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="find-bar" id="find-bar" hidden><label class="sr-only" for="find-input">ファイル内を検索</label><svg class="icon"><use href="#i-search"/></svg><input id="find-input" type="text" value="GetOrder" placeholder="ファイル内を検索" autocomplete="off" spellcheck="false"><span class="find-count" id="find-count" aria-live="polite"></span><button class="icon-button" id="find-prev" aria-label="前の一致" title="前の一致"><svg class="icon"><use href="#i-arrow-up"/></svg></button><button class="icon-button" id="find-next" aria-label="次の一致" title="次の一致"><svg class="icon"><use href="#i-arrow-down"/></svg></button><button class="icon-button" id="find-close" aria-label="ファイル内検索を閉じる"><svg class="icon"><use href="#i-close"/></svg></button></div>
+        <div class="code-scroll" id="code-scroll" tabindex="0" aria-label="読み取り専用のコード本文"><pre class="code" id="code"></pre><div class="empty-editor" id="empty" hidden><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><p>ファイルを開いて、読み始めましょう。</p><button class="primary-button" data-action="open">ファイルを開く</button></div></div>
+      </section>
+    </div>
+    <div class="hsplit" id="hsplit" role="separator" aria-label="結果パネルの高さ" aria-orientation="horizontal" aria-valuemin="125" aria-valuemax="400" aria-valuenow="220" tabindex="0"></div>
+    <section class="results" aria-label="検索結果" id="results">
+      <div class="results-head"><span class="result-heading"><svg class="icon"><use id="result-icon" href="#i-search"/></svg><span id="result-title">検索結果</span><span class="count-badge" id="result-count">0</span></span><span class="result-summary" id="result-summary" aria-live="polite"></span><button class="icon-button" id="close-results" aria-label="結果パネルを閉じる"><svg class="icon"><use href="#i-close"/></svg></button></div>
+      <form class="query-row" id="search-form"><div class="query-input"><svg class="icon"><use href="#i-search"/></svg><label class="sr-only" for="query">フォルダ内を検索</label><input id="query" type="text" value="GetOrder" placeholder="フォルダ内を検索" autocomplete="off" spellcheck="false"><div class="search-options"><button type="button" class="option" id="match-case" aria-pressed="false" aria-label="大文字小文字を区別" title="大文字小文字を区別">Aa</button><button type="button" class="option" id="whole-word" aria-pressed="false" aria-label="単語単位" title="単語単位">ab</button><button type="button" class="option" id="use-regex" aria-pressed="false" aria-label="正規表現" title="正規表現">.*</button></div></div><button class="search-submit" type="submit" id="search-submit">検索</button><span class="search-scope">対象：Northwind / テキストファイル</span></form>
+      <div class="result-list" id="result-list"></div>
+    </section>
+    <footer class="statusbar"><span class="status-readonly"><svg class="icon"><use href="#i-lock"/></svg>読み取り専用</span><span class="status-path" id="status-path"></span><div class="status-right"><span id="position">行 13, 列 1</span><button id="encoding" title="文字コード（モック）">UTF-8</button><span class="eol">CRLF</span><span id="status-language">C#</span></div></footer>
+    <div class="toast" id="toast" role="status" hidden></div>
+  </main>
+  <div class="preview-foot"><span>サンプルデータで、閲覧・検索・移動を試せます。</span><span class="shortcuts"><span><kbd>⌘ / Ctrl F</kbd> ファイル内検索</span><span><kbd>F12</kbd> 定義へ</span><span>境界をドラッグしてサイズ調整</span></span></div>
+</div>
+<dialog id="file-picker"><header><h2>ファイルを開く</h2><button class="icon-button" id="picker-close" aria-label="閉じる"><svg class="icon"><use href="#i-close"/></svg></button></header><p>このモックに含まれるサンプルファイル</p><div class="picker-files" id="picker-files"></div></dialog>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const files = [
+    {id:'service',name:'OrderService.cs',path:'src/Northwind/Services/OrderService.cs',language:'C#',symbol:'C#',kind:'cs',code:`using Northwind.Models;
+using Northwind.Repositories;
+
+namespace Northwind.Services;
+
+/// <summary>
+/// 注文の取得と、合計金額の計算を行います。
+/// </summary>
+public sealed class OrderService(IOrderRepository repository)
+{
+    private readonly IOrderRepository _repository = repository;
+
+    public async Task<Order?> GetOrderAsync(int orderId)
+    {
+        // 注文が見つからない場合は null を返す
+        var order = await _repository.FindByIdAsync(orderId);
+
+        if (order is null)
+        {
+            return null;
+        }
+
+        return order;
+    }
+
+    public decimal CalculateTotal(Order order)
+    {
+        return order.Items.Sum(item =>
+            item.UnitPrice * item.Quantity);
+    }
+
+    public async Task<bool> ExistsAsync(int orderId)
+    {
+        var order = await GetOrderAsync(orderId);
+        return order is not null;
+    }
+}`},
+    {id:'model',name:'Order.cs',path:'src/Northwind/Models/Order.cs',language:'C#',symbol:'C#',kind:'cs',code:`namespace Northwind.Models;
+
+/// <summary>顧客からの注文。</summary>
+public sealed class Order
+{
+    public int Id { get; init; }
+    public string CustomerName { get; init; } = "";
+    public DateTime CreatedAt { get; init; }
+    public List<OrderItem> Items { get; init; } = [];
+
+    public bool IsEmpty => Items.Count == 0;
+}
+
+public sealed record OrderItem(
+    string ProductName,
+    decimal UnitPrice,
+    int Quantity
+);`},
+    {id:'controller',name:'OrdersController.cs',path:'src/Northwind/Controllers/OrdersController.cs',language:'C#',symbol:'C#',kind:'cs',code:`using Microsoft.AspNetCore.Mvc;
+using Northwind.Services;
+
+namespace Northwind.Controllers;
+
+[ApiController]
+[Route("api/orders")]
+public sealed class OrdersController(OrderService service) : ControllerBase
+{
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetOrder(int id)
+    {
+        var order = await service.GetOrderAsync(id);
+
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(order);
+    }
+}`},
+    {id:'repo',name:'IOrderRepository.cs',path:'src/Northwind/Repositories/IOrderRepository.cs',language:'C#',symbol:'C#',kind:'cs',code:`using Northwind.Models;
+
+namespace Northwind.Repositories;
+
+public interface IOrderRepository
+{
+    Task<Order?> FindByIdAsync(int orderId);
+    Task<IReadOnlyList<Order>> ListAsync();
+}`},
+    {id:'cpp',name:'parser.cpp',path:'native/parser.cpp',language:'C++',symbol:'C++',kind:'cpp',code:`#include "parser.h"
+#include <charconv>
+#include <string_view>
+
+namespace northwind {
+
+// コピーを避けて、注文 ID を解析する。
+std::optional<int> parse_order_id(std::string_view input)
+{
+    int value = 0;
+    const auto [end, error] = std::from_chars(
+        input.data(), input.data() + input.size(), value);
+
+    if (error != std::errc{} || end != input.data() + input.size()) {
+        return std::nullopt;
+    }
+
+    return value;
+}
+
+template <typename T>
+bool is_positive(T value)
+{
+    return value > 0;
+}
+
+} // namespace northwind`},
+    {id:'header',name:'parser.h',path:'native/parser.h',language:'C++',symbol:'h',kind:'h',code:`#pragma once
+
+#include <optional>
+#include <string_view>
+
+namespace northwind {
+
+// .h は C++ 文法でハイライトします。
+std::optional<int> parse_order_id(std::string_view input);
+
+template <typename T>
+bool is_positive(T value);
+
+} // namespace northwind`},
+    {id:'c',name:'main.c',path:'native/main.c',language:'C',symbol:'C',kind:'c',code:`#include <stdio.h>
+#include <stdlib.h>
+
+/* 注文データの読み込みサンプル */
+typedef struct {
+    int id;
+    double total;
+} Order;
+
+int main(void)
+{
+    const Order order = { .id = 1024, .total = 4800.0 };
+
+    printf("Order %d: %.2f", order.id, order.total);
+
+    return EXIT_SUCCESS;
+}`},
+    {id:'json',name:'appsettings.json',path:'src/Northwind/appsettings.json',language:'JSON',symbol:'{}',kind:'json',code:`{
+  "Application": {
+    "Name": "Northwind",
+    "PageSize": 50
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}`},
+    {id:'readme',name:'README.md',path:'README.md',language:'Markdown',symbol:'M↓',kind:'md',code:`# Northwind
+
+注文管理 API のサンプルプロジェクト。
+
+## 構成
+
+- src/Northwind/Services — 注文の取得と集計
+- src/Northwind/Models — 注文・明細のモデル
+- src/Northwind/Controllers — HTTP エンドポイント
+- native — C / C++ の解析ユーティリティ
+
+## 注文を取得する
+
+GET /api/orders/{id}
+
+OrderService.GetOrderAsync で注文を取得します。
+データが存在しない場合は 404 を返します。`}
+  ];
+  const byId = new Map(files.map(f=>[f.id,f]));
+  const state = {tabs:['service','model','cpp','header'],active:'service',line:13,mode:'search',hits:[],selected:null,searching:false,timer:null,positions:{},findIndex:-1};
+  const options = {case:false,word:false,regex:false};
+  const icon = name => {const el=document.createElementNS('http://www.w3.org/2000/svg','svg');el.classList.add('icon');el.setAttribute('aria-hidden','true');const use=document.createElementNS(el.namespaceURI,'use');use.setAttribute('href','#i-'+name);el.append(use);return el;};
+  const symbol = f => {const el=document.createElement('span');el.className='file-symbol '+f.kind;el.textContent=f.symbol;el.setAttribute('aria-hidden','true');return el;};
+  const notify = message => { $('toast').textContent=message;$('toast').hidden=false;clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('toast').hidden=true,2800); };
+  function folder(name, children, open=true){const d=document.createElement('details');d.open=open;const sum=document.createElement('summary');sum.append(icon('folder'),document.createTextNode(name));const content=document.createElement('div');content.className='children';children.forEach(x=>content.append(typeof x==='string'?fileButton(byId.get(x)):x));d.append(sum,content);return d;}
+  function fileButton(f){const b=document.createElement('button');b.className='tree-file';b.dataset.file=f.id;b.title=f.path;b.append(symbol(f),document.createTextNode(f.name));b.addEventListener('click',()=>openFile(f.id));return b;}
+  $('tree').append(folder('src',[folder('Northwind',[folder('Controllers',['controller'],false),folder('Models',['model']),folder('Repositories',['repo'],false),folder('Services',['service']),'json'])]),folder('native',['cpp','header','c']),fileButton(byId.get('readme')));
+  function savePosition(){if(state.active)state.positions[state.active]={line:state.line,scroll:$('code-scroll').scrollTop};}
+  function openFile(id,line){if(!byId.has(id))return;savePosition();if(!state.tabs.includes(id))state.tabs.push(id);state.active=id;state.line=line||state.positions[id]?.line||1;state.findIndex=-1;renderTabs();renderCode();$('code-scroll').scrollTop=state.positions[id]?.scroll||0;if(line)revealLine(line);if(innerWidth<=700)setTree(false);}
+  function closeTab(id){savePosition();const index=state.tabs.indexOf(id);if(index<0)return;state.tabs.splice(index,1);if(state.active===id){state.active=state.tabs[Math.max(0,index-1)]||null;state.line=state.positions[state.active]?.line||1;}delete state.positions[id];renderTabs();renderCode();$('code-scroll').scrollTop=state.positions[state.active]?.scroll||0;}
+  function renderTabs(){const list=$('tabs');list.replaceChildren();state.tabs.forEach(id=>{const f=byId.get(id),wrap=document.createElement('div');wrap.className='tab'+(state.active===id?' is-active':'');const b=document.createElement('button');b.className='tab-select';b.id='tab-'+id;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(state.active===id));b.setAttribute('aria-controls','code-scroll');b.title=f.path;b.append(symbol(f),document.createTextNode(f.name));b.addEventListener('click',()=>openFile(id));const close=document.createElement('button');close.className='tab-close';close.setAttribute('aria-label',f.name+' を閉じる');close.textContent='×';close.addEventListener('click',()=>closeTab(id));wrap.append(b,close);list.append(wrap);});document.querySelectorAll('.tree-file').forEach(b=>{b.classList.toggle('is-active',b.dataset.file===state.active);b.setAttribute('aria-current',b.dataset.file===state.active?'true':'false');});}
+  const keywords=new Set('using namespace public private protected internal sealed class interface record struct enum typedef const void int double float char bool return async await if else null var new get init not true false template typename auto include pragma once readonly static string decimal'.split(' '));
+  const types=new Set('Task Order OrderItem OrderService IOrderRepository IReadOnlyList List DateTime IActionResult ControllerBase ApiController HttpGet Route T optional string_view'.split(' '));
+  function ranges(text,query,settings=options){if(!query)return [];let re;try{const escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');re=new RegExp(settings.regex?query:escaped,'gu'+(settings.case?'':'i'));}catch{return [];}const result=[];let m;const word=c=>c&&/[\p{L}\p{N}\p{M}_]/u.test(c);while((m=re.exec(text))!==null){if(!settings.word||(!word(text[m.index-1])&&!word(text[m.index+m[0].length])))result.push({start:m.index,end:m.index+m[0].length});if(m[0].length===0){const cp=text.codePointAt(re.lastIndex);re.lastIndex+=cp>0xffff?2:1;}if(result.length>=1000)break;}return result;}
+  function highlighted(parent,text,query,settings){const rs=ranges(text,query,settings);let at=0;rs.forEach(r=>{parent.append(document.createTextNode(text.slice(at,r.start)));const mark=document.createElement('mark');mark.textContent=text.slice(r.start,r.end)||' ';parent.append(mark);at=r.end;});parent.append(document.createTextNode(text.slice(at)));}
+  function syntax(parent,line,query,settings){const parts=/\/\/.*$|\/\*.*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b[A-Za-z_]\w*\b|\b\d+(?:\.\d+)?\b/g;let start=0,m;const matches=ranges(line,query,settings);function append(text,offset,cls){const el=document.createElement('span');if(cls)el.className=cls;let cursor=0;for(const range of matches){const a=Math.max(0,range.start-offset),b=Math.min(text.length,range.end-offset);if(b>a){el.append(document.createTextNode(text.slice(cursor,a)));const mark=document.createElement('mark');mark.textContent=text.slice(a,b);el.append(mark);cursor=b;}}el.append(document.createTextNode(text.slice(cursor)));parent.append(el);}while((m=parts.exec(line))){if(m.index>start)append(line.slice(start,m.index),start,'');const t=m[0];let cls=t.startsWith('//')||t.startsWith('/*')?'tok-comment':t.startsWith('"')||t.startsWith("'")?'tok-string':keywords.has(t)?'tok-keyword':types.has(t)?'tok-type':/^\d/.test(t)?'tok-number':/^\s*\(/.test(line.slice(parts.lastIndex))?'tok-method':'';if(line.trimStart().startsWith('#')&&m.index===line.indexOf('#')+1)cls='tok-directive';append(t,m.index,cls);start=parts.lastIndex;}if(start<line.length)append(line.slice(start),start,'');if(!line.length)parent.append(document.createTextNode(' '));}
+  function renderCode(){const f=byId.get(state.active);$('code').replaceChildren();$('breadcrumb').replaceChildren();$('empty').hidden=!!f;$('code').hidden=!f;$('find-bar').hidden=!f||$('find-bar').dataset.open!=='true';if(!f){$('status-path').textContent='ファイル未選択';$('position').textContent='';$('status-language').textContent='';$('find-count').textContent='';return;}const parts=f.path.split('/');parts.forEach((part,index)=>{if(index){const a=document.createElement('span');a.className='arrow';a.textContent='›';$('breadcrumb').append(a);}const node=document.createElement('span');node.textContent=part;if(index===parts.length-1)node.className='current';$('breadcrumb').append(node);});const lang=document.createElement('span');lang.className='language';lang.textContent=f.language;$('breadcrumb').append(lang);const inFind=!$('find-bar').hidden,query=inFind?$('find-input').value:$('query').value,settings=inFind?{case:false,word:false,regex:false}:options;f.code.split('\n').forEach((line,i)=>{const row=document.createElement('div');row.className='code-line'+(i+1===state.line?' current':'');row.dataset.line=String(i+1);const n=document.createElement('span');n.className='ln';n.textContent=String(i+1);n.setAttribute('aria-hidden','true');const source=document.createElement('span');source.className='source';syntax(source,line,query,settings);row.append(n,source);row.addEventListener('click',()=>{state.line=i+1;document.querySelectorAll('.code-line.current').forEach(x=>x.classList.remove('current'));row.classList.add('current');updatePosition();});$('code').append(row);});$('status-path').textContent=f.path;$('status-language').textContent=f.language;updatePosition();updateFindCount();}
+  function updatePosition(){ $('position').textContent='行 '+state.line+', 列 1'; }
+  function revealLine(line){const row=$('code').querySelector('[data-line="'+line+'"]');if(!row)return;const viewport=$('code-scroll');const top=row.offsetTop;if(top<viewport.scrollTop+35||top>viewport.scrollTop+viewport.clientHeight-55)viewport.scrollTop=Math.max(0,top-viewport.clientHeight*.35);row.classList.add('target');setTimeout(()=>row.classList.remove('target'),1100);}
+  function findHits(){const f=byId.get(state.active);if(!f)return [];const query=$('find-input').value;return f.code.split('\n').flatMap((s,i)=>ranges(s,query,{case:false,word:false,regex:false}).map(r=>({line:i+1,...r})));}
+  function updateFindCount(){const hits=findHits();$('find-count').textContent=hits.length?(state.findIndex>=0?state.findIndex+1+' / ':'')+hits.length+' 件':'0 件';}
+  function nextFind(step){const hits=findHits();if(!hits.length)return;state.findIndex=state.findIndex<0?(step<0?hits.length-1:0):(state.findIndex+step+hits.length)%hits.length;state.line=hits[state.findIndex].line;const index=state.findIndex;renderCode();state.findIndex=index;updateFindCount();revealLine(state.line);}
+  function openFind(){if(!state.active)return;$('find-bar').dataset.open='true';renderCode();$('find-input').focus();$('find-input').select();}
+  function setTree(show){$('app').classList.toggle('tree-hidden',!show);$('toggle-tree').setAttribute('aria-pressed',String(show));}
+  function setResults(show){$('app').classList.toggle('results-hidden',!show);$('toggle-results').setAttribute('aria-pressed',String(show));}
+  function collectHits(mode){const query=$('query').value;if(!query)return [];const settings=mode==='references'?{case:true,word:true,regex:false}:options;const out=[];files.forEach(f=>{f.code.split('\n').forEach((line,index)=>{let found=ranges(line,query,settings);if(mode==='definition'){if(f.language!=='C#'||!/^\s*(public|private|protected|internal)/.test(line)||!line.includes(query))return;found=found.filter(()=>line.includes(' '+query+'(')||line.includes(' '+query+' '));}found.forEach(hit=>out.push({file:f.id,line:index+1,text:line.trim(),start:hit.start}));});});return out;}
+  function renderResults(){const list=$('result-list');list.replaceChildren();const groups=new Map();state.hits.forEach(h=>{if(!groups.has(h.file))groups.set(h.file,[]);groups.get(h.file).push(h);});$('result-count').textContent=String(state.hits.length);$('result-summary').textContent=state.searching?'検索中…':state.hits.length+' 件の一致 / '+groups.size+' ファイル';if(!state.hits.length){const message=document.createElement('div');message.className='result-message';message.textContent=state.searching?'検索しています…':$('query').value?'一致する結果はありません。':'検索語を入力してください。';list.append(message);}groups.forEach((hits,id)=>{const file=byId.get(id),group=document.createElement('div');group.className='result-group';const heading=document.createElement('button');heading.className='result-file';heading.append(icon('chevron'),symbol(file),document.createTextNode(file.name));const path=document.createElement('span');path.className='file-path';path.textContent=file.path.slice(0,-file.name.length).replace(/\/$/,'');const count=document.createElement('span');count.className='file-hits';count.textContent=String(hits.length);heading.append(path,count);heading.addEventListener('click',()=>openFile(id,hits[0].line));group.append(heading);hits.forEach(hit=>{const b=document.createElement('button');b.className='result-row'+(state.selected===hit?' is-selected':'');const ln=document.createElement('span');ln.className='result-line';ln.textContent=String(hit.line);const text=document.createElement('span');text.className='result-text';highlighted(text,hit.text,$('query').value,state.mode==='references'?{case:true,word:true,regex:false}:options);b.append(ln,text);b.setAttribute('aria-label',file.name+' '+hit.line+'行 '+hit.text);b.addEventListener('click',()=>{state.selected=hit;openFile(hit.file,hit.line);renderResults();});group.append(b);});list.append(group);});}
+  function stopSearch(cancelled=false){clearInterval(state.timer);state.searching=false;$('search-submit').textContent='検索';renderResults();if(cancelled)$('result-summary').textContent='キャンセル済み / '+state.hits.length+' 件の部分結果';}
+  function startSearch(mode='search',immediate=false){clearTimeout(queryTimer);clearInterval(state.timer);state.mode=mode;$('result-title').textContent=mode==='references'?'参照一覧':mode==='definition'?'定義候補（簡易）':'検索結果';$('result-icon').setAttribute('href',mode==='references'?'#i-refs':'#i-search');setResults(true);state.selected=null;state.hits=[];let hits;try{if(options.regex&&mode==='search'&&$('query').value)new RegExp($('query').value,'u');hits=collectHits(mode);}catch(e){state.searching=false;$('search-submit').textContent='検索';$('result-count').textContent='0';$('result-summary').textContent='検索条件を確認してください';$('result-list').replaceChildren();const msg=document.createElement('div');msg.className='result-message error';msg.setAttribute('role','alert');msg.textContent='正規表現が正しくありません。入力を確認してください。';$('result-list').append(msg);return;}if(immediate){state.hits=hits;state.searching=false;renderResults();renderCode();return;}state.searching=true;$('search-submit').textContent='キャンセル';renderResults();renderCode();let at=0;state.timer=setInterval(()=>{state.hits.push(...hits.slice(at,at+2));at+=2;renderResults();if(at>=hits.length){stopSearch();if(mode==='definition'&&state.hits.length===1){openFile(state.hits[0].file,state.hits[0].line);notify('名前一致の定義候補へ移動しました');}}},160);}
+  function closeMenus(){document.querySelectorAll('.menu').forEach(x=>x.hidden=true);document.querySelectorAll('.menu-trigger').forEach(x=>x.setAttribute('aria-expanded','false'));}
+  function selectedIdentifier(){const selected=window.getSelection()?.toString().trim();if(selected&&/^@?[\p{L}_][\p{L}\p{N}_]*$/u.test(selected))return selected.replace(/^@/,'');return 'GetOrderAsync';}
+  function action(name){closeMenus();if(name==='open')$('file-picker').showModal();if(name==='folder'){notify('モックでは Northwind のサンプルフォルダを表示しています');setTree(true);}if(name==='reload'){renderCode();notify('サンプルファイルを再読み込みしました');}if(name==='close-tab'&&state.active)closeTab(state.active);if(name==='tree')setTree($('app').classList.contains('tree-hidden'));if(name==='results')setResults($('app').classList.contains('results-hidden'));if(name==='find')openFind();if(name==='search'){setResults(true);$('query').focus();$('query').select();}if(name==='references'||name==='definition'){if(!state.active)return;if(name==='definition'&&byId.get(state.active).language!=='C#'){notify('簡易定義ジャンプは C# のサンプルが対象です');return;}$('query').value=selectedIdentifier();startSearch(name);}}
+  document.querySelectorAll('[data-menu]').forEach(b=>b.addEventListener('click',e=>{const isOpen=b.getAttribute('aria-expanded')==='true';closeMenus();$(b.dataset.menu).hidden=isOpen;b.setAttribute('aria-expanded',String(!isOpen));e.stopPropagation();}));document.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap'))closeMenus();const trigger=e.target.closest('[data-action]');if(trigger)action(trigger.dataset.action);});
+  $('toggle-tree').addEventListener('click',()=>action('tree'));$('toggle-results').addEventListener('click',()=>action('results'));$('close-results').addEventListener('click',()=>setResults(false));$('refresh-tree').addEventListener('click',()=>notify('サンプルのファイルツリーを再読み込みしました'));$('encoding').addEventListener('click',()=>notify('サンプルの文字コードは UTF-8 です。実アプリでは手動指定に対応予定です。'));
+  $('search-form').addEventListener('submit',e=>{e.preventDefault();if(state.searching)stopSearch(true);else startSearch();});let queryTimer;let composing=false;$('query').addEventListener('compositionstart',()=>composing=true);$('query').addEventListener('compositionend',()=>{composing=false;scheduleSearch();});function scheduleSearch(){clearTimeout(queryTimer);queryTimer=setTimeout(()=>{if(!composing)startSearch();},250);}$('query').addEventListener('input',()=>{if(!composing)scheduleSearch();});[['match-case','case'],['whole-word','word'],['use-regex','regex']].forEach(([id,key])=>$(id).addEventListener('click',()=>{options[key]=!options[key];$(id).setAttribute('aria-pressed',String(options[key]));startSearch();}));
+  $('find-input').addEventListener('input',()=>{if(!composing){state.findIndex=-1;renderCode();}});$('find-input').addEventListener('compositionstart',()=>composing=true);$('find-input').addEventListener('compositionend',()=>{composing=false;state.findIndex=-1;renderCode();});$('find-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();nextFind(e.shiftKey?-1:1);}});$('find-next').addEventListener('click',()=>nextFind(1));$('find-prev').addEventListener('click',()=>nextFind(-1));$('find-close').addEventListener('click',()=>{$('find-bar').dataset.open='false';renderCode();});
+  files.forEach(f=>{const b=document.createElement('button');b.append(symbol(f),document.createTextNode(f.name));const path=document.createElement('small');path.textContent=f.language;b.append(path);b.addEventListener('click',()=>{openFile(f.id);$('file-picker').close();});$('picker-files').append(b);});$('picker-close').addEventListener('click',()=>$('file-picker').close());
+  document.addEventListener('keydown',e=>{if(e.isComposing||composing)return;const mod=e.metaKey||e.ctrlKey;if(mod&&e.key.toLowerCase()==='f'){e.preventDefault();action(e.shiftKey?'search':'find');}else if(e.key==='F12'){e.preventDefault();action(e.shiftKey?'references':'definition');}else if(mod&&e.key.toLowerCase()==='o'){e.preventDefault();action(e.shiftKey?'folder':'open');}else if(mod&&e.key.toLowerCase()==='w'){e.preventDefault();if(state.active)closeTab(state.active);}else if(e.ctrlKey&&e.key==='Tab'){e.preventDefault();if(state.tabs.length){const next=(state.tabs.indexOf(state.active)+(e.shiftKey?-1:1)+state.tabs.length)%state.tabs.length;openFile(state.tabs[next]);}}else if(e.key==='Escape'){closeMenus();if(state.searching)stopSearch(true);else if(!$('find-bar').hidden){$('find-bar').dataset.open='false';renderCode();}}});
+  function setupSplitter(id,axis,css,min,max){const el=$(id);let origin,value;el.addEventListener('pointerdown',e=>{origin=axis==='x'?e.clientX:e.clientY;value=axis==='x'?document.querySelector('.sidebar').getBoundingClientRect().width:$('results').getBoundingClientRect().height;el.setPointerCapture(e.pointerId);el.classList.add('dragging');e.preventDefault();});el.addEventListener('pointermove',e=>{if(!el.classList.contains('dragging'))return;const delta=(axis==='x'?e.clientX:e.clientY)-origin;const v=Math.round(Math.min(max,Math.max(min,value+(axis==='x'?delta:-delta))));$('app').style.setProperty(css,v+'px');el.setAttribute('aria-valuenow',String(v));});function end(){el.classList.remove('dragging');}el.addEventListener('pointerup',end);el.addEventListener('lostpointercapture',end);el.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const sign=['ArrowRight','ArrowUp'].includes(e.key)?1:-1;const v=Math.max(min,Math.min(max,Number(el.getAttribute('aria-valuenow'))+sign*12));$('app').style.setProperty(css,v+'px');el.setAttribute('aria-valuenow',String(v));});}
+  setupSplitter('vsplit','x','--sidebar',170,400);setupSplitter('hsplit','y','--results',125,400);
+  if(innerWidth<=700)setTree(false);renderTabs();startSearch('search',true);revealLine(state.line);
+})();
+</script>
+</body>
+</html>
