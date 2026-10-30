@@ -27,8 +27,11 @@ internal sealed partial class MainWindow : Window
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
+        this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         KeyDown += async (_, key) =>
         {
+            if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
+            { key.Handled = true; ShowSearch(); return; }
             if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
             {
                 key.Handled = true;
@@ -106,6 +109,19 @@ internal sealed partial class MainWindow : Window
         var paths = selected.Select(file => file.TryGetLocalPath()).OfType<string>().ToArray();
         if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
     }
+
+    private void ShowSearch()
+    {
+        if (!_viewModel.CanSearchWorkspace) return;
+        _viewModel.SearchPanel.IsVisible = true;
+        this.FindControl<TextBox>("SearchQuery")!.Focus();
+    }
+
+    private void ShowSearchClicked(object? sender, RoutedEventArgs args) => ShowSearch();
+    private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);
+    private void CancelSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Cancel();
+    private void ClearSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Clear();
+    private void HideSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.IsVisible = false;
 
     private async Task OpenFolderAsync()
     {

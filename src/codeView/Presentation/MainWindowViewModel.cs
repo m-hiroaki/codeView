@@ -35,6 +35,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private readonly HashSet<Task> _manualWork = [];
     private bool _isTreeVisible = true;
     public FileTreeViewModel FileTree { get; } = new(treeYield);
+    public SearchPanelViewModel SearchPanel { get; } = new(() => operations.Searches, () => operations.Workspace, treeYield);
     public bool IsTreeVisible { get => _isTreeVisible && HasWorkspace; set { _isTreeVisible = value; Changed(nameof(IsTreeVisible)); } }
 
     public TextDocument? Document => _document;
@@ -67,7 +68,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
         _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
     };
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, SearchPanel.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -252,7 +253,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (!_stopping) FileTree.Collapse(row);
     }
 
-    private void WorkspaceChanged() => Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary), nameof(IsTreeVisible));
+    private void WorkspaceChanged()
+    {
+        SearchPanel.RefreshWorkspace();
+        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary), nameof(IsTreeVisible));
+    }
 
     private static string ErrorText(ErrorCode code) => code switch
     {
@@ -434,6 +439,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         if (_stopping) return;
         _stopping = true;
+        SearchPanel.Stop();
         _lifetime.Cancel();
         operations.Dispose();
         SyncTabs();
