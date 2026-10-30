@@ -101,3 +101,13 @@ P2-04の走査評価では、`CODEVIEW_PERF_SCAN_FILE=<生成済みファイル>
 本文モデルに依存しないFilesの実装を先行して測る。L1（5万ファイル・1 GiB）の生成後、`CODEVIEW_PERF_DIRECTORY=<生成済みルート>`を指定し、`FullyQualifiedName~DirectoryPerformanceTests`を実行する。兄弟のマニフェストから期待ファイル数・サイズ・seedを読み、実際の列挙件数と照合する。ファイル本文を読まず、ツリーの直下取得と検索用の深さ優先列挙だけを測る。
 
 実測前の初期予算は直下取得/名前順の整列各1秒以内、最初のファイル通知1秒以内、L1全件のメタデータ列挙5秒以内、CPU5秒以内、OSメモリのサンプルピーク増分64 MiB以内とする。10ms間隔のサンプル、割当・Gen0/1/2・GC停止も記録する。直下一覧を全階層のパス一覧と混同せず、全件列挙の結果を配列へ保存しない。GUIのツリー描画・検索文字列照合・Cold I/O・別OSの合格には転用しない。
+
+```sh
+python3 tools/generate_fixture.py artifacts/fixtures/l1 --profile l1
+python3 tools/generate_fixture.py artifacts/fixtures/l1-wide --profile l1 --layout wide
+CODEVIEW_PERF_DIRECTORY="$PWD/artifacts/fixtures/l1" \
+CODEVIEW_PERF_CACHE=warm CODEVIEW_PERF_LABEL=directory-l1-nested \
+dotnet test codeView.slnx -c Release --filter FullyQualifiedName~DirectoryPerformanceTests
+```
+
+wideは入力を`l1-wide`、ラベルを`directory-l1-wide`へ変更する。同名JSONは上書きされるので保存して比較する。生成済みデータは再生成せず測定だけ実行できる。再生成する場合は既存を上書きせず新しい出力先を指定する。結果のProductInformationalVersionで製品のビルド識別情報も記録する。

@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "generator": "codeView-fixture-v1",
+  "seed": 20261031,
+  "files": 50000,
+  "totalBytes": 1073741824,
+  "encoding": "utf-8",
+  "layout": "nested",
+  "extension": "cs",
+  "minFileBytes": 21474,
+  "maxFileBytes": 21475,
+  "literalQuery": "CODEVIEW_MATCH",
+  "expectedMatches": 50000,
+  "firstMatch": {
+    "line": 1,
+    "column": 4
+  },
+  "notFoundQuery": "CODEVIEW_ABSENT_QUERY",
+  "expectedNotFoundMatches": 0,
+  "pathSizeDigest": "2825aa7ff10f9437b572e009b448dff4ee4e736ab6066cefe0750929a5b65433",
+  "generatedRoot": "/Users/hiroaki/Src/codeview/artifacts/fixtures/l1",
+  "cacheCondition": "not-measured; generation warms OS cache"
+}

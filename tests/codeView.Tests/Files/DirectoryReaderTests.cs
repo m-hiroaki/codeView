@@ -40,6 +40,24 @@ public sealed class DirectoryReaderTests
     }
 
     [Test]
+    public async Task EmptyExclusionsIncludeHiddenFoldersWhileExplicitFileOpenBypassesExclusion()
+    {
+        foreach (var name in SettingsSnapshot.Default.ExcludedDirectoryNames)
+        {
+            Directory.CreateDirectory(Path.Combine(_root, name));
+            File.WriteAllText(Path.Combine(_root, name, "source.cs"), "class Source { }");
+        }
+        var reader = new DirectoryReader(_source);
+        var listing = await reader.ReadChildrenAsync(PathOf(), new([]), CancellationToken.None);
+        Assert.That(listing.IsComplete, Is.True);
+        Assert.That(listing.Entries.Select(e => e.Name), Is.EquivalentTo(SettingsSnapshot.Default.ExcludedDirectoryNames));
+        Assert.That(reader.WalkFiles(PathOf(), new([]), CancellationToken.None).Count(e => e.Kind == DirectoryWalkKind.File), Is.EqualTo(4));
+        Assert.That(reader.WalkFiles(PathOf(), DefaultPolicy(), CancellationToken.None).Count(e => e.Kind == DirectoryWalkKind.File), Is.Zero);
+        using var prepared = new FileReader(_source).Prepare(PathOf(Path.Combine("bin", "source.cs")), EncodingChoice.Auto, CancellationToken.None).Value;
+        Assert.That(prepared.Encoding.CodePage, Is.EqualTo(65001));
+    }
+
+    [Test]
     public async Task EmptyMissingAndFileRootsAreDistinct()
     {
         var reader = new DirectoryReader(_source);
