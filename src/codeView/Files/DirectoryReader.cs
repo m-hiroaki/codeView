@@ -35,6 +35,9 @@ internal sealed record DirectoryWalkEvent(DirectoryWalkKind Kind, SourcePath Pat
 /// <summary>Only direct tree children are sorted. Search traversal keeps one enumerator per depth.</summary>
 internal sealed class DirectoryReader(ISourceAccess source)
 {
+    public Task<OperationResult<SourceEntry>> InspectPathAsync(SourcePath path, CancellationToken ct) =>
+        Task.Run(() => source.InspectPath(path, ct), ct);
+
     public Task<OperationResult<SourcePath>> ResolveRootAsync(SourcePath path, CancellationToken ct) =>
         Task.Run(() => source.ResolveDirectory(path, ct), ct);
 

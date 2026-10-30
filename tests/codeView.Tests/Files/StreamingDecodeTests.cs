@@ -183,6 +183,7 @@ public sealed class StreamingDecodeTests
             LastStream = new(path.FullPath, maxRead);
             return OperationResult<FileStream>.Success(LastStream);
         }
+        public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct) => _source.InspectPath(path, ct);
         public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
         public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => _source.ResolveDirectory(path, ct);
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => _source.EnumerateChildren(path, ct);

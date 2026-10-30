@@ -11,6 +11,7 @@ internal interface ISourceAccess
     SourceStamp GetStamp(SourcePath path);
     OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct);
     IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct);
+    OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct);
 }
 
 /// <summary>Read-only I/O boundary. No write/save capability is exposed.</summary>
@@ -21,6 +22,27 @@ internal sealed class SourceAccess : ISourceAccess
         RecurseSubdirectories = false, ReturnSpecialDirectories = false,
         IgnoreInaccessible = false, AttributesToSkip = 0, MatchType = MatchType.Simple
     };
+
+    public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ct.ThrowIfCancellationRequested();
+        try
+        {
+            var attributes = File.GetAttributes(path.FullPath);
+            var kind = (attributes & FileAttributes.Directory) != 0 ? SourceEntryKind.Directory
+                : (attributes & FileAttributes.Device) != 0 ? SourceEntryKind.Other : SourceEntryKind.FileCandidate;
+            ct.ThrowIfCancellationRequested();
+            return OperationResult<SourceEntry>.Success(new(path, Path.GetFileName(path.FullPath), kind,
+                (attributes & FileAttributes.ReparsePoint) != 0));
+        }
+        catch (FileNotFoundException) { return Fail(ErrorCode.NotFound); }
+        catch (DirectoryNotFoundException) { return Fail(ErrorCode.NotFound); }
+        catch (UnauthorizedAccessException) { return Fail(ErrorCode.AccessDenied); }
+        catch (IOException) { return Fail(ErrorCode.IoFailure); }
+
+        OperationResult<SourceEntry> Fail(ErrorCode code) => OperationResult<SourceEntry>.Failure(new(code, path.DisplayPath, true));
+    }
 
     public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct)
     {

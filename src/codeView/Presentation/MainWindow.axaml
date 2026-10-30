@@ -10,6 +10,10 @@
         <Menu Background="#191E26">
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
+                <MenuItem Header="フォルダを開く…" Click="OpenFolderClicked" />
+                <MenuItem Header="フォルダを再読み込み" IsEnabled="{Binding HasWorkspace}" Click="RefreshWorkspaceClicked" />
+                <MenuItem Header="フォルダを閉じる" IsEnabled="{Binding HasWorkspace}" Click="CloseWorkspaceClicked" />
+                <Separator />
                 <MenuItem Header="再読み込み" IsEnabled="{Binding HasDocument}" Click="ReloadClicked" />
                 <MenuItem Header="文字コードを指定して開き直す" IsEnabled="{Binding CanReopenEncoding}">
                     <MenuItem Header="自動判定" Tag="Auto" Click="EncodingClicked" />
@@ -28,7 +32,13 @@
             <MenuItem Header="検索" IsEnabled="False" />
         </Menu>
         <Border Grid.Row="1" Background="#202630" Padding="14,9">
-            <TextBlock Text="{Binding FilePath}" TextTrimming="CharacterEllipsis" Foreground="#BDC8D7" />
+            <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding HasWorkspace}">
+                    <TextBlock Text="{Binding WorkspaceSummary}" Foreground="#94D4C3" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding WorkspacePath}" TextTrimming="CharacterEllipsis" Foreground="#A9B9CD" />
+                </Grid>
+                <TextBlock Text="{Binding FilePath}" TextTrimming="CharacterEllipsis" Foreground="#BDC8D7" />
+            </StackPanel>
         </Border>
         <editor:TextEditor Grid.Row="2" x:Name="Editor"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"

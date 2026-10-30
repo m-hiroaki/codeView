@@ -28,7 +28,7 @@ public sealed class AppOperationsTests
     [TestCase(true)]
     public async Task InProgressSnapshotScanSurvivesCloseOrReplacement(bool replace)
     {
-        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var first = (await operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto)).Value;
         using var lease = first.Document.AcquireReadView();
         using var resume = new ManualResetEventSlim();
@@ -69,7 +69,7 @@ public sealed class AppOperationsTests
     [Test]
     public async Task FailedReplacementKeepsOldDocumentAndCloseReleasesIt()
     {
-        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var first = await operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto);
         Assert.That(first.Status, Is.EqualTo(OperationStatus.Success));
         using var lease = first.Value.Document.AcquireReadView();
@@ -86,7 +86,7 @@ public sealed class AppOperationsTests
     public async Task NewLoadCancelsOldWorkerAndCannotAdoptOldResult()
     {
         using var source = new DelayedAccess();
-        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
         var first = operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto);
         await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
         var second = operations.OpenFileAsync(PathOf("second.cs"), EncodingChoice.Auto);
@@ -100,7 +100,7 @@ public sealed class AppOperationsTests
     public async Task ClosingDuringReadCancelsWorkerAndStopRejectsNewLoads()
     {
         using var source = new DelayedAccess();
-        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
         var first = operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto);
         await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
         operations.CloseFile();
@@ -135,6 +135,7 @@ public sealed class AppOperationsTests
             finally { Interlocked.Decrement(ref _active); }
         }
 
+        public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct) => _source.InspectPath(path, ct);
         public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
         public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => _source.ResolveDirectory(path, ct);
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => _source.EnumerateChildren(path, ct);

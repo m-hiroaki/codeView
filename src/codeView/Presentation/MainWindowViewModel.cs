@@ -25,6 +25,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private bool _initialized;
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
+    private readonly HashSet<Task> _manualWork = [];
 
     public TextDocument? Document => _document;
     public bool HasDocument => _document is not null;
@@ -34,7 +35,16 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public string EncodingName => _encodingName;
     public string EncodingLabel => HasDocument ? _encodingName : "文字コードを指定…";
     public string Position => _position;
-    public Task PendingWork => Task.WhenAll(_pump, _lateSettings);
+    public bool HasWorkspace => operations.Workspace is not null;
+    public bool CanSearchWorkspace => operations.Workspace?.CanSearch == true;
+    public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
+    public string WorkspaceSummary => operations.Workspace is not { } workspace ? "" : workspace.Status switch
+    {
+        WorkspaceStatus.Loading => "フォルダを確認中…",
+        WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
+        _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
+    };
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -103,11 +113,19 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             {
                 try
                 {
+                    var folderSeen = false;
+                    var skippedFolders = 0;
                     foreach (var path in request!.Paths)
                     {
                         if (_stopping) break;
-                        await LoadAsync(path);
+                        if (await OpenPathAsync(path, !folderSeen))
+                        {
+                            if (folderSeen) skippedFolders++;
+                            folderSeen = true;
+                        }
                     }
+                    if (!_stopping && skippedFolders > 0)
+                        SetStatus(Status + $" 後続のフォルダ{skippedFolders}件は開いていません。");
                 }
                 finally { operations.Startup.CompleteOpen(request!.Id); }
             }
@@ -115,17 +133,83 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         finally { _pumping = false; }
     }
 
+    private async Task<bool> OpenPathAsync(string input, bool allowFolder)
+    {
+        SourcePath path;
+        try { path = SourcePath.Create(input, _baseDirectory); }
+        catch (ArgumentException) { SetStatus("パスを確認してください。"); return false; }
+        OperationResult<SourceEntry> inspected;
+        try { inspected = await operations.InspectPathAsync(path, _lifetime.Token); }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return false; }
+        if (_stopping || inspected.Status == OperationStatus.Cancelled) return false;
+        if (inspected.Status == OperationStatus.Failure)
+        { SetStatus(ErrorText(inspected.Error!.Code)); return false; }
+        if (inspected.Value.Kind == SourceEntryKind.Directory)
+        {
+            if (allowFolder) await OpenFolderAsync(path);
+            return true;
+        }
+        await LoadAsync(input);
+        return false;
+    }
+
+    private async Task OpenFolderAsync(SourcePath path)
+    {
+        var settings = operations.Startup.Settings?.Snapshot;
+        if (settings is null || _stopping) return;
+        SetStatus("フォルダを読み込み中… " + path.DisplayPath);
+        var work = operations.OpenFolderAsync(path, settings);
+        WorkspaceChanged();
+        var result = await work;
+        if (_stopping) return;
+        WorkspaceChanged();
+        if (result.Status == OperationStatus.Cancelled) return;
+        SetStatus(result.Status == OperationStatus.Success ? "フォルダを開きました。"
+            : "フォルダを読み込めません。 " + ErrorText(result.Error!.Code));
+    }
+
+    public async Task RefreshWorkspaceAsync()
+    {
+        if (operations.Workspace is { } workspace)
+            await TrackManualAsync(OpenFolderAsync(workspace.RequestedPath));
+    }
+
+    private async Task TrackManualAsync(Task operation)
+    {
+        _manualWork.Add(operation);
+        try { await operation; }
+        finally { _manualWork.Remove(operation); }
+    }
+
+    public void CloseWorkspace()
+    {
+        operations.CloseWorkspace();
+        WorkspaceChanged();
+        SetStatus("フォルダを閉じました。");
+    }
+
+    private void WorkspaceChanged() => Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary));
+
+    private static string ErrorText(ErrorCode code) => code switch
+    {
+        ErrorCode.NotFound => "パスが見つかりません。",
+        ErrorCode.AccessDenied => "読み取る権限がありません。",
+        ErrorCode.NotRegularFile => "対応する通常ファイルまたはフォルダを指定してください。",
+        ErrorCode.BrokenLink => "リンク先が見つかりません。",
+        _ => "読み取れませんでした。"
+    };
+
     public async Task ReloadAsync()
     {
         if (operations.CurrentFile is not null)
-            await LoadAsync(operations.CurrentFile.Path.FullPath, _encodingChoice, true);
+            await TrackManualAsync(LoadAsync(operations.CurrentFile.Path.FullPath, _encodingChoice, true));
     }
 
     public async Task ReopenEncodingAsync(EncodingChoice choice)
     {
         if (!Enum.IsDefined(choice)) throw new ArgumentOutOfRangeException(nameof(choice));
         var path = operations.CurrentFile?.Path ?? _failedPath;
-        if (path is not null) await LoadAsync(path.FullPath, choice, true);
+        if (path is not null) await TrackManualAsync(LoadAsync(path.FullPath, choice, true));
     }
 
     private async Task LoadAsync(string input, EncodingChoice choice = EncodingChoice.Auto, bool preservePosition = false)
@@ -212,6 +296,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _lifetime.Cancel();
         CloseFile();
         operations.Dispose();
+        WorkspaceChanged();
     }
 
     public void SetStatus(string status) { _status = status; Changed(nameof(Status)); }

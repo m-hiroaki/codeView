@@ -82,6 +82,16 @@ internal sealed partial class MainWindow : Window
         if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
     }
 
+    private async Task OpenFolderAsync()
+    {
+        var selected = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "フォルダを開く", AllowMultiple = false
+        });
+        var paths = selected.Select(folder => folder.TryGetLocalPath()).OfType<string>().ToArray();
+        if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
+    }
+
     private async Task RunAsync(Func<Task> operation)
     {
         try { await operation(); }
@@ -96,6 +106,9 @@ internal sealed partial class MainWindow : Window
     }
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
+    private async void OpenFolderClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFolderAsync);
+    private async void RefreshWorkspaceClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.RefreshWorkspaceAsync);
+    private void CloseWorkspaceClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseWorkspace();
     private async void ReloadClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.ReloadAsync);
     private async void EncodingClicked(object? sender, RoutedEventArgs args)
     {

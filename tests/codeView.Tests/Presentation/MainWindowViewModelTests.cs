@@ -9,6 +9,85 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class MainWindowViewModelTests
 {
+    [Test]
+    public void ShutdownWaitsForManualRefreshAndCannotRestoreWorkspace() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Path.Combine(Path.GetTempPath(), "codeview-refresh-" + Guid.NewGuid().ToString("N"));
+        var folder = Path.Combine(root, "first");
+        Directory.CreateDirectory(folder);
+        using var source = new CodeView.Tests.Operations.WorkspaceTests.ControlledSource();
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+        var viewModel = new MainWindowViewModel(operations,
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
+        Task refresh = Task.CompletedTask;
+        try
+        {
+            await viewModel.InitializeAsync([folder]);
+            source.DelayResolution = true;
+            refresh = viewModel.RefreshWorkspaceAsync();
+            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            viewModel.Stop();
+            var pending = viewModel.PendingWork;
+            Assert.That(pending.IsCompleted, Is.False);
+            Assert.That(viewModel.HasWorkspace, Is.False);
+            source.Release.Set();
+            await pending.WaitAsync(TimeSpan.FromSeconds(5));
+            await refresh;
+            Assert.That(viewModel.HasWorkspace, Is.False);
+        }
+        finally
+        {
+            source.Release.Set();
+            viewModel.Stop();
+            await refresh;
+            await viewModel.PendingWork;
+            Directory.Delete(root, true);
+        }
+    });
+
+    [Test]
+    public void QueuedFolderWaitsForSettingsAndMixedInputUsesFirstFolder() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Path.Combine(Path.GetTempPath(), "codeview-folder-ui-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "skip"));
+        Directory.CreateDirectory(Path.Combine(root, "second"));
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
+        var portable = Path.Combine(root, "settings.json");
+        var viewModel = new MainWindowViewModel(operations, new SettingsStore(new(portable, Path.Combine(root, "user.json"))));
+        try
+        {
+            await File.WriteAllTextAsync(portable, "{\"schemaVersion\":1,\"excludedDirectoryNames\":[\"skip\"]}");
+            var file = Path.Combine(root, "body.cs");
+            await File.WriteAllTextAsync(file, "class Body { }");
+            await viewModel.OpenFilesAsync([root, file, Path.Combine(root, "second")], OpenOrigin.Menu);
+            Assert.That(operations.Workspace, Is.Null);
+            Assert.That(viewModel.Document, Is.Null);
+            await viewModel.InitializeAsync([]);
+            Assert.That(viewModel.WorkspacePath, Is.EqualTo(root));
+            Assert.That(viewModel.CanSearchWorkspace, Is.True);
+            Assert.That(operations.Workspace!.RootListing!.Entries.Select(e => e.Name), Does.Not.Contain("skip"));
+            Assert.That(viewModel.Document!.Text, Is.EqualTo("class Body { }"));
+            Assert.That(viewModel.Status, Does.Contain("後続のフォルダ1件"));
+            var document = viewModel.Document;
+            var before = operations.Workspace.RootListing.Entries.Count;
+            await File.WriteAllTextAsync(Path.Combine(root, "added.cs"), "// added");
+            await viewModel.RefreshWorkspaceAsync();
+            Assert.That(operations.Workspace!.RootListing!.Entries, Has.Count.EqualTo(before + 1));
+            Assert.That(viewModel.Document, Is.SameAs(document));
+            await viewModel.OpenFilesAsync([Path.Combine(root, "second")], OpenOrigin.Menu);
+            Assert.That(viewModel.WorkspacePath, Is.EqualTo(Path.Combine(root, "second")));
+            Assert.That(viewModel.WorkspaceSummary, Is.EqualTo("フォルダ: 0項目"));
+            viewModel.CloseWorkspace();
+            Assert.That(viewModel.HasWorkspace, Is.False);
+            Assert.That(viewModel.CanSearchWorkspace, Is.False);
+            Assert.That(viewModel.Document, Is.SameAs(document));
+            await viewModel.OpenFilesAsync([root], OpenOrigin.Menu);
+            viewModel.CloseFile();
+            Assert.That(viewModel.HasWorkspace, Is.True);
+        }
+        finally { viewModel.Stop(); await viewModel.PendingWork; Directory.Delete(root, true); }
+    });
+
     [TestCase(EncodingChoice.Utf8)]
     [TestCase(EncodingChoice.Cp932)]
     [TestCase(EncodingChoice.Utf16Le)]
@@ -19,7 +98,7 @@ internal sealed class MainWindowViewModelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "codeview-encoding-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
             new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
         try
@@ -80,7 +159,7 @@ internal sealed class MainWindowViewModelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "codeview-encoding-failure-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
             new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
         try
@@ -112,7 +191,7 @@ internal sealed class MainWindowViewModelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "codeview-viewmodel-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter());
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
             new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
         try

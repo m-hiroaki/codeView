@@ -159,6 +159,7 @@ public sealed class DirectoryTraversalTests
         public int Disposed { get; private set; }
         public List<string> Entered { get; } = [];
         public OperationResult<FileStream> OpenRead(SourcePath path, CancellationToken ct) => throw new InvalidOperationException("No file bodies during enumeration.");
+        public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct) => throw new InvalidOperationException();
         public SourceStamp GetStamp(SourcePath path) => throw new InvalidOperationException();
         public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => OperationResult<SourcePath>.Success(path);
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => new TrackingEnumerable(this, path, children);
