@@ -6,9 +6,20 @@
 
 ## 開発状況
 
-現在は設計段階です。要件定義書・基本設計書・アーキテクチャ設計書・詳細設計書を整備しており、アプリ本体とテストコードは未実装です。実行可能な配布物、ビルド・起動手順はまだありません。
+現在は実装開始段階です。設計書に基づく.NET / Avaloniaの骨格と共通契約の単体テストを追加しています。ファイル表示・検索等の主要機能、性能検証、配布物はまだ完成していません。進捗と未検証事項は[実装・検証記録](docs/development-log.md)を参照してください。
 
-以下の機能・性能・対応環境は計画であり、実装済みの機能や検証済みの性能を示すものではありません。
+以下の機能一覧は目標の仕様です。実装済みの機能や検証済みの性能を示すものではありません。
+
+開発用の.NET SDKは`global.json`で固定しています。リポジトリのルートで以下を実行できます（依存パッケージの初回取得には通信が必要です）。
+
+```sh
+dotnet restore codeView.slnx --locked-mode
+dotnet build codeView.slnx -c Release --no-restore
+dotnet test codeView.slnx -c Release --no-restore
+dotnet run --project src/codeView/codeView.csproj --no-restore
+```
+
+製品自体はオフラインで動作する設計です。現在のGUIは最小ウィンドウの骨格です。
 
 ## 大切にすること
 

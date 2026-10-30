@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CodeView.Presentation.MainWindow"
+        Title="codeView" Width="1180" Height="800" MinWidth="680" MinHeight="460"
+        Background="#14181F">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Menu Background="#191E26">
+            <MenuItem Header="ファイル" />
+            <MenuItem Header="表示" />
+            <MenuItem Header="検索" />
+        </Menu>
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+            <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
+            <TextBlock Text="ファイルを開いて、読み始めましょう。" Foreground="#8D98AA" />
+        </StackPanel>
+        <Border Grid.Row="2" Background="#202A31" Padding="12,6">
+            <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
+        </Border>
+    </Grid>
+</Window>
