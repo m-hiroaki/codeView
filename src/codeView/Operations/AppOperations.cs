@@ -17,11 +17,13 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private readonly OperationIdentity _workspaceEpoch = new();
     private readonly OperationIdentity _workspaceSearchEpoch = new();
     private CancellationTokenSource? _workspaceLifetime;
+    private readonly List<Task> _retiredTreeWork = [];
 
     public StartupOpenQueue Startup { get; } = new();
     public LoadedFile? CurrentFile { get; private set; }
     public WorkspaceState? Workspace { get; private set; }
     public long WorkspaceSearchEpoch => _workspaceSearchEpoch.Current;
+    public Task PendingTreeWork => Task.WhenAll(_retiredTreeWork.Append(Workspace?.Tree?.PendingWork ?? Task.CompletedTask));
 
     public Task<OperationResult<SourceEntry>> InspectPathAsync(SourcePath path, CancellationToken ct) =>
         _stopping ? Task.FromResult(OperationResult<SourceEntry>.Cancelled()) : directories.InspectPathAsync(path, ct);
@@ -54,6 +56,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
             var listing = await directories.ReadChildrenAsync(resolved.Value, workspace.Policy, load.Token);
             if (!CanAdopt()) return OperationResult<WorkspaceState>.Cancelled();
             workspace.Complete(listing);
+            workspace.Tree = new TreeSession(directories, _treeSlot, workspace.Policy, workspace.Token, listing);
             return listing.IsComplete ? OperationResult<WorkspaceState>.Success(workspace)
                 : OperationResult<WorkspaceState>.Failure(listing.Error!);
         }
@@ -81,6 +84,12 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
 
     private void CancelWorkspace()
     {
+        if (Workspace?.Tree is { } tree)
+        {
+            tree.Dispose();
+            _retiredTreeWork.RemoveAll(task => task.IsCompletedSuccessfully);
+            _retiredTreeWork.Add(tree.PendingWork);
+        }
         _workspaceLifetime?.Cancel();
         _workspaceLifetime?.Dispose();
         _workspaceLifetime = null;

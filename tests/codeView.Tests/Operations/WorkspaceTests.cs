@@ -132,12 +132,36 @@ public sealed class WorkspaceTests
         Assert.Throws<OperationCanceledException>(() => source.InspectPath(PathOf("first"), cancelled.Token));
     }
 
+    [Test]
+    public void RootSwitchWaitsForChildEnumerationAndTracksItsRetiredTree() => SingleThreadTestContext.Run(async () =>
+    {
+        using var source = new ControlledSource();
+        using var operations = Create(source);
+        var workspace = (await operations.OpenFolderAsync(PathOf("first"), SettingsSnapshot.Default)).Value;
+        source.DelayListingName = "skip";
+        var old = workspace.Tree!.ExpandAsync(workspace.Tree.Root.Children.First(n => n.Entry.Name == "skip"));
+        await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var next = operations.OpenFolderAsync(PathOf("second"), SettingsSnapshot.Default);
+        try
+        {
+            Assert.That(next.IsCompleted, Is.False);
+            Assert.That(operations.PendingTreeWork.IsCompleted, Is.False);
+            Assert.That(workspace.Tree.Root.Children, Is.Empty);
+        }
+        finally { source.Release.Set(); }
+        Assert.That((await old).Status, Is.EqualTo(OperationStatus.Cancelled));
+        Assert.That((await next).Status, Is.EqualTo(OperationStatus.Success));
+        await operations.PendingTreeWork;
+        Assert.That(operations.Workspace!.Tree!.Root.Children, Is.Empty);
+    });
+
     internal sealed class ControlledSource : ISourceAccess, IDisposable
     {
         private readonly SourceAccess _source = new();
         private int _active;
         public bool DelayResolution { get; set; }
         public bool ListingFailure { get; set; }
+        public string? DelayListingName { get; set; }
         public bool UnexpectedFailure { get; init; }
         public int MaxActive { get; private set; }
         public int Listed { get; private set; }
@@ -164,6 +188,11 @@ public sealed class WorkspaceTests
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct)
         {
             Listed++;
+            if (Path.GetFileName(path.FullPath) == DelayListingName)
+            {
+                Entered.TrySetResult();
+                Release.Wait();
+            }
             foreach (var entry in _source.EnumerateChildren(path, ct))
             {
                 yield return entry;

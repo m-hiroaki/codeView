@@ -17,6 +17,7 @@ internal sealed class WorkspaceState(SourcePath requestedPath, SettingsSnapshot 
     public WorkspaceStatus Status { get; private set; } = WorkspaceStatus.Loading;
     public SourcePath? ResolvedPath { get; private set; }
     public DirectoryListing? RootListing { get; private set; }
+    public TreeSession? Tree { get; internal set; }
     public OperationError? Error { get; private set; }
     public bool CanSearch => Status == WorkspaceStatus.Ready && !Token.IsCancellationRequested;
 

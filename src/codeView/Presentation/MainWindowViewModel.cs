@@ -44,7 +44,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
         _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
     };
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;

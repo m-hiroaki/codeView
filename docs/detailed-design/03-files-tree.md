@@ -6,11 +6,11 @@
 
 | 型・配置 | 設計上のメソッド | 責務 |
 | --- | --- | --- |
-| `ISourceAccess` / Files | `OpenRead`、`GetStamp`、`ResolveDirectory`、`EnumerateChildren` | OS差と読取I/Oの試験境界。同期入口はワーカー専用。書込メソッドなし |
+| `ISourceAccess` / Files | `OpenRead`、`GetStamp`、`InspectPath`、`ResolveDirectory`、`EnumerateChildren` | OS差と読取I/Oの試験境界。同期入口はワーカー専用。書込メソッドなし |
 | `SourceAccess` / Files | 上記の具体実装 | 通常ファイル確認・リンク確認・ストリーム・メタデータ |
 | `FileReader` / Files | `PrepareAsync(path, encodingChoice, ct)`、`ReadChunksAsync(prepared, consume, ct)`、`ReadChunks(prepared, consume, ct)` | 厳格な文字コード準備と逐次読込。同期版もUI外の本文構築用に限る |
 | `PreparedText` / Files | 選択文字コード、判定情報、SourceStamp、現在の読取資源 | 呼出元セッションが所有し、終了時に破棄する |
-| `DirectoryReader` / Files | `ResolveRootAsync`、`ReadChildrenAsync(folder, policy, ct)`、`WalkFiles(root, policy, ct)` | ツリー直下列挙とワーカー上の検索用逐次列挙 |
+| `DirectoryReader` / Files | `InspectPathAsync`、`ResolveRootAsync`、`ReadChildrenAsync(folder, policy, ct)`、`WalkFiles(root, policy, ct)` | 入力種別確認、ツリー直下列挙とワーカー上の検索用逐次列挙 |
 | `ExclusionPolicy` / Files | `IsExcludedDirectory(name)`、`IsSearchTarget(entry)` | スナップショット化した名前リストとリンク規則 |
 | `SourceEntry` / Files | 指定パス・名前・Directory/FileCandidate/Other・リンク有無 | UI型を含まない列挙時点の情報。FileCandidateの通常ファイル確認はOpen境界で行う |
 | `DirectoryListing` / Files | 直下の読取専用一覧、Error、IsComplete | 部分一覧と失敗を同時に保持。空の成功と失敗を区別する |
@@ -86,6 +86,22 @@ Decoderはパス/検証ごとに新しく作り、UTF-8からCP932への再試�
 5. 空はLoadedの空一覧。失敗はFailedとして再試行を許可する。途中失敗は部分一覧と明示し、再展開で成功扱いにしない。
 
 再読込操作は子一覧の世代を更新し、旧結果を破棄する。折りたたみは表示を外し、要求が不要なら取消する。折りたたみ済み子一覧はLRU順に破棄し、CollapsedCacheNodesの上限を守る。開いたタブはツリーノードを所有せず、ツリー破棄で本文が閉じない。
+
+### 6.1 Operations内の状態と寿命
+
+`WorkspaceState.Tree`が`TreeSession`を所有し、ルート直下の確認結果から初期論理ノードを作る。TreeSessionはUI型や本文型を参照せず、`ExpandAsync(node, reload)`、`Collapse(node)`、`Dispose`、`PendingWork`を持つ。TreeNodeStateはSourceEntry、子一覧、状態、展開有無、世代、失敗、所属セッション/接続有無を保持する。ルートの再読込はWorkspaceの操作から行い、TreeSession内の再読込対象は子フォルダとする。
+
+同じLoadingノードへの通常展開は同じTaskを返す。Loadedは再利用し、Failedは部分一覧があっても再列挙する。リンク/ファイルは展開を拒否する。切り離されたノードと終了済みセッションの要求は取消済みとして扱い、別セッションのノード指定はプログラミングエラーとする。再読込はそのノードと子孫の旧要求・旧一覧を無効化する。
+
+ツリー枠1はルート解決/列挙と子列挙で共有する。待機は既定64要求、実行中は最大1要求。同じノードの集約を先に判定し、上限に達した新規要求はQueueFullで拒否してノード状態を変えない。取消済みでも継続処理が終わっていない物理的な待機Taskを予算に数え、連続展開/折りたたみで待機数が無制限にならないようにする。
+
+折りたたみでは当該要求と子孫の要求を取消し、孫以下の一覧を破棄する。当該ノードの直下だけをLRUキャッシュに残し、キャッシュ内の直下ノード数合計を10,000以下にする。一覧単体で上限を超える場合はその一覧も破棄する。再展開による利用時はキャッシュから外し、再度折りたたんだ時に最新の利用順へ入れる。空のLoadedは追加ノードを保持しないためキャッシュ件数0でも再利用できる。破棄は明示スタックで処理し、深い階層で再帰呼出を増やさない。
+
+ルート切替/閉鎖時は旧TreeSessionをDisposeし、全要求を取り消して一覧を外す。取消不能I/OはTask完了まで枠を保持する。AppOperationsは旧セッションのPendingWorkも終了待ちへ引き継ぎ、ViewModelのPendingWorkに含める。結果採用はルート寿命Token、ノード所属/接続、展開有無、ノード世代をすべて確認する。予期しない例外はFailed/Unexpectedを記録して上位へ伝え、空の成功に変換しない。
+
+この責務をAppOperationsに直書きするとノード別要求・キャッシュ管理まで集中するため、同じOperations内の専用クラスへ分ける。利点はUIや本文モデルを起動せず取消/上限を試験できること、不利点はWorkspaceとセッションの終了待ち接続が増えること。影響はOperationsの内部状態と終了時の待機に限定し、層・依存方向・Contractsは変えない。論理状態と単体試験→表示への小分け反映→仮想化・実機性能の順で接続し、既存の本文やルート入力処理を置換しない。
+
+現時点の実装は論理状態まで。UIへのバッチ反映、展開操作、仮想化コンテナ、実機での直下大量表示は後続作業であり、本実装だけでFT-04/P3-03を完了としない。
 
 直下の並び替えは直下項目数に比例するメモリを使う。検索用の全階層パス保持と同一視しない。直下大量構成で予算を超えた場合は部分表示・並び替え方式を評価し、無断で無制限保持へ拡大しない。
 
