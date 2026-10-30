@@ -5,18 +5,44 @@ namespace CodeView.Tests.Performance;
 
 public sealed class TextWindowTests
 {
-    [TestCase(0)]
-    [TestCase(16384)]
-    [TestCase(100000)]
-    public void WindowStaysBoundedAndMapsBackToSource(int offset)
+    [TestCase(null, 16384)]
+    [TestCase("4", 4)]
+    [TestCase("1024", 1024)]
+    [TestCase("4096", 4096)]
+    [TestCase("16384", 16384)]
+    public void MeasurementWindowSizeIsExplicitAndBounded(string? value, int expected) =>
+        Assert.That(TextWindow.ParseWindowChars(value), Is.EqualTo(expected));
+
+    [TestCase("")]
+    [TestCase("3")]
+    [TestCase("16385")]
+    [TestCase("-1")]
+    [TestCase("+1024")]
+    [TestCase(" 1024")]
+    [TestCase("1024 ")]
+    [TestCase("1.5")]
+    [TestCase("999999999999999999")]
+    public void InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(string value) =>
+        Assert.Throws<ArgumentException>(() => TextWindow.ParseWindowChars(value));
+
+    [TestCase(0, 16384)]
+    [TestCase(16384, 16384)]
+    [TestCase(100000, 16384)]
+    [TestCase(0, 1024)]
+    [TestCase(50000, 1024)]
+    [TestCase(100000, 1024)]
+    [TestCase(0, 4096)]
+    [TestCase(50000, 4096)]
+    [TestCase(100000, 4096)]
+    public void WindowStaysBoundedAndMapsBackToSource(int offset, int size)
     {
         using var builder = new AvaloniaEditDocumentAdapter().CreateBuilder();
         var original = new string('a', 100000);
         builder.Append(original.AsMemory());
         using var handle = builder.Complete();
         using var lease = handle.AcquireReadView();
-        var window = TextWindow.Create(lease, offset);
-        Assert.That(window.Text.Length, Is.LessThanOrEqualTo(TextWindow.MaxWindowChars));
+        var window = TextWindow.Create(lease, offset, size);
+        Assert.That(window.Text.Length, Is.LessThanOrEqualTo(size));
         Assert.That(window.SourceOffset, Is.LessThanOrEqualTo(offset));
         Assert.That(window.SourceOffset + window.Text.Length, Is.GreaterThanOrEqualTo(offset));
         Assert.That(window.Text, Is.EqualTo(original.Substring((int)window.SourceOffset, window.Text.Length)));

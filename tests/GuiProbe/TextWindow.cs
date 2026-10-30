@@ -1,3 +1,4 @@
+using System.Globalization;
 using CodeView.Documents;
 
 namespace CodeView.Presentation;
@@ -6,6 +7,15 @@ namespace CodeView.Presentation;
 internal sealed record TextWindow(long SourceOffset, long TargetOffset, string Text)
 {
     internal const int MaxWindowChars = 16 * 1024;
+
+    internal static int ParseWindowChars(string? value)
+    {
+        if (value is null) return MaxWindowChars;
+        if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var size) ||
+            size is < 4 or > MaxWindowChars)
+            throw new ArgumentException("表示量には4〜16,384の整数を指定してください。", nameof(value));
+        return size;
+    }
 
     internal static TextWindow Create(DocumentReadLease source, long targetOffset, int maxChars = MaxWindowChars)
     {

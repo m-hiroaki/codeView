@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
@@ -28,7 +30,9 @@ internal sealed class GuiPerformanceProbe
     private double? _documentTwoTicksMilliseconds;
     private long _previousTick;
     private bool _finished;
+    private bool _inputInterrupted;
     private readonly bool _windowed = Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1";
+    private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
     private TextDocument? _sourceDocument;
     private DocumentReadLease? _sourceLease;
     private int _largestDisplayChars;
@@ -39,6 +43,9 @@ internal sealed class GuiPerformanceProbe
     private readonly long _memoryBefore;
     private long _peakMemory;
     private int _sampleCount;
+    private readonly long _allocatedBefore = GC.GetTotalAllocatedBytes(true);
+    private readonly TimeSpan _pauseBefore = GC.GetTotalPauseDuration();
+    private readonly int[] _collectionsBefore = [GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2)];
 
     private GuiPerformanceProbe(Window window, TextEditor editor, string output, bool hasInput)
     {
@@ -68,6 +75,21 @@ internal sealed class GuiPerformanceProbe
         if (!Path.IsPathFullyQualified(output) || File.Exists(output) || !Directory.Exists(Path.GetDirectoryName(output)))
             throw new ArgumentException("計測結果には未使用の絶対パスを指定してください。");
         var probe = _instance = new(window, editor, output, hasInput);
+        // This workload injects no input. Abort rather than mixing an interactive
+        // selection/scroll operation with automatic document replacement.
+        void InterruptForInput(object? sender, RoutedEventArgs args)
+        {
+            args.Handled = true;
+            if (probe._inputInterrupted) return;
+            probe._inputInterrupted = true;
+            Phase("physical-input-interrupted");
+            Dispatcher.UIThread.Post(() => probe.Finish("physical-input-during-probe"));
+        }
+        window.AddHandler(InputElement.PointerPressedEvent, InterruptForInput, RoutingStrategies.Tunnel);
+        window.AddHandler(InputElement.PointerWheelChangedEvent, InterruptForInput, RoutingStrategies.Tunnel);
+        window.AddHandler(InputElement.KeyDownEvent, InterruptForInput, RoutingStrategies.Tunnel);
+        window.Closing += (_, args) => Phase($"window-closing cancelled-at-probe-handler={args.Cancel}");
+        window.Closed += (_, _) => Phase("window-closed");
         window.Opened += (_, _) =>
         {
             probe._openedMilliseconds = Startup.Elapsed.TotalMilliseconds;
@@ -103,7 +125,7 @@ internal sealed class GuiPerformanceProbe
 
     private (TextDocument Document, TextLocation Target) BuildDisplayWindow(long offset)
     {
-        var window = TextWindow.Create(_sourceLease!, offset);
+        var window = TextWindow.Create(_sourceLease!, offset, _windowChars);
         var document = new TextDocument(window.Text);
         document.UndoStack.SizeLimit = 0;
         _largestDisplayChars = Math.Max(_largestDisplayChars, document.TextLength);
@@ -127,7 +149,7 @@ internal sealed class GuiPerformanceProbe
     private void ScrollStep(int index)
     {
         Dispatcher.UIThread.VerifyAccess();
-        if (_finished) return;
+        if (_finished || _inputInterrupted) return;
         if (index == ScrollProbePlan.StepCount) { Finish(); return; }
         var document = _sourceDocument ?? _editor.Document;
         var (line, column) = ScrollProbePlan.Target(index, document.LineCount, document.GetLineByNumber(1).Length);
@@ -160,13 +182,19 @@ internal sealed class GuiPerformanceProbe
         _sampler.GetAwaiter().GetResult();
         _peakMemory = Math.Max(_peakMemory, _memory.ReadBytes());
         using var process = Process.GetCurrentProcess();
+        var allocatedBytes = GC.GetTotalAllocatedBytes(true) - _allocatedBefore;
+        var pauseMilliseconds = (GC.GetTotalPauseDuration() - _pauseBefore).TotalMilliseconds;
+        var collections = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) }
+            .Select((count, index) => count - _collectionsBefore[index]).ToArray();
+        var lastGc = GC.GetGCMemoryInfo();
         var report = new
         {
-            FormatVersion = 1, MeasuredAtUtc = DateTimeOffset.UtcNow,
+            FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
             Scenario = "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
+            ConfiguredWindowChars = _windowed ? (int?)_windowChars : null,
             OpenedMilliseconds = _openedMilliseconds, WindowTwoTicksMilliseconds = _emptyWindowTwoTicksMilliseconds,
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,
@@ -177,7 +205,12 @@ internal sealed class GuiPerformanceProbe
             MemoryIncrease = _peakMemory - _memoryBefore, SamplingIntervalMilliseconds = 10, MemorySamples = _sampleCount,
             ClientWidth = _window.ClientSize.Width, ClientHeight = _window.ClientSize.Height,
             RenderScaling = _window.RenderScaling, PhysicalPaint = "not-measured", PhysicalInput = "not-measured",
-            CpuMilliseconds = process.TotalProcessorTime.TotalMilliseconds
+            InputInterrupted = _inputInterrupted,
+            CpuMilliseconds = process.TotalProcessorTime.TotalMilliseconds,
+            AllocatedBytes = allocatedBytes, GcCollections = collections, GcPauseTotalMilliseconds = pauseMilliseconds,
+            GcMeasurementScope = "probe-construction-to-finish-before-report-serialization",
+            LastGcLohBytes = lastGc.GenerationInfo.Length > 3 ? (long?)lastGc.GenerationInfo[3].SizeAfterBytes : null,
+            LastGcIndex = lastGc.Index, IndividualGcPauses = "not-traced", LohAllocatedBytes = "not-traced"
         };
         using (var stream = new FileStream(_output, FileMode.CreateNew, FileAccess.Write))
             JsonSerializer.Serialize(stream, report, new JsonSerializerOptions { WriteIndented = true });
@@ -189,7 +222,9 @@ internal sealed class GuiPerformanceProbe
         _memory.Dispose();
         _sampling.Dispose();
         if (failure is not null) Environment.ExitCode = 1;
-        _window.Close();
+        // Finish can run in the animation callback. Leave that callback before
+        // initiating the normal product shutdown sequence.
+        Dispatcher.UIThread.Post(_window.Close);
     }
 
     private static void Phase(string phase) => Console.WriteLine($"GUI-PROBE {Startup.Elapsed.TotalMilliseconds:F3} {phase}");

@@ -1,0 +1,164 @@
+[
+  {
+    "run": "long50-size1024-final-20261031-1",
+    "size": 1024,
+    "attachmentMs": 10.119,
+    "scrollMaxMs": 15.8696,
+    "tickMaxMs": 18.541,
+    "tickMedianMs": 16.66405,
+    "tickP95Ms": 17.6693,
+    "memoryIncreaseMiB": 293.78143310546875,
+    "allocatedMiB": 272.9300003051758,
+    "gcPauseMs": 79.917,
+    "collections": [
+      37,
+      14,
+      3
+    ],
+    "cpuMs": 1209.38
+  },
+  {
+    "run": "long50-size1024-final-20261031-2",
+    "size": 1024,
+    "attachmentMs": 11.1217,
+    "scrollMaxMs": 10.1319,
+    "tickMaxMs": 20.5372,
+    "tickMedianMs": 16.660249999999998,
+    "tickP95Ms": 16.8693,
+    "memoryIncreaseMiB": 279.35953521728516,
+    "allocatedMiB": 272.92962646484375,
+    "gcPauseMs": 71.353,
+    "collections": [
+      37,
+      14,
+      3
+    ],
+    "cpuMs": 1191.248
+  },
+  {
+    "run": "long50-size1024-final-20261031-3",
+    "size": 1024,
+    "attachmentMs": 10.627,
+    "scrollMaxMs": 10.2425,
+    "tickMaxMs": 17.0106,
+    "tickMedianMs": 16.663800000000002,
+    "tickP95Ms": 16.837,
+    "memoryIncreaseMiB": 279.60955810546875,
+    "allocatedMiB": 272.95355224609375,
+    "gcPauseMs": 70.274,
+    "collections": [
+      37,
+      14,
+      3
+    ],
+    "cpuMs": 1182.309
+  },
+  {
+    "run": "long50-size4096-final-20261031-1",
+    "size": 4096,
+    "attachmentMs": 20.7565,
+    "scrollMaxMs": 14.6271,
+    "tickMaxMs": 25.3844,
+    "tickMedianMs": 16.6672,
+    "tickP95Ms": 17.1093,
+    "memoryIncreaseMiB": 288.67203521728516,
+    "allocatedMiB": 322.9468307495117,
+    "gcPauseMs": 100.446,
+    "collections": [
+      43,
+      16,
+      3
+    ],
+    "cpuMs": 1524.184
+  },
+  {
+    "run": "long50-size4096-final-20261031-2",
+    "size": 4096,
+    "attachmentMs": 19.7772,
+    "scrollMaxMs": 14.5333,
+    "tickMaxMs": 19.54,
+    "tickMedianMs": 16.661749999999998,
+    "tickP95Ms": 16.7254,
+    "memoryIncreaseMiB": 289.10955810546875,
+    "allocatedMiB": 322.8321533203125,
+    "gcPauseMs": 99.159,
+    "collections": [
+      43,
+      16,
+      3
+    ],
+    "cpuMs": 1560.878
+  },
+  {
+    "run": "long50-size4096-final-20261031-3",
+    "size": 4096,
+    "attachmentMs": 19.914,
+    "scrollMaxMs": 14.0169,
+    "tickMaxMs": 33.3839,
+    "tickMedianMs": 16.6642,
+    "tickP95Ms": 16.7265,
+    "memoryIncreaseMiB": 288.46893310546875,
+    "allocatedMiB": 322.7753372192383,
+    "gcPauseMs": 108.514,
+    "collections": [
+      43,
+      16,
+      3
+    ],
+    "cpuMs": 1494.947
+  },
+  {
+    "run": "long50-size16384-final-20261031-1",
+    "size": 16384,
+    "attachmentMs": 45.5565,
+    "scrollMaxMs": 42.769,
+    "tickMaxMs": 53.5308,
+    "tickMedianMs": 33.335049999999995,
+    "tickP95Ms": 50.0231,
+    "memoryIncreaseMiB": 339.76580810546875,
+    "allocatedMiB": 537.0033721923828,
+    "gcPauseMs": 225.896,
+    "collections": [
+      71,
+      27,
+      4
+    ],
+    "cpuMs": 3228.665
+  },
+  {
+    "run": "long50-size16384-final-20261031-2",
+    "size": 16384,
+    "attachmentMs": 45.4152,
+    "scrollMaxMs": 42.2073,
+    "tickMaxMs": 53.0461,
+    "tickMedianMs": 33.33995,
+    "tickP95Ms": 50.0432,
+    "memoryIncreaseMiB": 341.04705810546875,
+    "allocatedMiB": 536.2895965576172,
+    "gcPauseMs": 225.337,
+    "collections": [
+      71,
+      27,
+      4
+    ],
+    "cpuMs": 3180.815
+  },
+  {
+    "run": "long50-size16384-final-20261031-3",
+    "size": 16384,
+    "attachmentMs": 46.1177,
+    "scrollMaxMs": 42.5013,
+    "tickMaxMs": 52.9764,
+    "tickMedianMs": 33.3119,
+    "tickP95Ms": 50.0364,
+    "memoryIncreaseMiB": 332.54708099365234,
+    "allocatedMiB": 534.5157623291016,
+    "gcPauseMs": 223.712,
+    "collections": [
+      71,
+      27,
+      4
+    ],
+    "cpuMs": 3083.257
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "baseCommit": "205aede326caf5bf545bcbdc67a2ddf05533db4b",
+  "sourceState": "worktree; recorded probe source changes not committed yet at measurement",
+  "sourceSha256": {
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "044e70aba53d0948a2a1a7d0fc8e66a1c69cd554129ab43ae3efa243fcad0707",
+    "tests/GuiProbe/TextWindow.cs": "5e4a800f8b2a12901eb40cf1b3a90700ad661a87ed69ed3de9bb33993054c591",
+    "tests/GuiProbe/ScrollProbePlan.cs": "30e87144dd68012c6599cb3406c3fb9e2b345569cc3f6f34dfc2e747c288851c",
+    "tests/codeView.Tests/Performance/ProcessMemory.cs": "c707c1c7b5226c2fdc2b9ab96364c12d7380af3a37a0dcd84dfa5b9a80d215d0",
+    "tests/codeView.Tests/Performance/TextWindowTests.cs": "fb920fccbbae59e544cfab1ce7e3b7d2bf81bd7aeea0d32cf4f85b3b61730e8b"
+  },
+  "measurementAssemblySha256": "75622b564aac5479895efb06a1bb82ecfb086334c3b2a0f90a23e0ae6381287d",
+  "input": {
+    "path": "artifacts/fixtures/long50/source-0000000.cs",
+    "bytes": 52428800,
+    "sha256": "09b6c4758efe0a06a8f2c99c57a32ba31d84b80a377e9c277b6629446cc8da5c",
+    "characters": 39945760,
+    "lines": 1
+  },
+  "nativeRuns": "fresh process each; serial; all 9 exited 0 and logged window-closed; no concurrent build/tests",
+  "failureLogSha256": "0c9087e1b0ed55158f7a66455884aca05a5808d7ba4c3c9134aaf96d0e168b0b",
+  "abandonedProcess": {
+    "pid": 65969,
+    "reason": "reported complete but still live; sampled; SIGTERM after inspection; driver exited 1 (child -15)"
+  },
+  "normalTests": "464 passed, no failures/skips; window-sizes-final.trx"
+}
