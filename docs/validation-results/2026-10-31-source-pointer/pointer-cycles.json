@@ -1,0 +1,26 @@
+{
+  "Scenario": "100000-source-drag-cycles",
+  "MeasuredAtUtc": "2026-10-30T23:33:00.756224+00:00",
+  "Milliseconds": 12.1398,
+  "CpuMilliseconds": 12.646,
+  "AllocatedBytes": 128,
+  "GcPauseMilliseconds": 0,
+  "GcCollections": [
+    0,
+    0,
+    0
+  ],
+  "ActiveReadLeases": 1,
+  "DiagnosticAllocations": {
+    "offset-conversion": 0,
+    "source-move": 0,
+    "display-move": 0,
+    "drag-cycles": 0
+  },
+  "PointerActive": false,
+  "Anchor": 10,
+  "Caret": 900,
+  "NativeInput": "not-measured",
+  "Rendering": "not-measured",
+  "OsMemory": "not-measured"
+}

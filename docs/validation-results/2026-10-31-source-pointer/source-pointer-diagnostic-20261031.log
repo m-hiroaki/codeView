@@ -1,0 +1,8 @@
+GUI-PROBE 587.529 window-opened
+GUI-PROBE 655.781 attachment-start
+GUI-PROBE 659.100 attachment-end
+GUI-PROBE 724.646 interactive-ready
+GUI-PROBE 29657.426 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 29696.794 complete
+GUI-PROBE 29706.774 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 29710.757 window-closed

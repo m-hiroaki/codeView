@@ -168,8 +168,20 @@ internal sealed class DocumentDisplaySession : IDisposable
     private bool SplitsBoundary(long offset)
     {
         if (offset == 0 || offset == Length) return false;
-        var left = _source!.GetCharAt(checked((int)(offset - 1)));
-        var right = _source.GetCharAt(checked((int)offset));
+        char left, right;
+        if (_slice is { } slice && offset > slice.SourceOffset && offset < slice.SourceOffset + slice.Text.Length)
+        {
+            // The immutable display text already contains both characters. Avoid traversing the
+            // rope between distant leaves for each pointer hit inside the current display slice.
+            var local = checked((int)(offset - slice.SourceOffset));
+            left = slice.Text[local - 1];
+            right = slice.Text[local];
+        }
+        else
+        {
+            left = _source!.GetCharAt(checked((int)(offset - 1)));
+            right = _source.GetCharAt(checked((int)offset));
+        }
         return (char.IsHighSurrogate(left) && char.IsLowSurrogate(right)) || (left == '\r' && right == '\n');
     }
 

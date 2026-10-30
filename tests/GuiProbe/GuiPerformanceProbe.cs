@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -51,6 +52,12 @@ internal sealed class GuiPerformanceProbe
     private double _lastInteractiveHorizontal;
     private double _lastInteractiveVertical;
     private readonly List<object> _interactiveScrollSamples = [];
+    private readonly BoundedPointerSelection _pointerSelection = new();
+    private IPointer? _selectionPointer;
+    private Point _pointerPosition;
+    private DispatcherTimer? _pointerTimer;
+    private long _pointerUpdates, _pointerEdgeSteps;
+    private readonly List<object> _pointerSamples = [];
     private ClipboardCopyCoordinator? _copies;
     private ClipboardCopyRequest? _copyUiRequest;
     private long _copyUiGeneration;
@@ -234,8 +241,8 @@ internal sealed class GuiPerformanceProbe
             var slice = _interactiveSlice;
             var margin = _windowChars / 4;
             if (slice is null || source.Caret < slice.SourceOffset || source.Caret > slice.SourceOffset + slice.Text.Length ||
-                (slice.SourceOffset > 0 && source.Caret < slice.SourceOffset + margin) ||
-                (slice.SourceOffset + slice.Text.Length < source.Length && source.Caret > slice.SourceOffset + slice.Text.Length - margin))
+                (!_pointerSelection.IsActive && slice.SourceOffset > 0 && source.Caret < slice.SourceOffset + margin) ||
+                (!_pointerSelection.IsActive && slice.SourceOffset + slice.Text.Length < source.Length && source.Caret > slice.SourceOffset + slice.Text.Length - margin))
             {
                 slice = _interactiveSlice = source.CreateSlice(source.Caret, _windowChars);
                 _editor.Document = CreateDisplayDocument(slice.Text);
@@ -289,27 +296,162 @@ internal sealed class GuiPerformanceProbe
         if (_interactiveAttached) return;
         _interactiveAttached = true;
         _editor.AddHandler(InputElement.KeyDownEvent, InteractiveKeyDown, RoutingStrategies.Tunnel);
-        _editor.AddHandler(InputElement.PointerPressedEvent, InteractivePointerFocus, RoutingStrategies.Tunnel);
+        _editor.AddHandler(InputElement.PointerPressedEvent, InteractivePointerPressed, RoutingStrategies.Tunnel);
+        _editor.AddHandler(InputElement.PointerMovedEvent, InteractivePointerMoved, RoutingStrategies.Tunnel);
+        _editor.AddHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased, RoutingStrategies.Tunnel);
+        _editor.PointerCaptureLost += InteractivePointerCaptureLost;
     }
 
     private void DetachInteractive()
     {
         if (!_interactiveAttached) return;
         _interactiveAttached = false;
+        CancelPointerSelection();
         _editor.RemoveHandler(InputElement.KeyDownEvent, InteractiveKeyDown);
-        _editor.RemoveHandler(InputElement.PointerPressedEvent, InteractivePointerFocus);
+        _editor.RemoveHandler(InputElement.PointerPressedEvent, InteractivePointerPressed);
+        _editor.RemoveHandler(InputElement.PointerMovedEvent, InteractivePointerMoved);
+        _editor.RemoveHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased);
+        _editor.PointerCaptureLost -= InteractivePointerCaptureLost;
     }
 
-    private void InteractivePointerFocus(object? sender, PointerPressedEventArgs args)
+    private void RecordPointer(string phase, PointerEventArgs? args = null)
     {
-        // Keyboard-only candidate. Do not enter the library's unintegrated drag-selection mode.
-        args.Handled = true;
+        if (_pointerSamples.Count >= 256) return;
+        _pointerSamples.Add(new { Phase = phase, PointerId = args?.Pointer.Id,
+            Active = _pointerSelection.PointerId, Captured = _selectionPointer?.Captured?.GetType().Name,
+            Left = args?.GetCurrentPoint(_editor).Properties.IsLeftButtonPressed,
+            Point = args?.GetPosition(_editor.TextArea.TextView),
+            Anchor = _displaySession?.Anchor, Caret = _displaySession?.Caret });
+    }
+
+    private void CancelPointerSelection()
+    {
+        _pointerTimer?.Stop();
+        _pointerSelection.Cancel();
+        var pointer = _selectionPointer;
+        _selectionPointer = null;
+        if (pointer?.Captured == _editor) pointer.Capture(null);
+    }
+
+    private int? HitPointer(Point point, bool clamp)
+    {
+        var view = _editor.TextArea.TextView;
+        if (view.Bounds.Width <= 0 || view.Bounds.Height <= 0) return null;
+        if (!clamp && !new Rect(view.Bounds.Size).Contains(point)) return null;
+        view.EnsureVisualLines();
+        var x = Math.Clamp(point.X, 0, Math.Max(0, view.Bounds.Width - 0.1));
+        var y = Math.Clamp(point.Y, 0, Math.Max(0, view.Bounds.Height - 0.1));
+        var position = view.GetPosition(new Point(x + view.HorizontalOffset, y + view.VerticalOffset));
+        return position is { } found ? _editor.Document.GetOffset(found.Location) :
+            y <= 0 ? 0 : _editor.Document.TextLength;
+    }
+
+    private void InteractivePointerPressed(object? sender, PointerPressedEventArgs args)
+    {
+        RecordPointer("press", args);
+        args.Handled = true; // The library must not start its local-document selection mode.
+        if (_finished || _displaySession is not { } source || _interactiveSlice is not { } slice) return;
         _editor.TextArea.Focus();
+        if (!args.GetCurrentPoint(_editor).Properties.IsLeftButtonPressed || args.Pointer.Type != PointerType.Mouse) return;
+        try
+        {
+            var offset = HitPointer(args.GetPosition(_editor.TextArea.TextView), clamp: false);
+            if (offset is null || !_pointerSelection.Begin(source, slice, offset.Value, args.Pointer.Id,
+                    args.KeyModifiers.HasFlag(KeyModifiers.Shift))) return;
+            _selectionPointer = args.Pointer;
+            _pointerPosition = args.GetPosition(_editor.TextArea.TextView);
+            args.Pointer.Capture(_editor);
+            RecordPointer("captured", args);
+            RenderInteractive();
+            _pointerUpdates++;
+        }
+        catch (Exception) { Finish("pointer-selection-failed"); }
+    }
+
+    private void InteractivePointerMoved(object? sender, PointerEventArgs args)
+    {
+        if (_pointerSelection.IsActive) RecordPointer("move", args);
+        if (_pointerSelection.PointerId != args.Pointer.Id) return;
+        args.Handled = true;
+        if (args.Pointer.Captured != _editor) { CancelPointerSelection(); return; }
+        try
+        {
+            _pointerPosition = args.GetPosition(_editor.TextArea.TextView);
+            UpdatePointerSelection(args.Pointer.Id);
+            var outside = PointerOutside();
+            if (outside.Horizontal != 0 || outside.Vertical != 0)
+            {
+                if (_pointerTimer is null)
+                {
+                    _pointerTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+                    _pointerTimer.Tick += PointerEdgeTick;
+                }
+                _pointerTimer.Start();
+            }
+            else _pointerTimer?.Stop();
+        }
+        catch (Exception) { Finish("pointer-selection-failed"); }
+    }
+
+    private (int Horizontal, int Vertical) PointerOutside()
+    {
+        var size = _editor.TextArea.TextView.Bounds.Size;
+        return (_pointerPosition.X < 0 ? -1 : _pointerPosition.X >= size.Width ? 1 : 0,
+            _pointerPosition.Y < 0 ? -1 : _pointerPosition.Y >= size.Height ? 1 : 0);
+    }
+
+    private void UpdatePointerSelection(long pointerId)
+    {
+        if (_displaySession is not { } source || _interactiveSlice is not { } slice) return;
+        if (HitPointer(_pointerPosition, clamp: true) is { } offset &&
+            _pointerSelection.Move(source, slice, offset, pointerId))
+        {
+            RenderInteractive();
+            _pointerUpdates++;
+        }
+    }
+
+    private void PointerEdgeTick(object? sender, EventArgs args)
+    {
+        try
+        {
+            if (_finished || _displaySession is not { } source || _pointerSelection.PointerId is not { } id)
+            { _pointerTimer?.Stop(); return; }
+            var outside = PointerOutside();
+            if (!_pointerSelection.StepOutside(source, id, outside.Horizontal, outside.Vertical))
+            { _pointerTimer?.Stop(); return; }
+            _pointerEdgeSteps++;
+            RenderInteractive(); // No selection update from ScrollOffsetChanged; no recursive scroll loop.
+        }
+        catch (Exception) { Finish("pointer-selection-failed"); }
+    }
+
+    private void InteractivePointerReleased(object? sender, PointerReleasedEventArgs args)
+    {
+        RecordPointer("release", args);
+        if (_pointerSelection.PointerId != args.Pointer.Id) return;
+        args.Handled = true;
+        try
+        {
+            _pointerPosition = args.GetPosition(_editor.TextArea.TextView);
+            // Outside release keeps the last timed endpoint rather than snapping back to the display edge.
+            var outside = PointerOutside();
+            if (outside.Horizontal == 0 && outside.Vertical == 0) UpdatePointerSelection(args.Pointer.Id);
+        }
+        catch (Exception) { Finish("pointer-selection-failed"); }
+        finally { CancelPointerSelection(); }
+    }
+
+    private void InteractivePointerCaptureLost(object? sender, PointerCaptureLostEventArgs args)
+    {
+        RecordPointer("capture-lost");
+        CancelPointerSelection();
     }
 
     private void InteractiveKeyDown(object? sender, KeyEventArgs args)
     {
         if (_finished || _displaySession is not { } source) return;
+        CancelPointerSelection();
         var action = BoundedKeyMap.Translate(args.Key, args.KeyModifiers, OperatingSystem.IsMacOS());
         if (!action.Handled) return;
         args.Handled = true;
@@ -551,12 +693,13 @@ internal sealed class GuiPerformanceProbe
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
             SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,
             SourceSelectionStart = _displaySession?.SelectionStart, SourceSelectionLength = _displaySession?.SelectionLength,
-            SourceSelectionUi = _interactive ? "keyboard-bound selection and source clipboard copy; pointer not connected" : _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
+            SourceSelectionUi = _interactive ? "source keyboard/mouse drag selection and clipboard; probe only" : _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
             SelectionSamples = _selectionSamples,
             InteractiveCommands = _interactiveCommands, StatusPosition = _viewModel.Position,
             InteractivePostedScrolls = _interactiveScrolls, InteractivePostedScrollMaxMilliseconds = _interactiveScrollMaxMilliseconds,
             LastInteractiveHorizontal = _lastInteractiveHorizontal, LastInteractiveVertical = _lastInteractiveVertical,
             InteractiveScrollSamples = _interactiveScrollSamples,
+            PointerSamples = _pointerSamples, PointerUpdates = _pointerUpdates, PointerEdgeSteps = _pointerEdgeSteps, PointerActive = _pointerSelection.IsActive,
             ClipboardCopiesCompleted = _copiesCompleted, LastCopiedCharacters = _lastCopiedCharacters,
             ClipboardVerificationEnabled = _verifyClipboard, ClipboardVerificationChecks = _clipboardVerificationChecks,
             ClipboardVerificationFailures = _clipboardVerificationFailures,

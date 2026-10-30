@@ -1,0 +1,37 @@
+{
+  "baseCommit": "9321cc7",
+  "sourceSha256": {
+    "src/codeView/Documents/DocumentDisplaySession.cs": "8fa6701dad2868e0fb13bb1c82db90103f5577909596ba4a762d0479d22cb473",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "055317905d21f635f41bd1c2a4bd1742c3ca85a1559b3a10dcae3c531f0788b5",
+    "tests/GuiProbe/BoundedPointerSelection.cs": "7af36fb8d875a8cdef2890b3ad1c410776fb518d17ba7bd189fc558c0a55c4f9",
+    "tests/codeView.Tests/Documents/DocumentDisplaySessionTests.cs": "56beee3c53297d3d5efe2d524ff2cf2e0e4e904de14d06d741ec0d8e0f6b0e40",
+    "tests/codeView.Tests/Performance/BoundedPointerSelectionTests.cs": "204481c81308ab660b1ed49d13cfcf6caa2fbadf39f77bdd3becbb71e08d2485",
+    "tests/codeView.Tests/codeView.Tests.csproj": "08a9e30030116a53af84291e6b75dec962ff2f039294b5f20adccac99c478779"
+  },
+  "nativeAssemblySha256": "5cebaa7b33efd2fa39cd1f0f65ee610237224935f3087440dd511827925cf814",
+  "testAssemblySha256": "3662a0b322b84209711abe6ba92728e547adbac0027273c06d1cdb194afbe97b",
+  "normalTests": {
+    "passed": 569,
+    "failed": 0,
+    "skipped": 0,
+    "trx": "bounded-pointer-normal-verified.trx"
+  },
+  "performanceTests": {
+    "passed": 1,
+    "trx": "bounded-pointer-performance-final.trx"
+  },
+  "native": {
+    "exitCode": 0,
+    "copiedLengths": [
+      5,
+      19,
+      23,
+      98
+    ],
+    "ordinalReadBacks": 4,
+    "readBackFailures": 0,
+    "maxDisplayChars": 1024,
+    "timedEdgeSteps": 0
+  },
+  "inputSha256": "70c4afd646a1acdb8e14bf34947645a6cf62f2114a37703a26d504c696d23c5c"
+}

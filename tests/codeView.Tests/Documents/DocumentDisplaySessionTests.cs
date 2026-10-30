@@ -8,6 +8,25 @@ namespace CodeView.Tests.Documents;
 public sealed class DocumentDisplaySessionTests
 {
     [Test]
+    public void BoundaryNormalizationMatchesSourceWithAndWithoutCachedDisplayText()
+    {
+        const string text = "a😀\r\nbc😀d\r\n";
+        using var handle = Create(text);
+        using var sourceOnly = new DocumentDisplaySession(handle);
+        using var sliced = new DocumentDisplaySession(handle);
+        for (var target = 0; target <= text.Length; target++)
+        {
+            sliced.CreateSlice(target, 4);
+            for (var offset = 0; offset <= text.Length; offset++)
+            {
+                sourceOnly.MoveCaret(offset);
+                sliced.MoveCaret(offset);
+                Assert.That(sliced.Caret, Is.EqualTo(sourceOnly.Caret), $"target={target}, offset={offset}");
+            }
+        }
+    }
+
+    [Test]
     public void SelectionAndCopyUseOriginalCoordinatesAcrossDisplaySlices()
     {
         var original = "first\r\n" + new string('x', 10000) + "😀\r\nlast";

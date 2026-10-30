@@ -1,0 +1,68 @@
+Window: "codeView", App: codeView.
+0 standard window codeView, Secondary Actions: Raise
+	1 container WindowChrome, ID: AvaloniaWindowChrome
+	2 container
+		3 container
+			4 menu bar
+				5 container
+					6 ファイル
+						7 container
+							8 unknown PART_Popup
+					9 表示
+						10 container
+							11 unknown PART_Popup
+					12 検索
+						13 container
+							14 unknown PART_Popup
+			15 container
+				16 text フォルダ: 1項目
+				17 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard
+				18 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+			19 container
+				20 text ファイル
+				21 button 再読込, Help: 選択フォルダを再読込（F5）。未選択ならルートを再読込
+				22 text
+				23 content list ファイルツリー, ID: FileTreeList
+					24 scroll area PART_ScrollViewer
+						25 container
+							26 row (selectable) body.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+								27 container body.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+									28 button (disabled) 展開または折りたたみ
+									29 text body.cs
+									30 text
+			31 container
+				32 content list 開いているファイル, ID: TabList
+					33 scroll area PART_ScrollViewer
+						34 container
+							35 row (selected) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+								36 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+									37 text body.cs
+									38 text
+									39 button タブを閉じる
+				40 scroll area PART_ScrollViewer
+					41 container
+						42 container
+							43 container
+								44 content list
+									45 container
+								46 container
+						47 scroll bar (settable, float) Value: 0, ID: PART_HorizontalScrollBar
+							48 container
+								49 button Column left, ID: PART_LineUpButton
+								50 button Page left, ID: PART_PageUpButton
+								51 button Page right, ID: PART_PageDownButton
+								52 handle Position
+								53 button Column right, ID: PART_LineDownButton
+			54 text 原文の選択範囲をコピーしました（5 UTF-16単位）。
+			55 container
+				56 text 読み取り専用
+				57 text 行 1, 列 9
+				58 button UTF-8, Help: 文字コードを指定して開き直す
+	59 close button
+	60 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	61 minimize button
+	62 text codeView
+63 menu bar
+	64 codeView
+
+The focused UI element is 42 container

@@ -1,0 +1,5 @@
+{
+  "src/codeView/Documents/DocumentDisplaySession.cs": "ca8f0cddfe2649de94bea8f12cd3c9310be12ce64a76a926939424a0d5ef1207",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "055317905d21f635f41bd1c2a4bd1742c3ca85a1559b3a10dcae3c531f0788b5",
+  "tests/GuiProbe/BoundedPointerSelection.cs": "7af36fb8d875a8cdef2890b3ad1c410776fb518d17ba7bd189fc558c0a55c4f9"
+}

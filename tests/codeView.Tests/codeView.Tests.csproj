@@ -12,6 +12,7 @@
         <Compile Include="../GuiProbe/ScrollProbePlan.cs" Link="Performance/ScrollProbePlan.cs" />
         <Compile Include="../GuiProbe/TextWindow.cs" Link="Performance/TextWindow.cs" />
         <Compile Include="../GuiProbe/GuiNavigationPlan.cs" Link="Performance/GuiNavigationPlan.cs" />
+        <Compile Include="../GuiProbe/BoundedPointerSelection.cs" Link="Performance/BoundedPointerSelection.cs" />
         <Compile Include="../GuiProbe/BoundedKeyMap.cs" Link="Performance/BoundedKeyMap.cs" />
     </ItemGroup>
 </Project>
