@@ -1,0 +1,121 @@
+{
+  "FormatVersion": 1,
+  "Scenario": "bounded-regex-line-matcher",
+  "MeasuredAtUtc": "2026-10-30T19:13:20.199176+00:00",
+  "ProductInformationalVersion": "1.0.0\u002Bf6d2ce466fb6317c02ea188a0c8f2fee54650168",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "InputBytes": 52428800,
+  "SourceCharacters": 38947124,
+  "Encoding": "cp932",
+  "Layout": "nested",
+  "CacheCondition": "warm",
+  "Samples": [
+    {
+      "Name": "marker",
+      "Characters": 38947124,
+      "Hits": 1,
+      "FirstHit": {
+        "Offset": 3,
+        "Length": 14,
+        "End": 17,
+        "Start": {
+          "Line": 1,
+          "Column": 4
+        }
+      },
+      "FirstHitMilliseconds": 1.1233,
+      "Milliseconds": 355.0607,
+      "AllocatedBytes": 2137584,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "EvaluatedLines": 1497967,
+      "SkippedLongLines": 0,
+      "SkippedScalarMatches": 0,
+      "BufferCapacity": 1048576
+    },
+    {
+      "Name": "lookbehind-marker",
+      "Characters": 38947124,
+      "Hits": 1,
+      "FirstHit": {
+        "Offset": 3,
+        "Length": 14,
+        "End": 17,
+        "Start": {
+          "Line": 1,
+          "Column": 4
+        }
+      },
+      "FirstHitMilliseconds": 0.0797,
+      "Milliseconds": 151.1591,
+      "AllocatedBytes": 2136552,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "EvaluatedLines": 1497967,
+      "SkippedLongLines": 0,
+      "SkippedScalarMatches": 0,
+      "BufferCapacity": 1048576
+    },
+    {
+      "Name": "whole-word-marker",
+      "Characters": 38947124,
+      "Hits": 1,
+      "FirstHit": {
+        "Offset": 3,
+        "Length": 14,
+        "End": 17,
+        "Start": {
+          "Line": 1,
+          "Column": 4
+        }
+      },
+      "FirstHitMilliseconds": 0.1101,
+      "Milliseconds": 151.3057,
+      "AllocatedBytes": 2136032,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "EvaluatedLines": 1497967,
+      "SkippedLongLines": 0,
+      "SkippedScalarMatches": 0,
+      "BufferCapacity": 1048576
+    },
+    {
+      "Name": "not-found",
+      "Characters": 38947124,
+      "Hits": 0,
+      "FirstHit": null,
+      "FirstHitMilliseconds": null,
+      "Milliseconds": 153.4929,
+      "AllocatedBytes": 2137184,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "EvaluatedLines": 1497967,
+      "SkippedLongLines": 0,
+      "SkippedScalarMatches": 0,
+      "BufferCapacity": 1048576
+    }
+  ],
+  "CpuMilliseconds": 970.99,
+  "IndividualGcPausesAndLohAllocations": "not-traced; allocated bytes include the bounded line buffer and Regex objects",
+  "DocumentBuildAndDecoding": "excluded",
+  "GuiRendering": "not-measured",
+  "WorkspaceSearch": "not-implemented"
+}

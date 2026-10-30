@@ -1,0 +1,106 @@
+{
+  "FormatVersion": 1,
+  "Scenario": "literal-matcher-read-lease",
+  "MeasuredAtUtc": "2026-10-30T19:13:31.87996+00:00",
+  "ProductInformationalVersion": "1.0.0\u002Bf6d2ce466fb6317c02ea188a0c8f2fee54650168",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "InputBytes": 52428800,
+  "SourceCharacters": 30980684,
+  "Encoding": "utf-8",
+  "Layout": "nested",
+  "CacheCondition": "warm",
+  "Samples": [
+    {
+      "Name": "marker",
+      "Characters": 30980684,
+      "Hits": 1,
+      "FirstHit": {
+        "Offset": 3,
+        "Length": 14,
+        "End": 17,
+        "Start": {
+          "Line": 1,
+          "Column": 4
+        }
+      },
+      "FirstHitMilliseconds": 0.8412,
+      "Milliseconds": 250.5363,
+      "AllocatedBytes": 66800,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "LastGcLohBytes": 98408,
+      "BufferCapacity": 16402
+    },
+    {
+      "Name": "whole-word-marker",
+      "Characters": 30980684,
+      "Hits": 1,
+      "FirstHit": {
+        "Offset": 3,
+        "Length": 14,
+        "End": 17,
+        "Start": {
+          "Line": 1,
+          "Column": 4
+        }
+      },
+      "FirstHitMilliseconds": 0.1321,
+      "Milliseconds": 60.4353,
+      "AllocatedBytes": 66712,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "LastGcLohBytes": 98408,
+      "BufferCapacity": 16402
+    },
+    {
+      "Name": "not-found",
+      "Characters": 30980684,
+      "Hits": 0,
+      "FirstHit": null,
+      "FirstHitMilliseconds": null,
+      "Milliseconds": 60.1912,
+      "AllocatedBytes": 66728,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "LastGcLohBytes": 98408,
+      "BufferCapacity": 16409
+    },
+    {
+      "Name": "max-repeated-query",
+      "Characters": 30980684,
+      "Hits": 0,
+      "FirstHit": null,
+      "FirstHitMilliseconds": null,
+      "Milliseconds": 681.6102,
+      "AllocatedBytes": 99448,
+      "GcPauseMilliseconds": 0,
+      "GcCollections": [
+        0,
+        0,
+        0
+      ],
+      "LastGcLohBytes": 98408,
+      "BufferCapacity": 32772
+    }
+  ],
+  "CpuMilliseconds": 1190.75,
+  "IndividualGcPausesAndLohAllocations": "not-traced; last-GC LOH sizes are not allocation totals",
+  "Workload": "literal matching and original position tracking over native snapshot reader chunks",
+  "DocumentBuildAndDecoding": "excluded",
+  "GuiRendering": "not-measured",
+  "WorkspaceSearch": "not-implemented"
+}
