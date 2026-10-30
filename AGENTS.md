@@ -160,6 +160,12 @@ Agent は以下を支援する。
 
 ---
 
+## Commit Message Policy
+
+コミットメッセージは日本語で記載すること。
+
+---
+
 ## Pull Request Checklist
 
 - [ ] 要件を満たしている
