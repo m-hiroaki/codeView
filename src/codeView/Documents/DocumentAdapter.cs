@@ -115,6 +115,38 @@ internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : 
         return source.GetText(checked((int)offset), length);
     }
 
+    /// <summary>Builds the final clipboard string directly, with cancellation between bounded reads.</summary>
+    public string ReadRangeAsString(long offset, int length, CancellationToken ct)
+    {
+        var source = _snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease));
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+        if (offset > source.TextLength || length > source.TextLength - offset)
+            throw new ArgumentOutOfRangeException(nameof(length));
+        ct.ThrowIfCancellationRequested();
+        var text = string.Create(length, (Source: source, Offset: checked((int)offset), Token: ct), static (target, state) =>
+        {
+            using var reader = state.Source.CreateReader(state.Offset, target.Length);
+            var buffer = ArrayPool<char>.Shared.Rent(ChunkChars);
+            try
+            {
+                var copied = 0;
+                while (copied < target.Length)
+                {
+                    state.Token.ThrowIfCancellationRequested();
+                    var count = reader.Read(buffer, 0, Math.Min(ChunkChars, target.Length - copied));
+                    if (count == 0) throw new InvalidDataException("不変のコピー元から指定範囲を読み切れません。");
+                    buffer.AsSpan(0, count).CopyTo(target[copied..]);
+                    copied += count;
+                    state.Token.ThrowIfCancellationRequested();
+                }
+            }
+            finally { ArrayPool<char>.Shared.Return(buffer, clearArray: true); }
+        });
+        ct.ThrowIfCancellationRequested();
+        return text;
+    }
+
     /// <summary>Copies an original-source range on the calling worker without a whole-range string.</summary>
     public void CopyRangeTo(long offset, long length, TextWriter destination, CancellationToken ct)
     {

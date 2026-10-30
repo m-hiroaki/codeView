@@ -1,0 +1,11 @@
+{
+  "path": "artifacts/fixtures/gui-bounded-keyboard/body.cs",
+  "sha256": "70c4afd646a1acdb8e14bf34947645a6cf62f2114a37703a26d504c696d23c5c",
+  "bytes": 10435,
+  "utf16Units": 8033,
+  "lines": 5,
+  "line2Units": 8008,
+  "line2Offset": 9,
+  "line4Units": 12,
+  "end": "line 5 column 1"
+}

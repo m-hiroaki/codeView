@@ -1,0 +1,25 @@
+{
+  "FormatVersion": 1,
+  "MeasuredAtUtc": "2026-10-30T23:08:43.360364+00:00",
+  "Scenario": "final-clipboard-string",
+  "InputBytes": 52428800,
+  "SourceChars": 39945760,
+  "ResultChars": 39945760,
+  "ExpectedChecksum": 116460523529,
+  "ResultChecksum": 116460523529,
+  "Milliseconds": 12.4902,
+  "CpuMilliseconds": 13.015,
+  "AllocatedBytes": 79892312,
+  "GcPauseMilliseconds": 0,
+  "GcCollections": [
+    0,
+    0,
+    0
+  ],
+  "ActiveReadLeases": 0,
+  "SourceClosedBeforeRead": true,
+  "IntermediateWholeString": false,
+  "OsClipboard": "not-measured",
+  "OsMemory": "not-measured",
+  "IndividualGcPauses": "not-traced"
+}

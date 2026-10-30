@@ -1,0 +1,32 @@
+{
+  "baseCommit": "f675d873e95ee1f4d15194487e921dc99865f66b",
+  "finalSourceSha256": {
+    "src/codeView/Documents/DocumentAdapter.cs": "9a3e66cf22c429fe287d9b28725fbc7a204ff3d615428e02c823f62f951e54e6",
+    "src/codeView/Documents/DocumentDisplaySession.cs": "ca8f0cddfe2649de94bea8f12cd3c9310be12ce64a76a926939424a0d5ef1207",
+    "src/codeView/Operations/ClipboardCopyCoordinator.cs": "b9b9c427972acc5ec2bddffed93e8269a0740955bc4210ecdab91b4bf51f333f",
+    "src/codeView/Presentation/MainWindow.axaml.cs": "ed8033d51570e34f3dd17dda1f87d8101848ee2756b921c7360efe8f51613b50",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "24a5eb3eabcdb7b7814008be3f9d9a776028460a7d85e1ac60e36e57476ad7b1",
+    "tests/GuiProbe/BoundedKeyMap.cs": "3140d5296bfe61025a04cb892a8c9637858ac01cd2ae228ab7108c0cd1df0e11",
+    "tests/codeView.Tests/ClipboardCopyTests.cs": "9040b27b0830a7927dd3e09258335f2ac2f58d18f36f08e6abf1354fb22f8d7b",
+    "tests/codeView.Tests/Documents/ClipboardStringPerformanceTests.cs": "2978986067cc4373104c8404c1ca681c27e2b07495935be6c2185fd0b1a91c53"
+  },
+  "nativeAssemblySha256": "a45bdd585d189ab06ff4bce361d5e65fb83ebd59bcf25cd10f01cea26d5847ea",
+  "nativeSourceRecord": "native-source-sha256.json; final source additionally excludes SEHException from the unavailable-clipboard filter; positive native paths unchanged",
+  "compileOnlyFinalProbeAssemblySha256": "81944757f46012decd7fc0106c7547b0bca8248715d4ea3a918892664e8911c8",
+  "normalUnitTests": "558 passed, no failures/skips; clipboard-copy-all-final.trx",
+  "testAssemblySha256": "442be157fb2fc52974b35f50d01d6650aaf6f327d1317c82815ec8552ae82e28",
+  "performanceTests": "3 passed; clipboard-string-{long50,utf8-50,cp932-50}.trx; test source unchanged after these runs",
+  "native": {
+    "exitCode": 0,
+    "copiesCompleted": 3,
+    "readBackChecks": 3,
+    "readBackFailures": 0,
+    "copiedLengths": [
+      2,
+      8033,
+      8008
+    ],
+    "pastedSmallValue": "ir",
+    "maxDisplayChars": 1024
+  }
+}

@@ -3,12 +3,14 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CodeView.Documents;
 using CodeView.Contracts;
+using CodeView.Operations;
 using CodeView.Tests.Performance;
 
 namespace CodeView.Presentation;
@@ -18,6 +20,7 @@ internal sealed class GuiPerformanceProbe
 {
     private static readonly Stopwatch Startup = new();
     private static GuiPerformanceProbe? _instance;
+    private static Task _retiredCopyWork = Task.CompletedTask;
     private readonly Window _window;
     private readonly TextEditor _editor;
     private readonly MainWindowViewModel _viewModel;
@@ -48,6 +51,14 @@ internal sealed class GuiPerformanceProbe
     private double _lastInteractiveHorizontal;
     private double _lastInteractiveVertical;
     private readonly List<object> _interactiveScrollSamples = [];
+    private ClipboardCopyCoordinator? _copies;
+    private ClipboardCopyRequest? _copyUiRequest;
+    private long _copyUiGeneration;
+    private bool _copyObserverRunning;
+    private Task _copyObserver = Task.CompletedTask;
+    private long _copiesCompleted, _clipboardVerificationChecks, _clipboardVerificationFailures;
+    private long _lastCopiedCharacters;
+    private readonly bool _verifyClipboard = Environment.GetEnvironmentVariable("CODEVIEW_GUI_VERIFY_CLIPBOARD") == "1";
     private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
     private TextDocument? _sourceDocument;
     private DocumentDisplaySession? _displaySession;
@@ -147,6 +158,7 @@ internal sealed class GuiPerformanceProbe
     {
         if (_instance is not { _windowed: true } probe) return document;
         probe._sourceDocument = document;
+        probe.InvalidateCopies();
         probe.DetachInteractive();
         probe._displaySession?.Dispose();
         probe._displaySession = new DocumentDisplaySession(handle);
@@ -171,6 +183,8 @@ internal sealed class GuiPerformanceProbe
     }
 
     internal static bool HasInteractiveDocument => _instance is { _interactive: true, _displaySession: not null };
+    internal static Task PendingCopyWork => _instance is { _copies: { } copies } probe
+        ? Task.WhenAll(copies.PendingWork, probe._copyObserver) : _retiredCopyWork;
 
     internal static bool TryRestoreOriginal(int line, int column)
     {
@@ -193,6 +207,7 @@ internal sealed class GuiPerformanceProbe
     internal static void ClearDocument()
     {
         if (_instance is not { _interactive: true } probe) return;
+        probe.InvalidateCopies();
         probe.DetachInteractive();
         probe._displaySession?.Dispose();
         probe._displaySession = null;
@@ -316,8 +331,7 @@ internal sealed class GuiPerformanceProbe
                 case BoundedKeyCommand.PageDown: source.MoveLines(Math.Clamp(_editor.TextArea.TextView.VisualLines.Count, 1, 500), extend); break;
                 case BoundedKeyCommand.SelectAll: source.SelectAll(); break;
                 case BoundedKeyCommand.ClearSelection: source.MoveCaret(source.Caret); break;
-                case BoundedKeyCommand.CopyUnavailable:
-                    _viewModel.SetStatus("原文コピーのUI接続は未完了です（キーボード表示試作）。"); break;
+                case BoundedKeyCommand.Copy: StartCopy(source); break;
                 default: _viewModel.SetStatus("このキー操作は表示試作で未対応です。"); break;
             }
             RenderInteractive();
@@ -335,6 +349,80 @@ internal sealed class GuiPerformanceProbe
                 });
         }
         catch (Exception) { Finish("interactive-command-failed"); }
+    }
+
+    private void InvalidateCopies()
+    {
+        _copyUiRequest = null;
+        _copies?.Invalidate();
+    }
+
+    private void StartCopy(DocumentDisplaySession source)
+    {
+        if (source.SelectionLength == 0)
+        {
+            _copyUiRequest = null;
+            _viewModel.SetStatus("コピーする範囲を選択してください。");
+            return;
+        }
+        _copies ??= new ClipboardCopyCoordinator(WriteClipboardAsync);
+        var selection = source.BeginCopy();
+        try { _copyUiRequest = _copies.Start(selection); }
+        catch { selection.Dispose(); throw; }
+        _copyUiGeneration = _documentGeneration;
+        _viewModel.SetStatus("原文の選択範囲をコピーしています…");
+        if (!_copyObserverRunning) _copyObserver = ObserveCopiesAsync();
+    }
+
+    private async Task ObserveCopiesAsync()
+    {
+        _copyObserverRunning = true;
+        try
+        {
+            while (_copyUiRequest is { } request)
+            {
+                var result = await request.Completion;
+                if (_finished) return;
+                if (!ReferenceEquals(request, _copyUiRequest)) continue;
+                if (_copyUiGeneration == _documentGeneration && _copies!.CanAdopt(request))
+                {
+                    if (result.Status == ClipboardCopyStatus.Copied)
+                    {
+                        _copiesCompleted++;
+                        _lastCopiedCharacters = result.Characters;
+                        _viewModel.SetStatus($"原文の選択範囲をコピーしました（{result.Characters:N0} UTF-16単位）。");
+                    }
+                    else if (result.Status == ClipboardCopyStatus.Unavailable)
+                        _viewModel.SetStatus("クリップボードを利用できません。再試行してください。");
+                }
+                _copyUiRequest = null;
+            }
+        }
+        catch (Exception)
+        {
+            Program.MarkFailed();
+            if (!_finished) Finish("clipboard-copy-failed");
+        }
+        finally { _copyObserverRunning = false; }
+    }
+
+    private async Task WriteClipboardAsync(string text)
+    {
+        var clipboard = TopLevel.GetTopLevel(_editor)?.Clipboard ?? throw new ClipboardUnavailableException();
+        try
+        {
+            await clipboard.SetValueAsync(DataFormat.Text, text);
+            await clipboard.FlushAsync();
+            if (_verifyClipboard)
+            {
+                string? echoed = await clipboard.TryGetValueAsync(DataFormat.Text);
+                _clipboardVerificationChecks++;
+                if (!string.Equals(text, echoed, StringComparison.Ordinal)) _clipboardVerificationFailures++;
+                echoed = null;
+            }
+        }
+        catch (Exception error) when (error is ExternalException and not SEHException or IOException or NotSupportedException)
+        { throw new ClipboardUnavailableException(); }
     }
 
     private (TextDocument Document, TextLocation Target) BuildDisplayWindow(long offset)
@@ -434,6 +522,9 @@ internal sealed class GuiPerformanceProbe
         if (_finished) return;
         _finished = true;
         DetachInteractive();
+        _copyUiRequest = null;
+        _copies?.Dispose();
+        _retiredCopyWork = _copies is { } copies ? Task.WhenAll(copies.PendingWork, _copyObserver) : Task.CompletedTask;
         _sampling.Cancel();
         // The sampler uses only worker continuations, never the UI SynchronizationContext.
         _sampler.GetAwaiter().GetResult();
@@ -460,12 +551,15 @@ internal sealed class GuiPerformanceProbe
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
             SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,
             SourceSelectionStart = _displaySession?.SelectionStart, SourceSelectionLength = _displaySession?.SelectionLength,
-            SourceSelectionUi = _interactive ? "keyboard-bound selection; pointer and clipboard not connected" : _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
+            SourceSelectionUi = _interactive ? "keyboard-bound selection and source clipboard copy; pointer not connected" : _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
             SelectionSamples = _selectionSamples,
             InteractiveCommands = _interactiveCommands, StatusPosition = _viewModel.Position,
             InteractivePostedScrolls = _interactiveScrolls, InteractivePostedScrollMaxMilliseconds = _interactiveScrollMaxMilliseconds,
             LastInteractiveHorizontal = _lastInteractiveHorizontal, LastInteractiveVertical = _lastInteractiveVertical,
             InteractiveScrollSamples = _interactiveScrollSamples,
+            ClipboardCopiesCompleted = _copiesCompleted, LastCopiedCharacters = _lastCopiedCharacters,
+            ClipboardVerificationEnabled = _verifyClipboard, ClipboardVerificationChecks = _clipboardVerificationChecks,
+            ClipboardVerificationFailures = _clipboardVerificationFailures,
             HeldAfterReport = _holdAfterReport,
             MemoryMetric = _memory.Metric, MemoryBefore = _memoryBefore, SampledPeakMemory = _peakMemory,
             MemoryIncrease = _peakMemory - _memoryBefore, SamplingIntervalMilliseconds = 10, MemorySamples = _sampleCount,

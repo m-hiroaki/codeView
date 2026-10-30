@@ -5,7 +5,7 @@ namespace CodeView.Presentation;
 internal enum BoundedKeyCommand
 {
     None, Left, Right, Up, Down, LineStart, LineEnd, DocumentStart, DocumentEnd,
-    PageUp, PageDown, SelectAll, ClearSelection, CopyUnavailable, Unsupported
+    PageUp, PageDown, SelectAll, ClearSelection, Copy, Unsupported
 }
 
 internal readonly record struct BoundedKeyAction(BoundedKeyCommand Command, bool ExtendSelection)
@@ -22,7 +22,8 @@ internal static class BoundedKeyMap
         var basis = modifiers & ~KeyModifiers.Shift;
         var primary = mac ? KeyModifiers.Meta : KeyModifiers.Control;
         if (key == Key.C && (basis & (KeyModifiers.Control | KeyModifiers.Meta)) != 0)
-            return new(BoundedKeyCommand.CopyUnavailable, false);
+            return new(!extend && (basis == primary || (mac && basis == KeyModifiers.Control))
+                ? BoundedKeyCommand.Copy : BoundedKeyCommand.Unsupported, false);
         if (key == Key.A && (basis & (KeyModifiers.Control | KeyModifiers.Meta)) != 0)
             return new(basis == primary && !extend ? BoundedKeyCommand.SelectAll : BoundedKeyCommand.Unsupported, false);
         if (key == Key.Escape && basis == KeyModifiers.None) return new(BoundedKeyCommand.ClearSelection, false);

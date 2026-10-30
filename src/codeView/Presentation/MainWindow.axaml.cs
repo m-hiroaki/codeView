@@ -129,7 +129,14 @@ internal sealed partial class MainWindow : Window
             if (_closing) return;
             _closing = true;
             viewModel.Stop();
-            try { await viewModel.PendingWork.WaitAsync(TimeSpan.FromSeconds(2)); }
+            try
+            {
+                var pending = viewModel.PendingWork;
+#if CODEVIEW_PERFORMANCE_PROBE
+                pending = Task.WhenAll(pending, GuiPerformanceProbe.PendingCopyWork);
+#endif
+                await pending.WaitAsync(TimeSpan.FromSeconds(2));
+            }
             catch (TimeoutException) { }
             catch (Exception) { Program.MarkFailed(); }
             _allowClose = true;

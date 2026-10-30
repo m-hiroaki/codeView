@@ -213,5 +213,8 @@ internal sealed class DocumentSelectionCopy(DocumentReadLease lease, long offset
     public void WriteTo(TextWriter destination, CancellationToken ct) =>
         (_lease ?? throw new ObjectDisposedException(nameof(DocumentSelectionCopy))).CopyRangeTo(Offset, Length, destination, ct);
 
+    public string ReadText(CancellationToken ct) =>
+        (_lease ?? throw new ObjectDisposedException(nameof(DocumentSelectionCopy))).ReadRangeAsString(Offset, checked((int)Length), ct);
+
     public void Dispose() => Interlocked.Exchange(ref _lease, null)?.Dispose();
 }

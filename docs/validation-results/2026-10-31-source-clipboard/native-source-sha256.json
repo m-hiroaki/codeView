@@ -1,0 +1,8 @@
+{
+  "src/codeView/Documents/DocumentAdapter.cs": "9a3e66cf22c429fe287d9b28725fbc7a204ff3d615428e02c823f62f951e54e6",
+  "src/codeView/Documents/DocumentDisplaySession.cs": "ca8f0cddfe2649de94bea8f12cd3c9310be12ce64a76a926939424a0d5ef1207",
+  "src/codeView/Operations/ClipboardCopyCoordinator.cs": "b9b9c427972acc5ec2bddffed93e8269a0740955bc4210ecdab91b4bf51f333f",
+  "src/codeView/Presentation/MainWindow.axaml.cs": "ed8033d51570e34f3dd17dda1f87d8101848ee2756b921c7360efe8f51613b50",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "f85cc41a3e6df625ed1d13ca34cf369cad564b377958ed64615d635f40693c99",
+  "tests/GuiProbe/BoundedKeyMap.cs": "3140d5296bfe61025a04cb892a8c9637858ac01cd2ae228ab7108c0cd1df0e11"
+}
