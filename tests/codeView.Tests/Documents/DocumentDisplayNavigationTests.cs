@@ -5,6 +5,19 @@ namespace CodeView.Tests.Documents;
 
 public sealed class DocumentDisplayNavigationTests
 {
+    [TestCase(2L, 4L, 8L)]
+    [TestCase(2L, long.MaxValue, 9L)]
+    [TestCase(long.MaxValue, 1L, 15L)]
+    [TestCase(1L, 3L, 1L)]
+    public void OriginalPositionRestoreClampsAndKeepsScalarBoundary(long line, long column, long expected)
+    {
+        using var handle = Create("a😀\r\n1234\r\nlast");
+        using var display = new DocumentDisplaySession(handle);
+        display.MoveToPosition(new TextPosition(line, column));
+        Assert.That(display.Caret, Is.EqualTo(expected));
+        Assert.Throws<ArgumentOutOfRangeException>(() => display.MoveToPosition(default));
+        Assert.That(display.Caret, Is.EqualTo(expected));
+    }
     [Test]
     public void HorizontalMovesKeepSurrogateAndCrLfPairsTogether()
     {

@@ -1,0 +1,290 @@
+{
+  "FormatVersion": 2,
+  "MeasuredAtUtc": "2026-10-30T22:18:52.217902+00:00",
+  "Scenario": "native-interactive-bounded-candidate",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "Failure": null,
+  "CacheCondition": "generated-warm",
+  "DisplayMode": "bounded-window-prototype",
+  "ConfiguredWindowChars": 1024,
+  "OpenedMilliseconds": 610.68,
+  "WindowTwoTicksMilliseconds": 701.7217,
+  "DocumentAttachmentMilliseconds": 8.177,
+  "DocumentTwoTicksMilliseconds": 792.7076,
+  "ScrollSynchronousMilliseconds": [],
+  "AnimationTickIntervalsMilliseconds": [],
+  "DocumentChars": 1023,
+  "DocumentLines": 4,
+  "SourceChars": 8033,
+  "SourceLines": 5,
+  "LargestDisplayChars": 1024,
+  "VisitedSourceOffsets": [],
+  "SourceCaretOffset": 8033,
+  "SourceCaretPosition": {
+    "Line": 5,
+    "Column": 1
+  },
+  "SourceSelectionStart": 8033,
+  "SourceSelectionLength": 0,
+  "SourceSelectionUi": "keyboard-bound selection; pointer and clipboard not connected",
+  "SelectionSamples": [
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8033,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1023,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 4.2805
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "DocumentEnd",
+      "Extend": false,
+      "SourceAnchor": 8033,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 1023,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.3265
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8033,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1023,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.3705
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "DocumentStart",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 0,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 1, \u5217 1",
+      "SynchronousMilliseconds": 0.5486
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Down",
+      "Extend": false,
+      "SourceAnchor": 9,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.391
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8033,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1023,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 1.2203
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "LineEnd",
+      "Extend": false,
+      "SourceAnchor": 8033,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 1023,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.1393
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8033,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1023,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.2541
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "DocumentStart",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 0,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 1, \u5217 1",
+      "SynchronousMilliseconds": 0.4769
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Down",
+      "Extend": false,
+      "SourceAnchor": 9,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.1897
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "SourceAnchor": 0,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8033,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1023,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.735
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "LineEnd",
+      "Extend": false,
+      "SourceAnchor": 8033,
+      "SourceCaret": 8033,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7010,
+      "SliceChars": 1023,
+      "NativeCaret": 1023,
+      "NativeSelectionStart": 1023,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.0718
+    }
+  ],
+  "InteractiveCommands": 12,
+  "StatusPosition": "\u884C 5, \u5217 1",
+  "HeldAfterReport": false,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 68305976,
+  "SampledPeakMemory": 292553904,
+  "MemoryIncrease": 224247928,
+  "SamplingIntervalMilliseconds": 10,
+  "MemorySamples": 6547,
+  "ClientWidth": 1180,
+  "ClientHeight": 800,
+  "RenderScaling": 2,
+  "PhysicalPaint": "not-measured",
+  "PhysicalInput": "interactive keyboard mode; end-to-end latency not measured",
+  "InputInterrupted": false,
+  "CpuMilliseconds": 3457.302,
+  "AllocatedBytes": 15477208,
+  "GcCollections": [
+    2,
+    1,
+    0
+  ],
+  "GcPauseTotalMilliseconds": 20.567,
+  "GcMeasurementScope": "probe-construction-to-finish-before-report-serialization",
+  "LastGcLohBytes": 1249464,
+  "LastGcIndex": 2,
+  "IndividualGcPauses": "not-traced",
+  "LohAllocatedBytes": "not-traced"
+}

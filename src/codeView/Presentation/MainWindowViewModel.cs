@@ -399,7 +399,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 #endif
                 _document = file?.Document.ClaimForDisplay();
 #if CODEVIEW_PERFORMANCE_PROBE
-                if (file is not null) _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, _document!);
+                if (file is not null) _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, _document!, position);
+                else GuiPerformanceProbe.ClearDocument();
 #endif
                 _displayedTab = tab;
                 _displayedHandle = file?.Document;
@@ -474,8 +475,13 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public void SetPosition(int line, int column)
     {
         if (_attaching) return;
-        _line = _document is null ? 1 : Math.Clamp(line, 1, _document.LineCount);
-        _column = _document is null ? 1 : Math.Clamp(column, 1, _document.GetLineByNumber(_line).Length + 1);
+        var document = _document;
+#if CODEVIEW_PERFORMANCE_PROBE
+        if (GuiPerformanceProbe.TryGetOriginalPosition(out var original, out var source))
+        { document = source; line = checked((int)original.Line); column = checked((int)original.Column); }
+#endif
+        _line = document is null ? 1 : Math.Clamp(line, 1, document.LineCount);
+        _column = document is null ? 1 : Math.Clamp(column, 1, document.GetLineByNumber(_line).Length + 1);
         _position = HasDocument ? $"行 {_line}, 列 {_column}" : "";
         if (!_stopping && _displayedTab is { } tab && _document is not null)
             _tabManager.SaveView(tab, new(_line, _column), tab.HorizontalOffset, tab.VerticalOffset);

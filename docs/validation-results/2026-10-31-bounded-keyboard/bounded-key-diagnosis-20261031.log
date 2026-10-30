@@ -1,0 +1,9 @@
+GUI-PROBE 555.748 window-opened
+GUI-PROBE 610.664 attachment-start
+GUI-PROBE 618.811 attachment-end
+GUI-PROBE 675.418 interactive-ready
+2026-10-31 07:20:57.875 codeView[67680:8945521] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+GUI-PROBE 29126.442 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 29151.695 complete
+GUI-PROBE 29159.049 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 29163.910 window-closed

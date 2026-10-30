@@ -1,0 +1,38 @@
+{
+  "baseCommit": "0e1a3aec6db0fc35082cde6a09aab28821876e3c",
+  "sourceState": "worktree; source hashes of final staged candidate below",
+  "sourceSha256": {
+    "src/codeView/Documents/DocumentDisplaySession.cs": "d079b6e33b8828ca96cddd826374466ff2cbfffa991a2ecbe1c370fe4e6fffdc",
+    "src/codeView/Presentation/MainWindow.axaml.cs": "3620ad8fd5a9c6d0ff2edf1e3c31c6fe0b38570103ea054bae401d90b9f3aa8f",
+    "src/codeView/Presentation/MainWindowViewModel.cs": "817eb18986266ae68d8e08ad161342d5996c1cf099d1c743ea5533616f6e6e80",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "3fdced4aea294a152439c52c41cb5e9112f0cf228ae5e853bdbbaf376e99b828",
+    "tests/GuiProbe/BoundedKeyMap.cs": "6bc4caf74cfed2a91fa6d40324fd82a23fdf4894bce71275acff122ddf630499",
+    "tests/codeView.Tests/Performance/BoundedKeyMapTests.cs": "f43107a42b49dfbf2286fa728eb927c7585180b9a78f0f33c097907205725fcc",
+    "tests/codeView.Tests/Documents/DocumentDisplayNavigationTests.cs": "1777125654186028cf265f13555f766eb001576b1117eee7c233798c35bbdad6"
+  },
+  "interactiveBuild": {
+    "assemblySha256": "bcbfc0b5bb61d9a92b065523925ce5c848eb487a5d26c1468a140fae468cbdf8",
+    "rootSourceVariant": "before subsequent normal-only search-result visibility block; keyboard paths identical",
+    "reconstructedRootSourceSha256": "299c8c9d40d9a27d07b1e50598350ae3459271a140a2714d640a7ad9f20b2783",
+    "exitCode": 0,
+    "samples": 22,
+    "postedScrolls": 23
+  },
+  "normalBuild": {
+    "assemblySha256": "f86c126d9feaded1f705398dbc49793f742a81274ef2d3f79b231f373bce76af",
+    "exitCode": 0,
+    "search": "END",
+    "result": "body.cs:2:8004",
+    "horizontalOffsetDip": 69930.5361328125,
+    "evidence": "normal-long-line-result.png and .ax.txt"
+  },
+  "unitTests": {
+    "passed": 536,
+    "failed": 0,
+    "skipped": 0,
+    "trx": "bounded-keyboard-normal-final.trx",
+    "testAssemblySha256": "bb688ca602e4b5e1807de1894cf3ec9c0d7b5da98420b08e339a04f2e251475e"
+  },
+  "allNativeSessionsExited": true,
+  "cache": "small synthetic input generated/warm; no cold-I/O claims"
+}

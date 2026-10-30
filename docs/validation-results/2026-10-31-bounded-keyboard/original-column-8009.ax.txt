@@ -1,0 +1,53 @@
+Window: "codeView", App: codeView.
+0 standard window codeView, Secondary Actions: Raise
+	1 container WindowChrome, ID: AvaloniaWindowChrome
+	2 container
+		3 container
+			4 menu bar
+				5 container
+					6 ファイル
+						7 container
+							8 unknown PART_Popup
+					9 表示
+						10 container
+							11 unknown PART_Popup
+					12 検索
+						13 container
+							14 unknown PART_Popup
+			15 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+			16 container
+				17 content list 開いているファイル, ID: TabList
+					18 scroll area PART_ScrollViewer
+						19 container
+							20 row (selected) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+								21 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-bounded-keyboard/body.cs
+									22 text body.cs
+									23 text
+									24 button タブを閉じる
+				25 scroll area PART_ScrollViewer
+					26 container
+						27 container
+							28 container
+								29 content list
+									30 container
+								31 container
+						32 scroll bar (settable, float) Value: 7740.6123046875, ID: PART_HorizontalScrollBar
+							33 container
+								34 button Column left, ID: PART_LineUpButton
+								35 button Page left, ID: PART_PageUpButton
+								36 button Page right, ID: PART_PageDownButton
+								37 handle Position
+								38 button Column right, ID: PART_LineDownButton
+			39 text 読み取り専用
+			40 container
+				41 text 読み取り専用
+				42 text 行 2, 列 8009
+				43 button UTF-8, Help: 文字コードを指定して開き直す
+	44 close button
+	45 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	46 minimize button
+	47 text codeView
+48 menu bar
+	49 codeView
+
+The focused UI element is 27 container

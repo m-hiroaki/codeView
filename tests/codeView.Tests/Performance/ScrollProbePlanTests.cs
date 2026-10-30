@@ -11,6 +11,7 @@ public sealed class ScrollProbePlanTests
         Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.GuiPerformanceProbe"), Is.Null);
         Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.TextWindow"), Is.Null);
         Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.GuiNavigationPlan"), Is.Null);
+        Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.BoundedKeyMap"), Is.Null);
     }
 
     [Test]

@@ -56,6 +56,16 @@ internal sealed class DocumentDisplaySession : IDisposable
 
     public void SelectAll() => Select(0, Length);
 
+    public void MoveToPosition(TextPosition position, bool extendSelection = false)
+    {
+        VerifyAccess();
+        ArgumentOutOfRangeException.ThrowIfLessThan(position.Line, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(position.Column, 1);
+        if (position.Line > _source!.LineCount) { MoveCaret(Length, extendSelection); return; }
+        var line = _source.GetLineByNumber(checked((int)position.Line));
+        MoveCaret(line.Offset + Math.Min(position.Column - 1, line.Length), extendSelection);
+    }
+
     public void MoveHorizontal(int direction, bool extendSelection = false)
     {
         VerifyAccess();

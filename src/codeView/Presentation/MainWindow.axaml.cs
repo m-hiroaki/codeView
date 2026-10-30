@@ -65,19 +65,25 @@ internal sealed partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, FileDragOver, RoutingStrategies.Bubble, handledEventsToo: true);
         AddHandler(DragDrop.DropEvent, FileDropped, RoutingStrategies.Bubble, handledEventsToo: true);
 #if CODEVIEW_PERFORMANCE_PROBE
-        GuiPerformanceProbe.Attach(this, editor, args.Length > 0);
+        GuiPerformanceProbe.Attach(this, editor, viewModel, args.Length > 0);
 #endif
         editor.TextArea.Caret.PositionChanged += (_, _) => viewModel.SetPosition(editor.TextArea.Caret.Line, editor.TextArea.Caret.Column);
         editor.TextArea.TextView.ScrollOffsetChanged += (_, _) =>
             viewModel.SetViewport(editor.TextArea.TextView.HorizontalOffset, editor.TextArea.TextView.VerticalOffset);
         viewModel.RestoreCaret += (line, column) =>
         {
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (GuiPerformanceProbe.TryRestoreOriginal(line, column)) return;
+#endif
             editor.TextArea.Caret.Location = new TextLocation(line, column);
             editor.ScrollTo(line, column);
         };
         viewModel.RestoreViewport += (horizontal, vertical, epoch) => Dispatcher.UIThread.Post(() =>
         {
             if (_closing || !viewModel.HasDocument || viewModel.ViewEpoch != epoch) return;
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (GuiPerformanceProbe.HasInteractiveDocument) return;
+#endif
             // The candidate's ScrollTo*Offset methods are no-ops in 12.0.0.
             var scrollable = (IScrollable)editor.TextArea.TextView;
             scrollable.Offset = EditorViewport.Constrain(horizontal, vertical, scrollable.Extent, scrollable.Viewport);
@@ -88,15 +94,24 @@ internal sealed partial class MainWindow : Window
             Dispatcher.UIThread.Post(() =>
             {
                 if (_closing || !viewModel.CanApplyResultSelection(epoch)) return;
+#if CODEVIEW_PERFORMANCE_PROBE
+                if (GuiPerformanceProbe.TrySelectOriginal(offset, length)) { editor.TextArea.Focus(); return; }
+#endif
                 editor.Select(checked((int)offset), length);
                 editor.CaretOffset = checked((int)offset);
                 var location = editor.Document.GetLocation(checked((int)offset));
                 editor.ScrollTo(location.Line, location.Column);
+                // 12.0.0 ScrollTo resets targetX to zero; reveal the actual shaped caret rectangle.
+                editor.TextArea.TextView.EnsureVisualLines();
+                editor.TextArea.Caret.BringCaretToView(40);
                 editor.TextArea.Focus();
             }, DispatcherPriority.Loaded);
         };
         viewModel.ClearSearchSelection += () =>
         {
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (GuiPerformanceProbe.TrySelectOriginal(0, 0, clear: true)) return;
+#endif
             if (viewModel.HasDocument) editor.Select(editor.CaretOffset, 0);
         };
         Opened += async (_, _) =>
