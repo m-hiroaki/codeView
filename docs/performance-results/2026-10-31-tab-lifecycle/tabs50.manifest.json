@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "profile": "five-tab-50MiB",
+  "files": [
+    {
+      "name": "tab-1.cs",
+      "bytes": 52428800
+    },
+    {
+      "name": "tab-2.cs",
+      "bytes": 52428800
+    },
+    {
+      "name": "tab-3.cs",
+      "bytes": 52428800
+    },
+    {
+      "name": "tab-4.cs",
+      "bytes": 52428800
+    },
+    {
+      "name": "tab-5.cs",
+      "bytes": 52428800
+    }
+  ],
+  "sourceFixture": "text50",
+  "aliasKind": "hard-links",
+  "distinctPathPolicy": "ordinal paths; no inode deduplication",
+  "sourceSha256": "af249ffbdafe02ad97c30b78d3bbd47669c74cf254d425a6d732fbba4d319da0",
+  "totalLogicalBytes": 262144000,
+  "cacheCondition": "warm; same content and physical inode"
+}
