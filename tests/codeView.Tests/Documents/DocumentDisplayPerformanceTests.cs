@@ -34,6 +34,7 @@ public sealed class DocumentDisplayPerformanceTests
         long sliceAllocation;
         long beginCopyAllocation;
         double beginCopyMilliseconds;
+        NavigationMeasurement navigation;
         DocumentSelectionCopy copy;
         try
         {
@@ -53,6 +54,7 @@ public sealed class DocumentDisplayPerformanceTests
             copy = display.BeginCopy();
             beginCopyMilliseconds = Stopwatch.GetElapsedTime(beginCopyStart).TotalMilliseconds;
             beginCopyAllocation = GC.GetAllocatedBytesForCurrentThread() - beforeBeginCopy;
+            navigation = MeasureNavigation(display);
         }
         finally { display.Dispose(); }
         handle.Dispose();
@@ -76,6 +78,7 @@ public sealed class DocumentDisplayPerformanceTests
             SourceChars = expectedLength, ExpectedChecksum = expectedSum, CopiedChars = writer.Characters, Checksum = writer.Sum,
             SliceChars = 1024, SliceCount = slices.Count, SliceMilliseconds = slices, SliceAllocatedBytes = sliceAllocation,
             BeginCopyMilliseconds = beginCopyMilliseconds, BeginCopyAllocatedBytes = beginCopyAllocation,
+            Navigation = navigation,
             CopyMilliseconds = elapsed, CopyCpuMilliseconds = cpu, CopyAllocatedBytes = allocatedBytes,
             CopyGcPauseMilliseconds = pause, CopyGcCollections = Enumerable.Range(0, 3).Select(i => GC.CollectionCount(i) - collections[i]).ToArray(),
             MaxWriteChars = writer.MaxWrite, ReadLeasesAfterCopy = handle.ActiveReadLeases,
@@ -99,6 +102,9 @@ public sealed class DocumentDisplayPerformanceTests
             Assert.That(sliceAllocation, Is.LessThanOrEqualTo(4 << 20));
             Assert.That(beginCopyMilliseconds, Is.LessThanOrEqualTo(50));
             Assert.That(beginCopyAllocation, Is.LessThanOrEqualTo(1 << 20));
+            Assert.That(navigation.Milliseconds, Is.LessThanOrEqualTo(1000));
+            Assert.That(navigation.CpuMilliseconds, Is.LessThanOrEqualTo(1000));
+            Assert.That(navigation.AllocatedBytes, Is.LessThanOrEqualTo(256 << 10));
         });
         if (report.InputBytes <= 50L << 20)
             Assert.Multiple(() =>
@@ -108,6 +114,26 @@ public sealed class DocumentDisplayPerformanceTests
                 Assert.That(allocatedBytes, Is.LessThanOrEqualTo(256 << 10));
             });
     }
+
+    private static NavigationMeasurement MeasureNavigation(DocumentDisplaySession display)
+    {
+        display.MoveToDocumentBoundary(false);
+        var steps = Math.Min(display.Length, 50000);
+        using var process = Process.GetCurrentProcess();
+        var beforeCpu = process.TotalProcessorTime;
+        var beforeAllocation = GC.GetAllocatedBytesForCurrentThread();
+        var start = Stopwatch.GetTimestamp();
+        for (var i = 0L; i < steps; i++) display.MoveHorizontal(1, true);
+        for (var i = 0L; i < steps; i++) display.MoveHorizontal(-1, true);
+        var elapsed = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - beforeAllocation;
+        var cpu = (process.TotalProcessorTime - beforeCpu).TotalMilliseconds;
+        Assert.That(display.Caret, Is.Zero);
+        Assert.That(display.Anchor, Is.Zero);
+        return new(steps * 2, elapsed, cpu, allocated);
+    }
+
+    private sealed record NavigationMeasurement(long Commands, double Milliseconds, double CpuMilliseconds, long AllocatedBytes);
 
     private sealed class ChecksumWriter : TextWriter
     {

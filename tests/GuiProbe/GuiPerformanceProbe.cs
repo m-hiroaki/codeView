@@ -32,11 +32,14 @@ internal sealed class GuiPerformanceProbe
     private bool _finished;
     private bool _inputInterrupted;
     private readonly bool _windowed = Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1";
+    private readonly bool _selectionProbe = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SELECTION") == "1";
+    private readonly bool _holdAfterReport = Environment.GetEnvironmentVariable("CODEVIEW_GUI_HOLD_AFTER_REPORT") == "1";
     private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
     private TextDocument? _sourceDocument;
     private DocumentDisplaySession? _displaySession;
     private int _largestDisplayChars;
     private readonly List<long> _sourceOffsets = [];
+    private readonly List<object> _selectionSamples = [];
     private readonly ProcessMemory _memory = new();
     private readonly CancellationTokenSource _sampling = new();
     private readonly Task _sampler;
@@ -74,15 +77,19 @@ internal sealed class GuiPerformanceProbe
         if (string.IsNullOrWhiteSpace(output)) return;
         if (!Path.IsPathFullyQualified(output) || File.Exists(output) || !Directory.Exists(Path.GetDirectoryName(output)))
             throw new ArgumentException("計測結果には未使用の絶対パスを指定してください。");
+        if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_SELECTION") == "1" &&
+            Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") != "1")
+            throw new ArgumentException("選択表示の試験には有界表示を指定してください。");
         var probe = _instance = new(window, editor, output, hasInput);
         // This workload injects no input. Abort rather than mixing an interactive
         // selection/scroll operation with automatic document replacement.
         void InterruptForInput(object? sender, RoutedEventArgs args)
         {
+            if (probe._finished) return;
             args.Handled = true;
             if (probe._inputInterrupted) return;
             probe._inputInterrupted = true;
-            Phase("physical-input-interrupted");
+            Phase($"physical-input-interrupted event={args.RoutedEvent?.Name}");
             Dispatcher.UIThread.Post(() => probe.Finish("physical-input-during-probe"));
         }
         window.AddHandler(InputElement.PointerPressedEvent, InterruptForInput, RoutingStrategies.Tunnel);
@@ -158,9 +165,13 @@ internal sealed class GuiPerformanceProbe
         var start = Stopwatch.GetTimestamp();
         if (_windowed)
         {
-            var display = BuildDisplayWindow(document.GetOffset(line, column));
-            _editor.Document = display.Document;
-            _editor.ScrollTo(display.Target.Line, display.Target.Column);
+            if (_selectionProbe) ApplyNavigationSelection(index);
+            else
+            {
+                var display = BuildDisplayWindow(document.GetOffset(line, column));
+                _editor.Document = display.Document;
+                _editor.ScrollTo(display.Target.Line, display.Target.Column);
+            }
         }
         else _editor.ScrollTo(line, column);
         _editor.TextArea.TextView.EnsureVisualLines();
@@ -171,6 +182,33 @@ internal sealed class GuiPerformanceProbe
             _tickIntervals.Add(Stopwatch.GetElapsedTime(_previousTick, now).TotalMilliseconds);
             _previousTick = now;
             ScrollStep(index + 1);
+        });
+    }
+
+    private void ApplyNavigationSelection(int step)
+    {
+        GuiNavigationPlan.Apply(_displaySession!, step);
+        var slice = _displaySession!.CreateSlice(_displaySession.Caret, _windowChars);
+        if (!_displaySession.TryGetDisplaySelection(slice, out var visible) || visible.CaretOffset is not { } caret)
+            throw new InvalidOperationException("原文選択を表示範囲へ変換できません。");
+        var document = new TextDocument(slice.Text);
+        document.UndoStack.SizeLimit = 0;
+        _editor.Document = document;
+        _editor.Select(visible.Start, visible.Length);
+        _editor.CaretOffset = caret;
+        var location = document.GetLocation(caret);
+        _editor.ScrollTo(location.Line, location.Column);
+        _editor.TextArea.Focus();
+        if (_editor.SelectionStart != visible.Start || _editor.SelectionLength != visible.Length || _editor.CaretOffset != caret)
+            throw new InvalidOperationException("表示文書へ選択範囲を反映できません。");
+        _largestDisplayChars = Math.Max(_largestDisplayChars, document.TextLength);
+        _sourceOffsets.Add(slice.TargetOffset);
+        _selectionSamples.Add(new
+        {
+            Step = step, SourceAnchor = _displaySession.Anchor, SourceCaret = _displaySession.Caret,
+            SourcePosition = _displaySession.Position, SliceOffset = slice.SourceOffset, SliceChars = slice.Text.Length,
+            Projection = visible, NativeSelectionStart = _editor.SelectionStart,
+            NativeSelectionLength = _editor.SelectionLength, NativeCaret = _editor.CaretOffset
         });
     }
 
@@ -191,7 +229,7 @@ internal sealed class GuiPerformanceProbe
         var report = new
         {
             FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
-            Scenario = "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            Scenario = _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
@@ -204,7 +242,9 @@ internal sealed class GuiPerformanceProbe
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
             SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,
             SourceSelectionStart = _displaySession?.SelectionStart, SourceSelectionLength = _displaySession?.SelectionLength,
-            SourceSelectionUi = "not-connected; logical selection only",
+            SourceSelectionUi = _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
+            SelectionSamples = _selectionSamples,
+            HeldAfterReport = _holdAfterReport,
             MemoryMetric = _memory.Metric, MemoryBefore = _memoryBefore, SampledPeakMemory = _peakMemory,
             MemoryIncrease = _peakMemory - _memoryBefore, SamplingIntervalMilliseconds = 10, MemorySamples = _sampleCount,
             ClientWidth = _window.ClientSize.Width, ClientHeight = _window.ClientSize.Height,
@@ -225,10 +265,11 @@ internal sealed class GuiPerformanceProbe
         _instance = null;
         _memory.Dispose();
         _sampling.Dispose();
-        if (failure is not null) Environment.ExitCode = 1;
+        if (failure is not null) Program.MarkFailed();
         // Finish can run in the animation callback. Leave that callback before
         // initiating the normal product shutdown sequence.
-        Dispatcher.UIThread.Post(_window.Close);
+        if (_holdAfterReport && failure is null) Phase("awaiting-manual-close");
+        else Dispatcher.UIThread.Post(_window.Close);
     }
 
     private static void Phase(string phase) => Console.WriteLine($"GUI-PROBE {Startup.Elapsed.TotalMilliseconds:F3} {phase}");

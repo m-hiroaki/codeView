@@ -1,0 +1,159 @@
+{
+  "FormatVersion": 2,
+  "MeasuredAtUtc": "2026-10-30T21:59:28.565393+00:00",
+  "Scenario": "native-gui-source-selection-projection",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "Failure": "physical-input-during-probe",
+  "CacheCondition": "warm-prior-read",
+  "DisplayMode": "bounded-window-prototype",
+  "ConfiguredWindowChars": 1024,
+  "OpenedMilliseconds": 573.2995,
+  "WindowTwoTicksMilliseconds": 721.0897,
+  "DocumentAttachmentMilliseconds": 11.1901,
+  "DocumentTwoTicksMilliseconds": 823.2852,
+  "ScrollSynchronousMilliseconds": [
+    11.6847,
+    2.4168,
+    2.4807,
+    2.6168
+  ],
+  "AnimationTickIntervalsMilliseconds": [
+    14.3881,
+    16.815,
+    16.7752
+  ],
+  "DocumentChars": 1024,
+  "DocumentLines": 1,
+  "SourceChars": 39945760,
+  "SourceLines": 1,
+  "LargestDisplayChars": 1024,
+  "VisitedSourceOffsets": [
+    0,
+    0,
+    39945760,
+    0,
+    39945760
+  ],
+  "SourceCaretOffset": 39945760,
+  "SourceCaretPosition": {
+    "Line": 1,
+    "Column": 39945761
+  },
+  "SourceSelectionStart": 0,
+  "SourceSelectionLength": 39945760,
+  "SourceSelectionUi": "clipped selection applied; physical input not injected",
+  "SelectionSamples": [
+    {
+      "Step": 0,
+      "SourceAnchor": 0,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 0,
+        "CaretOffset": 0,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 0,
+      "NativeCaret": 0
+    },
+    {
+      "Step": 1,
+      "SourceAnchor": 39945760,
+      "SourceCaret": 39945760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 39945761
+      },
+      "SliceOffset": 39944736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 1024,
+        "Length": 0,
+        "CaretOffset": 1024,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 1024,
+      "NativeSelectionLength": 0,
+      "NativeCaret": 1024
+    },
+    {
+      "Step": 2,
+      "SourceAnchor": 39945760,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 1024,
+        "CaretOffset": 0,
+        "IsReversed": true,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "NativeCaret": 0
+    },
+    {
+      "Step": 3,
+      "SourceAnchor": 0,
+      "SourceCaret": 39945760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 39945761
+      },
+      "SliceOffset": 39944736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 1024,
+        "CaretOffset": 1024,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "NativeCaret": 1024
+    }
+  ],
+  "HeldAfterReport": true,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 68191288,
+  "SampledPeakMemory": 355501256,
+  "MemoryIncrease": 287309968,
+  "SamplingIntervalMilliseconds": 10,
+  "MemorySamples": 35,
+  "ClientWidth": 1180,
+  "ClientHeight": 800,
+  "RenderScaling": 2,
+  "PhysicalPaint": "not-measured",
+  "PhysicalInput": "not-measured",
+  "InputInterrupted": true,
+  "CpuMilliseconds": 826.569,
+  "AllocatedBytes": 267131960,
+  "GcCollections": [
+    35,
+    14,
+    3
+  ],
+  "GcPauseTotalMilliseconds": 65.488,
+  "GcMeasurementScope": "probe-construction-to-finish-before-report-serialization",
+  "LastGcLohBytes": 773776,
+  "LastGcIndex": 35,
+  "IndividualGcPauses": "not-traced",
+  "LohAllocatedBytes": "not-traced"
+}

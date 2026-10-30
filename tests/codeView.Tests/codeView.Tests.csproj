@@ -11,5 +11,6 @@
         <Using Include="NUnit.Framework" />
         <Compile Include="../GuiProbe/ScrollProbePlan.cs" Link="Performance/ScrollProbePlan.cs" />
         <Compile Include="../GuiProbe/TextWindow.cs" Link="Performance/TextWindow.cs" />
+        <Compile Include="../GuiProbe/GuiNavigationPlan.cs" Link="Performance/GuiNavigationPlan.cs" />
     </ItemGroup>
 </Project>

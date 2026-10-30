@@ -1,0 +1,40 @@
+{
+  "baseCommit": "8657ef0146644acf8e9abd43fa8a2bc90c794f9b",
+  "sourceState": "worktree; hashes below",
+  "sourceSha256": {
+    "src/codeView/Documents/DocumentDisplaySession.cs": "ea92df0e8acc4b4992f9a21ea8fb8027fd22e8fefc9fd793640d0691f4bbb3a4",
+    "src/codeView/Program.cs": "81c9758eac30a9c05098d1ad8125189956e134d694d609e8ef19fd56667f5960",
+    "src/codeView/Presentation/MainWindow.axaml.cs": "745ea092f1bc7331c4a3059d36655f2cd9aa050279fcc594f515546e04829972",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "92742047506222c822c435c5db6a7d4fa9ab244fb3df5c885fb3416d5e6aecd2",
+    "tests/GuiProbe/GuiNavigationPlan.cs": "9e13f1efc081ab64980af31d11fa853be73eaff64ea03913fc85eab0f0dae83b",
+    "tests/codeView.Tests/Documents/DocumentDisplayNavigationTests.cs": "209ad97609b2a24bd67ad232a9cad6ed8773c7e4d0986decfb450f0ca5c6cf65",
+    "tests/codeView.Tests/Documents/DocumentDisplayPerformanceTests.cs": "98637571ede33f15d371ed70dd31b6d5f4111be38f1bbeeae14e057925467a04",
+    "tests/codeView.Tests/ProcessExitStatusTests.cs": "d72783d1c1b27eebb74c5ff1915377eeef5d4274c6d030b63c09065c527c88d7"
+  },
+  "guiAssemblySha256": "2f623a8d71e7b8ecfc6aecca02a5db8741281e0f6cd95a146ee1c065477ea745",
+  "testAssemblySha256": "3a0bf8993889b91d8d7efa72b42a26e74d8fc48458fdd3c3eede9abfac6e4290",
+  "normalAssemblySha256": "d78066ff708aaba595f13d779d81f2a29578c5175fdb35803e52d6eab73b5dc1",
+  "normalTests": "505 passed, no failures/skips; source-selection-verified.trx",
+  "performanceTests": "3 passed; navigation-selection-verified-{long50,utf8-50,cp932-50}.trx",
+  "nativeSuccess": {
+    "steps": 64,
+    "exitCode": 0,
+    "windowClosed": true,
+    "holdForScreenshot": true
+  },
+  "nativeMissingInput": {
+    "exitCode": 1,
+    "failure": "open-failed",
+    "windowClosed": true
+  },
+  "interruptedBeforeExitFix": {
+    "exitCodeObserved": 0,
+    "failure": "physical-input-during-probe",
+    "sampleCount": 4,
+    "exitObservedVia": "exec_command result; stdout was not redirected to a file; report preserved"
+  },
+  "inputLong50": {
+    "bytes": 52428800,
+    "sha256": "09b6c4758efe0a06a8f2c99c57a32ba31d84b80a377e9c277b6629446cc8da5c"
+  }
+}

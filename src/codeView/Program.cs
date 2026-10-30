@@ -4,6 +4,14 @@ namespace CodeView;
 
 internal static class Program
 {
+    private static readonly ProcessExitStatus ExitStatus = new();
+
+    internal static void MarkFailed()
+    {
+        ExitStatus.MarkFailed();
+        Environment.ExitCode = 1;
+    }
+
     [STAThread]
     public static int Main(string[] args)
     {
@@ -11,8 +19,16 @@ internal static class Program
         Presentation.GuiPerformanceProbe.Start();
 #endif
         var result = BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-        return result != 0 ? result : Environment.ExitCode;
+        return ExitStatus.Resolve(result != 0 ? result : Environment.ExitCode);
     }
 
     internal static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect();
+}
+
+/// <summary>Retains a failure even if the UI lifetime subsequently resets Environment.ExitCode.</summary>
+internal sealed class ProcessExitStatus
+{
+    private int _failed;
+    public void MarkFailed() => Interlocked.Exchange(ref _failed, 1);
+    public int Resolve(int lifetimeExitCode) => lifetimeExitCode != 0 ? lifetimeExitCode : Volatile.Read(ref _failed);
 }

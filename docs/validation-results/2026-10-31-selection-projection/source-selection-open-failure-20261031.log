@@ -1,0 +1,5 @@
+GUI-PROBE 596.186 window-opened
+GUI-PROBE 653.381 complete
+GUI-PROBE 719.387 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 722.028 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 726.425 window-closed

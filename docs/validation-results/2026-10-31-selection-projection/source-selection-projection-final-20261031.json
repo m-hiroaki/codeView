@@ -1,0 +1,1600 @@
+{
+  "FormatVersion": 2,
+  "MeasuredAtUtc": "2026-10-30T22:02:34.949281+00:00",
+  "Scenario": "native-gui-source-selection-projection",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "Failure": null,
+  "CacheCondition": "warm-explicit-source-read",
+  "DisplayMode": "bounded-window-prototype",
+  "ConfiguredWindowChars": 1024,
+  "OpenedMilliseconds": 454.5771,
+  "WindowTwoTicksMilliseconds": 598.6534,
+  "DocumentAttachmentMilliseconds": 11.0787,
+  "DocumentTwoTicksMilliseconds": 710.0324,
+  "ScrollSynchronousMilliseconds": [
+    11.8397,
+    2.2053,
+    2.6972,
+    2.3635,
+    2.2782,
+    2.5525,
+    2.2665,
+    2.3949,
+    10.5507,
+    2.3683,
+    2.4907,
+    2.4318,
+    2.3454,
+    2.0187,
+    1.9938,
+    1.9402,
+    2.0767,
+    2.1332,
+    3.0319,
+    2.2764,
+    2.0964,
+    2.0583,
+    6.1792,
+    2.283,
+    2.1571,
+    2.1719,
+    2.2864,
+    2.1774,
+    2.1197,
+    2.151,
+    2.16,
+    2.0763,
+    2.5818,
+    2.503,
+    2.5232,
+    2.4297,
+    2.4069,
+    2.4392,
+    2.4209,
+    2.5066,
+    2.4834,
+    2.398,
+    2.4219,
+    2.3975,
+    2.4038,
+    2.3762,
+    5.968,
+    2.6674,
+    2.4811,
+    2.4403,
+    2.4302,
+    2.431,
+    4.2964,
+    2.6803,
+    2.7946,
+    2.5643,
+    2.4922,
+    2.4413,
+    2.3737,
+    2.3416,
+    2.378,
+    2.3752,
+    2.4432,
+    2.4103
+  ],
+  "AnimationTickIntervalsMilliseconds": [
+    13.9652,
+    16.3223,
+    16.6595,
+    16.6944,
+    16.6637,
+    16.655,
+    15.7765,
+    17.5597,
+    16.6625,
+    16.6855,
+    16.6519,
+    47.0445,
+    19.5632,
+    16.6697,
+    16.6575,
+    16.6737,
+    17.9472,
+    16.8126,
+    14.5324,
+    17.3855,
+    16.6521,
+    16.8881,
+    15.8287,
+    17.2859,
+    16.6612,
+    16.676,
+    16.6595,
+    16.6582,
+    16.6724,
+    16.6591,
+    16.6773,
+    16.6841,
+    16.6462,
+    16.6679,
+    16.656,
+    16.6707,
+    16.6753,
+    16.5426,
+    16.8127,
+    16.672,
+    16.6578,
+    16.6418,
+    16.6619,
+    16.6609,
+    16.669,
+    16.6679,
+    16.7033,
+    16.6297,
+    16.6648,
+    16.6654,
+    16.675,
+    16.8395,
+    16.5244,
+    16.6565,
+    16.663,
+    16.661,
+    16.6567,
+    16.6497,
+    16.6658,
+    16.6648,
+    16.6806,
+    16.684,
+    16.6628,
+    16.675
+  ],
+  "DocumentChars": 1024,
+  "DocumentLines": 1,
+  "SourceChars": 39945760,
+  "SourceLines": 1,
+  "LargestDisplayChars": 1024,
+  "VisitedSourceOffsets": [
+    0,
+    0,
+    39945760,
+    0,
+    39945760,
+    0,
+    32,
+    64,
+    96,
+    128,
+    160,
+    192,
+    224,
+    256,
+    288,
+    320,
+    352,
+    384,
+    416,
+    448,
+    480,
+    512,
+    544,
+    576,
+    608,
+    640,
+    672,
+    704,
+    736,
+    768,
+    800,
+    832,
+    864,
+    896,
+    928,
+    960,
+    992,
+    1024,
+    1056,
+    1088,
+    1120,
+    1152,
+    1184,
+    1216,
+    1248,
+    1280,
+    1312,
+    1344,
+    1376,
+    1408,
+    1440,
+    1472,
+    1504,
+    1536,
+    1568,
+    1600,
+    1632,
+    1664,
+    1696,
+    1728,
+    1760,
+    1792,
+    1824,
+    1856,
+    39945760
+  ],
+  "SourceCaretOffset": 39945760,
+  "SourceCaretPosition": {
+    "Line": 1,
+    "Column": 39945761
+  },
+  "SourceSelectionStart": 0,
+  "SourceSelectionLength": 39945760,
+  "SourceSelectionUi": "clipped selection applied; physical input not injected",
+  "SelectionSamples": [
+    {
+      "Step": 0,
+      "SourceAnchor": 0,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 0,
+        "CaretOffset": 0,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 0,
+      "NativeCaret": 0
+    },
+    {
+      "Step": 1,
+      "SourceAnchor": 39945760,
+      "SourceCaret": 39945760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 39945761
+      },
+      "SliceOffset": 39944736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 1024,
+        "Length": 0,
+        "CaretOffset": 1024,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 1024,
+      "NativeSelectionLength": 0,
+      "NativeCaret": 1024
+    },
+    {
+      "Step": 2,
+      "SourceAnchor": 39945760,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 1024,
+        "CaretOffset": 0,
+        "IsReversed": true,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "NativeCaret": 0
+    },
+    {
+      "Step": 3,
+      "SourceAnchor": 0,
+      "SourceCaret": 39945760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 39945761
+      },
+      "SliceOffset": 39944736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 1024,
+        "CaretOffset": 1024,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "NativeCaret": 1024
+    },
+    {
+      "Step": 4,
+      "SourceAnchor": 0,
+      "SourceCaret": 0,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 0,
+        "CaretOffset": 0,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 0,
+      "NativeCaret": 0
+    },
+    {
+      "Step": 5,
+      "SourceAnchor": 0,
+      "SourceCaret": 32,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 33
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 32,
+        "CaretOffset": 32,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 32,
+      "NativeCaret": 32
+    },
+    {
+      "Step": 6,
+      "SourceAnchor": 0,
+      "SourceCaret": 64,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 65
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 64,
+        "CaretOffset": 64,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 64,
+      "NativeCaret": 64
+    },
+    {
+      "Step": 7,
+      "SourceAnchor": 0,
+      "SourceCaret": 96,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 97
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 96,
+        "CaretOffset": 96,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 96,
+      "NativeCaret": 96
+    },
+    {
+      "Step": 8,
+      "SourceAnchor": 0,
+      "SourceCaret": 128,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 129
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 128,
+        "CaretOffset": 128,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 128,
+      "NativeCaret": 128
+    },
+    {
+      "Step": 9,
+      "SourceAnchor": 0,
+      "SourceCaret": 160,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 161
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 160,
+        "CaretOffset": 160,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 160,
+      "NativeCaret": 160
+    },
+    {
+      "Step": 10,
+      "SourceAnchor": 0,
+      "SourceCaret": 192,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 193
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 192,
+        "CaretOffset": 192,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 192,
+      "NativeCaret": 192
+    },
+    {
+      "Step": 11,
+      "SourceAnchor": 0,
+      "SourceCaret": 224,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 225
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 224,
+        "CaretOffset": 224,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 224,
+      "NativeCaret": 224
+    },
+    {
+      "Step": 12,
+      "SourceAnchor": 0,
+      "SourceCaret": 256,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 257
+      },
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": false
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 13,
+      "SourceAnchor": 0,
+      "SourceCaret": 288,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 289
+      },
+      "SliceOffset": 32,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 14,
+      "SourceAnchor": 0,
+      "SourceCaret": 320,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 321
+      },
+      "SliceOffset": 64,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 15,
+      "SourceAnchor": 0,
+      "SourceCaret": 352,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 353
+      },
+      "SliceOffset": 96,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 16,
+      "SourceAnchor": 0,
+      "SourceCaret": 384,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 385
+      },
+      "SliceOffset": 128,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 17,
+      "SourceAnchor": 0,
+      "SourceCaret": 416,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 417
+      },
+      "SliceOffset": 160,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 18,
+      "SourceAnchor": 0,
+      "SourceCaret": 448,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 449
+      },
+      "SliceOffset": 192,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 19,
+      "SourceAnchor": 0,
+      "SourceCaret": 480,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 481
+      },
+      "SliceOffset": 224,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 20,
+      "SourceAnchor": 0,
+      "SourceCaret": 512,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 513
+      },
+      "SliceOffset": 256,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 21,
+      "SourceAnchor": 0,
+      "SourceCaret": 544,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 545
+      },
+      "SliceOffset": 288,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 22,
+      "SourceAnchor": 0,
+      "SourceCaret": 576,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 577
+      },
+      "SliceOffset": 320,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 23,
+      "SourceAnchor": 0,
+      "SourceCaret": 608,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 609
+      },
+      "SliceOffset": 352,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 24,
+      "SourceAnchor": 0,
+      "SourceCaret": 640,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 641
+      },
+      "SliceOffset": 384,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 25,
+      "SourceAnchor": 0,
+      "SourceCaret": 672,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 673
+      },
+      "SliceOffset": 416,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 26,
+      "SourceAnchor": 0,
+      "SourceCaret": 704,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 705
+      },
+      "SliceOffset": 448,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 27,
+      "SourceAnchor": 0,
+      "SourceCaret": 736,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 737
+      },
+      "SliceOffset": 480,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 28,
+      "SourceAnchor": 0,
+      "SourceCaret": 768,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 769
+      },
+      "SliceOffset": 512,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 29,
+      "SourceAnchor": 0,
+      "SourceCaret": 800,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 801
+      },
+      "SliceOffset": 544,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 30,
+      "SourceAnchor": 0,
+      "SourceCaret": 832,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 833
+      },
+      "SliceOffset": 576,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 31,
+      "SourceAnchor": 0,
+      "SourceCaret": 864,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 865
+      },
+      "SliceOffset": 608,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 32,
+      "SourceAnchor": 0,
+      "SourceCaret": 896,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 897
+      },
+      "SliceOffset": 640,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 33,
+      "SourceAnchor": 0,
+      "SourceCaret": 928,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 929
+      },
+      "SliceOffset": 672,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 34,
+      "SourceAnchor": 0,
+      "SourceCaret": 960,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 961
+      },
+      "SliceOffset": 704,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 35,
+      "SourceAnchor": 0,
+      "SourceCaret": 992,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 993
+      },
+      "SliceOffset": 736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 36,
+      "SourceAnchor": 0,
+      "SourceCaret": 1024,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1025
+      },
+      "SliceOffset": 768,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 37,
+      "SourceAnchor": 0,
+      "SourceCaret": 1056,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1057
+      },
+      "SliceOffset": 800,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 38,
+      "SourceAnchor": 0,
+      "SourceCaret": 1088,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1089
+      },
+      "SliceOffset": 832,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 39,
+      "SourceAnchor": 0,
+      "SourceCaret": 1120,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1121
+      },
+      "SliceOffset": 864,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 40,
+      "SourceAnchor": 0,
+      "SourceCaret": 1152,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1153
+      },
+      "SliceOffset": 896,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 41,
+      "SourceAnchor": 0,
+      "SourceCaret": 1184,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1185
+      },
+      "SliceOffset": 928,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 42,
+      "SourceAnchor": 0,
+      "SourceCaret": 1216,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1217
+      },
+      "SliceOffset": 960,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 43,
+      "SourceAnchor": 0,
+      "SourceCaret": 1248,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1249
+      },
+      "SliceOffset": 992,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 44,
+      "SourceAnchor": 0,
+      "SourceCaret": 1280,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1281
+      },
+      "SliceOffset": 1024,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 45,
+      "SourceAnchor": 0,
+      "SourceCaret": 1312,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1313
+      },
+      "SliceOffset": 1056,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 46,
+      "SourceAnchor": 0,
+      "SourceCaret": 1344,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1345
+      },
+      "SliceOffset": 1088,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 47,
+      "SourceAnchor": 0,
+      "SourceCaret": 1376,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1377
+      },
+      "SliceOffset": 1120,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 48,
+      "SourceAnchor": 0,
+      "SourceCaret": 1408,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1409
+      },
+      "SliceOffset": 1152,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 49,
+      "SourceAnchor": 0,
+      "SourceCaret": 1440,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1441
+      },
+      "SliceOffset": 1184,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 50,
+      "SourceAnchor": 0,
+      "SourceCaret": 1472,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1473
+      },
+      "SliceOffset": 1216,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 51,
+      "SourceAnchor": 0,
+      "SourceCaret": 1504,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1505
+      },
+      "SliceOffset": 1248,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 52,
+      "SourceAnchor": 0,
+      "SourceCaret": 1536,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1537
+      },
+      "SliceOffset": 1280,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 53,
+      "SourceAnchor": 0,
+      "SourceCaret": 1568,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1569
+      },
+      "SliceOffset": 1312,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 54,
+      "SourceAnchor": 0,
+      "SourceCaret": 1600,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1601
+      },
+      "SliceOffset": 1344,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 55,
+      "SourceAnchor": 0,
+      "SourceCaret": 1632,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1633
+      },
+      "SliceOffset": 1376,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 56,
+      "SourceAnchor": 0,
+      "SourceCaret": 1664,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1665
+      },
+      "SliceOffset": 1408,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 57,
+      "SourceAnchor": 0,
+      "SourceCaret": 1696,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1697
+      },
+      "SliceOffset": 1440,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 58,
+      "SourceAnchor": 0,
+      "SourceCaret": 1728,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1729
+      },
+      "SliceOffset": 1472,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 59,
+      "SourceAnchor": 0,
+      "SourceCaret": 1760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1761
+      },
+      "SliceOffset": 1504,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 60,
+      "SourceAnchor": 0,
+      "SourceCaret": 1792,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1793
+      },
+      "SliceOffset": 1536,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 61,
+      "SourceAnchor": 0,
+      "SourceCaret": 1824,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1825
+      },
+      "SliceOffset": 1568,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 62,
+      "SourceAnchor": 0,
+      "SourceCaret": 1856,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1857
+      },
+      "SliceOffset": 1600,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 256,
+        "CaretOffset": 256,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 256,
+      "NativeCaret": 256
+    },
+    {
+      "Step": 63,
+      "SourceAnchor": 0,
+      "SourceCaret": 39945760,
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 39945761
+      },
+      "SliceOffset": 39944736,
+      "SliceChars": 1024,
+      "Projection": {
+        "Start": 0,
+        "Length": 1024,
+        "CaretOffset": 1024,
+        "IsReversed": false,
+        "IsClipped": true
+      },
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "NativeCaret": 1024
+    }
+  ],
+  "HeldAfterReport": true,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 68109344,
+  "SampledPeakMemory": 380126408,
+  "MemoryIncrease": 312017064,
+  "SamplingIntervalMilliseconds": 10,
+  "MemorySamples": 130,
+  "ClientWidth": 1180,
+  "ClientHeight": 800,
+  "RenderScaling": 2,
+  "PhysicalPaint": "not-measured",
+  "PhysicalInput": "not-measured",
+  "InputInterrupted": false,
+  "CpuMilliseconds": 1259.825,
+  "AllocatedBytes": 288390024,
+  "GcCollections": [
+    37,
+    14,
+    3
+  ],
+  "GcPauseTotalMilliseconds": 74.702,
+  "GcMeasurementScope": "probe-construction-to-finish-before-report-serialization",
+  "LastGcLohBytes": 773776,
+  "LastGcIndex": 37,
+  "IndividualGcPauses": "not-traced",
+  "LohAllocatedBytes": "not-traced"
+}

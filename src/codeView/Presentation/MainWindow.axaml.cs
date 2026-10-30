@@ -106,7 +106,7 @@ internal sealed partial class MainWindow : Window
             GuiPerformanceProbe.InitializationFinished(viewModel.HasDocument);
 #endif
         };
-        viewModel.FatalFailure += () => { Environment.ExitCode = 1; Close(); };
+        viewModel.FatalFailure += () => { Program.MarkFailed(); Close(); };
         Closing += async (_, eventArgs) =>
         {
             if (_allowClose) return;
@@ -116,7 +116,7 @@ internal sealed partial class MainWindow : Window
             viewModel.Stop();
             try { await viewModel.PendingWork.WaitAsync(TimeSpan.FromSeconds(2)); }
             catch (TimeoutException) { }
-            catch (Exception) { Environment.ExitCode = 1; }
+            catch (Exception) { Program.MarkFailed(); }
             _allowClose = true;
             Dispatcher.UIThread.Post(Close);
         };
@@ -172,7 +172,7 @@ internal sealed partial class MainWindow : Window
         catch (Exception)
         {
             _viewModel.SetStatus("予期しないエラーのため終了します。");
-            Environment.ExitCode = 1;
+            Program.MarkFailed();
             if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 desktop.Shutdown(1);
             else Close();
@@ -188,7 +188,7 @@ internal sealed partial class MainWindow : Window
         {
             args.DragEffects = DragDropEffects.None;
             _viewModel.SetStatus("ドロップデータを確認できません。");
-            Environment.ExitCode = 1;
+            Program.MarkFailed();
             Close();
         }
     }

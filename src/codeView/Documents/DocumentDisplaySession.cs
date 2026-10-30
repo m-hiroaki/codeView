@@ -17,6 +17,7 @@ internal sealed class DocumentDisplaySession : IDisposable
     private DocumentDisplaySlice? _slice;
     private long _anchor;
     private long _caret;
+    private long? _preferredColumn;
 
     public DocumentDisplaySession(DocumentHandle handle)
     {
@@ -39,6 +40,7 @@ internal sealed class DocumentDisplaySession : IDisposable
         offset = Normalize(offset);
         _caret = offset;
         if (!extendSelection) _anchor = offset;
+        _preferredColumn = null;
     }
 
     public void Select(long anchor, long caret)
@@ -49,9 +51,45 @@ internal sealed class DocumentDisplaySession : IDisposable
         var end = Normalize(caret);
         _anchor = start;
         _caret = end;
+        _preferredColumn = null;
     }
 
     public void SelectAll() => Select(0, Length);
+
+    public void MoveHorizontal(int direction, bool extendSelection = false)
+    {
+        VerifyAccess();
+        if (direction is not (-1 or 1)) throw new ArgumentOutOfRangeException(nameof(direction));
+        if (!extendSelection && _anchor != _caret)
+        {
+            MoveCaret(direction < 0 ? SelectionStart : Math.Max(_anchor, _caret));
+            return;
+        }
+        var next = direction < 0 ? Math.Max(0, _caret - 1) : Math.Min(Length, _caret + 1);
+        if (direction > 0 && SplitsBoundary(next)) next++;
+        MoveCaret(next, extendSelection);
+    }
+
+    public void MoveLines(int lineDelta, bool extendSelection = false)
+    {
+        VerifyAccess();
+        if (lineDelta == 0) return;
+        var current = PositionAt(_caret);
+        var column = _preferredColumn ?? current.Column;
+        var line = _source!.GetLineByNumber(checked((int)Math.Clamp(current.Line + (long)lineDelta, 1, _source.LineCount)));
+        MoveCaret(line.Offset + Math.Min(column - 1, line.Length), extendSelection);
+        _preferredColumn = column;
+    }
+
+    public void MoveToLineBoundary(bool end, bool extendSelection = false)
+    {
+        VerifyAccess();
+        var line = _source!.GetLineByNumber(checked((int)Position.Line));
+        MoveCaret(end ? line.EndOffset : line.Offset, extendSelection);
+    }
+
+    public void MoveToDocumentBoundary(bool end, bool extendSelection = false) =>
+        MoveCaret(end ? Length : 0, extendSelection);
 
     public DocumentDisplaySlice CreateSlice(long targetOffset, int maxChars)
     {
@@ -74,6 +112,21 @@ internal sealed class DocumentDisplaySession : IDisposable
         ArgumentNullException.ThrowIfNull(slice);
         if (!ReferenceEquals(slice, _slice)) return false;
         MoveCaret(slice.ToSourceOffset(offset), extendSelection);
+        return true;
+    }
+
+    public bool TryGetDisplaySelection(DocumentDisplaySlice slice, out DocumentDisplaySelection selection)
+    {
+        VerifyAccess();
+        ArgumentNullException.ThrowIfNull(slice);
+        selection = default;
+        if (!ReferenceEquals(slice, _slice)) return false;
+        var start = Math.Clamp(SelectionStart - slice.SourceOffset, 0, slice.Text.Length);
+        var end = Math.Clamp(Math.Max(_anchor, _caret) - slice.SourceOffset, 0, slice.Text.Length);
+        var visibleCaret = _caret >= slice.SourceOffset && _caret <= slice.SourceOffset + slice.Text.Length
+            ? (int?)(_caret - slice.SourceOffset) : null;
+        selection = new((int)start, checked((int)(end - start)), visibleCaret, _anchor > _caret,
+            SelectionLength > 0 && (SelectionStart < slice.SourceOffset || Math.Max(_anchor, _caret) > slice.SourceOffset + slice.Text.Length));
         return true;
     }
 
@@ -138,6 +191,8 @@ internal sealed record DocumentDisplaySlice(long SourceOffset, TextPosition Sour
         return checked(SourceOffset + displayOffset);
     }
 }
+
+internal readonly record struct DocumentDisplaySelection(int Start, int Length, int? CaretOffset, bool IsReversed, bool IsClipped);
 
 internal sealed class DocumentSelectionCopy(DocumentReadLease lease, long offset, long length) : IDisposable
 {
