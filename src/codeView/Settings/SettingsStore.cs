@@ -1,4 +1,5 @@
 using CodeView.Contracts;
+using CodeView.Files;
 
 namespace CodeView.Settings;
 
@@ -28,6 +29,8 @@ internal sealed record SettingsLoadResult(
 
 internal sealed class SettingsStore(SettingsLocations locations)
 {
+    private readonly ISourceAccess _access = new SourceAccess();
+
     public async Task<SettingsLoadResult> LoadAsync(CancellationToken ct)
     {
         string? selected = null;
@@ -47,8 +50,11 @@ internal sealed class SettingsStore(SettingsLocations locations)
             if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.Device)) != 0)
                 return Invalid(selected, ErrorCode.InvalidSettings);
 
-            await using var stream = new FileStream(selected, FileMode.Open, FileAccess.Read,
-                FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var path = SourcePath.Create(selected, Path.GetDirectoryName(Path.GetFullPath(selected))!);
+            var opened = _access.OpenRead(path, ct);
+            if (opened.Status != OperationStatus.Success)
+                return Invalid(selected, opened.Error!.Code);
+            await using var stream = opened.Value;
             var bytes = new byte[SettingsValidator.MaxBytes + 1];
             var count = 0;
             while (count < bytes.Length)

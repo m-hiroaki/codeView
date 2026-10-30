@@ -56,3 +56,11 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - Release：合格45、失敗0、スキップ0。TRXは`tests/codeView.Tests/TestResults/settings-startup.trx`。
 - P1-04のロジックとP1-05の状態部分が進行。UI・実I/Oのアクセス拒否・起動タイマーへの統合が残るため、タスク全体は未完了。設定書込は未実装・無効のまま。
 - ビルド基盤・共通契約はコミット`daca8bb`。将来の性能・GUI・Windows確認をこれらの単体試験で代用しない。
+
+## 2026-10-30：読取専用I/Oと厳格デコード
+
+- SourceAccessとFileReaderを追加。UTF-8/CP932/UTF-16/UTF-32、BOM・手動指定、バイナリ疑い、チャンク境界、再読込時の変更、リンク先の更新、取消・ハンドル解放とソースハッシュ不変を検証した。
+- macOSのFIFOを非ブロックOpenと通常ファイル判定で拒否する。設定読込も同じ境界を使うよう設計を補い、設定パスがFIFOでも起動を待たせない試験を追加した。
+- Release：合格61、失敗0、スキップ0。TRXは`tests/codeView.Tests/TestResults/file-reader.trx`。macOS arm64での結果であり、WindowsとmacOS x64のnative経路は未実行。
+- P1-06・P2-02のロジックが進行。現時点は同期ワーカー用の入口であり、UI接続・検索用の非同期返却・全バイナリ形式・性能評価は残る。G1・G2は未完了。
+- 設定・起動待ちはコミット`b81e630`。AppOperationsへの統合は次の作業。

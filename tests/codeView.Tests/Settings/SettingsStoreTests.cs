@@ -1,5 +1,6 @@
 using CodeView.Contracts;
 using CodeView.Settings;
+using System.Diagnostics;
 
 namespace CodeView.Tests.Settings;
 
@@ -58,5 +59,22 @@ public sealed class SettingsStoreTests
         source.Cancel();
         Assert.CatchAsync<OperationCanceledException>(async () =>
             await new SettingsStore(_locations).LoadAsync(source.Token));
+    }
+
+    [Test]
+    public async Task MacFifoSettingsCannotBlockStartup()
+    {
+        if (!OperatingSystem.IsMacOS())
+            Assert.Ignore("DarwinのFIFO設定ファイルの検証。");
+        using var command = Process.Start(new ProcessStartInfo("/usr/bin/mkfifo")
+        {
+            UseShellExecute = false,
+            ArgumentList = { _locations.PortableFile }
+        })!;
+        await command.WaitForExitAsync();
+        var result = await Task.Run(() => new SettingsStore(_locations).LoadAsync(CancellationToken.None))
+            .WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.That(result.Warning!.Code, Is.EqualTo(ErrorCode.NotRegularFile));
+        Assert.That(result.CanSave, Is.False);
     }
 }
