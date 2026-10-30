@@ -11,6 +11,11 @@ internal static class SearchLimits
     public const int QueryChars = 16 * 1024;
     public const int LiteralScanBlockChars = 16 * 1024;
     public const int RegexLineChars = 1024 * 1024;
+    public const int ResultLimit = 10000;
+    public const int BatchSize = 128;
+    public const int ResultQueueBatches = 8;
+    public const int ErrorSamples = 20;
+    public const int ProgressIntervalMilliseconds = 100;
     public static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 }
 

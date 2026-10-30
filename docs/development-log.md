@@ -340,3 +340,15 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - 正常/異常/境界の16件を追加し、Release通常単体355件合格・失敗0・スキップ0（`tests/codeView.Tests/TestResults/search-snippet.trx`）。実原文ケース、1単位チャンクとバッファ圧縮、90万字以降のRegex一致、長い一致、空/EOFの0文字一致、両端の補助平面文字、範囲不正、通知例外後の取得拒否を検証した。
 - 性能評価条件16章へ実測前に1万件の抜粋生成予算（経過/CPU各1秒・割当8 MiB）を追加した。作業ツリーの予備測定は通常43.3ms/CPU43.4ms/4,249,744 bytes、Regex50.7ms/CPU53.2ms/6,340,176 bytes、GC停止0/0.281msで2件とも合格。原文準備は測定外、照合器構築と全1万件の抜粋生成/内容検査を含み、結果を直ちに破棄する。キュー保持量やOSメモリの証明にはしない（`snippet-capture-performance.trx`）。
 - 抜粋を使わない既存50 MiB・UTF-8の通常/Regex性能回帰も2件合格（`snippet-core-regression.trx`）。通常4条件は約58〜682ms・割当約65〜97 KiB、Regex4条件は約109〜290ms・約2.04 MiB、全てGC停止0で元予算内。作業ツリーでの回帰値であり、固定版の確定比較やCPUの改善を主張しない。起動/描画経路へは未接続。ワーカー/有界イベント/画面、長時間・別OS/実GUIとG2/G3/G4は未完了のままである。
+
+## 2026-10-31：逐次全文検索と有界イベントの接続
+
+- 前回は`e69a02b`で抜粋生成を記録した進捗ターン。クリーンなworktreeを確認して、P4-04/P4-05のSearch内部を実装した。TextSearch.StartWorkspaceからSessionを返し、Task.Run 1件でDirectoryReader.WalkFiles→FileReaderの準備/検証/再読取→再利用する照合器→原文抜粋の順に処理する。全文/全パス配列や索引は作らない。
+- 8イベントの有界Channelと128件バッチへHits/Committed/Invalidatedを同じ順序で送る。途中変更/読取失敗は当該ファイルだけを無効化し、生成件数を返還しない。1万件で現在ファイルを未確定のまま停止する。満杯待ちは取消可能、手元バッチを破棄してもTaskの終端情報/未確定IDを返せる。未知例外は終端情報付きSearchWorkerExceptionでTask/Channelを失敗させ、正常完了へ変換しない。
+- 対象外と失敗を分け、失敗内訳は全件加算・代表例20件、進捗は最新1件/100msと終了時更新。ReadSourceBytesは読取成功ファイルの論理入力合計と明記し、検証I/OやRegex評価量と同一視しない。Regexの長行/非スカラー除外も全ファイル分集計し、Completedでも未評価/失敗を含めばIsPartialとする。
+- 追加26件を含めRelease通常単体381件合格、失敗0・スキップ0（`tests/codeView.Tests/TestResults/workspace-search-final.trx`）。複数ファイルの原文位置/抜粋、確定順序、変更/I/O失敗/根と枝の失敗、CP932、リンク/除外/バイナリ/不正バイト、代表例上限、9,999/10,000/10,001件、無効化後の予算、満杯取消、Task終端先着、空ルート/条件不正、未知例外とRegexタイムアウトを検証した。要求取消と同時に別トークンの取消例外が起きても隠さないようトークンを照合する。
+- 初回のビルドでthrow条件式の括弧不足を修正。バイナリ試験も、明示UTF-8時にはNUL推測を無効にする既存仕様に合わせ、形式識別されるPNGシグネチャへ修正した。製品の文字コード判定仕様は変更していない。
+- 性能評価条件17章へ測定入口と範囲を記載し、14章の事前L1予算を適用した。直前に全1 GiBを読んでWarmを確認した予備値は、通常未一致4.33秒/CPU7.86秒/OS増分6.25 MiB/割当約3.19 GiB/GC126.4ms（408/0/0）、Regex未一致5.85秒/CPU9.70秒/約6.36 MiB/約3.20 GiB/GC134.6ms（410/0/0）で2条件とも予算内。両方5万ファイル・1,073,741,824 bytesを完了、失敗/未評価0。Regexは24,556,727行を評価した。JSON/TRXはそれぞれ`workspace-l1-literal-preliminary`/`workspace-l1-regex-preliminary`名で保存した。
+- 通常markerの予備測定は仮結果5.55ms/初回確定6.27ms、1.05秒で生成/返却10,000・確定9,999・未確定ID10,000としてLimitReachedになった（`workspace-l1-marker-preliminary`）。単一ファイルの仮件数だけをテスト受信側で保持し、全結果や本文は保存しない。固定コミットの比較値ではなく、物理I/O・Cold、個別GC/LOH、UI予算や保持・長時間の証拠にはしない。
+- 未評価を未一致完走と誤認しない検査（IsPartial=false・Regex評価行数）を性能プローブへ追加してL1 Regexを再検証し、5.76秒/CPU9.57秒/OS増分約6.34 MiB/割当約3.20 GiB/GC129.4msで合格した（`workspace-l1-regex-validation`）。満杯取消後のFileStream.CanRead=falseも追加検査1件で確認した（`workspace-search-cancel-disposal.trx`）。
+- Sessionを返す理由・利点/欠点・影響/移行順を詳細設計05の5.2/6.1へ記載し、README/タスクリストも更新。Operationsの世代・処理枠と検索受付、UIドレイン/移動/仮結果破棄の接続、本文内検索、実GUI・別OSは未完了。P4-04/P4-05全体やG2/G3/G4は完了としていない。

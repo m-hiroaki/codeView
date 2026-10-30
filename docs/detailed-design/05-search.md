@@ -12,7 +12,8 @@
 | `SearchHit` / Search | FileScanId、パス、TextRange、一致長、短い抜粋と抜粋内の一致範囲、SourceStamp |
 | `SearchEvent<T>` / Search | `Hits(batch<T>)`、`FileCommitted(id)`、`FileInvalidated(id, error)`。通常検索のTはSearchHit、定義探索はDefinitionCandidate |
 | `SearchProgress` / Search | 走査済み・対象外・失敗の件数、評価バイト数。最新1件だけ保持する |
-| `TextSearch` / Search | `RunWorkspaceAsync(request, writer, ct)`、`ScanReadViewAsync(request, lease, consume, ct)` |
+| `TextSearch` / Search | `StartWorkspace(request, ct)`はSessionを返す。本文内の`ScanReadViewAsync(request, lease, consume, ct)`は後続実装 |
+| `WorkspaceSearchSession` / Search | 有界イベント受信口、Completion Task、最新Progress、Terminal。取消トークンは操作所有者が管理 |
 | `LiteralMatcher` / Search | チャンク状態を持つ通常・単語単位照合 |
 | `RegexLineMatcher` / Search | 上限内の1行に対する正規表現照合 |
 
@@ -117,6 +118,14 @@ LiteralMatcherとRegexLineMatcherは同期の一致コールバック内だけ`C
 
 影響範囲はSearch内部の照合器と結果生成に限定し、層/依存方向は変更しない。既存のTextRangeコールバックを維持し、まず抜粋の単体試験と照合性能回帰を行い、次にワーカーがコールバック内で取得した抜粋をSearchHitへ格納する。ワーカー/イベント/UIへの接続前はP4-04/P4-05の完了とはしない。
 
+### 5.2 逐次ワーカーの実装境界
+
+StartWorkspaceは固定要求からTask.Runを1件だけ開始する。DirectoryReader.WalkFilesの深さ優先列挙とFileReader.Prepare/ReadChunksを同じワーカーで直列実行し、全パスの配列・索引・本文モデルを作らない。照合器とコールバックはセッションで再利用する。検証後の読取失敗/変更ではAbortで保留照合を破棄し、既存の仮結果をFlushした後にFileInvalidatedを送る。成功時だけCompleteでEOFを照合してFileCommittedを送る。
+
+Binary/NotRegularFileと列挙上のリンク/除外/特殊エントリは対象外へ加算する。デコード失敗・読取不可・変更等は失敗件数とErrorCode別件数へ加算し、代表例だけ20件以内で保持する。サブディレクトリの失敗は継続、ルート列挙失敗は検索全体をFailedとする。除外ディレクトリの配下件数は数えるために列挙しない。Regexタイムアウトは検索を停止し、そのファイルを確定しない。評価済み行/長行未評価/非スカラー一致除外はファイル間で集計する。Completedでも失敗/未評価を含む場合はIsPartialを立て、完全結果と区別する。
+
+SearchProgressのReadSourceBytesは再読取が成功したファイルのSourceStamp.LengthBytes合計、DecodedCharactersは照合入口へ届いた文字数とする。前者は論理入力量で、検証パスの追加I/O・途中失敗分・物理読取量や、Regexで実際に照合したバイト数を表さない。更新は最新1値・100ms間隔と終了時の強制更新に限定する。
+
 ## 6. キュー・進捗・完了通知
 
 結果用の有界Channel相当を1セッションに1つ持ち、HitsはBatchSizeまで、キューはResultQueueBatchesまでとする。FileCommitted / Invalidatedも同じ順序付き経路に送る。進捗は別の最新1値を上書きし、ProgressInterval以上の頻度で通知を増やさない。
@@ -126,6 +135,16 @@ UIは4msまたは256件の予算まで取り出し、次の短い処理へ譲る
 正常・通常失敗の完了表示は、writer終了かつ受信キューを排出した後に確定する。ワーカーTaskの終了だけで先に「完了」と表示しない。取消時は残キューを破棄し、採用済みの確定結果を残す。未確定ファイルの結果は破棄する。新検索では旧ドレインと完了通知を世代で不採用にする。
 
 例外・取消でFileInvalidatedが送れない場合、終了情報の未確定FileScanIdでUIが同じ無効化を行う。終端情報は満杯キューへの投入を無期限に待つ経路にせず、Taskの終端結果として保持する。writer完了・終端結果・未確定IDを必ず観測する。
+
+### 6.1 セッションと終端の実装境界
+
+Sessionは単一writer/readerのBoundedChannel（Wait、8イベント、同期継続なし）とCompletion Taskを所有する。Hitsは最大128件の読取専用バッチとし、送信後に同じListを変更しない。先頭一致はすぐFlushし、その後は128件・100ms経過・ファイル末尾・結果上限でFlushする。イベント投入はワーカースレッドで取消可能なWriteAsyncを待ち、UIでは同期待機しない。
+
+生成1万件で照合を止め、上限到達を通常の読取エラーへ変換しない。GeneratedHitsには生成済み件数、ReturnedHitsにはチャネルへ投入済みの件数、CommittedHitsには投入済みFileCommittedに対応する件数を記録する。取消時は投入待ち/手元バッチが破棄されるため生成と返却が異なり得る。画面へ採用済みの件数はこの値から推定しない。
+
+通常の失敗/取消/上限ではSearchCompletionをTask結果として返し、チャネルを完了する。未知の例外や当該要求の取消と対応しないOperationCanceledExceptionは、終端情報を伴うSearchWorkerExceptionでTaskとチャネルを失敗させる。取消の扱いは要求トークンが取消済み、かつ例外のCancellationTokenが要求トークンと等しい場合に限定し、同時に発生した別トークンの取消を隠さない。Terminalはwriter完了前に公開する。操作所有者は両経路の失敗と終端情報を観測して、必要なら致命的経路へ進む。初めから取消済みでもワーカーの後始末を実行し、writerを未完了で残さない。
+
+従来案のwriter引数からSession返却へ具体化した理由は、終端先着と満杯時の取消を受信口/Task/最新進捗の1つの寿命で観測するため。利点は無制限の別通知キューが不要なこと、欠点は操作所有者がキュー排出とTask完了を別々に確認する必要があること。影響はSearch内部の要求・結果契約と後続Operations接続に限定し、層/依存方向は維持する。単体・ワーカー性能→Operationsの世代/処理枠→UIドレインの順で接続する。現段階では1アプリ内の検索枠、旧世代の不採用、UIの取消/仮結果処理は未実装であり、P4-05全体の完了とはしない。
 
 ## 7. ファイル内検索
 
