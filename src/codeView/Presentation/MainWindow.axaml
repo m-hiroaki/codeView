@@ -11,6 +11,15 @@
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
                 <MenuItem Header="再読み込み" IsEnabled="{Binding HasDocument}" Click="ReloadClicked" />
+                <MenuItem Header="文字コードを指定して開き直す" IsEnabled="{Binding CanReopenEncoding}">
+                    <MenuItem Header="自動判定" Tag="Auto" Click="EncodingClicked" />
+                    <MenuItem Header="UTF-8" Tag="Utf8" Click="EncodingClicked" />
+                    <MenuItem Header="Shift_JIS（CP932）" Tag="Cp932" Click="EncodingClicked" />
+                    <MenuItem Header="UTF-16 LE" Tag="Utf16Le" Click="EncodingClicked" />
+                    <MenuItem Header="UTF-16 BE" Tag="Utf16Be" Click="EncodingClicked" />
+                    <MenuItem Header="UTF-32 LE" Tag="Utf32Le" Click="EncodingClicked" />
+                    <MenuItem Header="UTF-32 BE" Tag="Utf32Be" Click="EncodingClicked" />
+                </MenuItem>
                 <MenuItem x:Name="CloseMenu" Header="ファイルを閉じる" IsEnabled="{Binding HasDocument}" Click="CloseFileClicked" />
                 <Separator />
                 <MenuItem Header="終了" Click="ExitClicked" />
@@ -42,7 +51,20 @@
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
                 <TextBlock Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
-                <TextBlock Grid.Column="2" Text="{Binding EncodingName}" FontSize="11" />
+                <Button Grid.Column="2" Content="{Binding EncodingLabel}" FontSize="11" Padding="6,1"
+                        IsEnabled="{Binding CanReopenEncoding}" ToolTip.Tip="文字コードを指定して開き直す">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="TopEdgeAlignedRight">
+                            <MenuItem Header="自動判定" Tag="Auto" Click="EncodingClicked" />
+                            <MenuItem Header="UTF-8" Tag="Utf8" Click="EncodingClicked" />
+                            <MenuItem Header="Shift_JIS（CP932）" Tag="Cp932" Click="EncodingClicked" />
+                            <MenuItem Header="UTF-16 LE" Tag="Utf16Le" Click="EncodingClicked" />
+                            <MenuItem Header="UTF-16 BE" Tag="Utf16Be" Click="EncodingClicked" />
+                            <MenuItem Header="UTF-32 LE" Tag="Utf32Le" Click="EncodingClicked" />
+                            <MenuItem Header="UTF-32 BE" Tag="Utf32Be" Click="EncodingClicked" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
             </Grid>
         </Border>
     </Grid>

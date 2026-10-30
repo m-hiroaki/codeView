@@ -5,6 +5,8 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
+using CodeView.Files;
 using CodeView.Operations;
 
 namespace CodeView.Presentation;
@@ -39,6 +41,11 @@ internal sealed partial class MainWindow : Window
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
         editor.TextArea.Caret.PositionChanged += (_, _) => viewModel.SetPosition(editor.TextArea.Caret.Line, editor.TextArea.Caret.Column);
+        viewModel.RestoreCaret += (line, column) =>
+        {
+            editor.TextArea.Caret.Location = new TextLocation(line, column);
+            editor.ScrollTo(line, column);
+        };
         Opened += async (_, _) => await RunAsync(() => viewModel.InitializeAsync(args));
         viewModel.FatalFailure += () => { Environment.ExitCode = 1; Close(); };
         Closing += async (_, eventArgs) =>
@@ -81,6 +88,11 @@ internal sealed partial class MainWindow : Window
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
     private async void ReloadClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.ReloadAsync);
+    private async void EncodingClicked(object? sender, RoutedEventArgs args)
+    {
+        if (sender is MenuItem { Tag: string tag } && Enum.TryParse<EncodingChoice>(tag, out var choice))
+            await RunAsync(() => _viewModel.ReopenEncodingAsync(choice));
+    }
     private void CloseFileClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseFile();
     private void ExitClicked(object? sender, RoutedEventArgs args) => Close();
 }
