@@ -1,0 +1,101 @@
+[
+  {
+    "run": "long50-isolated-20261031-1",
+    "attachmentMs": 45.8249,
+    "scrollMaxMs": 44.9146,
+    "tickMaxMs": 51.5486,
+    "memoryIncreaseMiB": 338.31266021728516,
+    "cpuMs": 3316.719,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "long50-isolated-20261031-2",
+    "attachmentMs": 45.8116,
+    "scrollMaxMs": 42.5225,
+    "tickMaxMs": 53.1679,
+    "memoryIncreaseMiB": 336.06272888183594,
+    "cpuMs": 3224.296,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "long50-isolated-20261031-3",
+    "attachmentMs": 45.9356,
+    "scrollMaxMs": 42.0828,
+    "tickMaxMs": 52.9653,
+    "memoryIncreaseMiB": 331.79705810546875,
+    "cpuMs": 3134.356,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-window-isolated-20261031-1",
+    "attachmentMs": 7.7779,
+    "scrollMaxMs": 7.8042,
+    "tickMaxMs": 17.2753,
+    "memoryIncreaseMiB": 336.35958099365234,
+    "cpuMs": 2044.141,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-window-isolated-20261031-2",
+    "attachmentMs": 7.8626,
+    "scrollMaxMs": 11.6158,
+    "tickMaxMs": 17.5078,
+    "memoryIncreaseMiB": 341.51583099365234,
+    "cpuMs": 2080.642,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-window-isolated-20261031-3",
+    "attachmentMs": 7.6378,
+    "scrollMaxMs": 11.6569,
+    "tickMaxMs": 17.2806,
+    "memoryIncreaseMiB": 341.07833099365234,
+    "cpuMs": 2038.743,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-full-isolated-20261031-1",
+    "attachmentMs": 88.7785,
+    "scrollMaxMs": 0.7075,
+    "tickMaxMs": 18.4394,
+    "memoryIncreaseMiB": 499.8441390991211,
+    "cpuMs": 2041.08,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-full-isolated-20261031-2",
+    "attachmentMs": 91.3102,
+    "scrollMaxMs": 0.6531,
+    "tickMaxMs": 17.8125,
+    "memoryIncreaseMiB": 513.7502746582031,
+    "cpuMs": 2029.787,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": false,
+    "allTicksWithin16_7Ms": false
+  },
+  {
+    "run": "utf8-50-full-isolated-20261031-3",
+    "attachmentMs": 88.5841,
+    "scrollMaxMs": 0.7621,
+    "tickMaxMs": 19.0497,
+    "memoryIncreaseMiB": 499.5784454345703,
+    "cpuMs": 2027.122,
+    "attachmentBudgetPass": true,
+    "memoryBudgetPass": true,
+    "allTicksWithin16_7Ms": false
+  }
+]

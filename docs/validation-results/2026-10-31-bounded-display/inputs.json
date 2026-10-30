@@ -1,0 +1,58 @@
+{
+  "long50": {
+    "path": "artifacts/fixtures/long50/source-0000000.cs",
+    "bytes": 52428800,
+    "sha256": "09b6c4758efe0a06a8f2c99c57a32ba31d84b80a377e9c277b6629446cc8da5c",
+    "manifest": {
+      "formatVersion": 1,
+      "generator": "codeView-fixture-v1",
+      "seed": 20261031,
+      "files": 1,
+      "totalBytes": 52428800,
+      "encoding": "utf-8",
+      "layout": "single-line",
+      "extension": "cs",
+      "minFileBytes": 52428800,
+      "maxFileBytes": 52428800,
+      "literalQuery": "CODEVIEW_MATCH",
+      "expectedMatches": 1,
+      "firstMatch": {
+        "line": 1,
+        "column": 4
+      },
+      "notFoundQuery": "CODEVIEW_ABSENT_QUERY",
+      "expectedNotFoundMatches": 0,
+      "pathSizeDigest": "7f987209aeb51401fdb11658500d55c4860de6ffba0c867094e3c27c6393b81f",
+      "generatedRoot": "/Users/hiroaki/Src/codeview/artifacts/fixtures/long50",
+      "cacheCondition": "not-measured; generation warms OS cache"
+    }
+  },
+  "text50": {
+    "path": "artifacts/fixtures/text50/group-00000/source-0000000.cs",
+    "bytes": 52428800,
+    "sha256": "af249ffbdafe02ad97c30b78d3bbd47669c74cf254d425a6d732fbba4d319da0",
+    "manifest": {
+      "formatVersion": 1,
+      "generator": "codeView-fixture-v1",
+      "seed": 20261031,
+      "files": 1,
+      "totalBytes": 52428800,
+      "encoding": "utf-8",
+      "layout": "nested",
+      "extension": "cs",
+      "minFileBytes": 52428800,
+      "maxFileBytes": 52428800,
+      "literalQuery": "CODEVIEW_MATCH",
+      "expectedMatches": 1,
+      "firstMatch": {
+        "line": 1,
+        "column": 4
+      },
+      "notFoundQuery": "CODEVIEW_ABSENT_QUERY",
+      "expectedNotFoundMatches": 0,
+      "pathSizeDigest": "92a7f0c316710048ced472ded1ec651705d53efc3efd3483d5d0add2a83aad6c",
+      "generatedRoot": "/Users/hiroaki/Src/codeview/artifacts/fixtures/text50",
+      "cacheCondition": "not-measured; generation warms OS cache"
+    }
+  }
+}
