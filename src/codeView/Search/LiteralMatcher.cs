@@ -45,8 +45,13 @@ internal sealed class LiteralMatcher
     private TextCursor _cursor = new();
     private int _length;
     private int _scanStart;
+    private int? _hitStart;
     public bool IsFinished { get; private set; }
     public int BufferCapacity => _buffer.Length;
+
+    public SearchSnippet CaptureSnippet() => _hitStart is { } start
+        ? SearchSnippet.Capture(_buffer.AsSpan(0, _length), start, _query.Length)
+        : throw new InvalidOperationException("抜粋は一致通知中だけ取得できます。");
 
     private LiteralMatcher(string query, SearchOptions options)
     {
@@ -136,7 +141,10 @@ internal sealed class LiteralMatcher
             { AdvanceTo(start + 1); continue; }
             var hit = new TextRange(_cursor.Offset, _query.Length, _cursor.Position);
             AdvanceTo(matchEnd);
-            var keepGoing = consume(hit);
+            bool keepGoing;
+            _hitStart = start;
+            try { keepGoing = consume(hit); }
+            finally { _hitStart = null; }
             ct.ThrowIfCancellationRequested();
             if (!keepGoing) { Abort(); return false; }
         }

@@ -15,6 +15,7 @@ internal sealed class RegexLineMatcher
     private bool _previousCr;
     private long _lineOffset;
     private long _lineNumber = 1;
+    private (int Start, int Length)? _hit;
     public bool IsFinished { get; private set; }
     public OperationError? Error { get; private set; }
     public long EvaluatedLines { get; private set; }
@@ -23,6 +24,10 @@ internal sealed class RegexLineMatcher
     public int BufferCapacity => _line.Length;
     public int BufferedCharacters => _length;
     public TimeSpan MatchTimeout => _regex.MatchTimeout;
+
+    public SearchSnippet CaptureSnippet() => _hit is { } hit
+        ? SearchSnippet.Capture(_line.AsSpan(0, _length), hit.Start, hit.Length)
+        : throw new InvalidOperationException("抜粋は一致通知中だけ取得できます。");
 
     private RegexLineMatcher(Regex regex, bool wholeWord, int limit)
         => (_regex, _wholeWord, _line) = (regex, wholeWord, new char[limit]);
@@ -126,7 +131,10 @@ internal sealed class RegexLineMatcher
             if (!_wholeWord || (UnicodeWordBoundary.Before(text, match.Index) && UnicodeWordBoundary.After(text, end)))
             {
                 var hit = new TextRange(checked(_lineOffset + match.Index), match.Length, new(_lineNumber, checked((long)match.Index + 1)));
-                var keepGoing = consume(hit);
+                bool keepGoing;
+                _hit = (match.Index, match.Length);
+                try { keepGoing = consume(hit); }
+                finally { _hit = null; }
                 ct.ThrowIfCancellationRequested();
                 if (!keepGoing) { Abort(); return false; }
             }
