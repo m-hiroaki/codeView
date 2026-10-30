@@ -30,6 +30,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private bool _pumping;
     private bool _stopping;
     private bool _initialized;
+    private long _interactionEpoch;
+    private long _selectionInteractionEpoch = -1;
+    private SearchResultRow? _selectionRow;
+    private SearchResultMoveRequest? _selectionRequest;
+    private SearchResultMove? _selectionMove;
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
     private readonly HashSet<Task> _manualWork = [];
@@ -68,11 +73,57 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
         _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
     };
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, SearchPanel.PendingWork }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
     public event Action<double, double, long>? RestoreViewport;
+    public event Action<long, int>? SelectSearchRange;
+    public event Action? ClearSearchSelection;
+    public void RecordUserInteraction() => _interactionEpoch = checked(_interactionEpoch + 1);
+    public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
+        && _interactionEpoch == _selectionInteractionEpoch && _selectionRow is { } row && SearchPanel.CanActivate(row)
+        && _selectionRequest is { } request && _selectionMove is { } move && operations.ResultNavigator.CanAdopt(request, move);
+
+    public Task ActivateSearchResultAsync(SearchResultRow row) => TrackManualAsync(ActivateSearchResultCoreAsync(row));
+
+    private async Task ActivateSearchResultCoreAsync(SearchResultRow row)
+    {
+        if (_stopping || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
+        var interaction = _interactionEpoch;
+        ClearSearchSelection?.Invoke();
+        var navigator = operations.ResultNavigator;
+        var request = navigator.Start(source, row.Hit);
+        SetStatus("検索結果への移動を待機しています…");
+        if (await request.Started is not null && !_stopping)
+        {
+            SyncTabs(); DisplayActiveTab();
+            if (interaction == _interactionEpoch && ReferenceEquals(navigator.Current, request) && SearchPanel.CanActivate(row))
+                SetStatus("結果の更新情報を確認しています…");
+        }
+        var result = await request.Completion;
+        if (_stopping) return;
+        SyncTabs();
+        DisplayActiveTab();
+        if (interaction != _interactionEpoch || !ReferenceEquals(navigator.Current, request) || !SearchPanel.CanActivate(row)) return;
+        if (result.Status == OperationStatus.Failure)
+        { SetStatus(FileErrorText(result.Error!.Code) + " 再読み込み・再検索してください。"); return; }
+        if (result.Status != OperationStatus.Success || !navigator.CanAdopt(request, result.Value)) return;
+        var move = result.Value.Move;
+        (_selectionRow, _selectionRequest, _selectionMove, _selectionInteractionEpoch) = (row, request, result.Value, interaction);
+        ViewEpoch = checked(ViewEpoch + 1); // Supersede a deferred viewport restoration from document attachment.
+        SetPosition(checked((int)move.Position.Line), checked((int)move.Position.Column));
+        RestoreCaret?.Invoke(_line, _column);
+        SelectSearchRange?.Invoke(move.Offset, move.SelectionLength);
+        SetStatus(move.Warning switch
+        {
+            DocumentMoveWarning.Stale => "ファイルまたはタブ本文が検索時と異なります。再読み込み・再検索してください。選択は行いません。",
+            DocumentMoveWarning.InvalidPosition => "結果位置が古い可能性があります。有効な位置へ移動しました。再検索してください。",
+            DocumentMoveWarning.ContentMismatch => "一致内容が変わっています。選択せず移動しました。再検索してください。",
+            DocumentMoveWarning.UnverifiedLength => "長い一致の全体を再確認できないため、選択せず移動しました。再検索してください。",
+            _ => "検索結果へ移動しました。"
+        });
+    }
 
     public async Task InitializeAsync(string[] paths)
     {
@@ -396,6 +447,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         ErrorCode.NotRegularFile => "通常のファイルを指定してください。",
         ErrorCode.BrokenLink => "リンク先のファイルが見つかりません。",
         ErrorCode.ChangedDuringRead => "読込中にファイルが更新されました。再読み込みしてください。",
+        ErrorCode.UnsupportedSize => "本文の位置が表示モデルの範囲を超えています。",
         _ => "ファイルを読み込めませんでした。"
     };
 
@@ -439,6 +491,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         if (_stopping) return;
         _stopping = true;
+        _selectionRow = null;
+        _selectionRequest = null;
+        _selectionMove = null;
         SearchPanel.Stop();
         _lifetime.Cancel();
         operations.Dispose();

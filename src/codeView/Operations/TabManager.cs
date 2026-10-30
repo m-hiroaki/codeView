@@ -41,6 +41,7 @@ internal sealed class TabManager : IDisposable
 
     public ReadOnlyCollection<TabState> Tabs { get; }
     public TabState? ActiveTab { get; private set; }
+    public long SelectionEpoch { get; private set; }
     public Task PendingWork => ObservePendingAsync();
 
     public TabManager(Func<SourcePath, EncodingChoice, CancellationToken, OperationResult<LoadedFile>> load,
@@ -60,7 +61,7 @@ internal sealed class TabManager : IDisposable
         if (!Enum.IsDefined(choice)) throw new ArgumentOutOfRangeException(nameof(choice));
         if (_paths.TryGetValue(path.FullPath, out var existing))
         {
-            ActiveTab = existing;
+            Activate(existing);
             if (_requests.TryGetValue(existing, out var request)) return request.Completion.Task;
             return Task.FromResult(existing.File is not null ? OperationResult<TabState>.Success(existing)
                 : existing.WasCancelled ? OperationResult<TabState>.Cancelled()
@@ -70,7 +71,7 @@ internal sealed class TabManager : IDisposable
         var tab = new TabState(checked(++_nextId), path, choice);
         _tabs.Add(tab);
         _paths.Add(path.FullPath, tab);
-        ActiveTab = tab;
+        Activate(tab);
         return Enqueue(tab, choice);
     }
 
@@ -88,7 +89,7 @@ internal sealed class TabManager : IDisposable
     public bool Select(TabState tab)
     {
         if (_disposed || _faulted || !Contains(tab)) return false;
-        ActiveTab = tab;
+        Activate(tab);
         return true;
     }
 
@@ -114,8 +115,14 @@ internal sealed class TabManager : IDisposable
         tab.File = null;
         tab.Status = TabStatus.Closed;
         tab.Error = null;
-        if (ReferenceEquals(ActiveTab, tab)) ActiveTab = _tabs.Count == 0 ? null : _tabs[Math.Min(index, _tabs.Count - 1)];
+        if (ReferenceEquals(ActiveTab, tab)) Activate(_tabs.Count == 0 ? null : _tabs[Math.Min(index, _tabs.Count - 1)]);
         return true;
+    }
+
+    private void Activate(TabState? tab)
+    {
+        SelectionEpoch = checked(SelectionEpoch + 1);
+        ActiveTab = tab;
     }
 
     private bool Contains(TabState tab)

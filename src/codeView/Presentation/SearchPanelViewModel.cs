@@ -33,6 +33,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     public string Summary => $"{_notice} 確定 {_results.CommittedCount:N0}件 / 未確定 {_results.Count - _results.CommittedCount:N0}件";
     public string Progress => _progress;
     public Task PendingWork => _pump;
+    internal WorkspaceSearchOperation? CurrentOperation => _operation;
     public event PropertyChangedEventHandler? PropertyChanged;
     public bool CanActivate(SearchResultRow row) => !_stopping && _operation is { } operation
         && _coordinator?.CanAdoptTerminal(operation) == true && _results.CanActivate(row);

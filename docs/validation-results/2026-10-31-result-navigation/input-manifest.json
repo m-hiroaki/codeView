@@ -1,0 +1,11 @@
+{
+  "scenario": "GUI result navigation",
+  "lines": 1200,
+  "query": "CODEVIEW_RESULT",
+  "expectedMatches": 2,
+  "expectedLines": [
+    12,
+    700
+  ],
+  "bodySha256": "a83e7860b7bd6f9a227fe6b79012b9b1c1ebff22ce4d606fe7a133a36330b8f7"
+}

@@ -1,0 +1,114 @@
+Window: "codeView", App: codeView.
+0 standard window codeView, Secondary Actions: Raise
+	1 container WindowChrome, ID: AvaloniaWindowChrome
+	2 container
+		3 container
+			4 menu bar
+				5 container
+					6 ファイル
+						7 container
+							8 unknown PART_Popup
+					9 表示
+						10 container
+							11 unknown PART_Popup
+					12 検索
+						13 container
+							14 unknown PART_Popup
+			15 container
+				16 text フォルダ: 2項目
+				17 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation
+				18 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+			19 container
+				20 text ファイル
+				21 button 再読込, Help: 選択フォルダを再読込（F5）。未選択ならルートを再読込
+				22 text
+				23 content list ファイルツリー, ID: FileTreeList
+					24 scroll area PART_ScrollViewer
+						25 container
+							26 container
+								27 row (selectable) body.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+									28 container body.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+										29 button (disabled) 展開または折りたたみ
+										30 text body.cs
+										31 text
+								32 row (selectable) other.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/other.cs
+									33 container other.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/other.cs
+										34 button (disabled) 展開または折りたたみ
+										35 text other.cs
+										36 text
+			37 container
+				38 content list 開いているファイル, ID: TabList
+					39 scroll area PART_ScrollViewer
+						40 container
+							41 row (selected) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+								42 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+									43 text body.cs
+									44 text
+									45 button タブを閉じる
+				46 scroll area PART_ScrollViewer
+					47 container
+						48 container
+							49 container
+								50 content list
+									51 container
+								52 container
+						53 scroll bar (settable, float) Value: 56.65031249999996, ID: PART_VerticalScrollBar
+							54 container
+								55 button Line up, ID: PART_LineUpButton
+								56 button Page up, ID: PART_PageUpButton
+								57 button Page down, ID: PART_PageDownButton
+								58 handle Position
+								59 button Line down, ID: PART_LineDownButton
+			60 container
+				61 text フォルダ検索
+				62 text field (settable) フォルダ検索の検索語, Help: 検索語（前後の空白も検索）, Value: CODEVIEW_RESULT, ID: SearchQuery
+					63 container
+						64 container
+							65 scroll area PART_ScrollViewer
+								66 container
+				67 button 検索
+				68 button (disabled) 取消
+				69 button クリア
+				70 button 検索パネルを隠す, Help: パネルを隠す（検索は継続）
+				71 checkbox 大小文字を区別, Value: off
+					72 container RootGrid
+						73 container
+							74 container
+				75 checkbox 単語単位, Value: off
+					76 container RootGrid
+						77 container
+							78 container
+				79 checkbox 正規表現, Value: off
+					80 container RootGrid
+						81 container
+							82 container
+				83 text Help: Unicode結合文字の正規化や幅の同一視は行いません。, Value: 正規化なし
+				84 text 検索完了。 確定 2件 / 未確定 0件
+				85 text 走査 2ファイル / 読取完了 0.0 MiB / 対象外 0項目
+				86 content list フォルダ検索結果, ID: SearchResultsList
+					87 scroll area PART_ScrollViewer
+						88 container
+							89 container
+								90 row (selected) body.cs : 12:4, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+									91 container body.cs : 12:4, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+										92 text body.cs : 12:4
+										93 text 確定
+										94 text // CODEVIEW_RESULT at line 12
+								95 row (selectable) body.cs : 700:4, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+									96 container body.cs : 700:4, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-result-navigation/body.cs
+										97 text body.cs : 700:4
+										98 text 確定
+										99 text // CODEVIEW_RESULT at line 700
+			100 text ファイルまたはタブ本文が検索時と異なります。再読み込み・再検索してください。選択は行いません。
+			101 container
+				102 text 読み取り専用
+				103 text 行 12, 列 4
+				104 button UTF-8, Help: 文字コードを指定して開き直す
+	105 close button
+	106 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	107 minimize button
+	108 text codeView
+109 menu bar
+	110 codeView
+
+The focused UI element is 48 container

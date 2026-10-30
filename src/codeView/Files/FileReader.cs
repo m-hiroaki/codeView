@@ -24,6 +24,22 @@ internal sealed class PreparedText : IDisposable
 
 internal sealed class FileReader(ISourceAccess access)
 {
+    public Task<OperationResult<SourceStamp>> CheckStampAsync(SourcePath path, CancellationToken ct) => Task.Run(() =>
+    {
+        ct.ThrowIfCancellationRequested();
+        try
+        {
+            var stamp = access.GetStamp(path);
+            ct.ThrowIfCancellationRequested();
+            return OperationResult<SourceStamp>.Success(stamp);
+        }
+        catch (FileNotFoundException) { return Failure(ErrorCode.NotFound); }
+        catch (DirectoryNotFoundException) { return Failure(ErrorCode.NotFound); }
+        catch (UnauthorizedAccessException) { return Failure(ErrorCode.AccessDenied); }
+        catch (IOException) { return Failure(ErrorCode.IoFailure); }
+        OperationResult<SourceStamp> Failure(ErrorCode code) => OperationResult<SourceStamp>.Failure(new(code, path.DisplayPath, true));
+    });
+
     internal const int SampleBytes = 8 * 1024;
     internal const int ChunkChars = 16 * 1024;
     private const int DecodeBytes = 64 * 1024;

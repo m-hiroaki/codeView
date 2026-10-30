@@ -1,0 +1,12 @@
+{
+  "src/codeView/Documents/DocumentNavigation.cs": "900d2c655a264d9056823d2254e50921633201d75be6f1e41922a59be134d836",
+  "src/codeView/Files/FileReader.cs": "da5f2691d40a858e353b5271ce833a06b296a0d4f630017b86166317bc9a94f0",
+  "src/codeView/Operations/AppOperations.cs": "8a72662167f80e8b8b157380122990b5f806f99e6cb7004ae4f2fbb99301a94b",
+  "src/codeView/Operations/SearchResultNavigator.cs": "cfabdbaf50311cf17dcbcb01b0a4b5638196825822f58ffbc4056bd58bbd59d4",
+  "src/codeView/Operations/TabManager.cs": "fd873efbe486b0988baa6770eacca1d6f49bd05ba8e889a94a841a99b56056e2",
+  "src/codeView/Presentation/MainWindow.axaml": "43c7395af49a0527b81e4eb7ee60b8a3b68bc861c261b867ca914345bbda079b",
+  "src/codeView/Presentation/MainWindow.axaml.cs": "a11d1b53cdc621dad2c4342210329f37ccd296a1eed01f783083b29489593b86",
+  "src/codeView/Presentation/MainWindowViewModel.cs": "7467fc799bd324a34f6ee51909ad07da8c128aaf729ba1c40c3ac1081bfaac46",
+  "src/codeView/Presentation/SearchPanelViewModel.cs": "36b2eda1a098fe1248559b8b2f39b8ecd378d94e950b810639e996ea4deffcd4",
+  "native-build-codeView.dll": "c7598fe6ae0c0f6a74af7a1f7964dd3f77a9f634a58f27b4a58d91903f613865"
+}

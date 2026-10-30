@@ -20,6 +20,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private readonly List<Task> _retiredTreeWork = [];
     private TabManager? _tabs;
     private SearchCoordinator? _searches;
+    private SearchResultNavigator? _resultNavigator;
     private StartupOpenQueue? _startup;
 
     public StartupOpenQueue Startup => _startup ??= new(_requestIds);
@@ -29,6 +30,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     public SearchCoordinator Searches => !_stopping ? _searches ??= new(new TextSearch(directories, reader).StartWorkspace,
         () => Workspace, _workspaceSearchEpoch, _requestIds) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingSearchWork => _searches?.PendingWork ?? Task.CompletedTask;
+    public SearchResultNavigator ResultNavigator => !_stopping ? _resultNavigator ??= new(Tabs, Searches, reader)
+        : throw new ObjectDisposedException(nameof(AppOperations));
+    public Task PendingResultMoveWork => _resultNavigator?.PendingWork ?? Task.CompletedTask;
     public WorkspaceState? Workspace { get; private set; }
     public long WorkspaceSearchEpoch => _workspaceSearchEpoch.Current;
     public Task PendingTreeWork => Task.WhenAll(_retiredTreeWork.Append(Workspace?.Tree?.PendingWork ?? Task.CompletedTask));
@@ -43,6 +47,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (_stopping) return OperationResult<WorkspaceState>.Cancelled();
         var epoch = _workspaceEpoch.Advance();
         _workspaceSearchEpoch.Advance();
+        _resultNavigator?.Clear();
         _searches?.InvalidateWorkspace();
         CancelWorkspace();
         _workspaceLifetime = new CancellationTokenSource();
@@ -87,6 +92,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     {
         _workspaceEpoch.Advance();
         _workspaceSearchEpoch.Advance();
+        _resultNavigator?.Clear();
         _searches?.InvalidateWorkspace();
         CancelWorkspace();
         Workspace = null;
@@ -142,6 +148,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (_stopping) return;
         _stopping = true;
         Startup.Stop();
+        _resultNavigator?.Dispose();
         _searches?.Dispose();
         _tabs?.Dispose();
         CloseWorkspace();

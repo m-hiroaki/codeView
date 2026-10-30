@@ -141,7 +141,8 @@
                     <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="#CBD3DF" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="#A9B9CD" FontSize="10" />
                 </StackPanel>
-                <ListBox Grid.Row="3" ItemsSource="{Binding SearchPanel.Rows}" SelectedItem="{Binding SearchPanel.SelectedRow, Mode=TwoWay}"
+                <ListBox x:Name="SearchResultsList" Grid.Row="3" ItemsSource="{Binding SearchPanel.Rows}" SelectedItem="{Binding SearchPanel.SelectedRow, Mode=TwoWay}"
+                         DoubleTapped="SearchResultDoubleTapped"
                          Background="#14181F" BorderThickness="0" Padding="0" SelectionMode="Single"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          AutomationProperties.Name="フォルダ検索結果">
@@ -149,7 +150,7 @@
                     <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="8,3" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style></ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:SearchResultRow">
-                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Height="42" ToolTip.Tip="{Binding FullPath}">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Height="42" ToolTip.Tip="{Binding FullPath}" AutomationProperties.Name="{Binding Location}">
                                 <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" Foreground="#A9B9CD" FontSize="11" />
                                 <TextBlock Grid.Column="1" Text="{Binding File.Status}" Foreground="#E6C88C" FontSize="10" Margin="10,0,0,0" />
                                 <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextTrimming="CharacterEllipsis" FontFamily="Menlo,Consolas,monospace" FontSize="12" Foreground="#CBD3DF">

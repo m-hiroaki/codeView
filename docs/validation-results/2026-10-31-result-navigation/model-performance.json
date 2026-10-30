@@ -1,0 +1,17 @@
+{
+  "Scenario": "open-document-result-moves-1000",
+  "ElapsedMilliseconds": 13.9683,
+  "CpuMilliseconds": 28.528,
+  "AllocatedBytes": 4867896,
+  "MaximumMoveMilliseconds": 3.3375999999999997,
+  "GcPauseMilliseconds": 2.81,
+  "GcCollections": [
+    1,
+    0,
+    0
+  ],
+  "AdditionalBodyOpens": 0,
+  "StampChecks": 1000,
+  "Selections": 1000,
+  "GuiRendering": "not-measured; serialized test context, native acceptance recorded separately"
+}

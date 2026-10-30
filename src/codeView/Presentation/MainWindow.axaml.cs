@@ -28,6 +28,11 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
+        this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
+            RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(KeyDownEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(PointerPressedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += async (_, key) =>
         {
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
@@ -77,6 +82,23 @@ internal sealed partial class MainWindow : Window
             var scrollable = (IScrollable)editor.TextArea.TextView;
             scrollable.Offset = EditorViewport.Constrain(horizontal, vertical, scrollable.Extent, scrollable.Viewport);
         }, DispatcherPriority.Loaded);
+        viewModel.SelectSearchRange += (offset, length) =>
+        {
+            var epoch = viewModel.ViewEpoch;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_closing || !viewModel.CanApplyResultSelection(epoch)) return;
+                editor.Select(checked((int)offset), length);
+                editor.CaretOffset = checked((int)offset);
+                var location = editor.Document.GetLocation(checked((int)offset));
+                editor.ScrollTo(location.Line, location.Column);
+                editor.TextArea.Focus();
+            }, DispatcherPriority.Loaded);
+        };
+        viewModel.ClearSearchSelection += () =>
+        {
+            if (viewModel.HasDocument) editor.Select(editor.CaretOffset, 0);
+        };
         Opened += async (_, _) =>
         {
             await RunAsync(() => viewModel.InitializeAsync(args));
@@ -96,7 +118,7 @@ internal sealed partial class MainWindow : Window
             catch (TimeoutException) { }
             catch (Exception) { Environment.ExitCode = 1; }
             _allowClose = true;
-            Close();
+            Dispatcher.UIThread.Post(Close);
         };
     }
 
@@ -122,6 +144,17 @@ internal sealed partial class MainWindow : Window
     private void CancelSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Cancel();
     private void ClearSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Clear();
     private void HideSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.IsVisible = false;
+    private async void SearchResultDoubleTapped(object? sender, TappedEventArgs args)
+    {
+        if (args.Source is Avalonia.StyledElement { DataContext: SearchResultRow row })
+            await RunAsync(() => _viewModel.ActivateSearchResultAsync(row));
+    }
+    private async void SearchResultKeyDown(object? sender, KeyEventArgs args)
+    {
+        if (args.Key != Key.Enter || args.KeyModifiers != KeyModifiers.None || _viewModel.SearchPanel.SelectedRow is not { } row) return;
+        args.Handled = true;
+        await RunAsync(() => _viewModel.ActivateSearchResultAsync(row));
+    }
 
     private async Task OpenFolderAsync()
     {
