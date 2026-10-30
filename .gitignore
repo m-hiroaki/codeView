@@ -5,3 +5,4 @@
 .vs/
 artifacts/
 *.user
+__pycache__/

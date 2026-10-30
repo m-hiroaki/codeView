@@ -1,0 +1,42 @@
+{
+  "MeasuredAtUtc": "2026-10-30T15:27:24.927823+00:00",
+  "FormatVersion": 2,
+  "Scenario": "read-build-snapshot",
+  "Label": "utf8-50",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "CacheCondition": "warm",
+  "InputBytes": 52428800,
+  "Copies": 1,
+  "BuildMilliseconds": [
+    890.0729
+  ],
+  "SnapshotMilliseconds": [
+    0.0661
+  ],
+  "SnapshotAllocatedBytes": [
+    216
+  ],
+  "CpuMilliseconds": 1079.495,
+  "AllocatedBytes": 280227224,
+  "ManagedHeapBefore": 3605824,
+  "ManagedHeapAfter": 302985072,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 70058848,
+  "SampledPeakMemory": 232326080,
+  "MemoryIncrease": 162267232,
+  "SamplingIntervalMilliseconds": 10,
+  "SampleCount": 81,
+  "GcPauseTotalMilliseconds": 84.35,
+  "GcCollections": [
+    35,
+    13,
+    3
+  ],
+  "LastGcHeapBytes": 153488880,
+  "LastGcFragmentationBytes": 10845840,
+  "LastGcLohBytes": 360680,
+  "IndividualGcPauses": "not-traced",
+  "GuiRendering": "not-measured"
+}
