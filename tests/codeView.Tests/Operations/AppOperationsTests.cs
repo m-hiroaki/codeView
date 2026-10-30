@@ -26,7 +26,7 @@ public sealed class AppOperationsTests
 
     [TestCase(false)]
     [TestCase(true)]
-    public async Task InProgressSnapshotScanSurvivesCloseOrReplacement(bool replace)
+    public void InProgressSnapshotScanSurvivesCloseOrReplacement(bool replace) => SingleThreadTestContext.Run(async () =>
     {
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var first = (await operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto)).Value;
@@ -50,6 +50,8 @@ public sealed class AppOperationsTests
                 Assert.That(second.Status, Is.EqualTo(OperationStatus.Success));
                 using var newLease = second.Value.Document.AcquireReadView();
                 Assert.That(newLease.ReadRange(0, (int)newLease.Length), Is.EqualTo("class Second { }"));
+                Assert.That(first.Document.IsReleased, Is.False);
+                operations.Tabs.Close(operations.Tabs.Tabs.First(tab => ReferenceEquals(tab.File, first)));
             }
             else operations.CloseFile();
             Assert.That(first.Document.IsReleased, Is.True);
@@ -64,10 +66,10 @@ public sealed class AppOperationsTests
         Assert.That(await scan, Is.EqualTo("class First { }".Length));
         lease.Dispose();
         Assert.That(first.Document.ActiveReadLeases, Is.Zero);
-    }
+    });
 
     [Test]
-    public async Task FailedReplacementKeepsOldDocumentAndCloseReleasesIt()
+    public void FailedReplacementKeepsOldDocumentAndCloseReleasesIt() => SingleThreadTestContext.Run(async () =>
     {
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var first = await operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto);
@@ -75,29 +77,33 @@ public sealed class AppOperationsTests
         using var lease = first.Value.Document.AcquireReadView();
         var missing = await operations.OpenFileAsync(PathOf("missing.cs"), EncodingChoice.Auto);
         Assert.That(missing.Error!.Code, Is.EqualTo(ErrorCode.NotFound));
-        Assert.That(operations.CurrentFile, Is.SameAs(first.Value));
+        Assert.That(operations.CurrentFile, Is.Null);
+        Assert.That(operations.Tabs.Tabs, Has.Count.EqualTo(2));
         Assert.That(lease.ReadRange(0, 15), Is.EqualTo("class First { }"));
+        operations.CloseFile();
+        Assert.That(operations.CurrentFile, Is.SameAs(first.Value));
         operations.CloseFile();
         Assert.That(first.Value.Document.IsReleased, Is.True);
         Assert.That(operations.CurrentFile, Is.Null);
-    }
+    });
 
     [Test]
-    public async Task NewLoadCancelsOldWorkerAndCannotAdoptOldResult()
+    public void DifferentTabsKeepTheFirstLoadAndQueueTheNext() => SingleThreadTestContext.Run(async () =>
     {
         using var source = new DelayedAccess();
         using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
         var first = operations.OpenFileAsync(PathOf("first.cs"), EncodingChoice.Auto);
         await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(2));
         var second = operations.OpenFileAsync(PathOf("second.cs"), EncodingChoice.Auto);
-        Assert.That((await first).Status, Is.EqualTo(OperationStatus.Cancelled));
+        source.Release();
+        Assert.That((await first).Status, Is.EqualTo(OperationStatus.Success));
         Assert.That((await second).Status, Is.EqualTo(OperationStatus.Success));
         Assert.That(operations.CurrentFile!.Path.FullPath, Is.EqualTo(PathOf("second.cs").FullPath));
         Assert.That(source.MaxActive, Is.EqualTo(1));
-    }
+    });
 
     [Test]
-    public async Task ClosingDuringReadCancelsWorkerAndStopRejectsNewLoads()
+    public void ClosingDuringReadCancelsWorkerAndStopRejectsNewLoads() => SingleThreadTestContext.Run(async () =>
     {
         using var source = new DelayedAccess();
         using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
@@ -109,7 +115,7 @@ public sealed class AppOperationsTests
         operations.Dispose();
         Assert.That((await operations.OpenFileAsync(PathOf("second.cs"), EncodingChoice.Auto)).Status,
             Is.EqualTo(OperationStatus.Cancelled));
-    }
+    });
 
     private sealed class DelayedAccess : ISourceAccess, IDisposable
     {
@@ -139,6 +145,7 @@ public sealed class AppOperationsTests
         public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
         public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => _source.ResolveDirectory(path, ct);
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => _source.EnumerateChildren(path, ct);
+        public void Release() => _gate.Set();
         public void Dispose() => _gate.Dispose();
     }
 }

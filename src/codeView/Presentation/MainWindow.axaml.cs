@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -27,6 +29,13 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         KeyDown += async (_, key) =>
         {
+            if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
+            {
+                key.Handled = true;
+                viewModel.CycleTab(key.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                if (viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+                return;
+            }
             if (key.KeyModifiers != modifier) return;
             if (key.Key == Key.O)
             {
@@ -51,11 +60,20 @@ internal sealed partial class MainWindow : Window
         GuiPerformanceProbe.Attach(this, editor, args.Length > 0);
 #endif
         editor.TextArea.Caret.PositionChanged += (_, _) => viewModel.SetPosition(editor.TextArea.Caret.Line, editor.TextArea.Caret.Column);
+        editor.TextArea.TextView.ScrollOffsetChanged += (_, _) =>
+            viewModel.SetViewport(editor.TextArea.TextView.HorizontalOffset, editor.TextArea.TextView.VerticalOffset);
         viewModel.RestoreCaret += (line, column) =>
         {
             editor.TextArea.Caret.Location = new TextLocation(line, column);
             editor.ScrollTo(line, column);
         };
+        viewModel.RestoreViewport += (horizontal, vertical, epoch) => Dispatcher.UIThread.Post(() =>
+        {
+            if (_closing || !viewModel.HasDocument || viewModel.ViewEpoch != epoch) return;
+            // The candidate's ScrollTo*Offset methods are no-ops in 12.0.0.
+            var scrollable = (IScrollable)editor.TextArea.TextView;
+            scrollable.Offset = EditorViewport.Constrain(horizontal, vertical, scrollable.Extent, scrollable.Viewport);
+        }, DispatcherPriority.Loaded);
         Opened += async (_, _) =>
         {
             await RunAsync(() => viewModel.InitializeAsync(args));
@@ -211,5 +229,14 @@ internal sealed partial class MainWindow : Window
             await RunAsync(() => _viewModel.ReopenEncodingAsync(choice));
     }
     private void CloseFileClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseFile();
+    private void TabSelectionChanged(object? sender, SelectionChangedEventArgs args)
+    {
+        if (ReferenceEquals(args.Source, sender) && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+    }
+    private void CloseTabClicked(object? sender, RoutedEventArgs args)
+    {
+        args.Handled = true;
+        if (sender is Button { DataContext: TabViewModel tab }) _viewModel.CloseTab(tab);
+    }
     private void ExitClicked(object? sender, RoutedEventArgs args) => Close();
 }

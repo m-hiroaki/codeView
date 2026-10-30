@@ -14,7 +14,7 @@
                 <MenuItem Header="フォルダを再読み込み" IsEnabled="{Binding HasWorkspace}" Click="RefreshWorkspaceClicked" />
                 <MenuItem Header="フォルダを閉じる" IsEnabled="{Binding HasWorkspace}" Click="CloseWorkspaceClicked" />
                 <Separator />
-                <MenuItem Header="再読み込み" IsEnabled="{Binding HasDocument}" Click="ReloadClicked" />
+                <MenuItem Header="再読み込み" IsEnabled="{Binding CanReload}" Click="ReloadClicked" />
                 <MenuItem Header="文字コードを指定して開き直す" IsEnabled="{Binding CanReopenEncoding}">
                     <MenuItem Header="自動判定" Tag="Auto" Click="EncodingClicked" />
                     <MenuItem Header="UTF-8" Tag="Utf8" Click="EncodingClicked" />
@@ -24,7 +24,7 @@
                     <MenuItem Header="UTF-32 LE" Tag="Utf32Le" Click="EncodingClicked" />
                     <MenuItem Header="UTF-32 BE" Tag="Utf32Be" Click="EncodingClicked" />
                 </MenuItem>
-                <MenuItem x:Name="CloseMenu" Header="ファイルを閉じる" IsEnabled="{Binding HasDocument}" Click="CloseFileClicked" />
+                <MenuItem x:Name="CloseMenu" Header="タブを閉じる" IsEnabled="{Binding HasTabs}" Click="CloseFileClicked" />
                 <Separator />
                 <MenuItem Header="終了" Click="ExitClicked" />
             </MenuItem>
@@ -79,8 +79,26 @@
                     </ListBox>
                 </Grid>
             </Border>
-            <Grid Grid.Column="1">
-        <editor:TextEditor x:Name="Editor"
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <ListBox x:Name="TabList" Height="48" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
+                         SelectedItem="{Binding SelectedTab, Mode=TwoWay}" SelectionMode="Single"
+                         SelectionChanged="TabSelectionChanged"
+                         Background="#202630" BorderThickness="0" Padding="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         AutomationProperties.Name="開いているファイル">
+                    <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                    <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="10,3" /></Style></ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TabViewModel">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ToolTip.Tip="{Binding FullPath}" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Label}" MaxWidth="230" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" />
+                                <TextBlock Grid.Column="1" Text="{Binding StatusText}" Margin="6,0" Foreground="#E6C88C" FontSize="10" VerticalAlignment="Center" />
+                                <Button Grid.Column="2" Content="×" Click="CloseTabClicked" Focusable="False" Background="Transparent" BorderThickness="0" Padding="4,0" AutomationProperties.Name="タブを閉じる" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+        <editor:TextEditor Grid.Row="1" x:Name="Editor"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
                            WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
                            Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
@@ -89,7 +107,7 @@
                 <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
             <Button Content="ファイルを開く" Click="OpenClicked" HorizontalAlignment="Center" />

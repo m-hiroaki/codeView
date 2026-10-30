@@ -10,8 +10,6 @@ internal sealed record LoadedFile(SourcePath Path, SourceStamp Stamp, string Enc
 internal sealed class AppOperations(FileReader reader, IDocumentAdapter documents, DirectoryReader directories) : IDisposable
 {
     private readonly SemaphoreSlim _loadSlot = new(1, 1);
-    private readonly OperationIdentity _loadEpoch = new();
-    private CancellationTokenSource? _currentLoad;
     private bool _stopping;
     private readonly SemaphoreSlim _treeSlot = new(1, 1);
     private readonly OperationIdentity _workspaceEpoch = new();
@@ -21,7 +19,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private TabManager? _tabs;
 
     public StartupOpenQueue Startup { get; } = new();
-    public LoadedFile? CurrentFile { get; private set; }
+    public LoadedFile? CurrentFile => _tabs?.ActiveTab?.File;
     public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
     public WorkspaceState? Workspace { get; private set; }
@@ -101,38 +99,14 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     public async Task<OperationResult<LoadedFile>> OpenFileAsync(SourcePath path, EncodingChoice choice)
     {
         if (_stopping) return OperationResult<LoadedFile>.Cancelled();
-        _currentLoad?.Cancel();
-        var epoch = _loadEpoch.Advance();
-        using var cancellation = new CancellationTokenSource();
-        _currentLoad = cancellation;
-        var entered = false;
-        try
+        var result = await Tabs.OpenAsync(path, choice);
+        var file = result.Status == OperationStatus.Success ? result.Value.File : null;
+        return result.Status switch
         {
-            await _loadSlot.WaitAsync(cancellation.Token);
-            entered = true;
-            var result = await Task.Run(() => BuildDocument(path, choice, cancellation.Token), cancellation.Token);
-            if (!_loadEpoch.CanAdopt(epoch, !_stopping, cancellation.IsCancellationRequested))
-            {
-                if (result.Status == OperationStatus.Success) result.Value.Document.Dispose();
-                return OperationResult<LoadedFile>.Cancelled();
-            }
-            if (result.Status == OperationStatus.Success)
-            {
-                var previous = CurrentFile;
-                CurrentFile = result.Value;
-                previous?.Document.Dispose();
-            }
-            return result;
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-        {
-            return OperationResult<LoadedFile>.Cancelled();
-        }
-        finally
-        {
-            if (ReferenceEquals(_currentLoad, cancellation)) _currentLoad = null;
-            if (entered) _loadSlot.Release();
-        }
+            OperationStatus.Success => file is null ? OperationResult<LoadedFile>.Cancelled() : OperationResult<LoadedFile>.Success(file),
+            OperationStatus.Cancelled => OperationResult<LoadedFile>.Cancelled(),
+            _ => OperationResult<LoadedFile>.Failure(result.Error!)
+        };
     }
 
     private OperationResult<LoadedFile> BuildDocument(SourcePath path, EncodingChoice choice, CancellationToken ct)
@@ -151,10 +125,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
 
     public void CloseFile()
     {
-        _loadEpoch.Advance();
-        _currentLoad?.Cancel();
-        CurrentFile?.Document.Dispose();
-        CurrentFile = null;
+        if (_tabs?.ActiveTab is { } tab) _tabs.Close(tab);
     }
 
     public void Dispose()

@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using Avalonia.Input;
+using Avalonia.Collections;
+using CodeView.Documents;
 using AvaloniaEdit.Document;
 using CodeView.Contracts;
 using CodeView.Files;
@@ -17,8 +19,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private string _filePath = "";
     private string _encodingName = "";
     private string _position = "";
-    private SourcePath? _failedPath;
-    private EncodingChoice _encodingChoice = EncodingChoice.Auto;
+    private readonly TabManager _tabManager = operations.Tabs;
+    private TabViewModel? _selectedTab;
+    private TabState? _displayedTab;
+    private DocumentHandle? _displayedHandle;
+    private bool _syncingTabs;
+    private bool _attaching;
     private int _line = 1;
     private int _column = 1;
     private bool _pumping;
@@ -33,7 +39,20 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 
     public TextDocument? Document => _document;
     public bool HasDocument => _document is not null;
-    public bool CanReopenEncoding => HasDocument || _failedPath is not null;
+    public bool CanReopenEncoding => _tabManager.ActiveTab is not null;
+    public bool CanReload => _tabManager.ActiveTab is not null;
+    public bool HasTabs => Tabs.Count > 0;
+    public AvaloniaList<TabViewModel> Tabs { get; } = [];
+    public long ViewEpoch { get; private set; }
+    public TabViewModel? SelectedTab
+    {
+        get => _selectedTab;
+        set
+        {
+            if (_stopping || _syncingTabs || value is null || ReferenceEquals(_selectedTab, value)) return;
+            if (_tabManager.Select(value.State)) { SyncTabs(); DisplayActiveTab(); }
+        }
+    }
     public string FilePath => _filePath;
     public string Status => _status;
     public string EncodingName => _encodingName;
@@ -52,6 +71,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
+    public event Action<double, double, long>? RestoreViewport;
 
     public async Task InitializeAsync(string[] paths)
     {
@@ -245,92 +265,169 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 
     public async Task ReloadAsync()
     {
-        if (operations.CurrentFile is not null)
-            await TrackManualAsync(LoadAsync(operations.CurrentFile.Path.FullPath, _encodingChoice, true));
+        if (!_stopping && _tabManager.ActiveTab is { } tab)
+            await TrackManualAsync(ReloadTabAsync(tab, null));
     }
 
     public async Task ReopenEncodingAsync(EncodingChoice choice)
     {
         if (!Enum.IsDefined(choice)) throw new ArgumentOutOfRangeException(nameof(choice));
-        var path = operations.CurrentFile?.Path ?? _failedPath;
-        if (path is not null) await TrackManualAsync(LoadAsync(path.FullPath, choice, true));
+        if (!_stopping && _tabManager.ActiveTab is { } tab)
+            await TrackManualAsync(ReloadTabAsync(tab, choice));
     }
 
-    private async Task LoadAsync(string input, EncodingChoice choice = EncodingChoice.Auto, bool preservePosition = false)
+    private async Task ReloadTabAsync(TabState tab, EncodingChoice? choice)
+    {
+        var work = _tabManager.ReloadAsync(tab, choice);
+        SyncTabs();
+        DisplayActiveTab();
+        var result = await work;
+        if (_stopping) return;
+        SyncTabs();
+        if (ReferenceEquals(_tabManager.ActiveTab, tab)) DisplayActiveTab();
+        if (result.Status == OperationStatus.Failure && result.Error!.Code == ErrorCode.QueueFull)
+            SetStatus("読込待ちが上限に達しました。");
+    }
+
+    private async Task LoadAsync(string input)
     {
         if (_stopping) return;
         SourcePath path;
         try { path = SourcePath.Create(input, _baseDirectory); }
         catch (ArgumentException) { SetStatus("パスを確認してください。"); return; }
-        var line = preservePosition ? _line : 1;
-        var column = preservePosition ? _column : 1;
-        SetStatus("読み込み中… " + path.DisplayPath);
-        var result = await operations.OpenFileAsync(path, choice);
-        if (_stopping || result.Status == OperationStatus.Cancelled) return;
-        if (result.Status == OperationStatus.Failure)
+        var work = _tabManager.OpenAsync(path);
+        var target = _tabManager.ActiveTab;
+        SyncTabs();
+        DisplayActiveTab();
+        var result = await work;
+        if (_stopping) return;
+        SyncTabs();
+        if (ReferenceEquals(_tabManager.ActiveTab, target)) DisplayActiveTab();
+        if (result.Status == OperationStatus.Failure && result.Error!.Code == ErrorCode.QueueFull)
+            SetStatus("読込待ちが上限に達しました。");
+    }
+
+    private void SyncTabs()
+    {
+        _syncingTabs = true;
+        try
         {
-            _failedPath = path;
-            Changed(nameof(CanReopenEncoding));
-            SetStatus(result.Error!.Code switch
-            {
-                ErrorCode.Binary => "バイナリのため表示できません。テキストの場合は文字コードを指定して再試行してください。",
-                ErrorCode.DecodeFailed => "指定した文字コードで読み取れないか、自動判定できません。文字コードを選び直してください。",
-                ErrorCode.NotFound => "ファイルが見つかりません。",
-                ErrorCode.AccessDenied => "ファイルを読む権限がありません。",
-                ErrorCode.NotRegularFile => "通常のファイルを指定してください。",
-                ErrorCode.BrokenLink => "リンク先のファイルが見つかりません。",
-                ErrorCode.ChangedDuringRead => "読込中にファイルが更新されました。再読み込みしてください。",
-                _ => "ファイルを読み込めませんでした。"
-            });
-            return;
+            foreach (var row in Tabs.Where(row => !_tabManager.Tabs.Contains(row.State)).ToArray()) Tabs.Remove(row);
+            foreach (var tab in _tabManager.Tabs)
+                if (!Tabs.Any(row => ReferenceEquals(row.State, tab))) Tabs.Add(new(tab));
+            var duplicateNames = Tabs.GroupBy(row => row.Name, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in Tabs) row.Refresh(duplicateNames.Contains(row.Name));
+            _selectedTab = Tabs.FirstOrDefault(row => ReferenceEquals(row.State, _tabManager.ActiveTab));
+            Changed(nameof(SelectedTab), nameof(HasTabs), nameof(CanReload), nameof(CanReopenEncoding));
         }
-#if CODEVIEW_PERFORMANCE_PROBE
-        GuiPerformanceProbe.BeginDocumentAttachment();
-#endif
-        _document = result.Value.Document.ClaimForDisplay();
-#if CODEVIEW_PERFORMANCE_PROBE
-        _document = GuiPerformanceProbe.SelectDisplayDocument(result.Value.Document, _document);
-#endif
-        _failedPath = null;
-        _encodingChoice = choice;
-        _filePath = result.Value.Path.FullPath;
-        _encodingName = result.Value.EncodingName.ToLowerInvariant() switch
+        finally { _syncingTabs = false; }
+    }
+
+    private void DisplayActiveTab()
+    {
+        var tab = _tabManager.ActiveTab;
+        var file = tab?.File;
+        var changedDocument = !ReferenceEquals(_displayedTab, tab) || !ReferenceEquals(_displayedHandle, file?.Document);
+        var position = tab?.Position ?? new TextPosition(1, 1);
+        var horizontal = tab?.HorizontalOffset ?? 0;
+        var vertical = tab?.VerticalOffset ?? 0;
+        _attaching = true;
+        try
         {
-            "utf-16" => "UTF-16 LE",
-            "utf-16be" => "UTF-16 BE",
-            "utf-32" => "UTF-32 LE",
-            "utf-32be" => "UTF-32 BE",
-            "shift_jis" => "Shift_JIS（CP932）",
-            _ => result.Value.EncodingName.ToUpperInvariant()
-        };
-        SetStatus("読み取り専用");
-        Changed(nameof(Document), nameof(HasDocument), nameof(CanReopenEncoding), nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel));
-        // Document binding can reset the editor's caret synchronously. Restore afterwards.
-        SetPosition(line, column);
-        RestoreCaret?.Invoke(_line, _column);
+            if (changedDocument)
+            {
+                ViewEpoch = checked(ViewEpoch + 1);
 #if CODEVIEW_PERFORMANCE_PROBE
-        GuiPerformanceProbe.EndDocumentAttachment();
+                if (file is not null) GuiPerformanceProbe.BeginDocumentAttachment();
 #endif
+                _document = file?.Document.ClaimForDisplay();
+#if CODEVIEW_PERFORMANCE_PROBE
+                if (file is not null) _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, _document!);
+#endif
+                _displayedTab = tab;
+                _displayedHandle = file?.Document;
+            }
+            _filePath = tab?.Path.FullPath ?? "";
+            _encodingName = file?.EncodingName.ToLowerInvariant() switch
+            {
+                "utf-16" => "UTF-16 LE", "utf-16be" => "UTF-16 BE",
+                "utf-32" => "UTF-32 LE", "utf-32be" => "UTF-32 BE",
+                "shift_jis" => "Shift_JIS（CP932）", null => "",
+                _ => file!.EncodingName.ToUpperInvariant()
+            };
+            SetStatus(tab is null ? "ファイルを開いて、読み始めましょう。" : tab.Status switch
+            {
+                TabStatus.Loading => "読み込み中… " + tab.Path.DisplayPath,
+                TabStatus.Reloading => "再読み込み中… " + tab.Path.DisplayPath,
+                _ when tab.Error is not null => FileErrorText(tab.Error.Code),
+                _ when tab.WasCancelled => "読込を取り消しました。",
+                _ => "読み取り専用"
+            });
+            if (changedDocument) Changed(nameof(Document), nameof(HasDocument));
+            Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
+        }
+        finally { _attaching = false; }
+        if (changedDocument)
+        {
+            SetPosition((int)Math.Min(int.MaxValue, position.Line), (int)Math.Min(int.MaxValue, position.Column));
+            if (_document is not null)
+            {
+                RestoreCaret?.Invoke(_line, _column);
+                RestoreViewport?.Invoke(horizontal, vertical, ViewEpoch);
+            }
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (file is not null) GuiPerformanceProbe.EndDocumentAttachment();
+#endif
+        }
+    }
+
+    private static string FileErrorText(ErrorCode code) => code switch
+    {
+        ErrorCode.Binary => "バイナリのため表示できません。テキストの場合は文字コードを指定して再試行してください。",
+        ErrorCode.DecodeFailed => "指定した文字コードで読み取れないか、自動判定できません。文字コードを選び直してください。",
+        ErrorCode.NotFound => "ファイルが見つかりません。",
+        ErrorCode.AccessDenied => "ファイルを読む権限がありません。",
+        ErrorCode.NotRegularFile => "通常のファイルを指定してください。",
+        ErrorCode.BrokenLink => "リンク先のファイルが見つかりません。",
+        ErrorCode.ChangedDuringRead => "読込中にファイルが更新されました。再読み込みしてください。",
+        _ => "ファイルを読み込めませんでした。"
+    };
+
+    public void CycleTab(int direction)
+    {
+        if (_stopping || Tabs.Count == 0) return;
+        var index = Tabs.IndexOf(_selectedTab!);
+        SelectedTab = Tabs[(index + (direction < 0 ? Tabs.Count - 1 : 1)) % Tabs.Count];
+    }
+
+    public void CloseTab(TabViewModel tab)
+    {
+        if (_stopping || !_tabManager.Close(tab.State)) return;
+        SyncTabs();
+        DisplayActiveTab();
+    }
+
+    public void SetViewport(double horizontal, double vertical)
+    {
+        if (!_attaching && !_stopping && _displayedTab is { } tab && _document is not null)
+            _tabManager.SaveView(tab, new(_line, _column), horizontal, vertical);
     }
 
     public void SetPosition(int line, int column)
     {
+        if (_attaching) return;
         _line = _document is null ? 1 : Math.Clamp(line, 1, _document.LineCount);
         _column = _document is null ? 1 : Math.Clamp(column, 1, _document.GetLineByNumber(_line).Length + 1);
         _position = HasDocument ? $"行 {_line}, 列 {_column}" : "";
+        if (!_stopping && _displayedTab is { } tab && _document is not null)
+            _tabManager.SaveView(tab, new(_line, _column), tab.HorizontalOffset, tab.VerticalOffset);
         Changed(nameof(Position));
     }
 
     public void CloseFile()
     {
-        _document = null;
-        _failedPath = null;
-        _encodingChoice = EncodingChoice.Auto;
-        _line = _column = 1;
-        operations.CloseFile();
-        _filePath = _encodingName = _position = "";
-        SetStatus("ファイルを開いて、読み始めましょう。");
-        Changed(nameof(Document), nameof(HasDocument), nameof(CanReopenEncoding), nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(Position));
+        if (_selectedTab is { } tab) CloseTab(tab);
     }
 
     public void Stop()
@@ -338,8 +435,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping) return;
         _stopping = true;
         _lifetime.Cancel();
-        CloseFile();
         operations.Dispose();
+        SyncTabs();
+        DisplayActiveTab();
         FileTree.Clear();
         WorkspaceChanged();
     }
