@@ -6,6 +6,7 @@
 | 対象 | Windows / macOS 向けデスクトップアプリ |
 | 要件定義書 | [requirements.md](requirements.md) |
 | 関連設計書 | [アーキテクチャ設計書](architecture.md)：品質特性、構造、依存関係、実行・資源管理 |
+| 詳細設計書 | [索引と機能別詳細設計](detailed-design/README.md) |
 | 状態 | 第2版・レビュー指摘10件を反映した設計案。未決事項と性能検証を経て詳細設計へ進む |
 
 ## 1. 目的・適用範囲
