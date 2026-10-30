@@ -1,0 +1,94 @@
+[
+  {
+    "label": "line-numbers-long50-baseline-20261031",
+    "exitCode": 0,
+    "attachmentMs": 10.4158,
+    "scrollMaxMs": 13.706,
+    "tickMaxMs": 28.3135,
+    "memoryIncreaseMiB": 279.59388732910156,
+    "cpuMs": 1196.873,
+    "allocatedBytes": 286186752,
+    "gcPauseMs": 78.78,
+    "collections": [
+      37,
+      14,
+      3
+    ],
+    "labelsRendered": null,
+    "finalSourceLineMap": null,
+    "firstLabel": null,
+    "lastLabel": null
+  },
+  {
+    "label": "line-numbers-long50-source-lines-20261031",
+    "exitCode": 0,
+    "attachmentMs": 10.4418,
+    "scrollMaxMs": 9.987,
+    "tickMaxMs": 17.6231,
+    "memoryIncreaseMiB": 291.64076232910156,
+    "cpuMs": 1170.001,
+    "allocatedBytes": 286447488,
+    "gcPauseMs": 70.038,
+    "collections": [
+      37,
+      14,
+      3
+    ],
+    "labelsRendered": 65,
+    "finalSourceLineMap": {
+      "FirstSourceLine": 1,
+      "SourceLineCount": 1,
+      "DisplayLineCount": 1,
+      "IsValid": true,
+      "WidthInDigits": 2
+    },
+    "firstLabel": 1,
+    "lastLabel": 1
+  },
+  {
+    "label": "line-numbers-text50-baseline-20261031",
+    "exitCode": 0,
+    "attachmentMs": 7.3786,
+    "scrollMaxMs": 11.5061,
+    "tickMaxMs": 17.1891,
+    "memoryIncreaseMiB": 329.50016021728516,
+    "cpuMs": 1888.396,
+    "allocatedBytes": 339531912,
+    "gcPauseMs": 106.664,
+    "collections": [
+      43,
+      16,
+      3
+    ],
+    "labelsRendered": null,
+    "finalSourceLineMap": null,
+    "firstLabel": null,
+    "lastLabel": null
+  },
+  {
+    "label": "line-numbers-text50-source-lines-20261031",
+    "exitCode": 0,
+    "attachmentMs": 7.8507,
+    "scrollMaxMs": 7.8282,
+    "tickMaxMs": 17.5815,
+    "memoryIncreaseMiB": 336.12520599365234,
+    "cpuMs": 1880.244,
+    "allocatedBytes": 339802992,
+    "gcPauseMs": 103.915,
+    "collections": [
+      43,
+      16,
+      3
+    ],
+    "labelsRendered": 1799,
+    "finalSourceLineMap": {
+      "FirstSourceLine": 1191526,
+      "SourceLineCount": 1191565,
+      "DisplayLineCount": 40,
+      "IsValid": true,
+      "WidthInDigits": 7
+    },
+    "firstLabel": 1191559,
+    "lastLabel": 1191565
+  }
+]

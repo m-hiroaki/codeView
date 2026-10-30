@@ -1,0 +1,64 @@
+Window: "codeView", App: codeView.
+0 standard window codeView, Secondary Actions: Raise
+	1 container WindowChrome, ID: AvaloniaWindowChrome
+	2 container
+		3 container
+			4 menu bar
+				5 container
+					6 ファイル
+						7 container
+							8 unknown PART_Popup
+					9 表示
+						10 container
+							11 unknown PART_Popup
+					12 検索
+						13 container
+							14 unknown PART_Popup
+			15 container
+				16 text フォルダ: 3項目
+				17 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines
+				18 text
+			19 container
+				20 text ファイル
+				21 button 再読込, Help: 選択フォルダを再読込（F5）。未選択ならルートを再読込
+				22 text
+				23 content list ファイルツリー, ID: FileTreeList
+					24 scroll area PART_ScrollViewer
+						25 container
+							26 container
+								27 row (selectable) empty.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+									28 container empty.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+										29 button (disabled) 展開または折りたたみ
+										30 text empty.cs
+										31 text
+								32 row (selectable) long.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+									33 container long.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+										34 button (disabled) 展開または折りたたみ
+										35 text long.cs
+										36 text
+								37 row (selectable) normal.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+									38 container normal.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+										39 button (disabled) 展開または折りたたみ
+										40 text normal.cs
+										41 text
+			42 container
+				43 scroll area PART_ScrollViewer
+					44 container
+						45 container
+							46 content list
+								47 container
+							48 container
+							49 text PART_Watermark
+				50 text codeView
+				51 button ファイルを開く
+			52 text ファイルを開いて、読み始めましょう。
+			53 container
+				54 text 読み取り専用
+				55 text
+				56 button (disabled) 文字コードを指定…, Help: 文字コードを指定して開き直す
+	57 close button
+	58 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	59 minimize button
+	60 text codeView
+61 menu bar
+	62 codeView

@@ -1,0 +1,41 @@
+{
+  "baseCommit": "edf45e0",
+  "sourceSha256": {
+    "tests/GuiProbe/SourceLineNumbers.cs": "503555ae8120bcdc23860253ebd74afe16159fc8362c66c7693dd3ad0976d25f",
+    "tests/GuiProbe/SourceLineNumberMargin.cs": "bc76109886777528c90cc90d92c41db6934b56cb8a4b173e311a7ffe644fe77d",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "2825f91d41b9471f1d2ad3b9dcab5a986365e08bed6de3422ec18890b3bc5241",
+    "tests/codeView.Tests/Performance/SourceLineNumbersTests.cs": "73ee2bd8a80d1cb426ab3e88548aeac7170a865d66a9dfa6ac3572bbc8be5d88",
+    "tests/codeView.Tests/codeView.Tests.csproj": "17286a59a3215dc02c08ea7eab2d5a6ef4a280847f8e98dd2c7bb00ffdf1d0cf"
+  },
+  "nativeAssemblySha256": "ed7e05715a7dd16e3b44d311a1d1fdd178dc928db04d257073a5d9c7101cb24b",
+  "baselineAssemblySha256": "5cebaa7b33efd2fa39cd1f0f65ee610237224935f3087440dd511827925cf814",
+  "testAssemblySha256": "40dd61817f9f77624c879d59fd495275dc23db59584ddf4c0b41a2d60e4a7348",
+  "normalTests": {
+    "passed": 590,
+    "failed": 0,
+    "skipped": 0,
+    "trx": "source-line-numbers-normal.trx"
+  },
+  "interactive": {
+    "exitCode": 0,
+    "sourceLabelCount": 171,
+    "finalMapValid": false,
+    "finalFirstLabel": null,
+    "finalLastLabel": null,
+    "toolInitialGetAppSeconds": 653.3667,
+    "timingUse": "interaction only; not performance"
+  },
+  "automaticComparison": {
+    "runs": 4,
+    "exitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "stepsPerRun": 64,
+    "samplesPerVariantAndInput": 1,
+    "cache": "Warm",
+    "inputInterruption": false
+  }
+}

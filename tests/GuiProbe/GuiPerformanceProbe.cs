@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
 using CodeView.Documents;
 using CodeView.Contracts;
 using CodeView.Operations;
@@ -67,6 +68,7 @@ internal sealed class GuiPerformanceProbe
     private long _lastCopiedCharacters;
     private readonly bool _verifyClipboard = Environment.GetEnvironmentVariable("CODEVIEW_GUI_VERIFY_CLIPBOARD") == "1";
     private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
+    private readonly SourceLineNumberMargin? _sourceLineNumbers;
     private TextDocument? _sourceDocument;
     private DocumentDisplaySession? _displaySession;
     private int _largestDisplayChars;
@@ -86,6 +88,14 @@ internal sealed class GuiPerformanceProbe
     {
         (_window, _editor, _output, _hasInput) = (window, editor, output, hasInput);
         _viewModel = viewModel;
+        if (_windowed)
+        {
+            var margins = editor.TextArea.LeftMargins;
+            var original = margins.OfType<LineNumberMargin>().Single();
+            _sourceLineNumbers = new SourceLineNumberMargin();
+            _sourceLineNumbers.SetValue(TextBlock.ForegroundProperty, original.GetValue(TextBlock.ForegroundProperty));
+            margins[margins.IndexOf(original)] = _sourceLineNumbers;
+        }
         _memoryBefore = _peakMemory = _memory.ReadBytes();
         _sampler = Task.Run(async () =>
         {
@@ -175,7 +185,9 @@ internal sealed class GuiPerformanceProbe
         {
             probe._displaySession.MoveToPosition(position);
             probe._interactiveSlice = probe._displaySession.CreateSlice(probe._displaySession.Caret, probe._windowChars);
-            return CreateDisplayDocument(probe._interactiveSlice.Text);
+            var display = CreateDisplayDocument(probe._interactiveSlice.Text);
+            probe.ApplyLineNumbers(display, probe._interactiveSlice);
+            return display;
         }
         return probe.BuildDisplayWindow(0).Document;
     }
@@ -220,9 +232,13 @@ internal sealed class GuiPerformanceProbe
         probe._displaySession = null;
         probe._sourceDocument = null;
         probe._interactiveSlice = null;
+        probe._sourceLineNumbers?.Clear();
         probe._editor.Document = null!;
         probe._documentGeneration++;
     }
+
+    private void ApplyLineNumbers(TextDocument display, DocumentDisplaySlice slice) =>
+        _sourceLineNumbers!.Apply(display, new SourceLineNumbers(slice.SourceStart.Line, _sourceDocument!.LineCount, display.LineCount));
 
     private static TextDocument CreateDisplayDocument(string text)
     {
@@ -245,7 +261,9 @@ internal sealed class GuiPerformanceProbe
                 (!_pointerSelection.IsActive && slice.SourceOffset + slice.Text.Length < source.Length && source.Caret > slice.SourceOffset + slice.Text.Length - margin))
             {
                 slice = _interactiveSlice = source.CreateSlice(source.Caret, _windowChars);
-                _editor.Document = CreateDisplayDocument(slice.Text);
+                var display = CreateDisplayDocument(slice.Text);
+                ApplyLineNumbers(display, slice);
+                _editor.Document = display;
             }
             if (!source.TryGetDisplaySelection(slice, out var visible) || visible.CaretOffset is not { } caret)
                 throw new InvalidOperationException("原文位置を表示範囲へ変換できません。");
@@ -573,6 +591,7 @@ internal sealed class GuiPerformanceProbe
         _displaySession.MoveCaret(window.TargetOffset, extendSelection: _sourceOffsets.Count > 0);
         var document = new TextDocument(window.Text);
         document.UndoStack.SizeLimit = 0;
+        ApplyLineNumbers(document, window);
         _largestDisplayChars = Math.Max(_largestDisplayChars, document.TextLength);
         _sourceOffsets.Add(window.TargetOffset);
         return (document, document.GetLocation(checked((int)(window.TargetOffset - window.SourceOffset))));
@@ -640,6 +659,7 @@ internal sealed class GuiPerformanceProbe
             throw new InvalidOperationException("原文選択を表示範囲へ変換できません。");
         var document = new TextDocument(slice.Text);
         document.UndoStack.SizeLimit = 0;
+        ApplyLineNumbers(document, slice);
         _editor.Document = document;
         _editor.Select(visible.Start, visible.Length);
         _editor.CaretOffset = caret;
@@ -693,6 +713,9 @@ internal sealed class GuiPerformanceProbe
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
             SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,
             SourceSelectionStart = _displaySession?.SelectionStart, SourceSelectionLength = _displaySession?.SelectionLength,
+            SourceLineNumberMap = _sourceLineNumbers?.Numbers,
+            SourceLineNumberLabelsRendered = _sourceLineNumbers?.RenderedLabels,
+            LastFirstSourceLineLabel = _sourceLineNumbers?.LastFirstLabel, LastLastSourceLineLabel = _sourceLineNumbers?.LastLastLabel,
             SourceSelectionUi = _interactive ? "source keyboard/mouse drag selection and clipboard; probe only" : _selectionProbe ? "clipped selection applied; physical input not injected" : "not-connected; logical selection only",
             SelectionSamples = _selectionSamples,
             InteractiveCommands = _interactiveCommands, StatusPosition = _viewModel.Position,

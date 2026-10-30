@@ -1,0 +1,20 @@
+{
+  "long.cs": {
+    "bytes": 24302,
+    "utf16Units": 21900,
+    "lineCount": 1002,
+    "sha256": "664adb97cdf7b4919912d92e0f8411ea051abf1ce2949671d6707d2ff8eacfbb"
+  },
+  "normal.cs": {
+    "bytes": 14000,
+    "utf16Units": 14000,
+    "lineCount": 1001,
+    "sha256": "24392808da357d7f27ed06bd04137b0e3b602091671c736328b4871dd492df9c"
+  },
+  "empty.cs": {
+    "bytes": 0,
+    "utf16Units": 0,
+    "lineCount": 1,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

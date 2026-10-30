@@ -1,0 +1,24 @@
+GUI-PROBE 460.785 window-opened
+GUI-PROBE 531.595 attachment-start
+GUI-PROBE 535.007 attachment-end
+GUI-PROBE 552.720 attachment-start
+GUI-PROBE 552.981 attachment-end
+GUI-PROBE 558.477 attachment-start
+GUI-PROBE 558.612 attachment-end
+GUI-PROBE 710.805 interactive-ready
+GUI-PROBE 677450.876 attachment-start
+GUI-PROBE 677453.586 attachment-end
+GUI-PROBE 677477.867 interactive-ready
+GUI-PROBE 699456.564 attachment-start
+GUI-PROBE 699457.422 attachment-end
+GUI-PROBE 699477.508 interactive-ready
+GUI-PROBE 708413.137 attachment-start
+GUI-PROBE 708413.648 attachment-end
+GUI-PROBE 708427.592 interactive-ready
+GUI-PROBE 743055.824 attachment-start
+GUI-PROBE 743056.372 attachment-end
+GUI-PROBE 743077.247 interactive-ready
+GUI-PROBE 774277.606 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 774313.652 complete
+GUI-PROBE 774316.522 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 774318.011 window-closed

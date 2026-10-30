@@ -1,0 +1,87 @@
+Window: "codeView", App: codeView.
+0 standard window codeView, Secondary Actions: Raise
+	1 container WindowChrome, ID: AvaloniaWindowChrome
+	2 container
+		3 container
+			4 menu bar
+				5 container
+					6 ファイル
+						7 container
+							8 unknown PART_Popup
+					9 表示
+						10 container
+							11 unknown PART_Popup
+					12 検索
+						13 container
+							14 unknown PART_Popup
+			15 container
+				16 text フォルダ: 3項目
+				17 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines
+				18 text /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+			19 container
+				20 text ファイル
+				21 button 再読込, Help: 選択フォルダを再読込（F5）。未選択ならルートを再読込
+				22 text
+				23 content list ファイルツリー, ID: FileTreeList
+					24 scroll area PART_ScrollViewer
+						25 container
+							26 container
+								27 row (selectable) empty.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+									28 container empty.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+										29 button (disabled) 展開または折りたたみ
+										30 text empty.cs
+										31 text
+								32 row (selectable) long.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+									33 container long.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+										34 button (disabled) 展開または折りたたみ
+										35 text long.cs
+										36 text
+								37 row (selectable) normal.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+									38 container normal.cs , Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+										39 button (disabled) 展開または折りたたみ
+										40 text normal.cs
+										41 text
+			42 container
+				43 content list 開いているファイル, ID: TabList
+					44 scroll area PART_ScrollViewer
+						45 container
+							46 container
+								47 row (selected) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+									48 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/long.cs
+										49 text long.cs
+										50 text
+										51 button タブを閉じる
+								52 row (selectable) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+									53 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/normal.cs
+										54 text normal.cs
+										55 text
+										56 button タブを閉じる
+								57 row (selectable) CodeView.Presentation.TabViewModel, Help: /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+									58 container /Users/hiroaki/Src/codeview/artifacts/fixtures/gui-source-lines/empty.cs
+										59 text empty.cs
+										60 text
+										61 button タブを閉じる
+				62 scroll area PART_ScrollViewer
+					63 container
+						64 container
+							65 content list
+								66 container
+							67 container
+						68 scroll bar (settable, float) Value: 8065.6123046875, ID: PART_HorizontalScrollBar
+							69 container
+								70 button Column left, ID: PART_LineUpButton
+								71 button Page left, ID: PART_PageUpButton
+								72 button Page right, ID: PART_PageDownButton
+								73 handle Position
+								74 button Column right, ID: PART_LineDownButton
+			75 text 読み取り専用
+			76 container
+				77 text 読み取り専用
+				78 text 行 1000, 列 8009
+				79 button UTF-8, Help: 文字コードを指定して開き直す
+	80 close button
+	81 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	82 minimize button
+	83 text codeView
+84 menu bar
+	85 codeView
