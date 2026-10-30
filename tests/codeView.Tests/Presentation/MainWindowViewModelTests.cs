@@ -9,6 +9,7 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class MainWindowViewModelTests
 {
+    private static async Task YieldTreeAsync() => await Task.Yield();
     [Test]
     public void ShutdownWaitsForManualRefreshAndCannotRestoreWorkspace() => SingleThreadTestContext.Run(async () =>
     {
@@ -18,7 +19,7 @@ internal sealed class MainWindowViewModelTests
         using var source = new CodeView.Tests.Operations.WorkspaceTests.ControlledSource();
         using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
         var viewModel = new MainWindowViewModel(operations,
-            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))), YieldTreeAsync);
         Task refresh = Task.CompletedTask;
         try
         {
@@ -53,7 +54,7 @@ internal sealed class MainWindowViewModelTests
         Directory.CreateDirectory(Path.Combine(root, "second"));
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var portable = Path.Combine(root, "settings.json");
-        var viewModel = new MainWindowViewModel(operations, new SettingsStore(new(portable, Path.Combine(root, "user.json"))));
+        var viewModel = new MainWindowViewModel(operations, new SettingsStore(new(portable, Path.Combine(root, "user.json"))), YieldTreeAsync);
         try
         {
             await File.WriteAllTextAsync(portable, "{\"schemaVersion\":1,\"excludedDirectoryNames\":[\"skip\"]}");
@@ -68,6 +69,14 @@ internal sealed class MainWindowViewModelTests
             Assert.That(operations.Workspace!.RootListing!.Entries.Select(e => e.Name), Does.Not.Contain("skip"));
             Assert.That(viewModel.Document!.Text, Is.EqualTo("class Body { }"));
             Assert.That(viewModel.Status, Does.Contain("後続のフォルダ1件"));
+            var row = viewModel.FileTree.Rows.First(row => row.Name == "body.cs");
+            viewModel.CloseFile();
+            await viewModel.ActivateTreeRowAsync(row);
+            Assert.That(viewModel.Document!.Text, Is.EqualTo("class Body { }"));
+            viewModel.IsTreeVisible = false;
+            Assert.That(viewModel.IsTreeVisible, Is.False);
+            Assert.That(viewModel.FileTree.Rows, Is.Not.Empty);
+            viewModel.IsTreeVisible = true;
             var document = viewModel.Document;
             var before = operations.Workspace.RootListing.Entries.Count;
             await File.WriteAllTextAsync(Path.Combine(root, "added.cs"), "// added");
@@ -79,6 +88,8 @@ internal sealed class MainWindowViewModelTests
             Assert.That(viewModel.WorkspaceSummary, Is.EqualTo("フォルダ: 0項目"));
             viewModel.CloseWorkspace();
             Assert.That(viewModel.HasWorkspace, Is.False);
+            Assert.That(viewModel.FileTree.Rows, Is.Empty);
+            await viewModel.ActivateTreeRowAsync(row);
             Assert.That(viewModel.CanSearchWorkspace, Is.False);
             Assert.That(viewModel.Document, Is.SameAs(document));
             await viewModel.OpenFilesAsync([root], OpenOrigin.Menu);
@@ -100,7 +111,7 @@ internal sealed class MainWindowViewModelTests
         Directory.CreateDirectory(root);
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
-            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))), YieldTreeAsync);
         try
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -161,7 +172,7 @@ internal sealed class MainWindowViewModelTests
         Directory.CreateDirectory(root);
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
-            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))), YieldTreeAsync);
         try
         {
             var file = Path.Combine(root, "source.txt");
@@ -193,7 +204,7 @@ internal sealed class MainWindowViewModelTests
         Directory.CreateDirectory(root);
         using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
         var viewModel = new MainWindowViewModel(operations,
-            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))));
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))), YieldTreeAsync);
         try
         {
             var file = Path.Combine(root, "source.cs");

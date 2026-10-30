@@ -108,6 +108,68 @@ internal sealed partial class MainWindow : Window
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
     private async void OpenFolderClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFolderAsync);
     private async void RefreshWorkspaceClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.RefreshWorkspaceAsync);
+    private async Task ActivateTreeRowAsync(FileTreeRow row)
+    {
+        await _viewModel.ActivateTreeRowAsync(row);
+        if (row.IsFile && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+    }
+
+    private async void TreeDisclosureClicked(object? sender, RoutedEventArgs args)
+    {
+        args.Handled = true;
+        if (sender is Button { DataContext: FileTreeRow row })
+        {
+            _viewModel.FileTree.SelectedRow = row;
+            await RunAsync(() => _viewModel.ActivateTreeRowAsync(row));
+            this.FindControl<ListBox>("FileTreeList")!.Focus();
+        }
+    }
+
+    private async void TreeDoubleTapped(object? sender, TappedEventArgs args)
+    {
+        if (args.Source is Control control && IsDisclosureButton(control)) return;
+        if (_viewModel.FileTree.SelectedRow is { } row)
+        {
+            args.Handled = true;
+            await RunAsync(() => ActivateTreeRowAsync(row));
+        }
+    }
+
+    private static bool IsDisclosureButton(Control control)
+    {
+        for (var current = control; current is not null; current = current.Parent as Control)
+        {
+            if (current is Button) return true;
+            if (current is ListBoxItem) break;
+        }
+        return false;
+    }
+
+    private async Task RefreshTreeAsync()
+    {
+        if (_viewModel.FileTree.SelectedRow is { CanExpand: true } row)
+            await _viewModel.ExpandTreeRowAsync(row, reload: true);
+        else await _viewModel.RefreshWorkspaceAsync();
+    }
+
+    private async void RefreshTreeClicked(object? sender, RoutedEventArgs args) => await RunAsync(RefreshTreeAsync);
+
+    private async void TreeKeyDown(object? sender, KeyEventArgs args)
+    {
+        if (args.KeyModifiers != KeyModifiers.None) return;
+        var row = _viewModel.FileTree.SelectedRow;
+        if (args.Key == Key.F5) { args.Handled = true; await RunAsync(RefreshTreeAsync); }
+        else if (row is not null && args.Key == Key.Enter)
+        { args.Handled = true; await RunAsync(() => ActivateTreeRowAsync(row)); }
+        else if (row is { CanExpand: true } && args.Key == Key.Right)
+        { args.Handled = true; await RunAsync(() => _viewModel.ExpandTreeRowAsync(row)); }
+        else if (row is not null && args.Key == Key.Left)
+        {
+            args.Handled = true;
+            if (row.CanExpand && row.Node.IsExpanded) _viewModel.CollapseTreeRow(row);
+            else if (row.Parent is { } parent) _viewModel.FileTree.SelectedRow = parent;
+        }
+    }
     private void CloseWorkspaceClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseWorkspace();
     private async void ReloadClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.ReloadAsync);
     private async void EncodingClicked(object? sender, RoutedEventArgs args)

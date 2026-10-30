@@ -28,7 +28,9 @@
                 <Separator />
                 <MenuItem Header="終了" Click="ExitClicked" />
             </MenuItem>
-            <MenuItem Header="表示" IsEnabled="False" />
+            <MenuItem Header="表示">
+                <MenuItem Header="ファイルツリー" ToggleType="CheckBox" IsChecked="{Binding IsTreeVisible, Mode=TwoWay}" IsEnabled="{Binding HasWorkspace}" />
+            </MenuItem>
             <MenuItem Header="検索" IsEnabled="False" />
         </Menu>
         <Border Grid.Row="1" Background="#202630" Padding="14,9">
@@ -40,7 +42,45 @@
                 <TextBlock Text="{Binding FilePath}" TextTrimming="CharacterEllipsis" Foreground="#BDC8D7" />
             </StackPanel>
         </Border>
-        <editor:TextEditor Grid.Row="2" x:Name="Editor"
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+            <Border Width="280" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,0,1,0" IsVisible="{Binding IsTreeVisible}">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <Grid Margin="12,8" ColumnDefinitions="*,Auto">
+                        <TextBlock Text="ファイル" FontSize="12" Foreground="#A9B9CD" VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Content="再読込" FontSize="11" Padding="7,3" Click="RefreshTreeClicked" ToolTip.Tip="選択フォルダを再読込（F5）。未選択ならルートを再読込" />
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding FileTree.Notice}" TextWrapping="Wrap" Margin="10,0,10,3" FontSize="11" Foreground="#E6C88C" />
+                    <ListBox Grid.Row="2" x:Name="FileTreeList" ItemsSource="{Binding FileTree.Rows}"
+                             SelectedItem="{Binding FileTree.SelectedRow, Mode=TwoWay}" SelectionMode="Single"
+                             Background="Transparent" BorderThickness="0" Padding="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             DoubleTapped="TreeDoubleTapped" KeyDown="TreeKeyDown" AutomationProperties.Name="ファイルツリー">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="4,0" />
+                                <Setter Property="MinHeight" Value="28" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:FileTreeRow">
+                                <Grid ColumnDefinitions="24,*,Auto" Height="28" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}" AutomationProperties.Name="{Binding AccessibleName}">
+                                    <Button Content="{Binding Disclosure}" IsEnabled="{Binding CanExpand}" Click="TreeDisclosureClicked"
+                                            Focusable="False" Padding="0" Background="Transparent" BorderThickness="0" Foreground="#94D4C3"
+                                            AutomationProperties.Name="展開または折りたたみ" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" Foreground="#CBD3DF" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10" Margin="6,0,4,0" VerticalAlignment="Center" Foreground="#A9B9CD" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+            <Grid Grid.Column="1">
+        <editor:TextEditor x:Name="Editor"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
                            WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
                            Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
@@ -49,11 +89,13 @@
                 <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
-        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
             <Button Content="ファイルを開く" Click="OpenClicked" HorizontalAlignment="Center" />
         </StackPanel>
+            </Grid>
+        </Grid>
         <Border Grid.Row="3" Background="#191E26" Padding="12,5">
             <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
         </Border>

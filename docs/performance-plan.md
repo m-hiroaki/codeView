@@ -125,3 +125,9 @@ dotnet test codeView.slnx -c Release --filter FullyQualifiedName~RepositoryReadP
 ```
 
 CP932データは生成器の`--profile l1 --encoding cp932`で別ルートに作り、入力・ラベルを変更する。結果のInputBytesは成功したファイルの実Stamp長の合計で、マニフェストの期待値と照合する。文字チャンク数が変わっても文字を落としていないことは文字数・境界/全文内容の単体試験で確認する。読取変更後は2章の50 MiB・5本文保持のコア測定も再実行する。
+
+## 12. ツリー論理状態と表示行の投影
+
+`CODEVIEW_PERF_DIRECTORY=<生成済みL1ルート>`を指定して`FullyQualifiedName~FileTreePerformanceTests`を実行する。AppOperationsでルート解決/直下列挙/TreeSession構築を行い、FileTreeViewModelへ全直下行をバッチ投影する。最初の通常フォルダの展開・折りたたみも行う。ネイティブGUIを起動しない直列テストコンテキストであり、仮想化の実現数・フレーム時間・描画や入力応答の合格には使わない。
+
+実測前の初期予算はルートOpenと行投影の合計1秒以内、子展開1秒以内、処理全体のCPU1秒以内、OSメモリの観測増分64 MiB以内とする。各Add通知は256行以内。時間/件数/割当/GCと製品ビルド識別情報をJSONに残す。メモリは処理境界と投影のyield時に観測し、連続サンプルの最大値ではない。別途実GUIの10msサンプルとコンテナ数/描画を確認するまでメモリ上限の達成とはしない。Cold I/Oと起動時間、本文/検索は含まない。

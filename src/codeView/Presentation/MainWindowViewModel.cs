@@ -7,7 +7,7 @@ using CodeView.Settings;
 
 namespace CodeView.Presentation;
 
-internal sealed class MainWindowViewModel(AppOperations operations, SettingsStore settingsStore) : INotifyPropertyChanged
+internal sealed class MainWindowViewModel(AppOperations operations, SettingsStore settingsStore, Func<Task>? treeYield = null) : INotifyPropertyChanged
 {
     private readonly string _baseDirectory = Environment.CurrentDirectory;
     private readonly CancellationTokenSource _lifetime = new();
@@ -26,6 +26,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
     private readonly HashSet<Task> _manualWork = [];
+    private bool _isTreeVisible = true;
+    public FileTreeViewModel FileTree { get; } = new(treeYield);
+    public bool IsTreeVisible { get => _isTreeVisible && HasWorkspace; set { _isTreeVisible = value; Changed(nameof(IsTreeVisible)); } }
 
     public TextDocument? Document => _document;
     public bool HasDocument => _document is not null;
@@ -159,9 +162,13 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (settings is null || _stopping) return;
         SetStatus("フォルダを読み込み中… " + path.DisplayPath);
         var work = operations.OpenFolderAsync(path, settings);
+        var workspace = operations.Workspace;
+        FileTree.Clear();
         WorkspaceChanged();
         var result = await work;
-        if (_stopping) return;
+        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return;
+        await FileTree.BindAsync(workspace?.Tree);
+        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return;
         WorkspaceChanged();
         if (result.Status == OperationStatus.Cancelled) return;
         SetStatus(result.Status == OperationStatus.Success ? "フォルダを開きました。"
@@ -184,11 +191,34 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public void CloseWorkspace()
     {
         operations.CloseWorkspace();
+        FileTree.Clear();
         WorkspaceChanged();
         SetStatus("フォルダを閉じました。");
     }
 
-    private void WorkspaceChanged() => Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary));
+    public async Task ActivateTreeRowAsync(FileTreeRow row)
+    {
+        if (_stopping || !FileTree.IsCurrentRow(row)) return;
+        if (row.CanExpand)
+        {
+            if (row.Node.IsExpanded) FileTree.Collapse(row);
+            else await ExpandTreeRowAsync(row);
+        }
+        else if (row.IsFile) await OpenFilesAsync([row.Node.Entry.Path.FullPath], OpenOrigin.Tree);
+        else SetStatus("このリンクまたは特殊項目は展開できません。フォルダリンクはルートとして明示指定してください。");
+    }
+
+    public async Task ExpandTreeRowAsync(FileTreeRow row, bool reload = false)
+    {
+        if (!_stopping) await TrackManualAsync(FileTree.ExpandAsync(row, reload));
+    }
+
+    public void CollapseTreeRow(FileTreeRow row)
+    {
+        if (!_stopping) FileTree.Collapse(row);
+    }
+
+    private void WorkspaceChanged() => Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary), nameof(IsTreeVisible));
 
     private static string ErrorText(ErrorCode code) => code switch
     {
@@ -296,6 +326,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _lifetime.Cancel();
         CloseFile();
         operations.Dispose();
+        FileTree.Clear();
         WorkspaceChanged();
     }
 
