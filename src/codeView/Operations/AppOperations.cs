@@ -1,6 +1,7 @@
 using CodeView.Contracts;
 using CodeView.Documents;
 using CodeView.Files;
+using CodeView.Search;
 using CodeView.Settings;
 
 namespace CodeView.Operations;
@@ -13,15 +14,21 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private bool _stopping;
     private readonly SemaphoreSlim _treeSlot = new(1, 1);
     private readonly OperationIdentity _workspaceEpoch = new();
+    private readonly OperationIdentity _requestIds = new();
     private readonly OperationIdentity _workspaceSearchEpoch = new();
     private CancellationTokenSource? _workspaceLifetime;
     private readonly List<Task> _retiredTreeWork = [];
     private TabManager? _tabs;
+    private SearchCoordinator? _searches;
+    private StartupOpenQueue? _startup;
 
-    public StartupOpenQueue Startup { get; } = new();
+    public StartupOpenQueue Startup => _startup ??= new(_requestIds);
     public LoadedFile? CurrentFile => _tabs?.ActiveTab?.File;
     public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
+    public SearchCoordinator Searches => !_stopping ? _searches ??= new(new TextSearch(directories, reader).StartWorkspace,
+        () => Workspace, _workspaceSearchEpoch, _requestIds) : throw new ObjectDisposedException(nameof(AppOperations));
+    public Task PendingSearchWork => _searches?.PendingWork ?? Task.CompletedTask;
     public WorkspaceState? Workspace { get; private set; }
     public long WorkspaceSearchEpoch => _workspaceSearchEpoch.Current;
     public Task PendingTreeWork => Task.WhenAll(_retiredTreeWork.Append(Workspace?.Tree?.PendingWork ?? Task.CompletedTask));
@@ -36,6 +43,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (_stopping) return OperationResult<WorkspaceState>.Cancelled();
         var epoch = _workspaceEpoch.Advance();
         _workspaceSearchEpoch.Advance();
+        _searches?.InvalidateWorkspace();
         CancelWorkspace();
         _workspaceLifetime = new CancellationTokenSource();
         var workspace = new WorkspaceState(path, settings, epoch, _workspaceLifetime.Token);
@@ -79,6 +87,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     {
         _workspaceEpoch.Advance();
         _workspaceSearchEpoch.Advance();
+        _searches?.InvalidateWorkspace();
         CancelWorkspace();
         Workspace = null;
     }
@@ -133,6 +142,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (_stopping) return;
         _stopping = true;
         Startup.Stop();
+        _searches?.Dispose();
         _tabs?.Dispose();
         CloseWorkspace();
         CloseFile();

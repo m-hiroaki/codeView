@@ -7,14 +7,29 @@
 | 型・配置 | 状態 | 主な操作 |
 | --- | --- | --- |
 | `AppBootstrap` / Bootstrap | アプリ寿命、追跡中の設定Task | `StartAsync`、`BeginShutdownAsync`、依存の組立 |
-| `AppOperations` / Operations | 設定準備、Openキュー、ワークスペース、タブ、処理枠、検索セッション | `SubmitOpen`、`CompleteSettings`、`OpenFolderAsync`、`CloseTab`、`BeginSearch`、`CancelSearch` |
-| `OperationSession` / Operations | RequestId、Epoch、取消、Task、停止理由 | `RequestCancel(reason)`、`ObserveCompletionAsync`、一度だけの枠解放 |
+| `AppOperations` / Operations | Startup・ワークスペース・Tabs・Searchesの所有、RequestIdの共通採番 | `OpenFolderAsync`、`CloseWorkspace`、`Dispose`、Pending各処理 |
+| `SearchCoordinator` / Operations | 共用検索の世代、実行1件/最新待機1件、受付・採用・停止理由 | `Start`、`Cancel`、`Clear`、`TryRead`、`TryFinalize`、`PendingWork` |
+| `WorkspaceSearchOperation` / Operations | 固定要求、取消理由、Started/Completion、SearchのSession | 操作所有者だけが開始・停止・解放する |
 | `MainWindowViewModel` / Presentation | 表示タブ・ノード・結果・通知、パネル可視性 | コマンドをOperationsへ渡し、採用済み状態を表示用へ変換 |
 | `TabViewModel`、`TreeNodeViewModel`、`SearchPanelViewModel` | 表示選択・展開・入力・件数等 | UIだけの状態。ファイルI/Oをしない |
 
 AppOperationsは初期の内部入口とし、操作カテゴリ別のメソッド・状態を分ける。WorkspaceCoordinator等を先に導入しない。状態をすべて公開するプロパティ袋にせず、変更は操作メソッドを通す。
 
 起動待ちの直列状態はOperations内部の`StartupOpenQueue`へ分け、AppOperationsが所有する。設定確定は一度だけ、待機要求の取出しと完了は別操作とし、実行中の要求も予算に数える。純粋な状態としてUI・Task・タイマーを持たせず競合の順序を単体試験で確認する。これは新しいCoordinatorやモジュールの導入ではない。
+
+### 1.1 検索受付の具体化
+
+実装段階では、検索の最新待機/世代/明示取消と、ルート切替/終了時の取消・Task追跡を接続するため、SearchCoordinatorをOperations内部へ分離する。理由は検索の競合試験と採用規則をAppOperationsのタブ/ツリー状態から独立させ、ルート変更の全経路で同じ無効化を実行すること。利点は検索ワーカー数・最新待機・結果採用の所有者が1つになること、欠点はAppOperationsからのルート変更/終了通知とPendingWork集約が必要なこと。新たなレイヤ・モジュール・DI・イベントバスは追加しない。
+
+影響はAppOperationsのSearches/PendingSearchWork、OpenFolderAsync/CloseWorkspace/Dispose、MainWindowViewModelの終了Task集約に限る。Openと検索のRequestIdはAppOperations所有のOperationIdentityを共有し、StartupOpenQueue単体利用時は独自の採番器を使う。SearchEpochは同じ共有値をAppOperationsとSearchCoordinatorが操作し、別の検索世代を二重に持たない。
+
+実行中ワーカーがある場合は新要求が旧要求を取消し、待機は最後の1件だけを保持する。置換された待機のStarted=false/Completion=Cancelledを直ちに確定して取消源を解放する。実行中の枠はSearchのCompletionを実際に観測し終えるまで保持し、取消不能なI/O待ちを理由に新ワーカーを重ねない。現在は全文検索を接続し、定義/参照探索も今後この共用受付へ統合して別枠を増設しない。
+
+Startedは物理ワーカーが開始したか、Completionはその操作のワーカー終端を表す。画面の最終確定はTryFinalizeを使い、現在の所有者/WorkspaceEpoch/SearchEpochが一致し、Task成功とチャネル排出が両方済んだ時だけ許す。イベントもTryRead/WaitForEventsAsyncを通し、受付中・現所有者・世代一致・未取消を確認する。Presentationはチャネルの別readerを起動しない。待機中はLatestProgress=nullとする。
+
+明示CancelはCurrentとSearchEpochを維持し、CancellationCause.Userを記録して残キューを破棄する。新検索/Replaced、Clear、WorkspaceChanged、Shutdownは旧イベントと終端を不採用にする。ワーカー完了後・表示排出前のCancelでは、ワーカーがCompletedを返していてもUserの停止理由を表示へ反映し、採用されなかった結果を補充しない。既に採用した確定結果の保持と仮結果の除去は後続のUI接続で行う。
+
+旧世代でも未知例外を成功/取消へ変換しない。受付を停止し、待機を未実行で取消し、失敗チャネルを排出して観測する。通知用Completionが旧画面に放棄されても例外を未観測にせず、PendingWorkは保持した例外を再送出する。MainWindowViewModelのPendingWorkへ検索も集約する。移行はSearch単体→Operationsの制御試験→UIドレイン/世代採用→実機性能の順とし、UI/定義/参照/本文内検索が完成したとはしない。
 
 ## 2. スレッド規約
 

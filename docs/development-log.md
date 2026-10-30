@@ -352,3 +352,14 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - 通常markerの予備測定は仮結果5.55ms/初回確定6.27ms、1.05秒で生成/返却10,000・確定9,999・未確定ID10,000としてLimitReachedになった（`workspace-l1-marker-preliminary`）。単一ファイルの仮件数だけをテスト受信側で保持し、全結果や本文は保存しない。固定コミットの比較値ではなく、物理I/O・Cold、個別GC/LOH、UI予算や保持・長時間の証拠にはしない。
 - 未評価を未一致完走と誤認しない検査（IsPartial=false・Regex評価行数）を性能プローブへ追加してL1 Regexを再検証し、5.76秒/CPU9.57秒/OS増分約6.34 MiB/割当約3.20 GiB/GC129.4msで合格した（`workspace-l1-regex-validation`）。満杯取消後のFileStream.CanRead=falseも追加検査1件で確認した（`workspace-search-cancel-disposal.trx`）。
 - Sessionを返す理由・利点/欠点・影響/移行順を詳細設計05の5.2/6.1へ記載し、README/タスクリストも更新。Operationsの世代・処理枠と検索受付、UIドレイン/移動/仮結果破棄の接続、本文内検索、実GUI・別OSは未完了。P4-04/P4-05全体やG2/G3/G4は完了としていない。
+
+## 2026-10-31：検索受付・世代・物理ワーカー寿命の接続
+
+- 前回は`858710f`で逐次全文検索と有界イベントを実装した進捗ターン。クリーンなworktreeを確認し、Operations内部へSearchCoordinatorとWorkspaceSearchOperationを追加した。AppOperationsが遅延生成して所有し、ルート切替/閉鎖・終了を通知する。層/モジュール/依存方向は維持した。
+- 実行1件/最新待機1件の直列ポンプを実装。検索Aの取消不能I/Oを保留してB→Cを要求するとBのStarted=false/Completion=Cancelledを即座に確定し、Aの実終了後だけCを開始する。待機取消源は直ちに解放し、実行中の取消源は物理ワーカーの終端を観測してから解放する。
+- TryRead/WaitForEventsAsyncで現所有者・WorkspaceEpoch/SearchEpoch・取消を確認し、TryFinalizeはTask終端とキュー排出の両方を必要とする。User取消はCurrent/世代を維持して残キューを破棄し、置換/クリア/ルート変更/終了と区別する。ワーカーが先にCompletedでも、排出前のUser取消理由は別に保持する。UIで既存の確定/仮結果をどう更新するかは後続接続で実装する。
+- 旧ワーカーの未知例外も正常取消へ変換しない。検索受付を停止して待機を実行せず取消し、チャネルとワーカー失敗を観測する。放棄され得る操作通知Taskの例外も観測し、PendingWorkは保持したExceptionDispatchInfoから同じ失敗を伝える。MainWindowViewModelのPendingWorkへ検索も集約した。
+- Openと検索のRequestIdが独立したカウンターになる点を見直し、AppOperations所有のOperationIdentityをStartupOpenQueueとSearchCoordinatorへ共有した。単体のStartupOpenQueueは既定で独自採番器を作り、既存の利用方法を維持する。Open→検索→Openが単調増加することも確認した。
+- Release通常単体392件合格、失敗0・スキップ0（`tests/codeView.Tests/TestResults/search-coordinator-regression.trx`）。追加11件で固定条件/採番、A→B→C、ルート切替/閉鎖、失敗ルートの旧ルート不使用、実行/待機/完了後取消、クリア、終了の実I/O待機、旧検索の未知障害を制御した。旧イベント/終端の採用拒否、排出前の完了拒否、待機の未実行、終了後のTask観測を確認した。
+- 性能評価条件18章へ事前予算（1,000要求合計100ms/CPU100ms/割当2 MiB）を固定し、Performance試験1件も合格した（`search-owner-replacements.trx`）。1,000置換は約0.406ms/CPU0.425ms/当該スレッド割当488,344 bytesで、保留中Openは1回、解除後は最初と最後の計2回だけ。ルート準備/最初の走査/保留解除後の最新検索は測定外。全件完走やUI描画/持続スループット、OSメモリ/GC、長時間利用の証拠とはしない。
+- 分割の理由・利点/欠点・影響/移行順を詳細設計02の1.1へ追加し、アーキテクチャ設計/詳細設計05/README/タスクリストを現状へ更新した。検索しない起動ではCoordinatorを作らず、本文/描画経路を増やさない。実画面の起動/入力/描画は未測定。UIの通知集約/仮結果処理/移動、定義/参照の同じ共用受付への統合、本文内検索と実機/別OSは残し、P4-05/P4-09全体やG2/G3/G4を完了にしていない。

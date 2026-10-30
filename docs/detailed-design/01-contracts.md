@@ -49,7 +49,8 @@ Operationsが次を所有する。数値の使い回しを避け、同じパス�
 | `OperationError` | `Code`、処理種別、必要な対象パス、再試行可否。本文・検索語・例外全文を保持しない |
 | `ErrorCode` | `NotFound`、`AccessDenied`、`NotRegularFile`、`BrokenLink`、`Binary`、`DecodeFailed`、`ChangedDuringRead`、`InvalidPattern`、`RegexTimedOut`、`UnsupportedSize`、`QueueFull`、`InvalidSettings`、`Unexpected`等 |
 | `OperationResult<T>` | `Success(value)`、`Cancelled`、`Failure(error)`のいずれか。成功でない場合に値を参照しない |
-| `SearchStopReason` | `Completed`、`Cancelled`、`LimitReached`、`Failed`。Search内に置く |
+| `SearchEndReason` | `Completed`、`Cancelled`、`LimitReached`、`Failed`。Search内に置く |
+| `SearchCancellationCause` | `User`、`Replaced`、`Cleared`、`WorkspaceChanged`、`Shutdown`等。Operationsが保持し、ワーカーの終端理由と区別する |
 | `SearchCompletion` | StopReason、走査件数・バイト数、一致数、スキップ内訳、未評価行数、代表エラー、全件評価できたか。Search内に置く |
 
 除外名・バイナリ・リンクは仕様上の対象外として件数を分ける。読取拒否・デコード不能・解析上限・正規表現行上限は評価できなかった範囲として扱う。後者がある、走査が止まった、または結果上限へ達した場合は全件評価済みとしない。正常0件と定義候補未検出は失敗例外にしない。

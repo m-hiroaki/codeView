@@ -10,14 +10,14 @@ internal enum OpenOrigin { CommandLine, Menu, Drop, Tree }
 internal sealed record OpenRequest(long Id, ReadOnlyCollection<string> Paths, OpenOrigin Origin);
 
 /// <summary>Serialized state only. The owner calls it on the UI operation entry point.</summary>
-internal sealed class StartupOpenQueue
+internal sealed class StartupOpenQueue(OperationIdentity? identity = null)
 {
     internal const int MaxRequests = 64;
     internal const int MaxPaths = 256;
     internal const int MaxPathChars = 256 * 1024;
     private readonly Queue<OpenRequest> _waiting = new();
     private readonly Dictionary<long, OpenRequest> _outstanding = [];
-    private long _nextId;
+    private readonly OperationIdentity _identity = identity ?? new();
     private int _pathCount;
     private int _pathChars;
 
@@ -45,7 +45,7 @@ internal sealed class StartupOpenQueue
                 return OperationResult<OpenRequest>.Failure(new(ErrorCode.QueueFull));
         }
 
-        var request = new OpenRequest(checked(++_nextId), Array.AsReadOnly(paths.ToArray()), origin);
+        var request = new OpenRequest(_identity.Advance(), Array.AsReadOnly(paths.ToArray()), origin);
         _waiting.Enqueue(request);
         _outstanding.Add(request.Id, request);
         _pathCount += paths.Count;
