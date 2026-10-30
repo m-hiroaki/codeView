@@ -66,6 +66,18 @@ Operationsの`WorkspaceState`は要求パス、解決後パス、設定スナッ
 
 ツリーUIはPresentationのFileTreeViewModelで論理状態から展開中の行を投影し、VirtualizingStackPanelを使うListBoxへ接続する。ノード単位の遅延展開・要求集約・待機上限・キャッシュはOperationsのTreeSessionに置き、詳細は[03](03-files-tree.md#61-operations内の状態と寿命)に従う。ツリーからのファイルOpenは共通キューへOpenOrigin.Treeとして入力する。検索セッションの取消接続は検索実装時に追加し、SearchEpochを更新するだけで未実装の検索処理が停止するとは扱わない。
 
+### 4.2 ドロップの入力境界
+
+PresentationのFileDropInputがAvaloniaのIDataTransfer/DataFormat.Fileからローカルのファイル/フォルダのパスを同期的に抽出する。Text/URL/URIリストをパスとして解釈しない。Itemsを先に検査し、0件・256件超過を拒否する。ファイル値は項目順に取得し、ローカルパスを得られない項目・NUL・空白だけのパス・文字総量256 Ki文字超過があれば全体を拒否する。ファイルの存在・通常ファイル・文字コードは共通Openのワーカーで検証する。UIで本文を開かず、シェル実行・コピー・移動・削除もしない。
+
+DragEnter/DragOverはCopy許可・件数・File形式だけを確認して効果をCopyまたはNoneにし、ファイル値/パス/メタデータ/本文を取得しない。実際のDropコールバック内でパスだけを読取専用一覧に固定し、OpenOrigin.Dropで共通キューへ渡す。設定待ちでもネイティブ転送やストレージのオブジェクトをOperationsへ保持させない。キューの残り容量も共通Submitで原子的に検査し、一部受付はしない。Stoppingでは値を取得せず拒否する。
+
+採用版のDragDropイベントはBubbleのみで、Tunnelへの登録では先取りできない。ウィンドウはHandled済みも含めたBubbleハンドラーを持ち、本文はIsReadOnlyに加えてEnableTextDragDrop=falseにする。本文ライブラリがテキスト用ハンドラー解除時にTextArea.AllowDropをfalseへ設定するため、本文へファイルを落とせるようTextAreaのAllowDropを明示的にtrueへ戻す。テキストのドラッグによる挿入/移動を接続せず、CopyでファイルOpenだけを交渉する。未知の転送取得例外はUI例外方針へ従い異常終了し、入力エラーと偽って継続しない。
+
+この変更は既存の入力経路を満たすPresentation内の追加で、層・依存方向・Contracts・本文モデルを変えない。利点は全入力で設定/除外/読取安全性を共有できること、不利点はOS/本文のドロップ経路を実機でも確認する必要があること。抽出境界と設定待ち/混在入力/本文不変の単体・結合試験→Finder/Explorerの実操作とハッシュ確認の順に検証する。実機受入は未完了。
+
+参照：[Avalonia 12.1.3 DragDrop](https://github.com/AvaloniaUI/Avalonia/blob/12.1.3/src/Avalonia.Base/Input/DragDrop.cs)、[転送値の取得](https://github.com/AvaloniaUI/Avalonia/blob/12.1.3/src/Avalonia.Base/Input/DataTransferExtensions.cs)、[ローカルパス取得](https://github.com/AvaloniaUI/Avalonia/blob/12.1.3/src/Avalonia.Base/Platform/Storage/StorageProviderExtensions.cs)、[AvaloniaEdit 12.0.0のテキストドロップ](https://github.com/AvaloniaUI/AvaloniaEdit/blob/12.0.0/src/AvaloniaEdit/Editing/SelectionMouseHandler.cs)。
+
 ## 5. 処理枠と要求の置換
 
 | 枠 | 同時数 | 待機方法 |
@@ -125,7 +137,7 @@ UI・ランタイムの最終例外フックはD-01で採用版を固定後に�
 
 | ID | 正常系 | 異常系・境界値 |
 | --- | --- | --- |
-| RT-01 | 設定成功後に受付順実行 | 確定の重複、時間超過後の成功、確定直前のOpen、上限±1、終了競合 |
+| RT-01 | 設定成功後にCLI/メニュー/ドロップを受付順実行 | 確定の重複、時間超過後の成功、確定直前のOpen、項目数/文字数上限±1、不正形式の全体拒否、転送寿命、終了競合 |
 | RT-02 | 各枠1件、最新検索だけ待機 | 旧I/O停止待ち、取消直後の要求、解放中の例外、同タブ置換 |
 | RT-03 | ルート切替後に新結果を表示 | 旧列挙・旧検索が後着、無効ルート、単体ファイルだけの状態 |
 | RT-04 | IME確定後に検索 | 変換取消、入力連打、欄を隠す、本文へのIME入力 |

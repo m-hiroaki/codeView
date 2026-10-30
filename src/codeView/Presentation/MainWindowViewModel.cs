@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Avalonia.Input;
 using AvaloniaEdit.Document;
 using CodeView.Contracts;
 using CodeView.Files;
@@ -91,6 +92,19 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping) return;
         Submit(paths, origin);
         await EnsurePumpAsync();
+    }
+
+    public Task OpenDropAsync(IDataTransfer data)
+    {
+        if (_stopping) return Task.CompletedTask;
+        var extracted = FileDropInput.Read(data);
+        if (extracted.Status == OperationStatus.Failure)
+        {
+            SetStatus(extracted.Error!.Code == ErrorCode.QueueFull ? "ドロップの項目数またはパス文字数が上限を超えています。"
+                : "ローカルのファイルまたはフォルダをドロップしてください。");
+            return Task.CompletedTask;
+        }
+        return OpenFilesAsync(extracted.Value, OpenOrigin.Drop);
     }
 
     private void Submit(IReadOnlyList<string> paths, OpenOrigin origin)

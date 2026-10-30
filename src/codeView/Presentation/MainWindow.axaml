@@ -86,7 +86,7 @@
                            Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
                            HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <editor:TextEditor.Options>
-                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" />
+                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"

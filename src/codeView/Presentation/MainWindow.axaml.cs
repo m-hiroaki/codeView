@@ -40,6 +40,13 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        // Text drag/drop is disabled in editor options. Its detach handler sets a local false,
+        // so explicitly allow file drops to bubble from the text area to this window.
+        DragDrop.SetAllowDrop(this, true);
+        DragDrop.SetAllowDrop(editor.TextArea, true);
+        AddHandler(DragDrop.DragEnterEvent, FileDragOver, RoutingStrategies.Bubble, handledEventsToo: true);
+        AddHandler(DragDrop.DragOverEvent, FileDragOver, RoutingStrategies.Bubble, handledEventsToo: true);
+        AddHandler(DragDrop.DropEvent, FileDropped, RoutingStrategies.Bubble, handledEventsToo: true);
 #if CODEVIEW_PERFORMANCE_PROBE
         GuiPerformanceProbe.Attach(this, editor, args.Length > 0);
 #endif
@@ -103,6 +110,32 @@ internal sealed partial class MainWindow : Window
                 desktop.Shutdown(1);
             else Close();
         }
+    }
+
+    private void FileDragOver(object? sender, DragEventArgs args)
+    {
+        args.Handled = true;
+        try { args.DragEffects = !_closing && FileDropInput.CanOfferCopy(args.DataTransfer, args.DragEffects)
+            ? DragDropEffects.Copy : DragDropEffects.None; }
+        catch (Exception)
+        {
+            args.DragEffects = DragDropEffects.None;
+            _viewModel.SetStatus("ドロップデータを確認できません。");
+            Environment.ExitCode = 1;
+            Close();
+        }
+    }
+
+    private async void FileDropped(object? sender, DragEventArgs args)
+    {
+        args.Handled = true;
+        await RunAsync(() =>
+        {
+            if (_closing || !FileDropInput.CanOfferCopy(args.DataTransfer, args.DragEffects))
+            { args.DragEffects = DragDropEffects.None; return Task.CompletedTask; }
+            args.DragEffects = DragDropEffects.Copy;
+            return _viewModel.OpenDropAsync(args.DataTransfer);
+        });
     }
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
