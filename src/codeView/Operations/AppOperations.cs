@@ -18,9 +18,12 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private readonly OperationIdentity _workspaceSearchEpoch = new();
     private CancellationTokenSource? _workspaceLifetime;
     private readonly List<Task> _retiredTreeWork = [];
+    private TabManager? _tabs;
 
     public StartupOpenQueue Startup { get; } = new();
     public LoadedFile? CurrentFile { get; private set; }
+    public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
+    public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
     public WorkspaceState? Workspace { get; private set; }
     public long WorkspaceSearchEpoch => _workspaceSearchEpoch.Current;
     public Task PendingTreeWork => Task.WhenAll(_retiredTreeWork.Append(Workspace?.Tree?.PendingWork ?? Task.CompletedTask));
@@ -159,6 +162,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (_stopping) return;
         _stopping = true;
         Startup.Stop();
+        _tabs?.Dispose();
         CloseWorkspace();
         CloseFile();
         // Cancelled workers still need the semaphore to release their slot.
