@@ -207,7 +207,7 @@ flowchart LR
 
 - [ ] **P4-02：通常・単語照合と共通位置計算を実装する**
   依存：P4-01。完了条件：大小文字、Unicode非正規化、単語境界、非重複一致、チャンク持越し・CRLF・EOF・長行の有界保持をSR-01・CT-01で確認。
-  先行実装：LiteralMatcherの固定バッファ/EOF/Abort/Reset、Ordinal比較、Rune境界、原文UTF-16位置と終端を単体検証。ReadLease上の性能を評価し、ファイル読取/検索セッション/UIへの接続は後続作業とする。
+  先行実装：LiteralMatcherの固定バッファ/EOF/Abort/Reset、Ordinal比較、Rune境界、原文UTF-16位置と終端を単体検証。UTF-8/CP932/単一長行の各50 MiB・ReadLease上の照合時間/割当も事前予算内。[結果](performance-results/2026-10-31-literal-matcher/)。ファイル読取/検索セッション/UIへの接続は後続作業とする。
 
 - [ ] **P4-03：正規表現の検証・行照合を実装する**
   依存：P4-01、P4-02。完了条件：UI外での構築、不正式、有限タイムアウト、行上限、0文字一致、サロゲート内一致の扱いをSR-02で確認。制限を利用者向け説明へ記載。
