@@ -26,9 +26,9 @@
 
 空語は実行しない。入力の前後空白は自動削除せず、空白だけの語も通常の検索語として扱う。行をまたぐ検索は対象外とし、通常語に改行がある場合は実行前に案内する。正規表現は各行の改行文字を除いた内容に適用し、複数行を結合しない。
 
-入力長は初期候補16 Ki文字までとし、超過は黙って切らず条件エラーを返す。照合用バッファ・パターン構築を無制限にしないための案としてD-10で確認する。検証・Regex構築もUI上で実行せず、入力世代に対応する結果だけを採用する。
+入力長は初期実装で16 Ki UTF-16単位までに固定し、超過は黙って切らず条件エラーを返す。通常語の不正なサロゲート列も条件エラーにし、補助平面文字の片側だけを検索しない。正規表現の式と結果のスカラー境界は4章の規則に従う。検証・Regex構築もUI上で実行せず、入力世代に対応する結果だけを採用する。上限を固定しただけでD-10のRegex/表示検証を完了としない。
 
-通常検索の比較は`Ordinal` / `OrdinalIgnoreCase`を使う案とする。NFC等の正規化、幅・濁点の同一視はしない。正規表現はCultureInvariantとMatchCaseに応じたIgnoreCaseを候補にし、Inlineオプションは.NETの式の意味に従う。RegexのCompiled化や無制限のパターンキャッシュは初期採用しない。
+通常検索の比較は`Ordinal` / `OrdinalIgnoreCase`を採用する。NFC等の正規化、幅・濁点の同一視はしない。正規化なしのコードポイント一致を意図し、大小無視だけは明示した.NETのOrdinalIgnoreCaseの意味に従う。独自の単純な大文字変換で代用しない。正規表現はCultureInvariantとMatchCaseに応じたIgnoreCaseを候補にし、Inlineオプションは.NETの式の意味に従う。RegexのCompiled化や無制限のパターンキャッシュは初期採用しない。
 
 ## 3. 通常・単語単位照合
 
@@ -41,6 +41,20 @@
 単語要素はUnicodeのLetter、LetterNumber、DecimalDigitNumber、ConnectorPunctuation、NonSpacingMark、SpacingCombiningMark、Formatを含む。前後が単語要素でないか本文端の場合に単語境界とする。Rune単位の分類を使い、ASCIIだけの境界判定や.NETの`\b`を無条件に代用しない。C#の`@`は単語要素に含めず、参照探索で取得した語の`@`を除去する。
 
 結果は一致開始の行・UTF-16列で示す。チャンクの持越しは検索語長と少量の文脈に限定し、行全体や過去の全チャンクを保持しない。語長の上限とバッファ使用量の関係は性能試験で確認する。
+
+### 3.1 逐次照合の実装境界
+
+Search内のLiteralMatcherはCreate(query, options)、Push(span, consume, ct)、Complete、Abort、Resetを持つ。File/Document/UI型を持たず、返すのは原文のTextRangeだけ。通常語の空・改行・上限超過・不正サロゲート、誤ってUseRegexを指定した生成要求はInvalidPatternにする。文字列の空白を削除しない。
+
+バッファは検索語長+16 Ki+4 UTF-16単位、最大32,772単位に固定する。任意の大きさの入力も16 Ki以下ずつ追記し、検索開始位置より前の全文を再評価しない。空きがなくなった時だけ既評価部分を圧縮し、左スカラー用の最大2単位と未評価の語長分/右文脈を残す。毎チャンクで語の接頭辞全体をコピーしない。ReadOnlySpan.IndexOfのOrdinal/OrdinalIgnoreCaseで照合し、Unicodeの大小文字規則を独自に実装しない。
+
+単語検索では右側スカラー用の2単位を次チャンク/EOFまで保留する。左と右はRuneで分類し、曖昧なチャンク末尾を単語端と誤認しない。一致を採用した時だけ語長分進め、単語境界で拒否した候補は1単位進めて次を探す。TextCursorは探索開始位置まで原文を一度ずつ進み、圧縮後もOffset/行/列とCRLF状態を維持する。
+
+consumeがfalseなら即座に走査終了、取消はOperationCanceledException、利用側の例外はそのまま伝える。終了/失敗/Abortでは保持文字を消去する。Abortは読取失敗をEOFとして扱わず、保留中の末尾一致を返さない。Resetは終了後だけ許可し、同じ語/バッファで次ファイルのオフセット/行/列を0/1/1へ戻す。ファイルごとに最大64 KiB程度の文字配列を作り直さない。コールバックのデリゲートもチャンクごとに生成せずセッション内で再利用する。
+
+仕様上の理由は通常/本文内検索の結果を統一し、任意の長行でも全文保持・不完全な単語判定を避けること。利点は正確性と保持量をUI/本文候補なしで検証できること、不利点は右文脈/EOF/読取失敗とバッファ再利用の状態管理が必要になること。既存のSearch内の設計済み照合責務を実装し、層・依存方向を変えない。照合単体→ReadLease/FileReader接続→仮結果/取消/有界イベント→UIの順に進め、現段階で全文検索や本文内検索の完成とはしない。
+
+参照：[比較方法の指針](https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-strings)、[SpanのIndexOf](https://learn.microsoft.com/en-us/dotnet/api/system.memoryextensions.indexof?view=net-10.0)、[Rune分類](https://learn.microsoft.com/en-us/dotnet/api/system.text.rune.getunicodecategory?view=net-10.0)。
 
 ## 4. 正規表現照合
 

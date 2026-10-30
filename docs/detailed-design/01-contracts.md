@@ -80,7 +80,7 @@ Operationsが次を所有する。数値の使い回しを避け、同じパス�
 | `UiDrainBudget` / `UiDrainRows` | 4ms / 256件 | 先に達した方でUI反映を区切る |
 | `ProgressInterval` / `InputDelay` | 100ms / 150ms | 進捗通知を集約。検索入力はIME確定後にまとめる |
 | `RegexTimeout` / `RegexLineChars` | 100ms / 1,048,576文字 | タイムアウトで検索全体停止、長行は未評価を通知 |
-| `QueryChars` | 16 Ki文字 | 超過は入力エラー。検索語・パターンを黙って切らない。D-10で仕様確認 |
+| `QueryChars` | 16 Ki文字 | 通常語は初期実装で固定し超過/不正サロゲートを入力エラー。語・パターンを黙って切らず、Regex/表示のD-10は別検証 |
 | `InFileStoredMatches` | 10,000件/タブ | 超過後も方向別に追加走査。正確な全件数の断言を避ける |
 | `ErrorSamples` | 20件/セッション | 内訳件数を継続加算し、詳細の保持を増やさない |
 | `TreeQueueLimit` / `CollapsedCacheNodes` | 64要求 / 10,000ノード | 過剰要求を通知。折りたたみ済み子一覧を破棄 |
