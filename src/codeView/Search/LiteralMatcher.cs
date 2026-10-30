@@ -10,6 +10,8 @@ internal static class SearchLimits
 {
     public const int QueryChars = 16 * 1024;
     public const int LiteralScanBlockChars = 16 * 1024;
+    public const int RegexLineChars = 1024 * 1024;
+    public static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 }
 
 internal static class UnicodeWordBoundary
@@ -19,6 +21,18 @@ internal static class UnicodeWordBoundary
         or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber
         or UnicodeCategory.DecimalDigitNumber or UnicodeCategory.ConnectorPunctuation
         or UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.Format;
+
+    public static bool Before(ReadOnlySpan<char> text, int index) => index == 0
+        || Rune.DecodeLastFromUtf16(text[..index], out var value, out _) != System.Buffers.OperationStatus.Done || !IsWord(value);
+
+    public static bool After(ReadOnlySpan<char> text, int index) => index == text.Length
+        || Rune.DecodeFromUtf16(text[index..], out var value, out _) != System.Buffers.OperationStatus.Done || !IsWord(value);
+
+    public static bool IsScalarBoundary(ReadOnlySpan<char> text, int index) => index == 0 || index == text.Length
+        || !(char.IsHighSurrogate(text[index - 1]) && char.IsLowSurrogate(text[index]));
+
+    public static int NextScalarBoundary(ReadOnlySpan<char> text, int index) =>
+        index + (index + 1 < text.Length && char.IsHighSurrogate(text[index]) && char.IsLowSurrogate(text[index + 1]) ? 2 : 1);
 }
 
 /// <summary>One serialized scanner per query; reset between files, never retain a whole line.</summary>
@@ -129,13 +143,8 @@ internal sealed class LiteralMatcher
         return true;
     }
 
-    private bool LeftBoundary(int index) => index == 0
-        || Rune.DecodeLastFromUtf16(_buffer.AsSpan(0, index), out var value, out _) != System.Buffers.OperationStatus.Done
-        || !UnicodeWordBoundary.IsWord(value);
-
-    private bool RightBoundary(int index) => index == _length
-        || Rune.DecodeFromUtf16(_buffer.AsSpan(index, _length - index), out var value, out _) != System.Buffers.OperationStatus.Done
-        || !UnicodeWordBoundary.IsWord(value);
+    private bool LeftBoundary(int index) => UnicodeWordBoundary.Before(_buffer.AsSpan(0, _length), index);
+    private bool RightBoundary(int index) => UnicodeWordBoundary.After(_buffer.AsSpan(0, _length), index);
 
     private void AdvanceTo(int index)
     {

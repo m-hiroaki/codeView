@@ -79,7 +79,7 @@ Operationsが次を所有する。数値の使い回しを避け、同じパス�
 | `BatchSize` / `ResultQueueBatches` | 128件 / 8バッチ | 満杯時は取消可能な待機。1件の抜粋上限も適用 |
 | `UiDrainBudget` / `UiDrainRows` | 4ms / 256件 | 先に達した方でUI反映を区切る |
 | `ProgressInterval` / `InputDelay` | 100ms / 150ms | 進捗通知を集約。検索入力はIME確定後にまとめる |
-| `RegexTimeout` / `RegexLineChars` | 100ms / 1,048,576文字 | タイムアウトで検索全体停止、長行は未評価を通知 |
+| `RegexTimeout` / `RegexLineChars` | 100ms / 1,048,576文字 | 行照合の初期実装で固定。タイムアウトで検索全体停止、長行は全体を未評価として通知 |
 | `QueryChars` | 16 Ki文字 | 通常語は初期実装で固定し超過/不正サロゲートを入力エラー。語・パターンを黙って切らず、Regex/表示のD-10は別検証 |
 | `InFileStoredMatches` | 10,000件/タブ | 超過後も方向別に追加走査。正確な全件数の断言を避ける |
 | `ErrorSamples` | 20件/セッション | 内訳件数を継続加算し、詳細の保持を増やさない |

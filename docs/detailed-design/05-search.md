@@ -64,9 +64,25 @@ consumeがfalseなら即座に走査終了、取消はOperationCanceledException
 4. 0文字一致の後は次のUnicodeスカラー値境界へ進め、行末の0文字一致はその行で一度だけ返して終了する。
 5. タイムアウトは当該検索全体を停止する。時間制限は取消Tokenの代わりではないので、評価間・行間にも取消確認を行う。
 
-.NETの式はUTF-16上の結果を返すため、補助平面文字の途中を指す結果はそのまま選択しない。初期案はサロゲート境界に合わない一致を未評価扱いで通知して除外する。勝手に一致範囲を拡張して式の意味を変えない。この制約はD-10で確認し、`.`、文字クラス、0文字一致、明示的な補助平面文字の試験を行う。
+.NETの式はUTF-16上の結果を返すため、補助平面文字の途中を指す結果は選択しない。サロゲート境界に合わない一致を未評価扱いで数えて除外する方針に固定し、勝手に一致範囲を拡張して式の意味を変えない。`.`、文字クラス、0文字一致、明示的な補助平面文字は単体試験し、D-10の制約表示/検索セッションでの伝達は後続で確認する。
 
 任意の正規表現を別の断片へ分割するとlookbehind等の意味を維持できないため、長行を固定重なりで分割して完全検索と称さない。[Microsoftの正規表現の指針](https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-regex)と[タイムアウト付きコンストラクター](https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.-ctor)を参照する。タイムアウトは悪意ある任意パターンに対する完全な保護境界とは扱わない。
+
+### 4.1 行照合の実装境界
+
+RegexLineMatcherはCreate/Push/Complete/Abort/Resetを持ち、1セッション1個のRegexと最大1,048,576 UTF-16単位の文字配列を再利用する。CreateはQueryChars以内の非空パターンとUseRegexを確認し、CultureInvariantとMatchCaseに応じたIgnoreCaseで有限100msのRegexを構築する。Compiled・全体キャッシュ・NonBacktrackingへの一律変換はしない。式内のオプションは.NETの規則に従う。テスト用の行/時間上限は既定値以下だけを許可し、利用設定へ増やさない。
+
+PushはCR/LFまで蓄積し、CRLFは1改行として扱う。Completeは最後の空行も1回だけ評価する。行が上限を超えた時点で保持内容を消去し、次の改行/EOFまで読み流してSkippedLongLinesへ1件加算する。先頭1 Mi単位だけを検索しない。位置はTextCursorと行開始オフセット/行番号から作り、通常検索と同じ原文UTF-16単位で返す。
+
+評価はRegexのインスタンスEnumerateMatches(span)を使い、行のstring化やMatchオブジェクト一覧を生成しない。元の行全体を入力にし、lookbehind、アンカー、分岐優先順位と非重複結果を維持する。WholeWordは得られた一致の外側を共通Rune分類で検査する後段フィルターで、式への境界断言の付加や、拒否した一致内の別分岐/重なりの再探索はしない。例えば`foo|foobar`で`foobar`を検索しWholeWordが有効な場合、先に得た`foo`が境界不一致なら`foobar`へ置き換えて再評価しない。
+
+0文字一致の後は次のスカラー境界より前の0文字候補を採用せず、行末の0文字一致は1回で終える。基礎エンジンはUTF-16で列挙するため、非0長でサロゲートを分割する候補や、式自身が指した不正な0長境界はSkippedScalarMatchesに数える。正しい0長進行の途中で通るサロゲート内部の0長候補は数えない。この件数は除外した候補数で、未評価の文字数ではない。範囲を補正して別の一致を捏造せず、元のRegex列挙と`\G`等の意味を保つ。
+
+エンジンのMoveNextがタイムアウトした場合はError=RegexTimedOut・IsFinished=trueでfalseを返す。同じ検索が次ファイルへ続かないよう、タイムアウト後はResetを拒否する。取消と利用側の例外はAbortしてそのまま伝え、利用側が投げたRegexMatchTimeoutExceptionまでエンジン失敗へ変換しない。Abortは未確定行をEOFとして検索せずに消去する。正常終了/Abort後のResetは行/CR/位置と各ファイルの統計を初期化し、Regex/配列は再利用する。所有は直列ワーカー1件とし、通知中に照合器を再入操作しない。
+
+理由は長行の保持/割当とRegexの意味の両方を守るため。利点は上限/位置/取消を通常検索と共有し、ファイル数/行数に比例する文字列生成を避けられること。不利点は長行と非スカラー候補が未評価になるため、検索終端と画面へ件数/制約を伝える接続が必要なこと。影響はSearch内部と検索仕様の記録で、層・依存方向・本文モデルを変えない。単体境界試験→ReadLeaseコア測定→ファイル/検索イベント→UIでの制約表示の順に進める。
+
+参照：[Span上の列挙](https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.enumeratematches?view=net-10.0)、[.NET 10の列挙器](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/Regex.EnumerateMatches.cs)。
 
 ## 5. 全文検索の処理手順
 
