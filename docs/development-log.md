@@ -110,3 +110,14 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - 計測用Releaseビルド：警告0・エラー0。通常のRelease単体試験：合格88、失敗0、スキップ0（性能カテゴリ除外）。TRXは`tests/codeView.Tests/TestResults/gui-probe-plan.trx`。
 - 50 MiB UTF-8の実行では、画面生成前に`Avalonia.Native was not able to start the RenderTimer. Native error code is: -6661`で初期化に失敗した。セッション83213を再確認し、終了コード134で終端となった。文書接続やスクロールの段階には到達せず、結果JSONも生成されていないためGUI性能は未測定。
 - エラー原因をOS画面状態・ライブラリ不具合などと推定して確定せず、ネイティブ描画環境が利用できる時に再評価する。別レンダラーへの変更や、コア計測での代用はしていない。G1/G2は未完了で、文法同梱など進行可能な作業を先行する。
+
+## 2026-10-31：文法候補の同梱・字句分類と予算未達
+
+- P2-05の候補基盤としてAvaloniaEdit.TextMate 12.0.0 / TextMateSharp.Grammars 2.0.3を固定し、製品/試験のロックファイルを更新。依存はTextMateSharp 2.0.3 / Onigwrap 1.0.10。既存NuGetキャッシュから復元し、この復元時のNuGet脆弱性監査は未実施。最新版・最終採用版とする判断はしていない。
+- BundledGrammarsでC#、C、C++、`.h`のC++、JSON、XML系、XAMLのXMLフォールバック、Markdownを対応付けた。未知拡張子と生成のみでは文法/テーマを初期化しない。実際の文法は同梱資源から取得し、ネットワークや読込対象ルートを文法検索先にしない。
+- 実パッケージによる資源の存在、C/C++双方のヘッダーのコメント・文字列・型/キーワード、複数行コメント状態、JSON・XML/XAML・Markdownの分類を検証。macOS arm64でOnigurumaネイティブ経路を実行した。画面での色表示や他OSの実行を達成した証拠にはしない。
+- Release単体試験：合格120、失敗0、スキップ0（性能カテゴリ除外）。TRXは`tests/codeView.Tests/TestResults/bundled-grammars.trx`。
+- 初期文法保持予算64 MiBを測定前に固定し、1つのRegistryへ6言語を順にロード・代表行を初回/100回トークン分割した。初期化20.1ms、C++ロード16.0ms＋初回分割43.5ms、Markdown31.0ms＋50.5ms、割当107.6 MiB、GC停止合計44.4ms、CPU240.0ms。後続言語は同一プロセスの初期化を共有するため、言語間比較やUI同期処理可否の判定には使わない。
+- OSメモリ増分71.5 MiBで64 MiB予算に**不合格**。結果は[測定JSON](performance-results/2026-10-31-grammars/all-registry-budget-failed.json)、TRXは`tests/codeView.Tests/TestResults/grammar-performance.trx`。前後値であり瞬間ピーク/強参照の厳密なサイズではない。GC未回収とJIT等をリークと混同しない。予算は緩めず、全コンパイル済み文法の共有保持を採用せず、アクティブ表示単位の寿命と切替時のGCを次に比較する。
+- ライセンスの初期確認は各nupkgのnuspecでTextMate関連とOnigwrapがMIT、Onigwrap同梱THIRD-PARTY-NOTICESでOnigurumaの再配布通知を確認した。文法個別の通知収集・配布物への同梱はP6-03で追跡し、パッケージのMIT表示だけで完了扱いにしない。
+- 根拠：[固定版TextMate統合ソース](https://github.com/AvaloniaUI/AvaloniaEdit/blob/86fdebec4cff7affb0e14c7885df71d28edce777/src/AvaloniaEdit.TextMate/TextMate.cs)、[固定版RegistryOptions](https://github.com/danipen/TextMateSharp/blob/4532112f6ee96c8d7847ee66a79719dfe58e9f43/src/TextMateSharp.Grammars/RegistryOptions.cs)。P2-05のUI接続・失敗時の切離し、P2-09の採否・文法キャッシュ寿命・閾値は未完了。通常UIでは色分けをまだ有効化していない。GUI計測基盤はコミット`eeb0549`。

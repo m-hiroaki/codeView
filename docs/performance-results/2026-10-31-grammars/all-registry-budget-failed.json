@@ -1,0 +1,68 @@
+{
+  "FormatVersion": 1,
+  "MeasuredAtUtc": "2026-10-30T15:50:10.422373+00:00",
+  "Scenario": "bundled-grammar-initialization",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "InitializationMilliseconds": 20.1043,
+  "Languages": [
+    {
+      "Path": "sample.cs",
+      "LoadMilliseconds": 6.1135,
+      "FirstTokenizeMilliseconds": 12.3849,
+      "Repeated100Milliseconds": 12.4689,
+      "MemoryAfter": 81560416
+    },
+    {
+      "Path": "sample.c",
+      "LoadMilliseconds": 1.345,
+      "FirstTokenizeMilliseconds": 1.9476,
+      "Repeated100Milliseconds": 11.5348,
+      "MemoryAfter": 84165472
+    },
+    {
+      "Path": "sample.cpp",
+      "LoadMilliseconds": 16.014,
+      "FirstTokenizeMilliseconds": 43.5022,
+      "Repeated100Milliseconds": 16.0998,
+      "MemoryAfter": 110576504
+    },
+    {
+      "Path": "sample.json",
+      "LoadMilliseconds": 0.1712,
+      "FirstTokenizeMilliseconds": 0.1832,
+      "Repeated100Milliseconds": 1.2036,
+      "MemoryAfter": 110609272
+    },
+    {
+      "Path": "sample.xml",
+      "LoadMilliseconds": 0.7457,
+      "FirstTokenizeMilliseconds": 4.546,
+      "Repeated100Milliseconds": 0.9817,
+      "MemoryAfter": 111084408
+    },
+    {
+      "Path": "sample.md",
+      "LoadMilliseconds": 31.027,
+      "FirstTokenizeMilliseconds": 50.4756,
+      "Repeated100Milliseconds": 1.802,
+      "MemoryAfter": 145654672
+    }
+  ],
+  "AllocatedBytes": 112798976,
+  "CpuMilliseconds": 239.982,
+  "GcPauseMilliseconds": 44.432,
+  "GcCollections": [
+    13,
+    5,
+    2
+  ],
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 70648648,
+  "MemoryAfter": 145654672,
+  "MemoryIncrease": 75006024,
+  "PeakMemory": "not-sampled",
+  "GuiRendering": "not-measured",
+  "DocumentTokens": "not-measured"
+}
