@@ -1,0 +1,24 @@
+Analysis of sampling codeView (pid 56035) every 1 millisecond
+Process:         codeView [56035]
+Path:            /Users/USER/*/codeView-probe.app/Contents/MacOS/codeView
+Load Address:    0x102a98000
+Identifier:      local.codeview.guiprobe
+Version:         0.1.0 (0.1.0)
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  codex [46912]
+Target Type:     live task
+
+Date/Time:       2026-10-31 00:57:45.295 +0900
+Launch Time:     2026-10-31 00:57:17.595 +0900
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         9.3G
+Physical footprint (peak):  9.3G
+Idle exit:                  untracked
+----
+
+Call graph:
+    755 Thread_8664035   DispatchQueue_1: com.apple.main-thread  (serial)

@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "scenario": "native-gui-long-line-failure",
+  "os": "macOS 27.0.1",
+  "architecture": "arm64",
+  "candidate": "AvaloniaEdit 12.0.0 without highlighting",
+  "inputBytes": 52428800,
+  "layout": "single-line",
+  "phaseMilliseconds": {
+    "opened": 400.546,
+    "attachmentStart": 638.889,
+    "attachmentEnd": 28363.972,
+    "scroll0": 30215.919,
+    "scroll1": 30399.727,
+    "scroll2": 34141.911
+  },
+  "rssKiBAt15Seconds": 2616352,
+  "samplePhysicalFootprintDisplay": "9.3G",
+  "termination": "explicit SIGTERM after stack sample and budget violation",
+  "exitCode": 143,
+  "completedGuiReport": false,
+  "sampleSha256": "c2c19cdb67baabf6c85854f6546df4f76b6f0dfb4fec59bbccf9b74234c34b40",
+  "sampleLocalPath": "artifacts/gui-results/long50.sample.txt",
+  "measuredAssemblySha256": "31a21d3e77ce4e8929db6b19d49307e95b1c5a4eeb19eeb19799951372c17eaf",
+  "buildDescription": "working build preceding final error-handling and metadata additions in eeb0549; preliminary results only"
+}

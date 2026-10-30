@@ -4,6 +4,9 @@ using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
+using CodeView.Documents;
+using CodeView.Tests.Performance;
 
 namespace CodeView.Presentation;
 
@@ -25,9 +28,36 @@ internal sealed class GuiPerformanceProbe
     private double? _documentTwoTicksMilliseconds;
     private long _previousTick;
     private bool _finished;
+    private readonly bool _windowed = Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1";
+    private TextDocument? _sourceDocument;
+    private DocumentReadLease? _sourceLease;
+    private int _largestDisplayChars;
+    private readonly List<long> _sourceOffsets = [];
+    private readonly ProcessMemory _memory = new();
+    private readonly CancellationTokenSource _sampling = new();
+    private readonly Task _sampler;
+    private readonly long _memoryBefore;
+    private long _peakMemory;
+    private int _sampleCount;
 
     private GuiPerformanceProbe(Window window, TextEditor editor, string output, bool hasInput)
-        => (_window, _editor, _output, _hasInput) = (window, editor, output, hasInput);
+    {
+        (_window, _editor, _output, _hasInput) = (window, editor, output, hasInput);
+        _memoryBefore = _peakMemory = _memory.ReadBytes();
+        _sampler = Task.Run(async () =>
+        {
+            try
+            {
+                while (true)
+                {
+                    _peakMemory = Math.Max(_peakMemory, _memory.ReadBytes());
+                    _sampleCount++;
+                    await Task.Delay(10, _sampling.Token).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (_sampling.IsCancellationRequested) { }
+        });
+    }
 
     internal static void Start() => Startup.Start();
 
@@ -62,6 +92,25 @@ internal sealed class GuiPerformanceProbe
         probe._attachmentStart = Stopwatch.GetTimestamp();
     }
 
+    internal static TextDocument SelectDisplayDocument(DocumentHandle handle, TextDocument document)
+    {
+        if (_instance is not { _windowed: true } probe) return document;
+        probe._sourceDocument = document;
+        probe._sourceLease?.Dispose();
+        probe._sourceLease = handle.AcquireReadView();
+        return probe.BuildDisplayWindow(0).Document;
+    }
+
+    private (TextDocument Document, TextLocation Target) BuildDisplayWindow(long offset)
+    {
+        var window = TextWindow.Create(_sourceLease!, offset);
+        var document = new TextDocument(window.Text);
+        document.UndoStack.SizeLimit = 0;
+        _largestDisplayChars = Math.Max(_largestDisplayChars, document.TextLength);
+        _sourceOffsets.Add(window.TargetOffset);
+        return (document, document.GetLocation(checked((int)(window.TargetOffset - window.SourceOffset))));
+    }
+
     internal static void EndDocumentAttachment()
     {
         if (_instance is not { } probe) return;
@@ -80,11 +129,17 @@ internal sealed class GuiPerformanceProbe
         Dispatcher.UIThread.VerifyAccess();
         if (_finished) return;
         if (index == ScrollProbePlan.StepCount) { Finish(); return; }
-        var document = _editor.Document;
+        var document = _sourceDocument ?? _editor.Document;
         var (line, column) = ScrollProbePlan.Target(index, document.LineCount, document.GetLineByNumber(1).Length);
         Phase($"scroll-{index}");
         var start = Stopwatch.GetTimestamp();
-        _editor.ScrollTo(line, column);
+        if (_windowed)
+        {
+            var display = BuildDisplayWindow(document.GetOffset(line, column));
+            _editor.Document = display.Document;
+            _editor.ScrollTo(display.Target.Line, display.Target.Column);
+        }
+        else _editor.ScrollTo(line, column);
         _editor.TextArea.TextView.EnsureVisualLines();
         _scrollTimes.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
         _window.RequestAnimationFrame(_ =>
@@ -100,6 +155,10 @@ internal sealed class GuiPerformanceProbe
     {
         if (_finished) return;
         _finished = true;
+        _sampling.Cancel();
+        // The sampler uses only worker continuations, never the UI SynchronizationContext.
+        _sampler.GetAwaiter().GetResult();
+        _peakMemory = Math.Max(_peakMemory, _memory.ReadBytes());
         using var process = Process.GetCurrentProcess();
         var report = new
         {
@@ -107,10 +166,15 @@ internal sealed class GuiPerformanceProbe
             Scenario = "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
+            DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
             OpenedMilliseconds = _openedMilliseconds, WindowTwoTicksMilliseconds = _emptyWindowTwoTicksMilliseconds,
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,
             DocumentChars = _editor.Document?.TextLength, DocumentLines = _editor.Document?.LineCount,
+            SourceChars = _sourceDocument?.TextLength, SourceLines = _sourceDocument?.LineCount,
+            LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
+            MemoryMetric = _memory.Metric, MemoryBefore = _memoryBefore, SampledPeakMemory = _peakMemory,
+            MemoryIncrease = _peakMemory - _memoryBefore, SamplingIntervalMilliseconds = 10, MemorySamples = _sampleCount,
             ClientWidth = _window.ClientSize.Width, ClientHeight = _window.ClientSize.Height,
             RenderScaling = _window.RenderScaling, PhysicalPaint = "not-measured", PhysicalInput = "not-measured",
             CpuMilliseconds = process.TotalProcessorTime.TotalMilliseconds
@@ -118,6 +182,12 @@ internal sealed class GuiPerformanceProbe
         using (var stream = new FileStream(_output, FileMode.CreateNew, FileAccess.Write))
             JsonSerializer.Serialize(stream, report, new JsonSerializerOptions { WriteIndented = true });
         Phase("complete");
+        _sourceLease?.Dispose();
+        _sourceLease = null;
+        _sourceDocument = null;
+        _instance = null;
+        _memory.Dispose();
+        _sampling.Dispose();
         if (failure is not null) Environment.ExitCode = 1;
         _window.Close();
     }

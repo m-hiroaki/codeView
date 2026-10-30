@@ -5,8 +5,11 @@ namespace CodeView.Tests.Performance;
 public sealed class ScrollProbePlanTests
 {
     [Test]
-    public void NormalProductBuildDoesNotIncludeProbe() =>
+    public void NormalProductBuildDoesNotIncludeProbe()
+    {
         Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.GuiPerformanceProbe"), Is.Null);
+        Assert.That(typeof(MainWindowViewModel).Assembly.GetType("CodeView.Presentation.TextWindow"), Is.Null);
+    }
 
     [Test]
     public void NormalPlanIncludesContinuousScrollAndEndOfFile()

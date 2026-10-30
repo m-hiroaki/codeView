@@ -121,3 +121,16 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - OSメモリ増分71.5 MiBで64 MiB予算に**不合格**。結果は[測定JSON](performance-results/2026-10-31-grammars/all-registry-budget-failed.json)、TRXは`tests/codeView.Tests/TestResults/grammar-performance.trx`。前後値であり瞬間ピーク/強参照の厳密なサイズではない。GC未回収とJIT等をリークと混同しない。予算は緩めず、全コンパイル済み文法の共有保持を採用せず、アクティブ表示単位の寿命と切替時のGCを次に比較する。
 - ライセンスの初期確認は各nupkgのnuspecでTextMate関連とOnigwrapがMIT、Onigwrap同梱THIRD-PARTY-NOTICESでOnigurumaの再配布通知を確認した。文法個別の通知収集・配布物への同梱はP6-03で追跡し、パッケージのMIT表示だけで完了扱いにしない。
 - 根拠：[固定版TextMate統合ソース](https://github.com/AvaloniaUI/AvaloniaEdit/blob/86fdebec4cff7affb0e14c7885df71d28edce777/src/AvaloniaEdit.TextMate/TextMate.cs)、[固定版RegistryOptions](https://github.com/danipen/TextMateSharp/blob/4532112f6ee96c8d7847ee66a79719dfe58e9f43/src/TextMateSharp.Grammars/RegistryOptions.cs)。P2-05のUI接続・失敗時の切離し、P2-09の採否・文法キャッシュ寿命・閾値は未完了。通常UIでは色分けをまだ有効化していない。GUI計測基盤はコミット`eeb0549`。
+
+## 2026-10-31：長行のGUI未達と有界表示の比較試作
+
+- 前回ターンはコミット`eeb0549`/`a3acd90`で計測基盤・文法資源・字句分類・予算未達を記録し、進捗があった。今回は当初文法寿命を対象としたが、利用可能なGUI状態の変化と、より大きい本文描画の未達を確認したためA-01/A-02へ進んだ。
+- 読取専用の`pmset -g assertions`でUserIsActive=0を確認。既存検証アプリへのUI操作後にUserIsActive=1とdisplay-on関連のassertionを確認し、初期化失敗で終端だった計測を新しい状態で再実行した。レンダラー・スリープ設定・セキュリティ設定は変更していない。これだけでRenderTimerエラーの原因を確定はしない。
+- 50 MiB UTF-8通常改行の初回GUI値：Main→Opened 452.7ms、Opened後2tick到達676.6ms、本文接続同期89.5ms、64回のScrollTo/EnsureVisualLinesは中央値0.23ms・最大0.64ms、tick間隔中央値16.66ms・最大18.11ms。1180×800 DIP、scaling 2、文法なし、Warm。OSプロセス生成〜物理描画・物理入力の達成とはしない。
+- 50 MiB UTF-8単一行では、Main→接続開始638.9ms、接続終了28364.0ms（区間約27.7秒）。15秒時点RSS 2,616,352 KiB・CPU約100%、約28秒時点のsampleで物理footprint/peak表示9.3G。scroll-2まで進んだが継続して予算超過していたため対象PID56035のみをSIGTERMで停止し、セッション16926の終了コード143を確認。正常完了JSONはない。生成済みの同一長行を拒否して解決扱いにしない。
+- この初回GUI計測は`eeb0549`作業中の開発用.app（終了処理・報告メタデータ追記前）の予備値である。測定DLLのSHA256、段階別ログ、sampleのハッシュ・抜粋、通常改行のJSONを[証跡](performance-results/2026-10-31-long-lines/)へ保存した。最新コミットそのものの完全な回帰結果と称さず、採用判断前に固定ビルドで再測定する。完全なsampleは`artifacts/gui-results/long50.sample.txt`に残す。
+- 文法なしでGUIの時間・メモリが大きく超過したため、まず表示レイアウトを是正する。[方式比較・影響範囲・移行手順](long-line-rendering.md)を追加。通常本文・不変ReadLeaseを維持し、表示範囲だけを限定する試作を専用ビルドへ追加した。通常UIの層・依存・本文モデルを変更せず、採用判断もしていない。
+- TextWindow試作は最大16,384 UTF-16単位、原文への範囲対応、サロゲート/CRLFの端・ターゲット補正を持つ。元の長行全域を保持して64箇所を移動するGUI計測を準備し、10msのOSメモリサンプルと表示文字数・原文オフセットを追加した。
+- GUIなしの50 MiB長行切出し：64箇所、各16,384文字以内、最大0.498ms・中央値0.0067ms、合計割当2,163,672 bytes。4 MiB・各50msの事前比較予算内。TRXは`tests/codeView.Tests/TestResults/bounded-window-core.trx`、JSONは上記証跡の`bounded-window-core.json`。本文構築を含む値でもGUI描画の合格でもない。
+- Release単体試験：合格126、失敗0、スキップ0（性能カテゴリ除外）。原文範囲・先頭/末尾・サロゲート・CRLF・空本文・無効な上限/位置・Lease閉鎖を追加。TRXは`tests/codeView.Tests/TestResults/text-window.trx`。専用GUI試作ビルドは警告0・エラー0。
+- GUI試作の実行前にコンピュータ操作ツールがMacのロック状態を検出し、手動解除を要求した。迂回せず解除を依頼済み。GUI比較は未実施のまま。原文座標のUI・選択・コピー・Unicodeの結合列・文法状態を満たす完全実装も残るため、G2/本文採否・A-01/A-02は未完了。文法キャッシュ64 MiB未達の是正も継続する。

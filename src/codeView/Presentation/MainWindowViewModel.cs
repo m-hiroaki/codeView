@@ -160,6 +160,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         GuiPerformanceProbe.BeginDocumentAttachment();
 #endif
         _document = result.Value.Document.ClaimForDisplay();
+#if CODEVIEW_PERFORMANCE_PROBE
+        _document = GuiPerformanceProbe.SelectDisplayDocument(result.Value.Document, _document);
+#endif
         _failedPath = null;
         _encodingChoice = choice;
         _filePath = result.Value.Path.FullPath;

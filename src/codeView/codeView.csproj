@@ -10,6 +10,7 @@
     </PropertyGroup>
     <ItemGroup Condition="'$(CodeViewPerformanceProbe)' == 'true'">
         <Compile Include="../../tests/GuiProbe/*.cs" Link="PerformanceProbe/%(Filename)%(Extension)" />
+        <Compile Include="../../tests/codeView.Tests/Performance/ProcessMemory.cs" Link="PerformanceProbe/ProcessMemory.cs" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
