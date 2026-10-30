@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text;
 using CodeView.Contracts;
 using CodeView.Documents;
 using CodeView.Files;
@@ -24,6 +25,8 @@ public sealed class TabLifecyclePerformanceTests
         Assert.That(files, Has.Length.EqualTo(5));
         var sizes = files.Select(file => new FileInfo(file).Length).ToArray();
         Assert.That(sizes, Has.All.EqualTo(50L << 20));
+        // Independent validation outside the timed region; this explicitly warms the UTF-8 inputs.
+        var expectedCharacters = files.Select(CountUtf8Characters).ToArray();
         var source = new CountingSource();
         using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
         var view = new MainWindowViewModel(operations, new SettingsStore(new(Path.Combine(root!, "portable.json"), Path.Combine(root!, "user.json"))), YieldAsync);
@@ -64,12 +67,13 @@ public sealed class TabLifecyclePerformanceTests
         int aliveAfterClose = -1;
         try
         {
-            foreach (var file in files)
+            for (var index = 0; index < files.Length; index++)
             {
                 var watch = Stopwatch.StartNew();
-                await view.OpenFilesAsync([file], OpenOrigin.Menu);
+                await view.OpenFilesAsync([files[index]], OpenOrigin.Menu);
                 builds.Add(watch.Elapsed.TotalMilliseconds);
                 Assert.That(view.SelectedTab!.State.Status, Is.EqualTo(TabStatus.Ready));
+                Assert.That(view.Document!.TextLength, Is.EqualTo(expectedCharacters[index]));
                 CaptureWeakReferences(view, weak);
             }
             Assert.That(view.Tabs, Has.Count.EqualTo(5));
@@ -114,7 +118,9 @@ public sealed class TabLifecyclePerformanceTests
             ProductInformationalVersion = typeof(AppOperations).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
             Os = RuntimeInformation.OSDescription, Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
-            Files = files.Select(Path.GetFileName).ToArray(), InputBytes = sizes, BuildMilliseconds = builds,
+            Files = files.Select(Path.GetFileName).ToArray(), InputBytes = sizes, ExpectedDocumentCharacters = expectedCharacters,
+            InputValidation = "independent strict UTF-8 character count before measurement; warms inputs",
+            BuildMilliseconds = builds,
             SwitchMilliseconds = switches, SwitchAllocatedBytes = switchAllocated, CloseMilliseconds = closeMs,
             OpenReadCount = source.OpenCount, CpuMilliseconds = productionCpu, AllocatedBytes = productionAllocated,
             GcPauseMilliseconds = productionPause, GcCollections = productionCollections,
@@ -143,6 +149,16 @@ public sealed class TabLifecyclePerformanceTests
     });
 
     private static async Task YieldAsync() => await Task.Yield();
+
+    private static long CountUtf8Characters(string path)
+    {
+        using var reader = new StreamReader(path, new UTF8Encoding(false, true), true, 16 * 1024);
+        var buffer = new char[16 * 1024];
+        long count = 0;
+        int read;
+        while ((read = reader.Read(buffer)) > 0) count = checked(count + read);
+        return count;
+    }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CaptureWeakReferences(MainWindowViewModel view, List<WeakReference> targets)

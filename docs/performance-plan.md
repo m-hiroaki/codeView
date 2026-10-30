@@ -134,7 +134,7 @@ CP932データは生成器の`--profile l1 --encoding cp932`で別ルートに�
 
 ## 13. 5タブの保持・状態切替・閉鎖
 
-`CODEVIEW_PERF_TAB_ROOT=<各50 MiBの.csファイル5件を含むルート>`を指定して`FullyQualifiedName~TabLifecyclePerformanceTests`を実行する。MainWindowViewModelの通常Open、タブ切替64回、同じ5パスの再Open、全タブ閉鎖とPendingWorkを測る。既定設定の確定は測定前に済ませる。ネイティブWindow/Editorは作らず、本文ハンドルのUIスレッド所有移譲とモデルの表示通知までを対象とする。
+`CODEVIEW_PERF_TAB_ROOT=<各50 MiBのUTF-8 .csファイル5件を含むルート>`を指定して`FullyQualifiedName~TabLifecyclePerformanceTests`を実行する。MainWindowViewModelの通常Open、タブ切替64回、同じ5パスの再Open、全タブ閉鎖とPendingWorkを測る。既定設定の確定と、標準StreamReaderによる独立したUTF-8文字数検証は測定前に済ませる。読込後のTextLengthが期待値と一致することを確認し、切詰めた本文で速く見せない。この事前読取によっても入力をWarmにする。ネイティブWindow/Editorは作らず、本文ハンドルのUIスレッド所有移譲とモデルの表示通知までを対象とする。
 
 実測前の予算は、2章と同じ各構築5秒以内・5本文のOSメモリ増分1.5 GiB以内・GC停止合計750ms以内とする。CPU全体25秒以内、状態切替各100ms以内・64回の同一スレッド割当1 MiB以内を追加する。再Openの本文読取回数は増えず合計5回で、各タブが同じ具体文書を再利用することも確認する。メモリは10msサンプル、割当・CPU・Gen0/1/2・停止合計をJSONへ残す。
 
