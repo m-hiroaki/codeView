@@ -14,6 +14,8 @@
 
 AppOperationsは初期の内部入口とし、操作カテゴリ別のメソッド・状態を分ける。WorkspaceCoordinator等を先に導入しない。状態をすべて公開するプロパティ袋にせず、変更は操作メソッドを通す。
 
+起動待ちの直列状態はOperations内部の`StartupOpenQueue`へ分け、AppOperationsが所有する。設定確定は一度だけ、待機要求の取出しと完了は別操作とし、実行中の要求も予算に数える。純粋な状態としてUI・Task・タイマーを持たせず競合の順序を単体試験で確認する。これは新しいCoordinatorやモジュールの導入ではない。
+
 ## 2. スレッド規約
 
 UI上の受付・採用・世代更新・短いコレクション変更を直列化する。OperationsはAvalonia型を参照せず、Presentation / BootstrapがUIの実行文脈で呼ぶ。ワーカーの完了通知もそこで直列化して渡す。複数スレッドから任意にOperationsの可変状態を触らない。

@@ -2,7 +2,7 @@ namespace CodeView.Contracts;
 
 internal enum ErrorCode
 {
-    NotFound, AccessDenied, NotRegularFile, BrokenLink, Binary, DecodeFailed,
+    NotFound, InvalidPath, AccessDenied, NotRegularFile, BrokenLink, Binary, DecodeFailed,
     ChangedDuringRead, InvalidPattern, RegexTimedOut, UnsupportedSize, QueueFull,
     InvalidSettings, IoFailure, Unexpected
 }
