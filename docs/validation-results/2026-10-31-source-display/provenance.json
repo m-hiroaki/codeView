@@ -1,0 +1,34 @@
+{
+  "baseCommit": "0b3de7d9d48098a1eabf3686b8da3a6088cf7456",
+  "sourceState": "worktree, hashes below",
+  "sourceSha256": {
+    "src/codeView/Documents/DocumentAdapter.cs": "38091fe3a478672262160abd46e4e2f89d3098d9970b46864796a1ca7c5d0a8d",
+    "src/codeView/Documents/DocumentDisplaySession.cs": "ce44bdf39a695e3e893ce2093926bcc00e533893b961a94e2bfd07d6473b3be1",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "463a0cd7eb8c216ffe2855bd263d86116ef49a03094ce2d4490cac5959d2e4e6",
+    "tests/codeView.Tests/Documents/DocumentDisplaySessionTests.cs": "149ef582cb95b893bfa42c2c4cb239bbf6908952b598480b058cb29701fe013e",
+    "tests/codeView.Tests/Documents/DocumentDisplayPerformanceTests.cs": "e798bf8a7282a31d298e20b82828422ef9b7f59d6c16b59fdec37423d2fa7099"
+  },
+  "inputs": {
+    "long50": {
+      "path": "artifacts/fixtures/long50/source-0000000.cs",
+      "bytes": 52428800,
+      "sha256": "09b6c4758efe0a06a8f2c99c57a32ba31d84b80a377e9c277b6629446cc8da5c"
+    },
+    "utf8-50": {
+      "path": "artifacts/fixtures/text50/group-00000/source-0000000.cs",
+      "bytes": 52428800,
+      "sha256": "af249ffbdafe02ad97c30b78d3bbd47669c74cf254d425a6d732fbba4d319da0"
+    },
+    "cp932-50": {
+      "path": "artifacts/fixtures/cp93250/group-00000/source-0000000.cs",
+      "bytes": 52428800,
+      "sha256": "c3bea749de642d49f42e7fcd0676e77b13bb607c0e78c2420f84e3eecf427c7a"
+    }
+  },
+  "guiAssemblySha256": "2576e23bd21052009745445efd9b5b0114aacc03668e7cf0bc7a20ca27a2a657",
+  "normalAssemblySha256": "4ab83ad4687e3a2d699f20decb5643bf36b12eff71062b12db47974112d7d04f",
+  "testAssemblySha256": "b0c4a79bffc6ed151fff43b6b2ab7fee0b71318e1da5152bf5e8fe921dc9eea7",
+  "normalTests": "477 passed, no failures/skips; display-session-verified.trx",
+  "performanceTests": "3 passed sequentially, no concurrent build; display-session-verified-{long50,utf8-50,cp932-50}.trx",
+  "native": "one final bounded 1024-char run, 64 moves, Closed and exit 0; logical source selection only"
+}

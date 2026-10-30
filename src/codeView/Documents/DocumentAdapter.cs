@@ -1,3 +1,4 @@
+using System.Buffers;
 using AvaloniaEdit.Document;
 
 namespace CodeView.Documents;
@@ -112,6 +113,34 @@ internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : 
         if (offset > source.TextLength || length > source.TextLength - offset)
             throw new ArgumentOutOfRangeException(nameof(length));
         return source.GetText(checked((int)offset), length);
+    }
+
+    /// <summary>Copies an original-source range on the calling worker without a whole-range string.</summary>
+    public void CopyRangeTo(long offset, long length, TextWriter destination, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        var source = _snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease));
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+        if (offset > source.TextLength || length > source.TextLength - offset)
+            throw new ArgumentOutOfRangeException(nameof(length));
+        ct.ThrowIfCancellationRequested();
+        if (length == 0) return;
+        using var reader = source.CreateReader(checked((int)offset), checked((int)length));
+        var buffer = ArrayPool<char>.Shared.Rent(ChunkChars);
+        try
+        {
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                var count = reader.Read(buffer, 0, ChunkChars);
+                if (count == 0) return;
+                ct.ThrowIfCancellationRequested();
+                destination.Write(buffer, 0, count);
+                ct.ThrowIfCancellationRequested();
+            }
+        }
+        finally { ArrayPool<char>.Shared.Return(buffer, clearArray: true); }
     }
 
     /// <summary>

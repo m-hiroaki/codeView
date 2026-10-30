@@ -34,7 +34,7 @@ internal sealed class GuiPerformanceProbe
     private readonly bool _windowed = Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1";
     private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
     private TextDocument? _sourceDocument;
-    private DocumentReadLease? _sourceLease;
+    private DocumentDisplaySession? _displaySession;
     private int _largestDisplayChars;
     private readonly List<long> _sourceOffsets = [];
     private readonly ProcessMemory _memory = new();
@@ -118,14 +118,15 @@ internal sealed class GuiPerformanceProbe
     {
         if (_instance is not { _windowed: true } probe) return document;
         probe._sourceDocument = document;
-        probe._sourceLease?.Dispose();
-        probe._sourceLease = handle.AcquireReadView();
+        probe._displaySession?.Dispose();
+        probe._displaySession = new DocumentDisplaySession(handle);
         return probe.BuildDisplayWindow(0).Document;
     }
 
     private (TextDocument Document, TextLocation Target) BuildDisplayWindow(long offset)
     {
-        var window = TextWindow.Create(_sourceLease!, offset, _windowChars);
+        var window = _displaySession!.CreateSlice(offset, _windowChars);
+        _displaySession.MoveCaret(window.TargetOffset, extendSelection: _sourceOffsets.Count > 0);
         var document = new TextDocument(window.Text);
         document.UndoStack.SizeLimit = 0;
         _largestDisplayChars = Math.Max(_largestDisplayChars, document.TextLength);
@@ -201,6 +202,9 @@ internal sealed class GuiPerformanceProbe
             DocumentChars = _editor.Document?.TextLength, DocumentLines = _editor.Document?.LineCount,
             SourceChars = _sourceDocument?.TextLength, SourceLines = _sourceDocument?.LineCount,
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
+            SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,
+            SourceSelectionStart = _displaySession?.SelectionStart, SourceSelectionLength = _displaySession?.SelectionLength,
+            SourceSelectionUi = "not-connected; logical selection only",
             MemoryMetric = _memory.Metric, MemoryBefore = _memoryBefore, SampledPeakMemory = _peakMemory,
             MemoryIncrease = _peakMemory - _memoryBefore, SamplingIntervalMilliseconds = 10, MemorySamples = _sampleCount,
             ClientWidth = _window.ClientSize.Width, ClientHeight = _window.ClientSize.Height,
@@ -215,8 +219,8 @@ internal sealed class GuiPerformanceProbe
         using (var stream = new FileStream(_output, FileMode.CreateNew, FileAccess.Write))
             JsonSerializer.Serialize(stream, report, new JsonSerializerOptions { WriteIndented = true });
         Phase("complete");
-        _sourceLease?.Dispose();
-        _sourceLease = null;
+        _displaySession?.Dispose();
+        _displaySession = null;
         _sourceDocument = null;
         _instance = null;
         _memory.Dispose();
