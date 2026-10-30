@@ -40,13 +40,22 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Attach(this, editor, args.Length > 0);
+#endif
         editor.TextArea.Caret.PositionChanged += (_, _) => viewModel.SetPosition(editor.TextArea.Caret.Line, editor.TextArea.Caret.Column);
         viewModel.RestoreCaret += (line, column) =>
         {
             editor.TextArea.Caret.Location = new TextLocation(line, column);
             editor.ScrollTo(line, column);
         };
-        Opened += async (_, _) => await RunAsync(() => viewModel.InitializeAsync(args));
+        Opened += async (_, _) =>
+        {
+            await RunAsync(() => viewModel.InitializeAsync(args));
+#if CODEVIEW_PERFORMANCE_PROBE
+            GuiPerformanceProbe.InitializationFinished(viewModel.HasDocument);
+#endif
+        };
         viewModel.FatalFailure += () => { Environment.ExitCode = 1; Close(); };
         Closing += async (_, eventArgs) =>
         {

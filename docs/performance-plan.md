@@ -58,3 +58,22 @@ dotnet test codeView.slnx -c Release --no-build --filter TestCategory=Performanc
 ```
 
 JSONはテスト出力ディレクトリの`TestResults/<label>-<copies>.json`へ保存する。同名の測定は上書きされるため比較前に保存する。測定ではファイル読取・検証・文書構築・Snapshot生成を行う。コア試験だけで本文ライブラリの採用は確定しない。
+
+## 6. ネイティブGUIの代理指標の測定
+
+通常の製品ビルドからは除外する`tests/GuiProbe`を、明示した性能ビルドにだけ組み込む。起動時に文法などを事前初期化せず、同じ画面・読込処理を通る。通常ビルドに計測型が含まれないことを単体試験で確認する。
+
+```sh
+dotnet build src/codeView/codeView.csproj -c Release \
+  -p:CodeViewPerformanceProbe=true -o artifacts/gui-probe
+mkdir -p artifacts/gui-results
+CODEVIEW_GUI_PERF_REPORT="$PWD/artifacts/gui-results/new-run.json" \
+CODEVIEW_PERF_CACHE=warm \
+artifacts/gui-probe/codeView "$PWD/artifacts/fixtures/text50/group-00000/source-0000000.cs"
+```
+
+macOSでは基準の開発用.appにこの出力とInfo.plistを配置して実行する。報告先には既存ファイルを指定できない。入力なしではウィンドウ表示イベントと2回のアニメーションコールバックまでを記録する。入力ありでは文書接続とカーソル復元の同期区間、本文接続後2回のコールバック、64回のScrollTo/EnsureVisualLinesの同期時間とコールバック間隔を測る。前半32回は8行刻み、後半は全体の等間隔移動、単一行は行内の等間隔移動とする。物理入力の注入は行わない。
+
+`OpenedMilliseconds`等の原点はマネージドMain入口であり、OSプロセス生成・ランタイム起動・その前のJITは含まない。`WindowTwoTicksMilliseconds`はOpened後に予約したコールバック到達で、本文読込と重なり得る。文書接続時間も、その後の遅延レイアウトをすべて含むとは断定しない。[RequestAnimationFrame](https://api-docs.avaloniaui.net/docs/M_Avalonia_Controls_TopLevel_RequestAnimationFrame)は次のアニメーションtickの予約であり、実際の物理描画完了の証拠ではない。フレーム間隔・同期区間が良好でも、物理描画/入力と起動目標は別途検証する。
+
+計測ビルドは各段階を標準出力へ記録して終了する。停止した場合は対象セッション/プロセスと最後の段階を確認し、スレッドサンプルなどで原因を調べる。観測のタイムアウトだけを理由に同じ測定を再起動しない。OSの描画初期化が失敗した場合は未測定とし、別レンダラーやヘッドレス実行でネイティブGUI合格を代用しない。

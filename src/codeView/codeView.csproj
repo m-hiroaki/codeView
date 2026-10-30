@@ -5,6 +5,12 @@
         <AssemblyName>codeView</AssemblyName>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(CodeViewPerformanceProbe)' == 'true'">
+        <DefineConstants>$(DefineConstants);CODEVIEW_PERFORMANCE_PROBE</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(CodeViewPerformanceProbe)' == 'true'">
+        <Compile Include="../../tests/GuiProbe/*.cs" Link="PerformanceProbe/%(Filename)%(Extension)" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />

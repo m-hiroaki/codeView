@@ -156,6 +156,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             });
             return;
         }
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.BeginDocumentAttachment();
+#endif
         _document = result.Value.Document.ClaimForDisplay();
         _failedPath = null;
         _encodingChoice = choice;
@@ -174,6 +177,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         // Document binding can reset the editor's caret synchronously. Restore afterwards.
         SetPosition(line, column);
         RestoreCaret?.Invoke(_line, _column);
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.EndDocumentAttachment();
+#endif
     }
 
     public void SetPosition(int line, int column)

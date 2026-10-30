@@ -9,5 +9,6 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" PrivateAssets="all" />
         <ProjectReference Include="../../src/codeView/codeView.csproj" />
         <Using Include="NUnit.Framework" />
+        <Compile Include="../GuiProbe/ScrollProbePlan.cs" Link="Performance/ScrollProbePlan.cs" />
     </ItemGroup>
 </Project>
