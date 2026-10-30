@@ -1,0 +1,56 @@
+{
+  "FormatVersion": 1,
+  "MeasuredAtUtc": "2026-10-30T16:13:24.518558+00:00",
+  "Scenario": "immutable-read-view-scan",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "InputBytes": 52428800,
+  "SourceChars": 39945760,
+  "Scans": [
+    {
+      "Characters": 39945760,
+      "Chunks": 156039,
+      "Checksum": 116460523529,
+      "FirstChunkMilliseconds": 0.3377,
+      "TotalMilliseconds": 44.3606,
+      "AllocatedBytes": 33528
+    },
+    {
+      "Characters": 39945760,
+      "Chunks": 156039,
+      "Checksum": 116460523529,
+      "FirstChunkMilliseconds": 0.0178,
+      "TotalMilliseconds": 38.2133,
+      "AllocatedBytes": 33504
+    },
+    {
+      "Characters": 39945760,
+      "Chunks": 156039,
+      "Checksum": 116460523529,
+      "FirstChunkMilliseconds": 0.0051,
+      "TotalMilliseconds": 38.8991,
+      "AllocatedBytes": 33504
+    }
+  ],
+  "EarlyStop": {
+    "Characters": 256,
+    "Chunks": 1,
+    "Checksum": 655139,
+    "FirstChunkMilliseconds": 0.0065,
+    "TotalMilliseconds": 0.0092,
+    "AllocatedBytes": 33504
+  },
+  "CpuMilliseconds": 122.342,
+  "GcPauseMilliseconds": 0,
+  "GcCollections": [
+    0,
+    0,
+    0
+  ],
+  "UiAttached": false,
+  "LiveDocumentReleased": true,
+  "Workload": "read every UTF-16 unit and sum values; not literal/regex matching",
+  "BuildCost": "excluded; see read-build-snapshot measurements",
+  "GuiRendering": "not-measured"
+}

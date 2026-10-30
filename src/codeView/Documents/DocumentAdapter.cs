@@ -98,6 +98,7 @@ internal sealed class DocumentHandle : IDisposable
 
 internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : IDisposable
 {
+    internal const int ChunkChars = 16 * 1024;
     private ITextSource? _snapshot = snapshot;
     private Action? _release = release;
 
@@ -111,6 +112,32 @@ internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : 
         if (offset > source.TextLength || length > source.TextLength - offset)
             throw new ArgumentOutOfRangeException(nameof(length));
         return source.GetText(checked((int)offset), length);
+    }
+
+    /// <summary>
+    /// Visits the immutable source on the calling worker. Chunk memory is borrowed until the callback returns.
+    /// Return false to stop after a chunk; the result counts all characters delivered, including that chunk.
+    /// </summary>
+    public long VisitChunks(Func<ReadOnlyMemory<char>, bool> consume, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(consume);
+        var source = _snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease));
+        ct.ThrowIfCancellationRequested();
+        using var reader = source.CreateReader();
+        var buffer = new char[ChunkChars];
+        var delivered = 0L;
+        while (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            // Preserve the reader's short chunks; coalescing measured slower for the current source.
+            var count = reader.Read(buffer, 0, buffer.Length);
+            if (count == 0) return delivered;
+            ct.ThrowIfCancellationRequested();
+            delivered = checked(delivered + count);
+            var keepGoing = consume(buffer.AsMemory(0, count));
+            ct.ThrowIfCancellationRequested();
+            if (!keepGoing) return delivered;
+        }
     }
 
     public void Dispose()
