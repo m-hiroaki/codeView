@@ -64,3 +64,13 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - Release：合格61、失敗0、スキップ0。TRXは`tests/codeView.Tests/TestResults/file-reader.trx`。macOS arm64での結果であり、WindowsとmacOS x64のnative経路は未実行。
 - P1-06・P2-02のロジックが進行。現時点は同期ワーカー用の入口であり、UI接続・検索用の非同期返却・全バイナリ形式・性能評価は残る。G1・G2は未完了。
 - 設定・起動待ちはコミット`b81e630`。AppOperationsへの統合は次の作業。
+
+## 2026-10-31：単体ファイルのGUI表示
+
+- DocumentBuilder / Handle / ReadLeaseを追加。ワーカーの同一スレッドで構築し、所有解放後に表示スレッドで取得する。Undo履歴なし、閉鎖後の不変ビュー、二重解放・範囲外・異なる構築スレッドを試験した。
+- AppOperationsで読込枠1件、旧ロード取消・世代拒否、失敗時の旧本文維持を接続。ViewModelで設定確定待ちの共通Openを処理し、CLI・ファイルダイアログ・再読込・閉鎖・Cmd/Ctrl+O/Wを最小UIへ接続した。
+- Release：合格69、失敗0、スキップ0。TRXは`tests/codeView.Tests/TestResults/initial-viewer.trx`。画面モデルの試験はUI相当の単一スレッドSynchronizationContextを使い、本文ライブラリのスレッド制約を緩めず確認した。
+- macOS arm64で開発用.appを作り、実GUIで`docs/requirements.md`をCLIから表示、本文への入力が反映されないこと、Cmd+Wの空画面、Cmd+OのOSダイアログから`TextCursor.cs`を開けることを確認した。閉じる操作後のプロセス終了コードは0。
+- 開発用.appは`artifacts/dev/codeView.app`にRelease出力をコピーし、開発用Info.plistを付けた検証物。追加ランタイム不要の配布物、署名・公証、別PC起動を達成したものではない。
+- 本文の大容量性能・初回描画時間・ドラッグ&ドロップ・タブ・ツリー・検索・TextMate・文字コード変更UIは未実装/未検証。G1・G2・最終受け入れは未完了。
+- 読取専用I/Oはコミット`bed15f8`。以後の文書・UI変更はこのセクションの試験結果に対応するコミットへ記録する。

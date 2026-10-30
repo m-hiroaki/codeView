@@ -35,6 +35,8 @@ AvaloniaEditの現行ソースには所有スレッドの移譲と不変スナ�
 
 読取ビューが使用中の文書を閉じた場合、UI・タブの参照は直ちに外して検索を取消する。最後のLeaseが解放されてから本文資源を解放する。遅い検索を理由に旧本文を無期限にキャッシュしない。
 
+初期実装は`DocumentBuilder`の同一スレッドAppend→Complete→所有解放と、表示側のClaimForDisplayで接続する。Undoのサイズを0にし、完了時に履歴をクリアする。ReadLeaseは不変スナップショットを持ち、閉鎖時にライブ文書を切り離しても使用中のスナップショットだけをLease解放まで保持する。小ファイルの移譲と寿命を単体試験した段階であり、スナップショットの割当量・大量タブの性能はD-02で別に実測する。
+
 ## 3. タブの状態と遷移
 
 `TabState`はTabId、指定パス、LoadEpoch、DocumentVersion、EncodingChoice、DocumentHandle、SourceStamp、カーソル・表示位置、本文内検索状態を持つ。表示名やツールチップ文言はTabViewModelで作る。

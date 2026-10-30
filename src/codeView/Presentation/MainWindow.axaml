@@ -1,20 +1,49 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CodeView.Presentation"
+        xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         x:Class="CodeView.Presentation.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Title="codeView" Width="1180" Height="800" MinWidth="680" MinHeight="460"
         Background="#14181F">
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
         <Menu Background="#191E26">
-            <MenuItem Header="ファイル" />
-            <MenuItem Header="表示" />
-            <MenuItem Header="検索" />
+            <MenuItem Header="ファイル">
+                <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
+                <MenuItem Header="再読み込み" IsEnabled="{Binding HasDocument}" Click="ReloadClicked" />
+                <MenuItem x:Name="CloseMenu" Header="ファイルを閉じる" IsEnabled="{Binding HasDocument}" Click="CloseFileClicked" />
+                <Separator />
+                <MenuItem Header="終了" Click="ExitClicked" />
+            </MenuItem>
+            <MenuItem Header="表示" IsEnabled="False" />
+            <MenuItem Header="検索" IsEnabled="False" />
         </Menu>
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+        <Border Grid.Row="1" Background="#202630" Padding="14,9">
+            <TextBlock Text="{Binding FilePath}" TextTrimming="CharacterEllipsis" Foreground="#BDC8D7" />
+        </Border>
+        <editor:TextEditor Grid.Row="2" x:Name="Editor"
+                           Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
+                           WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
+                           Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
+                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <editor:TextEditor.Options>
+                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" />
+            </editor:TextEditor.Options>
+        </editor:TextEditor>
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+                    IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
-            <TextBlock Text="ファイルを開いて、読み始めましょう。" Foreground="#8D98AA" />
+            <Button Content="ファイルを開く" Click="OpenClicked" HorizontalAlignment="Center" />
         </StackPanel>
-        <Border Grid.Row="2" Background="#202A31" Padding="12,6">
-            <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
+        <Border Grid.Row="3" Background="#191E26" Padding="12,5">
+            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
+        </Border>
+        <Border Grid.Row="4" Background="#202A31" Padding="12,6">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
+                <TextBlock Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
+                <TextBlock Grid.Column="2" Text="{Binding EncodingName}" FontSize="11" />
+            </Grid>
         </Border>
     </Grid>
 </Window>
