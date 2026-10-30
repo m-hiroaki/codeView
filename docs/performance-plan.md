@@ -111,3 +111,9 @@ dotnet test codeView.slnx -c Release --filter FullyQualifiedName~DirectoryPerfor
 ```
 
 wideは入力を`l1-wide`、ラベルを`directory-l1-wide`へ変更する。同名JSONは上書きされるので保存して比較する。生成済みデータは再生成せず測定だけ実行できる。再生成する場合は既存を上書きせず新しい出力先を指定する。結果のProductInformationalVersionで製品のビルド識別情報も記録する。
+
+## 11. L1の厳格検証・デコード読取
+
+D-06/P2-08の切分けとして、`CODEVIEW_PERF_READ_ROOT=<生成済みL1ルート>`を指定し、`FullyQualifiedName~RepositoryReadPerformanceTests`を実行する。遅延列挙後に各ファイルをPrepareとReadChunksで読み、実読取ファイル数・Stampのバイト数合計・デコード文字数を記録する。本文モデル構築、検索照合、結果一覧は作らない。生成後のWarmと物理I/O未検証を明示し、Coldや全文検索の達成にはしない。
+
+測定前の初期予算はUTF-8 L1で全件10秒以内、CPU10秒以内、先頭文字チャンク1秒以内、OSメモリのサンプルピーク増分128 MiB以内、合計割当4 GiB以内、GC停止合計500ms以内とする。複数の小ファイルでの固定バッファ割当とLOH負荷を確認する。個別GC停止・LOH割当量の詳細トレースは別途必要で、最後のGCのLOHサイズだけで実行全体を代表しない。CP932は同じ指標で別に評価し、結果からUTF-8の予算を後付けで変えない。

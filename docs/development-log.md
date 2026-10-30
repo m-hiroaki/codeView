@@ -184,3 +184,13 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - TRXは`tests/codeView.Tests/TestResults/directory-l1-nested.trx`と`directory-l1-wide.trx`。GUI初期表示や検索照合・文字コード準備の速度の証拠にせず、L1全文検索のCold/Warm評価を代用しない。L2/L3と別OSの評価は未実施。
 - 追加で除外リストが空なら`.git`等の隠れた既定除外フォルダも列挙でき、既定除外配下でも明示指定ファイルは開けることを実I/O試験した。Release単体試験は合格177、失敗0、スキップ0（性能カテゴリ除外）、TRXは`tests/codeView.Tests/TestResults/directory-reader.trx`。
 - Workspace・ツリーUI・世代/キャッシュ・タブへの接続は引き続き未完了。P3-02/P3-07/G3とG2のチェックは外したまま。長行の表示方式・文法保持の是正と、ロック解除後のGUI比較も残る。
+
+## 2026-10-31：小ファイル群のデコード割当・GC是正
+
+- 前回は`17b6277`/`bc533f2`でフォルダ列挙を実装・計測した進捗ターン。今回はP2-08/D-06の検証・消費読込を、本文モデルを作らずL1全5万ファイルで測った。GUIの手動ロック解除待ちは継続しており、依存するGUI比較は進めていない。
+- 事前予算を性能評価条件11章へ固定し、改修前`bc533f2`のUTF-8 L1 Warmを測定。実読取5万件・1 GiB・634,420,738 UTF-16単位・失敗0、時間5.24秒、CPU5.69秒、割当26,775,386,496 bytes（約24.9 GiB）、GC停止2,350.96ms、Gen0/1/2が各4,166回となった。時間は予算内でも割当4 GiB・GC合計500msに不合格。[改修前JSON](performance-results/2026-10-31-strict-read/l1-read-before.json)を保存した。
+- 各パスでStreamReaderのバイト/文字バッファを作る方式から、固定長のArrayPoolと状態を持つDecoder.Convertループへ変更。LOHに入る大きな文字バッファの毎回確保を避け、検証と消費の共通処理にした。SourceAccessの読取専用・Stream/Stamp・二段階検証・巻戻し・リンク境界は維持し、レイヤ・公開操作契約・検索仕様は変えていない。
+- 1バイト読取、UTF-8/CP932/UTF-16/32、サロゲートと出力上限、不完全な終端のflush、BOM除去、取消/利用側例外/I/O例外後の別処理、同一FileReaderの並行読取を追加検証。借用メモリは同期コールバック内だけ有効で、全終了経路から内容消去を指定して返却する。失敗したPreparedTextを再利用する運用は追加していない。
+- Release単体試験：合格197、失敗0、スキップ0（性能カテゴリ除外）。TRXは`tests/codeView.Tests/TestResults/pooled-decode.trx`。追加したデコード経路と既存のPE・特殊ファイル・設定・文書・列挙を回帰確認した。
+- 最初の改修試行にOperationStatusの名前衝突があり、ビルド失敗後に古いバイナリで走った`l1-read-pooled`の比較は除外した。衝突解消と新ビルド成功後の予備測定で、UTF-8 L1の割当約3.17 GiB・GC停止約102msへ低下を確認。予備値のProductInformationalVersionはdirty buildの基点なので、確定値にはせず次の固定コミット再測定へ進む。
+- 予備の50 MiB UTF-8/CP932/単一行・50 MiB×5のコア構築/保持/Snapshotも既存予算内。長行のGUIレイアウト未達が直ったとは扱わず、本文モデル採否・Cold物理I/O・個別GC停止/LOH詳細・実際の照合を含む検索の評価は残る。P2-08とG2は未完了。

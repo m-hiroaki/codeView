@@ -1,6 +1,8 @@
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Text;
 using CodeView.Contracts;
+using OperationStatus = CodeView.Contracts.OperationStatus;
 
 namespace CodeView.Files;
 
@@ -24,6 +26,7 @@ internal sealed class FileReader(ISourceAccess access)
 {
     internal const int SampleBytes = 8 * 1024;
     internal const int ChunkChars = 16 * 1024;
+    private const int DecodeBytes = 64 * 1024;
 
     public OperationResult<PreparedText> Prepare(SourcePath path, EncodingChoice choice, CancellationToken ct)
     {
@@ -32,11 +35,12 @@ internal sealed class FileReader(ISourceAccess access)
             return OperationResult<PreparedText>.Failure(opened.Error!);
         var stream = opened.Value;
         var transferred = false;
+        byte[]? sample = null;
         try
         {
             var stamp = access.GetStamp(path);
-            var sample = new byte[SampleBytes];
-            var length = stream.ReadAtLeast(sample, SampleBytes, false);
+            sample = ArrayPool<byte>.Shared.Rent(SampleBytes);
+            var length = stream.ReadAtLeast(sample.AsSpan(0, SampleBytes), SampleBytes, false);
             var bytes = sample.AsSpan(0, length);
             var (bomChoice, bomLength) = DetectBom(bytes);
             if (IsKnownBinary(bytes) || IsPortableExecutable(stream, bytes, ct)
@@ -67,6 +71,7 @@ internal sealed class FileReader(ISourceAccess access)
         catch (IOException) { return Fail(ErrorCode.IoFailure); }
         finally
         {
+            if (sample is not null) ArrayPool<byte>.Shared.Return(sample, clearArray: true);
             if (!transferred)
                 stream.Dispose();
         }
@@ -80,19 +85,7 @@ internal sealed class FileReader(ISourceAccess access)
         ArgumentNullException.ThrowIfNull(consume);
         try
         {
-            prepared.Stream.Position = prepared.BomBytes;
-            using var reader = new StreamReader(prepared.Stream, prepared.Encoding, false, 64 * 1024, true);
-            var buffer = new char[ChunkChars];
-            var count = 0L;
-            while (true)
-            {
-                ct.ThrowIfCancellationRequested();
-                var read = reader.Read(buffer, 0, buffer.Length);
-                if (read == 0)
-                    break;
-                consume(buffer.AsMemory(0, read));
-                count = checked(count + read);
-            }
+            var count = Decode(prepared.Stream, prepared.Encoding, prepared.BomBytes, consume, ct);
             if (access.GetStamp(prepared.Path) != prepared.Stamp)
                 return OperationResult<long>.Failure(new(ErrorCode.ChangedDuringRead, prepared.Path.DisplayPath));
             return OperationResult<long>.Success(count);
@@ -113,19 +106,53 @@ internal sealed class FileReader(ISourceAccess access)
 
     private static bool Validate(FileStream stream, Encoding encoding, int bomBytes, CancellationToken ct)
     {
-        stream.Position = bomBytes;
-        using var reader = new StreamReader(stream, encoding, false, 64 * 1024, true);
-        var buffer = new char[ChunkChars];
         try
         {
+            Decode(stream, encoding, bomBytes, null, ct);
+            return true;
+        }
+        catch (DecoderFallbackException) { return false; }
+    }
+
+    private static long Decode(FileStream stream, Encoding encoding, int bomBytes,
+        Action<ReadOnlyMemory<char>>? consume, CancellationToken ct)
+    {
+        stream.Position = bomBytes;
+        var bytes = ArrayPool<byte>.Shared.Rent(DecodeBytes);
+        char[]? characters = null;
+        try
+        {
+            characters = ArrayPool<char>.Shared.Rent(ChunkChars);
+            var decoder = encoding.GetDecoder();
+            long count = 0;
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
-                if (reader.Read(buffer, 0, buffer.Length) == 0)
-                    return true;
+                var read = stream.Read(bytes, 0, DecodeBytes);
+                var offset = 0;
+                bool completed;
+                do
+                {
+                    ct.ThrowIfCancellationRequested();
+                    decoder.Convert(bytes.AsSpan(offset, read - offset), characters.AsSpan(0, ChunkChars),
+                        flush: read == 0, out var bytesUsed, out var charsUsed, out completed);
+                    offset += bytesUsed;
+                    if (charsUsed > 0)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        consume?.Invoke(characters.AsMemory(0, charsUsed));
+                        count = checked(count + charsUsed);
+                    }
+                    ct.ThrowIfCancellationRequested();
+                } while (!completed);
+                if (read == 0) return count;
             }
         }
-        catch (DecoderFallbackException) { return false; }
+        finally
+        {
+            if (characters is not null) ArrayPool<char>.Shared.Return(characters, clearArray: true);
+            ArrayPool<byte>.Shared.Return(bytes, clearArray: true);
+        }
     }
 
     private static Encoding StrictEncoding(EncodingChoice choice) => choice switch

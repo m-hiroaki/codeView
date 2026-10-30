@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Text.Json;
 using CodeView.Contracts;
 using CodeView.Documents;
@@ -24,6 +25,7 @@ public sealed class CorePerformanceTests
         var path = SourcePath.Create(input!, Environment.CurrentDirectory);
         var source = new SourceAccess();
         var reader = new FileReader(source);
+        var version = typeof(FileReader).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         using var process = Process.GetCurrentProcess();
         var cpuBefore = process.TotalProcessorTime;
         using var memory = new ProcessMemory();
@@ -91,6 +93,7 @@ public sealed class CorePerformanceTests
         {
             MeasuredAtUtc = DateTimeOffset.UtcNow,
             FormatVersion = 2, Scenario = "read-build-snapshot", Label = label,
+            ProductInformationalVersion = version,
             Os = RuntimeInformation.OSDescription, Architecture = RuntimeInformation.ProcessArchitecture.ToString(),
             Runtime = Environment.Version.ToString(), CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             InputBytes = new FileInfo(path.FullPath).Length, Copies = copies, BuildMilliseconds = times,
