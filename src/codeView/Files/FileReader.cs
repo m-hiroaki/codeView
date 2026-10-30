@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Text;
 using CodeView.Contracts;
 
@@ -38,7 +39,8 @@ internal sealed class FileReader(ISourceAccess access)
             var length = stream.ReadAtLeast(sample, SampleBytes, false);
             var bytes = sample.AsSpan(0, length);
             var (bomChoice, bomLength) = DetectBom(bytes);
-            if (IsKnownBinary(bytes) || (bomLength == 0 && choice == EncodingChoice.Auto && LooksBinary(bytes)))
+            if (IsKnownBinary(bytes) || IsPortableExecutable(stream, bytes, ct)
+                || (bomLength == 0 && choice == EncodingChoice.Auto && LooksBinary(bytes)))
                 return Fail(ErrorCode.Binary);
             if (bomChoice is not null && choice != EncodingChoice.Auto && choice != bomChoice)
                 return Fail(ErrorCode.DecodeFailed);
@@ -162,6 +164,21 @@ internal sealed class FileReader(ISourceAccess access)
             if (b < 32 && b is not (9 or 10 or 12 or 13)) control++;
         }
         return control * 100 > sample.Length;
+    }
+
+    private static bool IsPortableExecutable(FileStream stream, ReadOnlySpan<byte> sample, CancellationToken ct)
+    {
+        if (sample.Length < 64 || !sample.StartsWith("MZ"u8)) return false;
+        // PE images locate the four-byte signature through the DOS header's e_lfanew field.
+        var offset = (long)BinaryPrimitives.ReadUInt32LittleEndian(sample.Slice(0x3c, 4));
+        if (offset < 64 || offset > stream.Length - 4) return false;
+        if (offset <= sample.Length - 4)
+            return sample.Slice((int)offset, 4).SequenceEqual("PE\0\0"u8);
+        ct.ThrowIfCancellationRequested();
+        stream.Position = offset;
+        Span<byte> signature = stackalloc byte[4];
+        return stream.ReadAtLeast(signature, signature.Length, false) == 4
+            && signature.SequenceEqual("PE\0\0"u8);
     }
 
     private static bool IsKnownBinary(ReadOnlySpan<byte> sample)

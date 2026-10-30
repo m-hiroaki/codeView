@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -85,6 +86,84 @@ public sealed class FileReaderTests
         Assert.That(reader.Prepare(binary, EncodingChoice.Cp932, CancellationToken.None).Error!.Code, Is.EqualTo(ErrorCode.Binary));
         Assert.That(reader.Prepare(Put(new byte[] { 0xc3 }), EncodingChoice.Utf8, CancellationToken.None).Error!.Code,
             Is.EqualTo(ErrorCode.DecodeFailed));
+    }
+
+    [TestCase(64)]
+    [TestCase(128)]
+    [TestCase(8188)]
+    [TestCase(8189)]
+    [TestCase(8192)]
+    [TestCase(65536)]
+    public void PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(int signatureOffset)
+    {
+        var bytes = Enumerable.Repeat((byte)'A', signatureOffset + 4).ToArray();
+        "MZ"u8.CopyTo(bytes);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(0x3c, 4), (uint)signatureOffset);
+        "PE\0\0"u8.CopyTo(bytes.AsSpan(signatureOffset));
+        var path = Put(bytes, "renamed.txt");
+        var reader = new FileReader(_access);
+        foreach (var choice in Enum.GetValues<EncodingChoice>())
+        {
+            var result = reader.Prepare(path, choice, CancellationToken.None);
+            Assert.That(result.Status, Is.EqualTo(OperationStatus.Failure));
+            Assert.That(result.Error!.Code, Is.EqualTo(ErrorCode.Binary));
+        }
+        Assert.That(SHA256.HashData(File.ReadAllBytes(path.FullPath)), Is.EqualTo(SHA256.HashData(bytes)));
+        File.Delete(path.FullPath);
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(2)]
+    [TestCase(59)]
+    [TestCase(63)]
+    public void TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(int length)
+    {
+        var bytes = Enumerable.Repeat((byte)'A', length).ToArray();
+        if (length > 0) bytes[0] = (byte)'M';
+        if (length > 1) bytes[1] = (byte)'Z';
+        using var prepared = new FileReader(_access).Prepare(Put(bytes), EncodingChoice.Auto, CancellationToken.None).Value;
+        Assert.That(prepared.Encoding.CodePage, Is.EqualTo(65001));
+    }
+
+    [TestCase(0u)]
+    [TestCase(1u)]
+    [TestCase(60u)]
+    [TestCase(63u)]
+    [TestCase(64u)]
+    [TestCase(65u)]
+    [TestCase(uint.MaxValue)]
+    public void InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(uint offset)
+    {
+        var bytes = Enumerable.Repeat((byte)'A', 68).ToArray();
+        "MZ"u8.CopyTo(bytes);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(0x3c, 4), offset);
+        var result = new FileReader(_access).Prepare(Put(bytes), EncodingChoice.Utf8, CancellationToken.None);
+        if (result.Status == OperationStatus.Success) result.Value.Dispose();
+        else Assert.That(result.Error!.Code, Is.EqualTo(ErrorCode.DecodeFailed));
+    }
+
+    [Test]
+    public void NonPeMzTextOutsideSampleIsRewoundBeforeValidationAndRead()
+    {
+        const int offset = 131072;
+        var bytes = Enumerable.Repeat((byte)'A', offset + 4).ToArray();
+        "MZ"u8.CopyTo(bytes);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(0x3c, 4), offset);
+        "TEXT"u8.CopyTo(bytes.AsSpan(offset));
+        var reader = new FileReader(_access);
+        using var prepared = reader.Prepare(Put(bytes), EncodingChoice.Utf8, CancellationToken.None).Value;
+        var text = new StringBuilder();
+        Assert.That(reader.ReadChunks(prepared, chunk => text.Append(chunk.Span), CancellationToken.None).Value, Is.EqualTo(bytes.Length));
+        Assert.That(text.ToString(), Is.EqualTo(Encoding.UTF8.GetString(bytes)));
+    }
+
+    [Test]
+    public void MzPrefixAloneDoesNotRejectText()
+    {
+        var bytes = Encoding.UTF8.GetBytes("MZ is a prefix in this plain text. " + new string('A', 128));
+        using var prepared = new FileReader(_access).Prepare(Put(bytes), EncodingChoice.Auto, CancellationToken.None).Value;
+        Assert.That(prepared.Encoding.CodePage, Is.EqualTo(65001));
     }
 
     [Test]
