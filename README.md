@@ -19,7 +19,7 @@
 ```sh
 dotnet restore codeView.slnx --locked-mode
 dotnet build codeView.slnx -c Release --no-restore
-dotnet test codeView.slnx -c Release --no-restore
+dotnet test codeView.slnx -c Release --no-restore --filter 'TestCategory!=Performance'
 dotnet run --project src/codeView/codeView.csproj --no-restore
 ```
 
@@ -65,6 +65,12 @@ dotnet run --project src/codeView/codeView.csproj --no-restore
 `.h`はC / C++で共用されるため、初期版ではC++文法で色分けする方針です。文法は同梱し、追加言語も大容量表示の性能検証に含めます。
 
 編集・保存、ビルド、デバッグ、Git操作、プラグイン、アウトライン、ブックマーク・メモは対象外です。
+
+## テスト実行
+
+Macは`./test-mac.sh`、Windowsは`test-windows.bat`で、Releaseの.NET単体テストとPython補助ツールの試験を実行します。.NET SDKに加え、Macは`python3`、WindowsはPython 3と`py`ランチャーが必要です。
+
+性能試験は`./test-mac.sh --performance` / `test-windows.bat --performance`で実行できます。必要な試験データ・環境変数を準備してください。.NETの結果は`artifacts/test-results/<macos|windows>/unit.trx`または`performance.trx`へ保存します。[実行手順と検証範囲](docs/build.md#テスト実行)を参照してください。
 
 ## OS別ビルド
 

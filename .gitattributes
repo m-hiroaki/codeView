@@ -1,2 +1,4 @@
 build-mac.sh text eol=lf
 build-windows.bat text eol=crlf
+test-mac.sh text eol=lf
+test-windows.bat text eol=crlf

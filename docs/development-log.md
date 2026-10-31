@@ -470,3 +470,9 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - Mac arm64で実スクリプトのpublish成功、Info.plist妥当性、arm64 apphost、includedFrameworksとlibcoreclr/libhostfxr/libAvaloniaNative/libSkiaSharp、管理対象依存の版/contentHash維持を確認した。署名/公証/別PC起動/今回.appのGUI起動は未検証。Intelの実発行とWindowsのバッチ/AOTコンパイル・起動も未検証で、Mac上の代替試験を合格根拠にしない。
 - 模擬SDKによるスクリプト単体7件合格（正常/CPU/不正引数/非Mac/復元失敗/発行失敗と旧成果物維持/実行ファイル欠落）。空白と!を含むパス・別CWD・一時物解放も含む。既存生成器試験と合わせPython12件合格。bash構文検査合格。Windowsは実行環境がなく単体実行不能のため、.batの終了経路とAOT指定をレビューし、実機確認を残す。
 - README、詳細設計07、タスクリストと[発行手順](build.md)を更新。Windows Native AOTは今回の明示指示に従う変更。P6/G6や実装全体を完了扱いにはしていない。
+
+## 2026-10-31：OS別のテスト実行スクリプト
+
+- 追加依頼に従い、test-mac.shとtest-windows.batをルートへ追加。通常はlocked-mode復元→ReleaseのPerformance除外.NET単体→Python tools試験を順次実行する。--performanceは.NETのPerformanceカテゴリのみ。NUnitでの試験を行うためAOT/トリミング/GUI試作は明示的に無効化する。実装全体の継続タスクは一時停止を維持する。
+- TRXはartifacts/test-results/macosまたはwindowsにunit.trx/performance.trxを出力。別CWD/空白を含むパスで動き、エラーは元の非0終了コードで停止。性能試験の生成データ/環境変数不足によるスキップを受入完了としない旨、Python前提とWindowsのpyランチャーをREADME/ビルド手順へ追記した。
+- 実スクリプトで.NET590件とPython19件合格、終了0。追加の模擬試験7件で正常/性能モード、引数/OS拒否、各段階の失敗/後続停止/終了コードを確認。最初の試験はMac一時ディレクトリの別名表記を文字列で比較して失敗したため、同一位置の判定へ修正。Windows.batの実行は未検証。アプリ本体の実装は変更していない。
