@@ -482,3 +482,10 @@ Windows実機が未確保という環境条件だけで、macOS上の共通実�
 - 追加依頼に従い.vscode/launch.json、tasks.json、extensions.jsonを追加。Microsoft C#拡張のcoreclrでDebug/net10.0/codeView.dllを起動し、F5前にlocked-mode復元→Debugビルドを実行する。Mac/Windows共通でリポジトリルートをcwdにし、processタスクの引数配列で空白を含むパスを扱う。AOT/トリミング/GUI試作はデバッグ時に無効化し、Windows配布用バッチのAOT指定は維持する。
 - JSON構文とpreLaunchTask/dependsOn参照を検証し、設定から読み取ったコマンド/引数をMac上で順に実行。Debugビルドは警告0・エラー0、DLLとPDBの生成を確認した。VS CodeでのF5起動/ブレークポイント停止とWindowsでの実動作は未検証。低影響の設定追加のため、設定値をなぞる専用単体試験は追加せず実ビルドで確認した。
 - READMEとビルド手順に必要SDK/拡張、プロジェクトルートの開き方、F5/終了、起動引数の追加方法を記載。拡張は推奨のみで自動インストールしない。製品コードは変更せず、全体の継続作業の一時停止を維持する。
+
+## 2026-10-31：Macの発行もNative AOTへ変更
+
+- 追加指示に従いbuild-mac.shのPublishAot/PublishTrimmedをtrueに変更し、Windows同様にIlcTreatWarningsAsErrors/ILLinkTreatWarningsAsErrorsを指定。CPU自動判定/明示RID・成功後の.app置換・元ロック不変・発行用ロック保存は維持する。通常テストとVS Code DebugのAOT無効設定は維持。
+- Xcodeのclangを確認して実スクリプトでosx-arm64を発行し、Generating native codeからpublish成功までを確認。コンパイラー10.0.12、実行ファイル21,767,048 bytes、SHA-256 7b7b949a1ae1dbaaa2215a24b61bb00f184552928cd1a42026eb3a828a606a10。arm64 Mach-O、Info.plist妥当性、アプリDLL/runtimeconfig/libcoreclr/libhostfxrの非同梱と、元の管理対象依存の版/contentHash維持を確認。dSYMと必要な描画/正規表現ネイティブライブラリは発行物へ含める。
+- Mac実機で生成済みnormal.cs（14,000 bytes/1,001行）をCLIから開き、タブ/本文/読み取り専用/UTF-8/1行1列をAXと画面で確認、閉じる操作で終了0。画面・AX・JSON・ログはローカルartifacts/aot-macos-smoke-20261031.*へ保存。Intel/Windows、全機能/IME/文法/性能、署名/公証/別PCは未検証。
+- ビルド模擬試験へAOT/トリミング/警告エラーの指定確認を追加し、Python全19件合格。bash構文検査合格。README/発行手順/詳細設計07/タスクリストを更新。製品コードと全体作業の一時停止状態は変更していない。

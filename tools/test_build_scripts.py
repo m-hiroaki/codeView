@@ -74,6 +74,10 @@ if os.environ.get('TEST_MISSING_EXECUTABLE') != '1':
         self.assertEqual(publish[publish.index('-r') + 1], 'osx-arm64')
         self.assertEqual(publish[publish.index('--self-contained') + 1], 'true')
         self.assertIn('-p:CodeViewPerformanceProbe=false', publish)
+        self.assertIn('-p:PublishAot=true', publish)
+        self.assertIn('-p:PublishTrimmed=true', publish)
+        self.assertIn('-p:IlcTreatWarningsAsErrors=true', publish)
+        self.assertIn('-p:ILLinkTreatWarningsAsErrors=true', publish)
         self.assertTrue((app.parent / 'publish.packages.lock.json').exists())
         self.assertEqual(list((self.repo / 'artifacts/build/osx-arm64').glob('stage.*')), [])
 

@@ -23,9 +23,9 @@ build-windows.bat
 
 このバッチの実行とWindows向けAOTリンク・起動はWindows環境で確認が必要。今回の作成環境はMacであり、Windowsでの実行検証は未実施。AOT時の全機能・文法・ネイティブ依存の互換性を確認済みとはしない。
 
-## macOS：自己完結型.app
+## macOS：Native AOTの自己完結型.app
 
-macOS上で同じ.NET SDKを用意して実行する。
+macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツールチェーンを用意して実行する。[MicrosoftのNative AOT前提条件](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/#prerequisites)を参照。
 
 ```sh
 ./build-mac.sh
@@ -40,7 +40,7 @@ macOS上で同じ.NET SDKを用意して実行する。
 
 出力先：`artifacts/publish/<RID>/codeView.app`
 
-`.app`全体を使う。Mac版はトリミングなしの自己完結発行とし、Native AOTは指定しない。`build/Info.plist`と発行された全ファイルを組み合わせる。署名・公証・インストーラー・アーカイブ生成は行わない。Info.plistの製品名/識別子/版は同ファイルで管理する。配布時のGatekeeperと署名確認は別途必要である。
+`.app`全体を使う。Mac版もPublishAot=trueとPublishTrimmed=trueを指定してNative AOTで発行し、コンパイラー/リンカーの警告をエラーとする。通常のJIT発行へフォールバックしない。SDKが生成する.dSYMも同梱する。`build/Info.plist`と発行された全ファイルを組み合わせる。署名・公証・インストーラー・アーカイブ生成は行わない。Info.plistの製品名/識別子/版は同ファイルで管理する。配布時のGatekeeperと署名確認は別途必要である。
 
 ## 依存関係と生成物
 
@@ -52,7 +52,7 @@ macOS上で同じ.NET SDKを用意して実行する。
 
 ## 確認した範囲
 
-- Mac arm64：実スクリプトで自己完結型.app生成に成功。Info.plist、arm64 apphost、同梱ランタイム/描画ライブラリ、元ロックからの管理対象依存の版/ハッシュ維持を確認。今回の成果物のGUI起動・配布署名・別PC起動は未検証。
+- Mac arm64：実スクリプトでNative AOT（コンパイラー10.0.12）の.app生成に成功。Info.plist、arm64ネイティブ実行ファイル、CoreCLR/アプリDLLが残らないこと、描画ライブラリ、元ロックからの管理対象依存の版/ハッシュ維持を確認。生成済み14,000 bytes/1,001行のテキストをCLIで開き、タブ/本文/UTF-8表示と通常終了0を確認した。全機能/性能・配布署名・別PC起動は未検証。
 - Intel Mac：RID選択とパッケージングを模擬SDKで確認。実際のx64発行/起動は未検証。
 - スクリプト単体：正常、CPU選択、空白/`!`を含むパス、別ディレクトリからの実行、不正RID/余分な引数/未知CPU/非Mac、復元/発行失敗、実行ファイル欠落、前回成果物維持、一時物の解放を7件で確認。
 - Windows：バッチの実行・Native AOTコンパイル・起動は未検証。MacからのWindows AOT発行を代替検証にしない。

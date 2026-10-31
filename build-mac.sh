@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build a self-contained macOS .app. Run on macOS with the SDK in global.json.
+# Build a self-contained Native AOT macOS .app. Run on macOS with the SDK in global.json.
 set -euo pipefail
 
 codeview_root="$(cd "$(dirname "$0")" && pwd)"
@@ -37,8 +37,9 @@ dotnet restore src/codeView/codeView.csproj --locked-mode --disable-parallel -m:
 cp src/codeView/packages.lock.json "$codeview_stage/publish.packages.lock.json"
 dotnet publish src/codeView/codeView.csproj -c Release -r "$codeview_rid" \
     --self-contained true --artifacts-path "$codeview_build" -o "$codeview_stage/payload" \
-    -p:PublishAot=false -p:PublishTrimmed=false -p:PublishSingleFile=false \
+    -p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false \
     -p:CodeViewPerformanceProbe=false -p:RestoreLockedMode=false \
+    -p:IlcTreatWarningsAsErrors=true -p:ILLinkTreatWarningsAsErrors=true \
     "-p:NuGetLockFilePath=$codeview_stage/publish.packages.lock.json" -m:1 -nr:false
 
 if [[ ! -x "$codeview_stage/payload/codeView" ]]; then

@@ -80,11 +80,11 @@ Macは`./test-mac.sh`、Windowsは`test-windows.bat`で、Releaseの.NET単体�
 
 ## OS別ビルド
 
-Macは`./build-mac.sh`でCPUを自動判定して自己完結型の`.app`を生成します。出力先は`artifacts/publish/osx-arm64/codeView.app`または`osx-x64/codeView.app`です。
+Macは`./build-mac.sh`でCPUを自動判定してNative AOTの自己完結型`.app`を生成します。出力先は`artifacts/publish/osx-arm64/codeView.app`または`osx-x64/codeView.app`です。
 
 WindowsはWindows上で`build-windows.bat`を実行すると、x64向けNative AOTで発行します。出力先は`artifacts\publish\win-x64\codeView\codeView.exe`です。指定SDKとC++ビルドツールが必要です。
 
-Mac arm64の生成は確認済み、Windowsでの実行は未検証です。CPU指定・前提条件・依存ロック・検証範囲は[ビルド手順](docs/build.md)を参照してください。
+Mac arm64はAOTコンパイル・テキスト表示・正常終了を確認済み、Windowsでの実行は未検証です。CPU指定・前提条件・依存ロック・検証範囲は[ビルド手順](docs/build.md)を参照してください。
 
 ## 対応環境と配布方針
 
