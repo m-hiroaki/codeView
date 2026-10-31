@@ -66,6 +66,14 @@ dotnet run --project src/codeView/codeView.csproj --no-restore
 
 編集・保存、ビルド、デバッグ、Git操作、プラグイン、アウトライン、ブックマーク・メモは対象外です。
 
+## OS別ビルド
+
+Macは`./build-mac.sh`でCPUを自動判定して自己完結型の`.app`を生成します。出力先は`artifacts/publish/osx-arm64/codeView.app`または`osx-x64/codeView.app`です。
+
+WindowsはWindows上で`build-windows.bat`を実行すると、x64向けNative AOTで発行します。出力先は`artifacts\publish\win-x64\codeView\codeView.exe`です。指定SDKとC++ビルドツールが必要です。
+
+Mac arm64の生成は確認済み、Windowsでの実行は未検証です。CPU指定・前提条件・依存ロック・検証範囲は[ビルド手順](docs/build.md)を参照してください。
+
 ## 対応環境と配布方針
 
 Windows / macOSを対象に、追加の.NETランタイムやインストーラーを必要としない自己完結型のポータブル配布を予定しています。配布形式、対応CPU、署名・公証は検証後に決定します。Linuxは今回の対象外です。
