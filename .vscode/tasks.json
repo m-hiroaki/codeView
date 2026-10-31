@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "codeView: restore",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "restore",
+        "${workspaceFolder}/src/codeView/codeView.csproj",
+        "--locked-mode",
+        "--disable-parallel",
+        "-p:PublishAot=false",
+        "-p:PublishTrimmed=false",
+        "-p:CodeViewPerformanceProbe=false",
+        "-m:1",
+        "-nr:false"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "codeView: build (Debug)",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/codeView/codeView.csproj",
+        "--configuration",
+        "Debug",
+        "--no-restore",
+        "-p:PublishAot=false",
+        "-p:PublishTrimmed=false",
+        "-p:CodeViewPerformanceProbe=false",
+        "-m:1",
+        "-nr:false"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": ["codeView: restore"],
+      "dependsOrder": "sequence",
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}

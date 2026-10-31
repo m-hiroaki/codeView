@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "codeView: Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "codeView: build (Debug)",
+      "program": "${workspaceFolder}/src/codeView/bin/Debug/net10.0/codeView.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "justMyCode": true
+    }
+  ]
+}

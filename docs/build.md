@@ -92,3 +92,18 @@ test-windows.bat --performance
 Performanceカテゴリには生成入力やCODEVIEW_PERF_*環境変数が必要な試験が含まれる。[性能計画](performance-plan.md)に従って準備する。未準備の試験はスキップされるため、終了0だけで性能受入を完了扱いにせず、TRXの実行/スキップ件数と個々の結果を確認する。性能モードはPython試験を実行しない。通常のWindows実行ではmacOS用シェルの模擬試験がスキップされる。
 
 Macではtest-mac.shを通じて.NET590件・Python19件合格、終了0を確認した。テスト実行スクリプト自身の模擬試験7件は、通常/性能の選別、別CWD/空白と!を含むパス、不正引数/非Mac、復元/.NET/Python各失敗時の終了コードと後続停止を検証する。最初の一時パス表記の比較失敗は同一ファイルシステム位置の判定へ修正した。Windows用.batはこのMacでは実行未検証。
+
+## VS Codeでのデバッグ
+
+codeViewリポジトリのルートをVS Codeで開く。global.json指定の.NET SDKと、推奨拡張Microsoft C#（ms-dotnettools.csharp）が必要。`.vscode/extensions.json`は推奨を表示し、拡張機能を自動インストールしない。
+
+1. `src/codeView/Program.cs`のMain内などへブレークポイントを置く。
+2. 「実行とデバッグ」で`codeView: Debug`を選択する。
+3. F5で開始する。`codeView: restore`→`codeView: build (Debug)`が順に実行され、Debug/net10.0/codeView.dllへデバッガーを接続して起動する。
+4. Shift+F5で終了する。ビルドだけならCtrl+Shift+Bで既定のDebugビルドを実行できる。
+
+設定は`.vscode/launch.json`、`.vscode/tasks.json`、`.vscode/extensions.json`。Mac/Windowsで共通のcoreclrデバッガーを使い、作業ディレクトリはリポジトリルート、出力はVS Codeのデバッグコンソールとする。復元はlocked-mode、DebugビルドではAOT/トリミング/性能GUI試作を明示的に無効化する。Windows配布用Native AOTの設定はbuild-windows.batで維持する。
+
+起動時にファイル/フォルダを開く場合は、launch.jsonのargs配列へパスを個別の文字列として追加する。例：`"args": ["${workspaceFolder}/src"]`。空白を含むパスを1つの文字列にし、文字列自体へ余分な引用符を付けない。
+
+[MicrosoftのC#デバッガー設定](https://code.visualstudio.com/docs/csharp/debugger-settings)と[VS Codeタスク](https://code.visualstudio.com/docs/debugtest/tasks)に従う。Mac上で設定のJSONとタスク参照、登録タスクと同じ引数でのDebug復元/ビルド（警告0・エラー0）、起動対象DLLとPDBを確認済み。VS Code上でF5を操作した起動・ブレークポイント停止とWindows実機での動作確認は未検証。

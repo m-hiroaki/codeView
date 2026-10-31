@@ -66,6 +66,12 @@ dotnet run --project src/codeView/codeView.csproj --no-restore
 
 編集・保存、ビルド、デバッグ、Git操作、プラグイン、アウトライン、ブックマーク・メモは対象外です。
 
+## VS Codeでデバッグ
+
+リポジトリのルートをVS Codeで開き、推奨のMicrosoft C#拡張機能（`ms-dotnettools.csharp`）と`global.json`指定の.NET SDKを用意してください。「実行とデバッグ」で`codeView: Debug`を選び、F5で起動できます。依存復元とDebugビルドは自動実行します。
+
+ブレークポイントは`src/codeView/Program.cs`などへ設定できます。起動引数を渡す場合は`.vscode/launch.json`の`args`配列へファイル/フォルダのパスを追加してください。[設定の詳細](docs/build.md#vs-codeでのデバッグ)も参照してください。
+
 ## テスト実行
 
 Macは`./test-mac.sh`、Windowsは`test-windows.bat`で、Releaseの.NET単体テストとPython補助ツールの試験を実行します。.NET SDKに加え、Macは`python3`、WindowsはPython 3と`py`ランチャーが必要です。
