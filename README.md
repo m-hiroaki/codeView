@@ -78,6 +78,8 @@ Macは`./test-mac.sh`、Windowsは`test-windows.bat`で、Releaseの.NET単体�
 
 性能試験は`./test-mac.sh --performance` / `test-windows.bat --performance`で実行できます。必要な試験データ・環境変数を準備してください。.NETの結果は`artifacts/test-results/<macos|windows>/unit.trx`または`performance.trx`へ保存します。[実行手順と検証範囲](docs/build.md#テスト実行)を参照してください。
 
+コードカバレッジは`./test-mac.sh --coverage` / `test-windows.bat --coverage`で計測できます。通常の.NET単体テストを対象に、本体の行・分岐カバレッジを`artifacts/test-results/<macos|windows>/coverage/current/<run-id>/coverage.cobertura.xml`と`coverage.info`（LCOV）へ保存します。HTMLレポートも自動生成するので、`artifacts/test-results/<macos|windows>/coverage/html/index.html`をブラウザーで開くと、ファイル別の割合・実行済み/未実行行を確認できます。[計測対象と制限](docs/build.md#コードカバレッジ)を参照してください。
+
 ## OS別ビルド
 
 Macは`./build-mac.sh`でCPUを自動判定してNative AOTの自己完結型`.app`を生成します。出力先は`artifacts/publish/osx-arm64/codeView.app`または`osx-x64/codeView.app`です。

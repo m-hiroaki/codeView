@@ -93,6 +93,45 @@ Performanceカテゴリには生成入力やCODEVIEW_PERF_*環境変数が必要
 
 Macではtest-mac.shを通じて.NET590件・Python19件合格、終了0を確認した。テスト実行スクリプト自身の模擬試験7件は、通常/性能の選別、別CWD/空白と!を含むパス、不正引数/非Mac、復元/.NET/Python各失敗時の終了コードと後続停止を検証する。最初の一時パス表記の比較失敗は同一ファイルシステム位置の判定へ修正した。Windows用.batはこのMacでは実行未検証。
 
+## コードカバレッジ
+
+通常単体テストと同じSDK/Pythonを用意し、次を実行する。
+
+```sh
+# macOS
+./test-mac.sh --coverage
+```
+
+```bat
+rem Windows
+test-windows.bat --coverage
+```
+
+テスト専用依存の`coverlet.collector` 6.0.4を固定し、[CoverletのVSTest統合](https://github.com/coverlet-coverage/coverlet/blob/v6.0.4/Documentation/VSTestIntegration.md)を使う。`coverage.runsettings`で対象を本体アセンブリ`codeView`に限定し、テストアセンブリ・外部依存・`obj`配下の生成ソースを除く。手書きのUIコードは対象に含める。通常単体テスト（`TestCategory!=Performance`）の.NET実行だけを計測し、その後にPython補助ツールの試験も実行する。Pythonコード自体のカバレッジは計測しない。
+
+TRXは`artifacts/test-results/<macos|windows>/coverage/current/coverage.trx`、行・分岐のレポートは`current`配下のVSTestが生成する実行IDごとのフォルダへ保存する。
+
+- `coverage.cobertura.xml`：Cobertura形式。ルートの`line-rate`/`branch-rate`とクラス・ファイル別の値を確認できる。
+- `coverage.info`：LCOV形式。対応するエディター拡張やレポートツールで表示できる。
+
+計測成功後、[ReportGenerator](https://github.com/danielpalme/ReportGenerator/tree/v5.5.11)でHTMLも生成する。リポジトリの`.config/dotnet-tools.json`に5.5.11を固定し、計測モードでのみローカルツールを自動復元する。グローバルインストールは不要。初回はNuGetからのツール取得に通信が必要になる。
+
+`artifacts/test-results/<macos|windows>/coverage/html/index.html`をブラウザーで開く。全体の行/分岐カバレッジ、クラス・ファイル別の割合を確認し、クラス名をクリックするとソース行ごとの実行状況を確認できる。HTMLにはソース本文が含まれる。ローカル閲覧にサーバーやインターネット接続は不要。
+
+```sh
+# macOS：計測後にレポートを開く
+open artifacts/test-results/macos/coverage/html/index.html
+```
+
+```bat
+rem Windows：計測後にレポートを開く
+start "" "artifacts\test-results\windows\coverage\html\index.html"
+```
+
+再計測の開始時に生成済みの`coverage/current`と`coverage/html`だけを削除し、今回の結果で作り直す。過去の別ディレクトリのレポートは入力に含めず、異なる実行のカバレッジを混ぜない。ツール復元・HTML生成の失敗やindex.html未生成も非0終了とする。レポートはGit対象外の`artifacts`内に保存する。収集対象を変更すると比較条件も変わるため、`coverage.runsettings`と実行コミットを併せて記録する。
+
+`--coverage`と`--performance`の併用は拒否する。計測にはIL書換え・実行履歴収集の時間/メモリ負荷があるため、この実行の値を性能評価へ流用しない。通常/性能モードでは収集を有効にせず、本体の依存・起動・描画・検索処理には変更を加えない。カバレッジは実行されたコードの指標であり、GUI実機受入やAOT配布物の検証を代替しない。最低カバレッジによる合否判定は設けていない。
+
 ## VS Codeでのデバッグ
 
 codeViewリポジトリのルートをVS Codeで開く。global.json指定の.NET SDKと、推奨拡張Microsoft C#（ms-dotnettools.csharp）が必要。`.vscode/extensions.json`は推奨を表示し、拡張機能を自動インストールしない。
