@@ -373,9 +373,16 @@ internal sealed class GuiPerformanceProbe
         if (!args.GetCurrentPoint(_editor).Properties.IsLeftButtonPressed || args.Pointer.Type != PointerType.Mouse) return;
         try
         {
-            var offset = HitPointer(args.GetPosition(_editor.TextArea.TextView), clamp: false);
-            if (offset is null || !_pointerSelection.Begin(source, slice, offset.Value, args.Pointer.Id,
-                    args.KeyModifiers.HasFlag(KeyModifiers.Shift))) return;
+            var point = args.GetPosition(_editor.TextArea.TextView);
+            var marginPoint = _sourceLineNumbers is { } margin ? args.GetPosition(margin) : default;
+            var onLineNumber = _sourceLineNumbers is { } numbers &&
+                new Rect(numbers.Bounds.Size).Contains(marginPoint);
+            var offset = HitPointer(point, clamp: onLineNumber);
+            if (offset is null) return;
+            var started = onLineNumber
+                ? _pointerSelection.BeginLine(source, slice, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                : _pointerSelection.Begin(source, slice, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            if (!started) return;
             _selectionPointer = args.Pointer;
             _pointerPosition = args.GetPosition(_editor.TextArea.TextView);
             args.Pointer.Capture(_editor);

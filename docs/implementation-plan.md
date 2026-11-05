@@ -334,6 +334,9 @@ flowchart LR
 
   進捗（2026-10-31）：[表示量比較](validation-results/2026-10-31-window-sizes/README.md)、[原文位置/選択/コピー基盤](validation-results/2026-10-31-source-display/README.md)、[選択表示](validation-results/2026-10-31-selection-projection/README.md)に続き、[対話キー/原文ステータス](validation-results/2026-10-31-bounded-keyboard/README.md)を専用試作へ接続。続いて[原文コピー受付/最終文字列/OS接続](validation-results/2026-10-31-source-clipboard/README.md)を専用試作へ追加。通常単体558件、50 MiBの文字列準備3条件、小さい入力のmacOSコピー読戻し3回とUnicode長行の実キー/可視性を確認した。通常UIの長行検索ジャンプも水平可視化を修正。[マウス原文選択](validation-results/2026-10-31-source-pointer/README.md)は通常569件/10万反復と小さい入力のmacOS基本ドラッグ・コピー4件まで確認。ドラッグ中の長押し自動移動/窓入替/予期しないキャプチャ喪失は実機未確認。[原文行番号](validation-results/2026-10-31-source-line-numbers/README.md)は専用試作へ接続し、通常590件とMacの長行/末尾空行/空文書/タブ復元・全閉鎖、50 MiBの前回版/今回版各2入力を確認。通常改行の保持予算超過、行番号余白の原文行選択/全面スクロール/可視行数、マウス/コピーの包括受入/IME/別規模/OS等は残り、G2/A-02を完了にしない。
 
+  - [x] **A-02-01：原文行番号余白の基本行選択を試作・検証する**
+    完了：2026-11-06。通常/長行の全行選択、逆方向ドラッグ、Shift拡張、空行/旧Slice/別ポインターを通常602件で検証。10万行選択反復と既存文字選択反復が予算内、Macで4種類の原文コピー/OS読戻しと空選択・終了0を確認。[根拠・残課題](validation-results/2026-11-06-source-line-selection/README.md)。全面スクロール/可視行数・大容量/別OS等を残し、A-02/G2全体は未完了。
+
 - [ ] **A-03：設計変更案と移行計画を提示し承認を得る**
   依存：A-02で構造変更が必要。完了条件：理由・利点・不利点・影響範囲・移行順・戻し方・受け入れ試験を明示。承認前に製品の層・依存・公開API・データ構造を変えない。
 

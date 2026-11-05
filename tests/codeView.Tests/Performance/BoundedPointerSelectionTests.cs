@@ -7,6 +7,118 @@ namespace CodeView.Tests.Performance;
 
 public sealed class BoundedPointerSelectionTests
 {
+    [TestCase("\n")]
+    [TestCase("\r")]
+    [TestCase("\r\n")]
+    public void LineDragSelectsOriginalWholeLinesInBothDirections(string newline)
+    {
+        var longLine = new string('x', 8000) + "😀";
+        var original = "first" + newline + longLine + newline + "last";
+        using var handle = Create(original);
+        using var source = new DocumentDisplaySession(handle);
+        var drag = new BoundedPointerSelection();
+        var middle = source.CreateSlice(4000, 1024);
+        Assert.That(drag.BeginLine(source, middle, middle.TargetDisplayOffset, 1, false), Is.True);
+        using (var copy = source.BeginCopy())
+            Assert.That(copy.ReadText(CancellationToken.None), Is.EqualTo(longLine + newline));
+        var first = source.CreateSlice(0, 1024);
+        Assert.That(drag.Move(source, first, 0, 1), Is.True);
+        Assert.That(source.Anchor, Is.GreaterThan(source.Caret));
+        using (var copy = source.BeginCopy())
+            Assert.That(copy.ReadText(CancellationToken.None), Is.EqualTo("first" + newline + longLine + newline));
+        var last = source.CreateSlice(original.Length, 1024);
+        Assert.That(drag.Move(source, last, last.Text.Length, 1), Is.True);
+        using (var copy = source.BeginCopy())
+            Assert.That(copy.ReadText(CancellationToken.None), Is.EqualTo(longLine + newline + "last"));
+    }
+
+    [Test]
+    public void LineShiftExtensionPreservesReversedWholeLineAnchor()
+    {
+        using var handle = Create("one\r\ntwo\r\nthree\r\nfour");
+        using var source = new DocumentDisplaySession(handle);
+        var slice = source.CreateSlice(0, 1024);
+        source.SelectLines(3, 2);
+        var drag = new BoundedPointerSelection();
+        Assert.That(drag.BeginLine(source, slice, 0, 1, true), Is.True);
+        using var copy = source.BeginCopy();
+        Assert.That(copy.ReadText(CancellationToken.None), Is.EqualTo("one\r\ntwo\r\nthree\r\n"));
+    }
+
+    [Test]
+    public void LineEdgeStepsUseHitLineRatherThanDelimiterEndpointAndIgnoreHorizontalMotion()
+    {
+        using var handle = Create("a\nb\nc\n");
+        using var source = new DocumentDisplaySession(handle);
+        var slice = source.CreateSlice(0, 1024);
+        var drag = new BoundedPointerSelection();
+        drag.BeginLine(source, slice, 0, 1, false);
+        Assert.That(drag.StepOutside(source, 1, 1, 0), Is.False);
+        Assert.That(drag.StepOutside(source, 1, 1, 1), Is.True);
+        Assert.That(source.Caret, Is.EqualTo(4)); // Select a+b, without skipping b.
+        Assert.That(drag.StepOutside(source, 1, 0, 1), Is.True);
+        Assert.That(drag.StepOutside(source, 1, 0, 1), Is.True);
+        Assert.That(source.Caret, Is.EqualTo(6));
+        Assert.That(drag.StepOutside(source, 1, 0, 1), Is.False);
+        Assert.That(drag.StepOutside(source, 1, 0, -1), Is.True);
+        Assert.That(source.Caret, Is.EqualTo(6)); // c and the final empty line end at the same offset.
+        drag.StepOutside(source, 1, 0, -1);
+        Assert.That(source.Caret, Is.EqualTo(4));
+    }
+
+    [TestCase("")]
+    [TestCase("a\r\n")]
+    public void FinalEmptyLineCanBeSelectedWithoutCreatingText(string original)
+    {
+        using var handle = Create(original);
+        using var source = new DocumentDisplaySession(handle);
+        var slice = source.CreateSlice(original.Length, 1024);
+        var drag = new BoundedPointerSelection();
+        Assert.That(drag.BeginLine(source, slice, slice.Text.Length, 1, false), Is.True);
+        Assert.That(source.SelectionLength, Is.Zero);
+        Assert.That(source.Caret, Is.EqualTo(original.Length));
+        drag.Cancel();
+        Assert.That(drag.IsActive, Is.False);
+        Assert.That(drag.Begin(source, slice, 0, 2, false), Is.True);
+        Assert.That(drag.Move(source, slice, slice.Text.Length, 2), Is.True);
+        Assert.That(source.SelectionLength, Is.EqualTo(original.Length));
+    }
+
+    [Test]
+    public void LineDragRejectsStaleSliceOtherPointersAndInvalidHitWithoutChangingSelection()
+    {
+        using var handle = Create("a\nb\nc");
+        using var source = new DocumentDisplaySession(handle);
+        var stale = source.CreateSlice(0, 4);
+        var slice = source.CreateSlice(0, 1024);
+        var drag = new BoundedPointerSelection();
+        Assert.That(drag.BeginLine(source, stale, 0, 1, false), Is.False);
+        Assert.Throws<ArgumentOutOfRangeException>(() => drag.BeginLine(source, slice, -1, 1, false));
+        Assert.That(source.SelectionLength, Is.Zero);
+        Assert.That(drag.IsActive, Is.False);
+        drag.BeginLine(source, slice, 2, 1, false);
+        Assert.That(drag.BeginLine(source, slice, 0, 2, false), Is.False);
+        Assert.That(drag.Move(source, stale, 0, 1), Is.False);
+        Assert.That(drag.Move(source, slice, 0, 2), Is.False);
+        Assert.That(drag.End(2), Is.False);
+        Assert.That((source.Anchor, source.Caret), Is.EqualTo((2L, 4L)));
+        drag.End(1);
+        Assert.That(drag.Move(source, slice, 0, 1), Is.False);
+    }
+
+    [TestCase(0, 1)]
+    [TestCase(1, 0)]
+    [TestCase(3, 1)]
+    [TestCase(1, 3)]
+    public void InvalidOriginalLineRangeDoesNotChangeSelection(long anchor, long caret)
+    {
+        using var handle = Create("a\nb");
+        using var source = new DocumentDisplaySession(handle);
+        source.Select(1, 2);
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.SelectLines(anchor, caret));
+        Assert.That((source.Anchor, source.Caret), Is.EqualTo((1L, 2L)));
+    }
+
     [Test]
     public void DragKeepsOriginalAnchorAcrossSlicesAndCopiesOriginalRange()
     {
@@ -138,6 +250,49 @@ public sealed class BoundedPointerSelectionTests
         Assert.That(source.Position.Column, Is.EqualTo(6));
         Assert.That(source.Anchor, Is.EqualTo(5));
         Assert.Throws<ArgumentOutOfRangeException>(() => drag.StepOutside(source, 1, 2, 0));
+    }
+
+    [Test, Category("Performance")]
+    public void MeasureOneHundredThousandLineDragCycles()
+    {
+        using var handle = Create("head\r\n" + new string('x', 8000) + "😀\r\nlast");
+        using var source = new DocumentDisplaySession(handle);
+        var slice = source.CreateSlice(4000, 1024);
+        var drag = new BoundedPointerSelection();
+        void Cycle()
+        {
+            drag.BeginLine(source, slice, slice.TargetDisplayOffset, 1, false);
+            drag.Move(source, slice, slice.TargetDisplayOffset + 1, 1);
+            drag.End(1);
+        }
+        for (var i = 0; i < 1000; i++) Cycle();
+        using var process = Process.GetCurrentProcess();
+        var cpu = process.TotalProcessorTime;
+        var pause = GC.GetTotalPauseDuration();
+        var allocated = GC.GetAllocatedBytesForCurrentThread();
+        var watch = Stopwatch.StartNew();
+        for (var i = 0; i < 100000; i++) Cycle();
+        watch.Stop();
+        allocated = GC.GetAllocatedBytesForCurrentThread() - allocated;
+        var cpuMs = (process.TotalProcessorTime - cpu).TotalMilliseconds;
+        var pauseMs = (GC.GetTotalPauseDuration() - pause).TotalMilliseconds;
+        var report = new { Milliseconds = watch.Elapsed.TotalMilliseconds, CpuMilliseconds = cpuMs,
+            AllocatedBytes = allocated, GcPauseMilliseconds = pauseMs, source.Anchor, source.Caret,
+            handle.ActiveReadLeases, PointerActive = drag.IsActive };
+        var output = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestResults", "line-pointer-cycles.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+        File.WriteAllText(output, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+        TestContext.AddTestAttachment(output);
+        Assert.Multiple(() =>
+        {
+            Assert.That(watch.Elapsed.TotalMilliseconds, Is.LessThanOrEqualTo(1000));
+            Assert.That(cpuMs, Is.LessThanOrEqualTo(1000));
+            Assert.That(allocated, Is.LessThanOrEqualTo(1 << 20));
+            Assert.That(pauseMs, Is.LessThanOrEqualTo(100));
+            Assert.That((source.Anchor, source.Caret), Is.EqualTo((6L, 8010L)));
+            Assert.That(handle.ActiveReadLeases, Is.EqualTo(1));
+            Assert.That(drag.IsActive, Is.False);
+        });
     }
 
     [Test, Category("Performance")]

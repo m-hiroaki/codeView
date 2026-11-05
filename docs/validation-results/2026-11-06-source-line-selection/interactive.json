@@ -1,0 +1,2265 @@
+{
+  "FormatVersion": 2,
+  "MeasuredAtUtc": "2026-11-05T15:30:55.767743+00:00",
+  "Scenario": "native-interactive-bounded-candidate",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "Failure": null,
+  "CacheCondition": "unknown",
+  "DisplayMode": "bounded-window-prototype",
+  "ConfiguredWindowChars": 1024,
+  "OpenedMilliseconds": 578.7007,
+  "WindowTwoTicksMilliseconds": 690.5666,
+  "DocumentAttachmentMilliseconds": 4.2847,
+  "DocumentTwoTicksMilliseconds": 770.724,
+  "ScrollSynchronousMilliseconds": [],
+  "AnimationTickIntervalsMilliseconds": [],
+  "DocumentChars": 1024,
+  "DocumentLines": 4,
+  "SourceChars": 8029,
+  "SourceLines": 5,
+  "LargestDisplayChars": 1024,
+  "VisitedSourceOffsets": [],
+  "SourceCaretOffset": 8029,
+  "SourceCaretPosition": {
+    "Line": 5,
+    "Column": 1
+  },
+  "SourceSelectionStart": 8029,
+  "SourceSelectionLength": 0,
+  "SourceLineNumberMap": {
+    "FirstSourceLine": 2,
+    "SourceLineCount": 5,
+    "DisplayLineCount": 4,
+    "IsValid": true,
+    "WidthInDigits": 2
+  },
+  "SourceLineNumberLabelsRendered": 40,
+  "LastFirstSourceLineLabel": 2,
+  "LastLastSourceLineLabel": 5,
+  "SourceSelectionUi": "source keyboard/mouse drag selection and clipboard; probe only",
+  "SelectionSamples": [
+    {
+      "DocumentGeneration": 2,
+      "Command": "SelectAll",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Meta",
+      "HasKeySymbol": true,
+      "SourceAnchor": 0,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8029,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.4629
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Meta",
+      "HasKeySymbol": true,
+      "SourceAnchor": 0,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8029,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1024,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 1.8741
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8014,
+      "SourceCaret": 8021,
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceSelectionLength": 7,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1016,
+      "NativeSelectionStart": 1009,
+      "NativeSelectionLength": 7,
+      "StatusPosition": "\u884C 4, \u5217 1",
+      "SynchronousMilliseconds": 0.1464
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8014,
+      "SourceCaret": 8021,
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceSelectionLength": 7,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1016,
+      "NativeSelectionStart": 1009,
+      "NativeSelectionLength": 7,
+      "StatusPosition": "\u884C 4, \u5217 1",
+      "SynchronousMilliseconds": 0.3007
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 9,
+      "SourceCaret": 8014,
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8005,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1009,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1009,
+      "StatusPosition": "\u884C 3, \u5217 1",
+      "SynchronousMilliseconds": 0.1775
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 9,
+      "SourceCaret": 8014,
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8005,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1009,
+      "NativeSelectionStart": 0,
+      "NativeSelectionLength": 1009,
+      "StatusPosition": "\u884C 3, \u5217 1",
+      "SynchronousMilliseconds": 0.0712
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8020,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 1015,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.0515
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8020,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 1015,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.066
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8020,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 1015,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.1057
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8020,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 1015,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.0627
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 9,
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceSelectionLength": 8020,
+      "SliceOffset": 0,
+      "SliceChars": 1024,
+      "NativeCaret": 9,
+      "NativeSelectionStart": 9,
+      "NativeSelectionLength": 1015,
+      "StatusPosition": "\u884C 2, \u5217 1",
+      "SynchronousMilliseconds": 0.4828
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "DocumentEnd",
+      "Extend": false,
+      "RawKey": "End",
+      "PhysicalKey": "End",
+      "Modifiers": "Control",
+      "HasKeySymbol": false,
+      "SourceAnchor": 8029,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 1024,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 1.2915
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8014,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 15,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 1009,
+      "NativeSelectionLength": 15,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.142
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8014,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 15,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 1009,
+      "NativeSelectionLength": 15,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.0724
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Unsupported",
+      "Extend": false,
+      "RawKey": "A",
+      "PhysicalKey": "A",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 1024,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.0808
+    },
+    {
+      "DocumentGeneration": 2,
+      "Command": "Copy",
+      "Extend": false,
+      "RawKey": "C",
+      "PhysicalKey": "C",
+      "Modifiers": "Control",
+      "HasKeySymbol": true,
+      "SourceAnchor": 8029,
+      "SourceCaret": 8029,
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 7005,
+      "SliceChars": 1024,
+      "NativeCaret": 1024,
+      "NativeSelectionStart": 1024,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 5, \u5217 1",
+      "SynchronousMilliseconds": 0.0222
+    }
+  ],
+  "InteractiveCommands": 16,
+  "StatusPosition": "\u884C 5, \u5217 1",
+  "InteractivePostedScrolls": 26,
+  "InteractivePostedScrollMaxMilliseconds": 2.7752,
+  "LastInteractiveHorizontal": 0,
+  "LastInteractiveVertical": 0,
+  "InteractiveScrollSamples": [
+    {
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceCaret": 0,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0.5,
+        "Height": 18.904374999999998,
+        "Position": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539527,
+          "Width": 0.5,
+          "Height": 18.904374999999998
+        },
+        "Right": 0.5,
+        "Bottom": 18.904374999999998,
+        "Left": 0,
+        "Top": 0,
+        "TopLeft": {
+          "X": 0,
+          "Y": 0
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 9.452187499999999
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceCaret": 8014,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 25.375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 25.375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 34.8271875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceCaret": 8021,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 44.279375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 63.18375,
+        "Left": 0,
+        "Top": 44.279375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 53.7315625
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceCaret": 8021,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 44.279375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 63.18375,
+        "Left": 0,
+        "Top": 44.279375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 53.7315625
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceCaret": 8021,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 44.279375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 63.18375,
+        "Left": 0,
+        "Top": 44.279375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 53.7315625
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceCaret": 8014,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 25.375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 25.375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 34.8271875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceCaret": 8014,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 25.375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 25.375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 34.8271875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 3,
+        "Column": 1
+      },
+      "SourceCaret": 8014,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 25.375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 25.375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 34.8271875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 2,
+        "Column": 1
+      },
+      "SourceCaret": 9,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 18.904374999999998,
+        "Width": 0.5,
+        "Height": 25.375000000000004,
+        "Position": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536943,
+          "Width": 0.5,
+          "Height": 25.375000000000004
+        },
+        "Right": 0.5,
+        "Bottom": 44.279375,
+        "Left": 0,
+        "Top": 18.904374999999998,
+        "TopLeft": {
+          "X": 0,
+          "Y": 18.904374999999998
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 18.904374999999998
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 31.591875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 4,
+        "Column": 1
+      },
+      "SourceCaret": 8021,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 44.279375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 63.18375,
+        "Left": 0,
+        "Top": 44.279375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 44.279375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 44.279375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 53.7315625
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 5,
+        "Column": 1
+      },
+      "SourceCaret": 8029,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.8440731901352427,
+        "Width": 1159,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 63.18375,
+        "Width": 0.5,
+        "Height": 18.904375,
+        "Position": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "Size": {
+          "AspectRatio": 0.026448904023539523,
+          "Width": 0.5,
+          "Height": 18.904375
+        },
+        "Right": 0.5,
+        "Bottom": 82.088125,
+        "Left": 0,
+        "Top": 63.18375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 63.18375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 63.18375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 82.088125
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 82.088125
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 72.63593750000001
+        }
+      },
+      "CaretVisible": true
+    }
+  ],
+  "PointerSamples": [
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 0,
+      "Caret": 0
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 0,
+      "Caret": 8029
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 12
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 12
+      },
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 12
+      },
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 53
+      },
+      "Anchor": 9,
+      "Caret": 8014
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 53
+      },
+      "Anchor": 8021,
+      "Caret": 8029
+    },
+    {
+      "Phase": "move",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 12
+      },
+      "Anchor": 8021,
+      "Caret": 8029
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 12
+      },
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8029,
+      "Caret": 9
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8029,
+      "Caret": 8029
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 32
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 53
+      },
+      "Anchor": 8014,
+      "Caret": 8021
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 53
+      },
+      "Anchor": 8014,
+      "Caret": 8029
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 53
+      },
+      "Anchor": 8014,
+      "Caret": 8029
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8014,
+      "Caret": 8029
+    },
+    {
+      "Phase": "press",
+      "PointerId": 1000,
+      "Active": null,
+      "Captured": null,
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 73
+      },
+      "Anchor": 8014,
+      "Caret": 8029
+    },
+    {
+      "Phase": "captured",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": true,
+      "Point": {
+        "X": -9,
+        "Y": 73
+      },
+      "Anchor": 8029,
+      "Caret": 8029
+    },
+    {
+      "Phase": "release",
+      "PointerId": 1000,
+      "Active": 1000,
+      "Captured": "TextEditor",
+      "Left": false,
+      "Point": {
+        "X": -9,
+        "Y": 73
+      },
+      "Anchor": 8029,
+      "Caret": 8029
+    },
+    {
+      "Phase": "capture-lost",
+      "PointerId": null,
+      "Active": null,
+      "Captured": null,
+      "Left": null,
+      "Point": null,
+      "Anchor": 8029,
+      "Caret": 8029
+    }
+  ],
+  "PointerUpdates": 9,
+  "PointerEdgeSteps": 0,
+  "PointerActive": false,
+  "ClipboardCopiesCompleted": 6,
+  "LastCopiedCharacters": 15,
+  "ClipboardVerificationEnabled": true,
+  "ClipboardVerificationChecks": 6,
+  "ClipboardVerificationFailures": 0,
+  "HeldAfterReport": false,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 68584504,
+  "SampledPeakMemory": 298370176,
+  "MemoryIncrease": 229785672,
+  "SamplingIntervalMilliseconds": 10,
+  "MemorySamples": 12426,
+  "ClientWidth": 1180,
+  "ClientHeight": 800,
+  "RenderScaling": 2,
+  "PhysicalPaint": "not-measured",
+  "PhysicalInput": "interactive keyboard mode; end-to-end latency not measured",
+  "InputInterrupted": false,
+  "CpuMilliseconds": 5368.596,
+  "AllocatedBytes": 28724648,
+  "GcCollections": [
+    3,
+    1,
+    0
+  ],
+  "GcPauseTotalMilliseconds": 19.136,
+  "GcMeasurementScope": "probe-construction-to-finish-before-report-serialization",
+  "LastGcLohBytes": 1249464,
+  "LastGcIndex": 3,
+  "IndividualGcPauses": "not-traced",
+  "LohAllocatedBytes": "not-traced"
+}

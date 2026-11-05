@@ -1,0 +1,10 @@
+{
+  "Milliseconds": 51.8609,
+  "CpuMilliseconds": 53.556,
+  "AllocatedBytes": 40,
+  "GcPauseMilliseconds": 0,
+  "Anchor": 6,
+  "Caret": 8010,
+  "ActiveReadLeases": 1,
+  "PointerActive": false
+}

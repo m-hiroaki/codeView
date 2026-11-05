@@ -1,0 +1,13 @@
+{
+  "src/codeView/Documents/DocumentDisplaySession.cs": "c1df4cfb2a134af2ebd277da839b51ca26eba9cb3652d5a29c6f2414b28e8f23",
+  "tests/GuiProbe/BoundedPointerSelection.cs": "d999c832b603d243a48a04991b41e726f49d7e836ef3cfe6814bc3612912e5bf",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "a455b713a73bf2af0295b44bcb519e4dd9879a8f69a5416a55a2daa381b082d9",
+  "tests/codeView.Tests/Performance/BoundedPointerSelectionTests.cs": "c0ac92425405b63ba0228a102b175c81a3f7d2255110b9d57921255186427a25",
+  "artifacts/line-selection-20261106/LineSelection.app/Contents/MacOS/codeView.dll": "3174d2723afbf342121c3bf3a7a4fd8afdc7ae99b424709f9e1e04cab798820a",
+  "artifacts/line-selection-20261106/source.cs": "224fd145fc5e2bdfcade46dd9ce354293639ddf0396539217f5ea8d3a616b08a",
+  "finalAfterEmptyLineTimerReview": {
+    "tests/GuiProbe/BoundedPointerSelection.cs": "3d6bb8f7d95c4633989329e373e11dc6178bef299a9d76183327c9ee98b44c66",
+    "tests/codeView.Tests/Performance/BoundedPointerSelectionTests.cs": "e88b6d011f3ab3a58db26a7b842400012e0f65daaad0ba25e4965796aa561d4a",
+    "artifacts/line-selection-20261106/final-build/codeView.dll": "ee70de007b8f808815ba103e4f73ce21afe27dbff1c5c371c9a394dff53634ff"
+  }
+}

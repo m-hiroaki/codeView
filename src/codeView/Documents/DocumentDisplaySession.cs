@@ -31,6 +31,7 @@ internal sealed class DocumentDisplaySession : IDisposable
     public long Anchor { get { VerifyAccess(); return _anchor; } }
     public long Caret { get { VerifyAccess(); return _caret; } }
     public TextPosition Position { get { VerifyAccess(); return PositionAt(_caret); } }
+    public TextPosition AnchorPosition { get { VerifyAccess(); return PositionAt(_anchor); } }
     public long SelectionStart { get { VerifyAccess(); return Math.Min(_anchor, _caret); } }
     public long SelectionLength { get { VerifyAccess(); return Math.Abs(_anchor - _caret); } }
 
@@ -55,6 +56,24 @@ internal sealed class DocumentDisplaySession : IDisposable
     }
 
     public void SelectAll() => Select(0, Length);
+
+    public void SelectLines(long anchorLine, long caretLine)
+    {
+        VerifyAccess();
+        ArgumentOutOfRangeException.ThrowIfLessThan(anchorLine, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(anchorLine, _source!.LineCount);
+        ArgumentOutOfRangeException.ThrowIfLessThan(caretLine, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(caretLine, _source.LineCount);
+        var anchor = _source.GetLineByNumber(checked((int)anchorLine));
+        var caret = _source.GetLineByNumber(checked((int)caretLine));
+        // A line selection includes its original delimiter, even if the display slice
+        // contains only the middle of that line. The final empty line selects nothing.
+        // DocumentLine boundaries already preserve CRLF and scalar boundaries. Avoid
+        // re-reading distant rope leaves merely to normalize these known endpoints.
+        _anchor = anchorLine <= caretLine ? anchor.Offset : anchor.Offset + anchor.TotalLength;
+        _caret = anchorLine <= caretLine ? caret.Offset + caret.TotalLength : caret.Offset;
+        _preferredColumn = null;
+    }
 
     public void MoveToPosition(TextPosition position, bool extendSelection = false)
     {
