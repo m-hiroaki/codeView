@@ -82,6 +82,8 @@ flowchart LR
   - [x] **P0-04-01：記録テンプレートとマネージド診断の取得・負荷を確認する**（2026-11-06）。macOSの一時ホストで既存50 MiBコア試験を8実行/80操作し、通常とGC/Counterを比較。4トレースの欠落0・各20マーカー・停止対応を確認し、GC区間、LOHサンプル/保持、Counter 106行を保存した。[テンプレート・手順](diagnostic-measurements.md)、[結果・ソース・ハッシュ・限界](validation-results/2026-11-06-eventpipe/README.md)。フレーム/物理I/O・Windows側の診断・LOH生成元等はP0-04に残す。製品の構成/APIは変更しない。
   - [x] **P0-04-02：API読取量とプロセスI/Oの取得可否・負荷を確認する**（2026-11-06）。テスト専用ラッパーで検証/消費のAPI bytesを分け、macOSのdiskioとWindowsのtransfer bytesを区別する。macOSでUTF-8/CP932各50 MiBを12実行/120読取、C対照で正のカウンターとWarmの0を確認。通常.NET 677件/Python 47件成功。`0c0d200`の[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42176021163)で追加21ケースすべて成功（macOS .NET677/Python47、Windows .NET674+既存3スキップ/Python27+既存20スキップ）。[手順](io-measurements.md)、[証跡・未実施](validation-results/2026-11-06-io-accounting/README.md)。ファイル別物理I/O・Cold・Windows専用機の計測負荷・GUI性能はP0-04に残す。
 
+  - [ ] **P0-04-03：WindowsでEventPipe/Counterの取得と負荷比較を確認する**。固定版ツールと一時ホストによる明示CIを追加し、50 MiB Warmを通常/収集で比較する。入力/ビルド/操作マーカー/欠落/GC対応/Counterを機械検証し、原記録と環境・限界を保存する。[手順](diagnostic-measurements.md#windowsの取得確認)。専用基準機・GUI・物理I/Oの受入は含めない。
+
 - [x] **P0-05：機能用の小さな固定データを用意する**
   依存：P0-01。完了条件：詳細設計08の期待値、文字コード、不正バイト、リンク、C#基本宣言、更新・権限失敗のデータを再現可能に作れる。
   完了：2026-11-06。9109780の[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42166897023)で30ファイルの製品読取/文書/検索照合と、実リンク6件・循環・読取拒否/解除の生成を確認。macOSは.NET 656件/Python 37件成功、Windowsは.NET 653件成功/3件の既存Darwin専用スキップ、Python 17件成功/20件の既存POSIX専用スキップ。新規固定データ試験は両OSで成功。[生成手順](functional-fixtures.md)、[期待値・ハッシュ・環境・失敗からの是正証跡](validation-results/2026-11-06-functional-fixtures/README.md)。C#候補の正解データを探索機能の実装受入とは扱わず、GUI・大容量・性能・G0以降のゲートは未完了を維持する。

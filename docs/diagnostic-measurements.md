@@ -11,7 +11,7 @@ P0-04用。[記録テンプレート](measurement-record.template.json)へ、ビ
 - [dotnet-trace](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-trace)・[dotnet-counters](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-counters) 10.0.750501。
 - 生成済み50 MiBのUTF-8本文。今回の入力はP0-06、seed 20261106。
 
-以下はmacOSで実行確認した手順。Windowsの診断ツール・GUI・カーネルI/Oとの接続は別途確認が必要。コマンドはリポジトリのルートで実行する。ツールはartifacts配下だけへ導入し、グローバルツールや通常テストのmanifestへ追加しない。
+以下はmacOSで実行確認した手順。Windowsの収集確認は後述の専用ワークフローで行い、GUI・カーネルI/Oとの接続は別途確認する。コマンドはリポジトリのルートで実行する。ツールはartifacts配下だけへ導入し、グローバルツールや通常テストのmanifestへ追加しない。
 
 ```sh
 mkdir -p artifacts/diagnostics
@@ -68,3 +68,17 @@ dotnet artifacts/diagnostics/reader/TraceSummary.dll artifacts/diagnostics/new-r
 元のnettrace、Counter CSV、各コアJSON、解析結果、コマンド・ハッシュを保存する。Counter CSVの時刻は今回JSTで、トレース内の相対ミリ秒とは別の軸である。GUIとの相関はUI側の時刻/イベント接続まで確認してから判断する。
 
 計測負荷は計測なしと同じ入力・同じ回数の別プロセスで比較する。コアのCPU/時間/GC/割当/footprintと、外部ツールの起動終了を含むコマンド全体時間を分ける。今回の比較から、別機材・別処理・WindowsやGUIの負荷を推定しない。フレーム、物理I/O、Windowsの診断接続、LOH生成元の解析が残るため、P0-04全体は未完了を維持する。
+
+## Windowsの取得確認
+
+[Diagnostic acquisition](../.github/workflows/diagnostics.yml)は通常試験から独立した明示収集用ワークフローである。ActionsのRun workflow、または収集器/その試験/ワークフロー変更のmainへのpushで実行する。`contents: read`だけで、ホスト型windows-2025上にseed 20261106の50 MiB UTF-8を生成・検証し、同じ一時ホストと解析器を使用する。SDKはglobal.json、ツールは10.0.750501、TraceEventは3.1.23である。製品/試験のプロジェクトや依存を追加せず、製品公開APIも変更しない。
+
+収集器`tools/measure_diagnostics.py`は、通常3回・gc-verbose 3回・gc-collect/counters各1回、各10操作を順次実行する。両OSの実行ファイル名、空白を含むパス、UTF-8 BOM付きJSON/CSVを扱い、既存結果の上書きを拒否する。入力の50 MiB、操作数、製品コミット、Warm条件、入力ハッシュ不変、ツール/ホスト終了コード、トレースの欠落/GC対応/20マーカー、CounterのGC行を検証する。既存のコア予算違反を取得成功へ変換しない。失敗した試行のログと収集済みJSONも保存し、異常終了する。
+
+手元でホスト/ツールの準備後に実行する例（commitは対象ビルドの完全なSHAに置換する）：
+
+```sh
+python3 tools/measure_diagnostics.py --input /private/tmp/codeview-perf-v2-20261106/text50-utf-8/group-00000/source-0000000.cs --host artifacts/diagnostics/host/CoreHost.dll --reader artifacts/diagnostics/reader/TraceSummary.dll --tools artifacts/diagnostics-tools --output artifacts/diagnostics/new-acquisition --commit 68935b452ede504cb39924eb13c17a9f597f2dc7
+```
+
+Windows CIではPowerShellから同じ引数を渡し、`--commit`に`$env:GITHUB_SHA`を使用する。取得ZIPは14日保管する。必要な環境・manifest・全操作JSON・CSV・解析JSON・原nettrace・各ログ・SHA-256は期限前に別途保存する。Windowsのメモリ指標はPrivateMemorySize64、macOSはphys_footprintなので、異なる指標を同じ絶対値として比較しない。収集成功はホスト型CIでの取得可否の確認であり、専用基準機・Cold・表示/入力・実機性能の合格ではない。

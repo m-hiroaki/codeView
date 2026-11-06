@@ -1,0 +1,93 @@
+name: Diagnostic acquisition
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/diagnostics.yml
+      - tools/measure_diagnostics.py
+      - tools/test_measure_diagnostics.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: diagnostics-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire:
+    name: EventPipe (Windows)
+    runs-on: windows-2025
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Record environment
+        run: |
+          New-Item -ItemType Directory -Force artifacts/diagnostics | Out-Null
+          "Commit: $env:GITHUB_SHA" | Out-File artifacts/diagnostics/environment.txt
+          dotnet --info | Out-File artifacts/diagnostics/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, TotalVisibleMemorySize | Format-List | Out-File artifacts/diagnostics/environment.txt -Append
+          Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | Format-List | Out-File artifacts/diagnostics/environment.txt -Append
+          "Hosted runner; storage/display/offline acceptance unknown; not a reference PC." | Out-File artifacts/diagnostics/environment.txt -Append
+      - name: Prepare fixture
+        run: |
+          python tools/generate_fixture.py artifacts/diagnostic-input --profile text50 --encoding utf-8 --seed 20261106
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/generate_fixture.py artifacts/diagnostic-input --verify
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item artifacts/diagnostic-input.manifest.json artifacts/diagnostics/input.manifest.json
+      - name: Build temporary hosts
+        run: |
+          dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item docs/validation-results/2026-11-06-eventpipe/CoreHost.cs.txt artifacts/diagnostics/CoreHost.cs
+          Copy-Item docs/validation-results/2026-11-06-eventpipe/TraceSummary.cs.txt artifacts/diagnostics/TraceSummary.cs
+          dotnet build artifacts/diagnostics/CoreHost.cs -c Release --output artifacts/diagnostics/host -p:CodeViewPerformanceProbe=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build artifacts/diagnostics/TraceSummary.cs -c Release --output artifacts/diagnostics/reader
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install fixed diagnostic tools
+        run: |
+          dotnet tool install dotnet-trace --tool-path artifacts/diagnostics-tools --version 10.0.750501
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet tool install dotnet-counters --tool-path artifacts/diagnostics-tools --version 10.0.750501
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & artifacts/diagnostics-tools/dotnet-trace.exe --version | Out-File artifacts/diagnostics/tools.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & artifacts/diagnostics-tools/dotnet-counters.exe --version | Out-File artifacts/diagnostics/tools.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Validate acquisition
+        run: |
+          python -m unittest discover -s tools -p test_measure_diagnostics.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/measure_diagnostics.py --input artifacts/diagnostic-input/group-00000/source-0000000.cs --host artifacts/diagnostics/host/CoreHost.dll --reader artifacts/diagnostics/reader/TraceSummary.dll --tools artifacts/diagnostics-tools --output artifacts/diagnostics/windows-acquisition --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: diagnostic-windows
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/diagnostics/environment.txt
+            artifacts/diagnostics/tools.txt
+            artifacts/diagnostics/input.manifest.json
+            artifacts/diagnostics/windows-acquisition/

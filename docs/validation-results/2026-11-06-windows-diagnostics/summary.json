@@ -1,0 +1,16 @@
+{
+  "macos": {
+    "sourceCommit": "68935b452ede504cb39924eb13c17a9f597f2dc7",
+    "operations": 80,
+    "traces": 4,
+    "allValidated": true,
+    "compressedReportSha256": "2a1f0bb68d68fbb8633ba810cc030f6d6af33788b679ca6839a36f4c5387f9f0",
+    "collectorSourceSha256": "61bc5b8dfe45c2699a35a837e53fb6a96a2c8f24a65633baaff9aadd79d7ae15"
+  },
+  "windows": "pending",
+  "limits": [
+    "Hosted CI acquisition, not reference PC product performance",
+    "No GUI, physical I/O or LOH allocation stacks",
+    "Initial local run failed before child launch on Python 3.9 hashlib.file_digest; replaced with streaming SHA-256 and added empty/multi-block test; final eight processes rerun"
+  ]
+}

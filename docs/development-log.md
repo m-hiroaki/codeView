@@ -1,5 +1,10 @@
 # codeView 実装・検証記録
 
+## 2026-11-06：通常Releaseの実GUI受入はロックで未実施
+
+- P1-07の読取専用操作を確認するため、`68935b4`の通常Release（probe/AOT/trim無効）を警告0・エラー0でビルドし、artifacts/gui-readonly-20261106へ専用.appと小さなUTF-8/空/バイナリ/ドロップ用データ、入力/製品DLLのSHA-256を用意した。
+- 既存の検証アプリはCUAで前面化・画面取得できたが、新しい通常版のgetAppは「The Mac is locked and automatic unlock could not unlock it」で停止した。入力/貼付/Undo/ドロップの実操作は実行しておらず、P1-07のチェックは付けない。ロックを迂回する操作や設定変更は行わない。表示状態や旧試作版の観測を今回の通常版の受入根拠にしない。
+
 ## 2026-11-06：P0-03のSDK/UI/試験ランナー確認を完了
 
 - .NET公式サポート表で現在のLTS系列が.NET 10であることを確認。global.jsonの10.0.401/latestPatch、Avalonia 12.1.3、Microsoft.NET.Test.Sdk 17.14.1/NUnit 4.1.0/Adapter 4.5.0と依存ロックを照合した。SDK/UI公式ソースと固定版NuGet nuspecのMIT表記を記録した。
