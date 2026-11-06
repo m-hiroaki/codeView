@@ -1,0 +1,512 @@
+{
+  "commit": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de",
+  "normal": {
+    "test-results-windows-2025": {
+      "counters": {
+        "total": "698",
+        "executed": "695",
+        "passed": "695",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "new_tests": [
+        {
+          "executionId": "fea6933d-184b-4f90-9e86-d0df7003d856",
+          "testId": "d28facd9-1245-a21b-6432-8352d37b8617",
+          "testName": "UiFailureNotificationCannotBypassActualIoShutdown(False)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0073850",
+          "startTime": "2026-11-06T09:05:00.5234256+00:00",
+          "endTime": "2026-11-06T09:05:00.5308099+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "fea6933d-184b-4f90-9e86-d0df7003d856",
+          "className": "CodeView.Tests.Presentation.ShutdownIntegrationTests"
+        },
+        {
+          "executionId": "bae088d0-99a8-4df9-873a-ae0540c108ad",
+          "testId": "1502d738-1512-9ac0-b602-8de63903b678",
+          "testName": "FailedActionReportsOnceIncludingUnexpectedCancellation(False)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0004440",
+          "startTime": "2026-11-06T09:05:00.6372524+00:00",
+          "endTime": "2026-11-06T09:05:00.6376960+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "bae088d0-99a8-4df9-873a-ae0540c108ad",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "e4226d61-1bed-4265-9f02-7ae820a3fa3a",
+          "testId": "6c413791-4bd9-3bfb-06cd-a671e694e374",
+          "testName": "UiFailureNotificationCannotBypassActualIoShutdown(True)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0036620",
+          "startTime": "2026-11-06T09:05:00.5308415+00:00",
+          "endTime": "2026-11-06T09:05:00.5345031+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "e4226d61-1bed-4265-9f02-7ae820a3fa3a",
+          "className": "CodeView.Tests.Presentation.ShutdownIntegrationTests"
+        },
+        {
+          "executionId": "e7a6ac47-3cba-4b76-95dd-a67ab2815acc",
+          "testId": "29244f79-b08c-b751-db4d-a5cf8aaecb66",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(1)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0002110",
+          "startTime": "2026-11-06T09:05:00.6386193+00:00",
+          "endTime": "2026-11-06T09:05:00.6388304+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "e7a6ac47-3cba-4b76-95dd-a67ab2815acc",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "45d00fd8-9877-4dff-9352-5d6deb09bccc",
+          "testId": "5dbae6a9-7e14-3e2d-516e-575994d65695",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(2)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0000180",
+          "startTime": "2026-11-06T09:05:00.6388654+00:00",
+          "endTime": "2026-11-06T09:05:00.6388838+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "45d00fd8-9877-4dff-9352-5d6deb09bccc",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "f705e5e9-68fc-4b4f-89e1-de586a3e2da5",
+          "testId": "baf38c05-4d5c-acf1-5e18-dd7517c56221",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(0)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0005310",
+          "startTime": "2026-11-06T09:05:00.6380561+00:00",
+          "endTime": "2026-11-06T09:05:00.6385869+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "f705e5e9-68fc-4b4f-89e1-de586a3e2da5",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "a762a78d-e6ad-4d92-a228-d92816208fce",
+          "testId": "2969a96b-cbeb-3bb3-64fc-b6a74f4d935f",
+          "testName": "CloseFailureIsNotSilentlyConvertedIntoSuccessfulShutdown",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0006410",
+          "startTime": "2026-11-06T09:05:00.6365558+00:00",
+          "endTime": "2026-11-06T09:05:00.6371969+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "a762a78d-e6ad-4d92-a228-d92816208fce",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "f75446fb-f5ab-4fed-98fe-58fc90fa2e27",
+          "testId": "a3156923-1f2b-03e7-2e89-745549c54472",
+          "testName": "SuccessfulActionDoesNotReportFailure",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0005740",
+          "startTime": "2026-11-06T09:05:00.6388966+00:00",
+          "endTime": "2026-11-06T09:05:00.6394706+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "f75446fb-f5ab-4fed-98fe-58fc90fa2e27",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "bf9f1ef6-50a5-48ac-9e41-7382712c3fdb",
+          "testId": "3b2d64a9-a330-2e8d-7b9e-f09608d49692",
+          "testName": "FailedActionReportsOnceIncludingUnexpectedCancellation(True)",
+          "computerName": "runnervmhao91",
+          "duration": "00:00:00.0002420",
+          "startTime": "2026-11-06T09:05:00.6377543+00:00",
+          "endTime": "2026-11-06T09:05:00.6379961+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "bf9f1ef6-50a5-48ac-9e41-7382712c3fdb",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        }
+      ],
+      "trx_sha256": "f1f03d02b35423f52f8273613048984a2ceacb89c94d944828f3bfc9b11e92a0"
+    },
+    "test-results-macos-15": {
+      "counters": {
+        "total": "698",
+        "executed": "698",
+        "passed": "698",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "new_tests": [
+        {
+          "executionId": "17f65ec8-3245-4983-8d02-3968e443997f",
+          "testId": "2969a96b-cbeb-3bb3-64fc-b6a74f4d935f",
+          "testName": "CloseFailureIsNotSilentlyConvertedIntoSuccessfulShutdown",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0003830",
+          "startTime": "2026-11-06T09:04:11.4330120+00:00",
+          "endTime": "2026-11-06T09:04:11.4333950+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "17f65ec8-3245-4983-8d02-3968e443997f",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "91e4bbbb-d7b5-4fda-a024-915bf313b3dc",
+          "testId": "29244f79-b08c-b751-db4d-a5cf8aaecb66",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(1)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0001060",
+          "startTime": "2026-11-06T09:04:11.4356120+00:00",
+          "endTime": "2026-11-06T09:04:11.4357180+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "91e4bbbb-d7b5-4fda-a024-915bf313b3dc",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "c453023c-3cab-4d44-80a6-f5e6b448cf66",
+          "testId": "a3156923-1f2b-03e7-2e89-745549c54472",
+          "testName": "SuccessfulActionDoesNotReportFailure",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0001050",
+          "startTime": "2026-11-06T09:04:11.4359730+00:00",
+          "endTime": "2026-11-06T09:04:11.4360780+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "c453023c-3cab-4d44-80a6-f5e6b448cf66",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "4dbbd2ea-ef90-4a02-b555-9453a20ea9e2",
+          "testId": "6c413791-4bd9-3bfb-06cd-a671e694e374",
+          "testName": "UiFailureNotificationCannotBypassActualIoShutdown(True)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0013350",
+          "startTime": "2026-11-06T09:04:11.4011200+00:00",
+          "endTime": "2026-11-06T09:04:11.4024540+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "4dbbd2ea-ef90-4a02-b555-9453a20ea9e2",
+          "className": "CodeView.Tests.Presentation.ShutdownIntegrationTests"
+        },
+        {
+          "executionId": "cdfda6e6-b317-417b-8122-2bd370fb6398",
+          "testId": "3b2d64a9-a330-2e8d-7b9e-f09608d49692",
+          "testName": "FailedActionReportsOnceIncludingUnexpectedCancellation(True)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0000960",
+          "startTime": "2026-11-06T09:04:11.4338190+00:00",
+          "endTime": "2026-11-06T09:04:11.4339140+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "cdfda6e6-b317-417b-8122-2bd370fb6398",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "82088201-13b2-4c2e-a01b-49184d9e3bcf",
+          "testId": "d28facd9-1245-a21b-6432-8352d37b8617",
+          "testName": "UiFailureNotificationCannotBypassActualIoShutdown(False)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0026080",
+          "startTime": "2026-11-06T09:04:11.3984630+00:00",
+          "endTime": "2026-11-06T09:04:11.4010710+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "82088201-13b2-4c2e-a01b-49184d9e3bcf",
+          "className": "CodeView.Tests.Presentation.ShutdownIntegrationTests"
+        },
+        {
+          "executionId": "f6b1333e-3de3-43b8-8659-915a2750a980",
+          "testId": "baf38c05-4d5c-acf1-5e18-dd7517c56221",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(0)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0002460",
+          "startTime": "2026-11-06T09:04:11.4352240+00:00",
+          "endTime": "2026-11-06T09:04:11.4354710+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "f6b1333e-3de3-43b8-8659-915a2750a980",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "3b5d0aee-51a0-4487-8c75-5b4993927e1e",
+          "testId": "1502d738-1512-9ac0-b602-8de63903b678",
+          "testName": "FailedActionReportsOnceIncludingUnexpectedCancellation(False)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0001320",
+          "startTime": "2026-11-06T09:04:11.4335970+00:00",
+          "endTime": "2026-11-06T09:04:11.4337290+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "3b5d0aee-51a0-4487-8c75-5b4993927e1e",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        },
+        {
+          "executionId": "f7b36540-627d-41ce-a7cf-40bdfbc186ea",
+          "testId": "5dbae6a9-7e14-3e2d-516e-575994d65695",
+          "testName": "FailureIsRecordedBeforeNotificationAndCloseIsNeverSkipped(2)",
+          "computerName": "iad20-gt1023-32324ef8-c00c-431b-8e16-ca8a907fb7c9-5A09742448CE",
+          "duration": "00:00:00.0000160",
+          "startTime": "2026-11-06T09:04:11.4358140+00:00",
+          "endTime": "2026-11-06T09:04:11.4358310+00:00",
+          "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+          "outcome": "Passed",
+          "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+          "relativeResultsDirectory": "f7b36540-627d-41ce-a7cf-40bdfbc186ea",
+          "className": "CodeView.Tests.Presentation.UiFailureTests"
+        }
+      ],
+      "trx_sha256": "269bd71924da15cb42787a87949b71e49aa59491b31c31fefbb5e4e847062beb"
+    }
+  },
+  "artifacts": [
+    {
+      "id": 13490013689,
+      "name": "test-results-windows-2025",
+      "size_in_bytes": 163470,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490013689",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490013689/zip",
+      "expired": false,
+      "created_at": "2026-11-06T09:05:21Z",
+      "expires_at": "2026-11-20T09:05:20Z",
+      "updated_at": "2026-11-06T09:05:21Z",
+      "digest": "sha256:e1a75556032c874247f187f3b22bfb6f0fbd08509b8c18f641c7685670b32bd7",
+      "workflow_run": {
+        "id": 42192151448,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de"
+      }
+    },
+    {
+      "id": 13489699926,
+      "name": "test-results-macos-15",
+      "size_in_bytes": 160892,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13489699926",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13489699926/zip",
+      "expired": false,
+      "created_at": "2026-11-06T09:04:18Z",
+      "expires_at": "2026-11-20T09:04:16Z",
+      "updated_at": "2026-11-06T09:04:18Z",
+      "digest": "sha256:902bb035f24350713ca6e0a638096b06af685c7905061e7730b547aada698123",
+      "workflow_run": {
+        "id": 42192151448,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de"
+      }
+    },
+    {
+      "id": 13490133336,
+      "name": "native-gui-windows",
+      "size_in_bytes": 79469,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490133336",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490133336/zip",
+      "expired": false,
+      "created_at": "2026-11-06T09:05:51Z",
+      "expires_at": "2026-11-20T09:05:50Z",
+      "updated_at": "2026-11-06T09:05:51Z",
+      "digest": "sha256:1d1a4992533b4934f68fda9658d1fe81f2373c65e151c8f5e4ec5af93b3a8f5c",
+      "workflow_run": {
+        "id": 42192151438,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de"
+      }
+    },
+    {
+      "id": 13490526261,
+      "name": "windows-aot-publish",
+      "size_in_bytes": 8095,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490526261",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490526261/zip",
+      "expired": false,
+      "created_at": "2026-11-06T09:05:37Z",
+      "expires_at": "2026-11-20T09:05:37Z",
+      "updated_at": "2026-11-06T09:05:37Z",
+      "digest": "sha256:5bd9862f653b99dca6e01756645d7fc36bf5ab576edcb911c43dd772ffa45631",
+      "workflow_run": {
+        "id": 42192151377,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de"
+      }
+    }
+  ],
+  "gui": {
+    "startup_processes": 20,
+    "readonly_processes": 9,
+    "edit_attempts": 216,
+    "empty": {
+      "OpenedMilliseconds": {
+        "median": 999.0481,
+        "max": 1811.2049
+      },
+      "CpuMilliseconds": {
+        "median": 1359.375,
+        "max": 1468.75
+      },
+      "SampledPeakMemory": {
+        "median": 56807424.0,
+        "max": 57565184
+      },
+      "GcPauseTotalMilliseconds": {
+        "median": 0.0,
+        "max": 0
+      }
+    },
+    "file": {
+      "OpenedMilliseconds": {
+        "median": 1002.1538,
+        "max": 1340.3077
+      },
+      "CpuMilliseconds": {
+        "median": 2007.8125,
+        "max": 2203.125
+      },
+      "SampledPeakMemory": {
+        "median": 70703104.0,
+        "max": 74223616
+      },
+      "DocumentAttachmentMilliseconds": {
+        "median": 27.34535,
+        "max": 117.8903
+      },
+      "GcPauseTotalMilliseconds": {
+        "median": 0.0,
+        "max": 0
+      }
+    }
+  },
+  "aot_launch": {
+    "schema": 1,
+    "commit": "a9c9b34cd20e04fb9ae14bef3d6c85647f89b7de",
+    "app": "D:\\a\\codeView\\codeView\\artifacts\\publish\\win-x64\\codeView\\codeView.exe",
+    "input": "D:\\a\\codeView\\codeView\\artifacts\\publish-validation\\起動確認.cs",
+    "input_sha256_before": "CE24690C2917001C77A0D6A0B44E7714FBA8DEFF9456FBE0FDE6A4FC7575D502",
+    "passed": true,
+    "scope": "visible native window and normal close only",
+    "pid": 10024,
+    "window": {
+      "title": "codeView",
+      "width": 1028,
+      "visible": true,
+      "height": 749
+    },
+    "modules": [
+      "ADVAPI32.dll",
+      "apphelp.dll",
+      "av_libGLESv2.dll",
+      "bcrypt.dll",
+      "bcryptPrimitives.dll",
+      "cfgmgr32.dll",
+      "clbcatq.dll",
+      "codeView.exe",
+      "combase.dll",
+      "coremessaging.dll",
+      "CoreUIComponents.dll",
+      "CRYPT32.dll",
+      "CRYPTBASE.DLL",
+      "cryptsp.dll",
+      "d3d10warp.dll",
+      "d3d11.DLL",
+      "d3dcompiler_47.dll",
+      "dataexchange.dll",
+      "dcomp.dll",
+      "directxdatabasehelper.dll",
+      "dwmapi.dll",
+      "dwrite.dll",
+      "dxcore.dll",
+      "dxgi.dll",
+      "FONTSUB.dll",
+      "GDI32.dll",
+      "gdi32full.dll",
+      "icu.dll",
+      "IMM32.DLL",
+      "IPHLPAPI.DLL",
+      "kernel.appcore.dll",
+      "KERNEL32.DLL",
+      "KERNELBASE.dll",
+      "libHarfBuzzSharp.DLL",
+      "libSkiaSharp.DLL",
+      "Microsoft.Internal.WarpPal.dll",
+      "MSCTF.dll",
+      "msvcp_win.dll",
+      "msvcrt.dll",
+      "ncrypt.dll",
+      "NTASN1.dll",
+      "ntdll.dll",
+      "ole32.dll",
+      "OLEAUT32.dll",
+      "powrprof.dll",
+      "rometadata.dll",
+      "RPCRT4.dll",
+      "sechost.dll",
+      "shcore.dll",
+      "shell32.dll",
+      "shlwapi.dll",
+      "textinputframework.dll",
+      "twinapi.appcore.dll",
+      "twinapi.dll",
+      "ucrtbase.dll",
+      "UMPDC.dll",
+      "USER32.dll",
+      "uxtheme.dll",
+      "win32u.dll",
+      "windows.storage.dll",
+      "Windows.UI.dll",
+      "Windows.UI.Immersive.dll",
+      "WinTypes.dll",
+      "WS2_32.dll",
+      "wuceffects.dll",
+      "XmlLite.dll"
+    ],
+    "exit_code": 0,
+    "input_sha256_after": "CE24690C2917001C77A0D6A0B44E7714FBA8DEFF9456FBE0FDE6A4FC7575D502"
+  }
+}

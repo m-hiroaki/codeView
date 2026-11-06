@@ -26,3 +26,5 @@ dotnet test tests/codeView.Tests/codeView.Tests.csproj -c Release --filter 'Full
 追加境界はコマンド操作時と異常時に限る。ファイル読取/検索/本文構築のループ、スクロール/描画/カーソル通知には処理を追加しない。通常GUI回帰で起動/本文接続/スクロール、読取専用操作、正常終了を確認するが、実機CPU/メモリや既存の起動予算未達をこの修正で解決したとは扱わない。
 
 全UIの通知/DispatcherコールバックやOS入力の網羅、両OS実機の異常終了受入はP1-08に残る。通常のファイル読取失敗など期待されるOperationResultを異常終了へ変換する変更ではない。
+
+2026-11-06に追加9ケースの両OS通常試験、Windowsの起動20回/読取専用216操作とAOT実発行・通常起動の回帰が成功した。[実行・原記録・未達条件](validation-results/2026-11-06-ui-failure/README.md)。
