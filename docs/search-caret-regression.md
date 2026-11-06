@@ -9,3 +9,5 @@ RestoreCaretへ確定済みのDocumentMove.Positionを直接渡す。表示通�
 行別ライフサイクル試験も、文末から実際の検索結果Enterを通し、同期RestoreCaret直後の原文Caretを捕捉して、遅延選択とは別に照合する。修正前`d2c8cd8`の両OS CIはsearch-caret-before-deferred-selectionで失敗した。本文/タブ/コピー/終了の従来受入は維持する。
 
 Unicode文脈の追加索引/Controlはこの修正には含めず、2026-11-06に別途承認された追加設計案の実装検証で進める。設定保存や通常UIへの行別採用も行わない。
+
+`f0546ed`で新規3ケースを含む検索移動23件と、通常試験macOS .NET753/Python108・Windows .NET750+既存3スキップ/Python88+既存20スキップが成功した。両OS各9ネイティブプロセス/1,674検証、非空6回/OSの同期Caret照合と終了後解放も成功。[修正前後の原記録と限界](validation-results/2026-11-06-search-caret/README.md)。Windows接続100 msやUnicode視覚未達は解消したことにしない。

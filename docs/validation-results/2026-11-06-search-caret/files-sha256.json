@@ -1,0 +1,18 @@
+{
+  "after-macos.zip": "addf080586992742979b0e928d9791a30a3edf3ae4b5f45cf19894c6476b6c85",
+  "after-windows.zip": "227e360f62c2b3915573322c16913765c711ec37609e42148fb8b4b88b415a9c",
+  "after.trx.gz": "8b97ba59c985c5ff5ce35cab4c21145d84ecca75b5199446b0bbeba0a83cdf51",
+  "before-macos.zip": "bbf4488cb455924f9a2e6f168cdbd8547abe468d421660591faa49668a494faa",
+  "before-source-sha256.json": "59aab8c3d163ab38aa5d4cfb49dfdb6d8f1bb7a8b8fc976d7f98819bb55f0cbd",
+  "before-windows.zip": "576f5f54d5b82fa1d7feb6d3cdc39d717c07790b767425e41bd7e3fe502c1687",
+  "before.trx.gz": "25ddc80f1947ced1d6c496efb9800f776399944094e13bdda73c9d840bb394e6",
+  "ci.json": "a4a4c53e803dc0b35a2f1348db74be2fb04b679df048bc7c4e6128afd2148314",
+  "job-127910067005.log.gz": "6a333f53437e9fc613506b443521e2c5a6d9d740a3a1a85abba25c9dbcde9dbb",
+  "job-127910067544.log.gz": "3ae8e373a80442e8591ab103e1c7ecb76bc8e56caa7f30df9b5e5bb9037db3a5",
+  "source-sha256.json": "62cb639194ba73d391864bd04f2a679720550774a41f864aaa56ab34bc9d5e2d",
+  "summary.json": "126e6309dbc853f364cfcedb2db380976cb0f4757a9994c9e44def4d1b5e4876",
+  "unit-after.log.gz": "a02d80f83b498b4d17ffa709de539dafbe0ec9f290200f7d15ccc79824e1c072",
+  "unit-before.log.gz": "d40aa0bb62e3caa331ee8475824000aa7942cb0feae2c892376450f581d326e9",
+  "unit-full.log.gz": "26f374ba33f9cfdc8d89605e46110cedbe54213bdbf1f1b34c954a384d112660",
+  "unit-full.trx.gz": "e1b0e9da1242326800ccb94b4d8d6e27a6b50cafba178bfd1f0d694b5d0fff0f"
+}

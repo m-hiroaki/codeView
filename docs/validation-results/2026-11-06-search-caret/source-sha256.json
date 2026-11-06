@@ -1,0 +1,7 @@
+{
+  "src/codeView/Presentation/MainWindowViewModel.cs": "63cdabf0a73d772744363964c3528ad87cf05b8f24968333c68cd21cd18325ef",
+  "tests/codeView.Tests/Presentation/SearchResultMoveTests.cs": "9db109c3ebf2f4262fa5809506b159738fb204e4d498c287571d8b5f3385ccaf",
+  "tests/GuiProbe/GuiRowLifecycleChecks.cs": "69fb64636623cc515e74b8afcb43915692b83d046e5c934e3d5e013d40ffa6dc",
+  "tools/check_row_projection.py": "e403cf25b35cf68e2b4aed798c40ea926c56c3da334350cd32baac4e616b5193",
+  "tools/test_row_projection.py": "461c28214ce1075e5a6f683b127c613925a010fcd81f974d1e0f334b5a88309e"
+}

@@ -1,0 +1,47 @@
+{
+  "commit": "f0546edc2bd1e4f40d2cd9056dc937b8ae1f253e",
+  "runs": [
+    {
+      "type": "run",
+      "id": 42223204424,
+      "name": "Row projection GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f0546edc2bd1e4f40d2cd9056dc937b8ae1f253e"
+    },
+    {
+      "type": "run",
+      "id": 42223204130,
+      "name": "Build and test",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f0546edc2bd1e4f40d2cd9056dc937b8ae1f253e"
+    }
+  ],
+  "beforeRun": 42222443691,
+  "beforeCommit": "d2c8cd8992a406eaecf024bfbfea5adb60219d12",
+  "beforeArtifacts": [
+    {
+      "id": 13503588757,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:bbf4488cb455924f9a2e6f168cdbd8547abe468d421660591faa49668a494faa"
+    },
+    {
+      "id": 13503463952,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:576f5f54d5b82fa1d7feb6d3cdc39d717c07790b767425e41bd7e3fe502c1687"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13505080337,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:227e360f62c2b3915573322c16913765c711ec37609e42148fb8b4b88b415a9c"
+    },
+    {
+      "id": 13504766661,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:addf080586992742979b0e928d9791a30a3edf3ae4b5f45cf19894c6476b6c85"
+    }
+  ]
+}

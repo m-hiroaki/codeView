@@ -1,0 +1,1654 @@
+{
+  "windows": {
+    "processes": 9,
+    "checks": 1674,
+    "synchronousSearchCaretChecks": 6,
+    "measurements": [
+      {
+        "fixture": 0,
+        "round": 1,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 258.7135
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.1136
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.564
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3288
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.2829
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 12.6548
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.1342
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.4874
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.5273
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 8.1173
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 8218.75,
+        "AllocatedBytes": 95579064,
+        "GcPauseTotalMilliseconds": 60.214,
+        "GcCollections": [
+          6,
+          5,
+          2
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30167040,
+        "SampledPeakMemory": 127598592
+      },
+      {
+        "fixture": 1,
+        "round": 1,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 33.7905
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 22.5749
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.9636
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.3367
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.308
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.0407
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.3092
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3048
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.0712
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7779
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 5578.125,
+        "AllocatedBytes": 12783416,
+        "GcPauseTotalMilliseconds": 0,
+        "GcCollections": [
+          0,
+          0,
+          0
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30232576,
+        "SampledPeakMemory": 91840512
+      },
+      {
+        "fixture": 2,
+        "round": 1,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 51.9695
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 13.7827
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.7848
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.7882
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.8478
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 7.702
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.7528
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.9842
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.3759
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 7.5776
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 5,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 8171.875,
+        "AllocatedBytes": 65512696,
+        "GcPauseTotalMilliseconds": 39.056,
+        "GcCollections": [
+          3,
+          1,
+          0
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 29978624,
+        "SampledPeakMemory": 110759936
+      },
+      {
+        "fixture": 0,
+        "round": 2,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 68.5873
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.0209
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.5902
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.407
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.5118
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 26.3032
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.1513
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.5451
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.8021
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 14.6071
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 8531.25,
+        "AllocatedBytes": 95313904,
+        "GcPauseTotalMilliseconds": 57.658,
+        "GcCollections": [
+          6,
+          5,
+          2
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30203904,
+        "SampledPeakMemory": 126967808
+      },
+      {
+        "fixture": 1,
+        "round": 2,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 32.1559
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 21.5261
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.2058
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.2028
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3322
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.9892
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.3797
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.2564
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.0431
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.9004
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 5609.375,
+        "AllocatedBytes": 12680408,
+        "GcPauseTotalMilliseconds": 0,
+        "GcCollections": [
+          0,
+          0,
+          0
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30203904,
+        "SampledPeakMemory": 92983296
+      },
+      {
+        "fixture": 2,
+        "round": 2,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 50.6187
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 16.5077
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.7744
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.8381
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.8341
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 9.0811
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.6644
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.0015
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.9524
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 9.2224
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 7156.25,
+        "AllocatedBytes": 65865248,
+        "GcPauseTotalMilliseconds": 50.088,
+        "GcCollections": [
+          4,
+          2,
+          1
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30085120,
+        "SampledPeakMemory": 110977024
+      },
+      {
+        "fixture": 0,
+        "round": 3,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 62.5739
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.8575
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.4594
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3678
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.3012
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 12.9166
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.0337
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.416
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.2989
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 12.1091
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 7312.5,
+        "AllocatedBytes": 95492024,
+        "GcPauseTotalMilliseconds": 60.58,
+        "GcCollections": [
+          6,
+          5,
+          2
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30093312,
+        "SampledPeakMemory": 128077824
+      },
+      {
+        "fixture": 1,
+        "round": 3,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 33.478
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 24.6146
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.287
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.2404
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3562
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.0521
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.3144
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3166
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 2.1158
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7419
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 5312.5,
+        "AllocatedBytes": 12689888,
+        "GcPauseTotalMilliseconds": 0,
+        "GcCollections": [
+          0,
+          0,
+          0
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 30044160,
+        "SampledPeakMemory": 91697152
+      },
+      {
+        "fixture": 2,
+        "round": 3,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 50.4911
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 14.2295
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.7327
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.7805
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.9127
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 7.0509
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.6635
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.9405
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.2633
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 6.3373
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 5,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 7812.5,
+        "AllocatedBytes": 65546304,
+        "GcPauseTotalMilliseconds": 37.041,
+        "GcCollections": [
+          3,
+          1,
+          0
+        ],
+        "MemoryMetric": "PrivateMemorySize64",
+        "MemoryBefore": 29933568,
+        "SampledPeakMemory": 109785088
+      }
+    ]
+  },
+  "macos": {
+    "processes": 9,
+    "checks": 1674,
+    "synchronousSearchCaretChecks": 6,
+    "measurements": [
+      {
+        "fixture": 0,
+        "round": 1,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 51.7665
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7761
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.0573
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 3.1028
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.9955
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 10.2547
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.4372
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 3.9907
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.2257
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 7.8451
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 3909.229,
+        "AllocatedBytes": 81423232,
+        "GcPauseTotalMilliseconds": 61.353,
+        "GcCollections": [
+          11,
+          4,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63473792,
+        "SampledPeakMemory": 149555968
+      },
+      {
+        "fixture": 1,
+        "round": 1,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 17.4783
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 17.9433
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.0423
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.3905
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.8526
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.6753
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.6341
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.5595
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.8777
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.4067
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 2315.206,
+        "AllocatedBytes": 11367088,
+        "GcPauseTotalMilliseconds": 19.233,
+        "GcCollections": [
+          2,
+          1,
+          0
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63457408,
+        "SampledPeakMemory": 128092800
+      },
+      {
+        "fixture": 2,
+        "round": 1,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 24.0401
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 9.393
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.5083
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.1736
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.6496
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 4.6282
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.6978
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.8928
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.832
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 3.5091
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 3104.623,
+        "AllocatedBytes": 53139552,
+        "GcPauseTotalMilliseconds": 43.84,
+        "GcCollections": [
+          8,
+          2,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63277376,
+        "SampledPeakMemory": 137546560
+      },
+      {
+        "fixture": 0,
+        "round": 2,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 33.2951
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.8326
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.334
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.599
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.261
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 7.2982
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.3212
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.0715
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.1971
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 13.4458
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 2865.149,
+        "AllocatedBytes": 81323736,
+        "GcPauseTotalMilliseconds": 54.504,
+        "GcCollections": [
+          11,
+          4,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63539392,
+        "SampledPeakMemory": 155437824
+      },
+      {
+        "fixture": 1,
+        "round": 2,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 13.6114
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 13.8036
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7865
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.6971
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.764
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7597
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.6904
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7209
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.1032
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.4989
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 1995.76,
+        "AllocatedBytes": 11355912,
+        "GcPauseTotalMilliseconds": 14.629,
+        "GcCollections": [
+          2,
+          1,
+          0
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63228032,
+        "SampledPeakMemory": 128322240
+      },
+      {
+        "fixture": 2,
+        "round": 2,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 22.6574
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 7.4569
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.8102
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.685
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.4437
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 4.3467
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.7909
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.5517
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.7454
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 3.3914
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 2247.309,
+        "AllocatedBytes": 52974288,
+        "GcPauseTotalMilliseconds": 39.683,
+        "GcCollections": [
+          8,
+          2,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63211712,
+        "SampledPeakMemory": 139512512
+      },
+      {
+        "fixture": 0,
+        "round": 3,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 55.7093
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.9079
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.1685
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.231
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 2.0161
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 8.273
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 1.1616
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 1.6264
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 2.7204
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 9.9817
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 2980.523,
+        "AllocatedBytes": 81156024,
+        "GcPauseTotalMilliseconds": 75.42,
+        "GcCollections": [
+          11,
+          4,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63441152,
+        "SampledPeakMemory": 153799424
+      },
+      {
+        "fixture": 1,
+        "round": 3,
+        "checks": 184,
+        "searchCaretChecked": false,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 22.9089
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 16.4309
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.7409
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 0.6003
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.6865
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.8594
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.1344
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.8526
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.2059
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 0,
+            "SourceLines": 1,
+            "Milliseconds": 0.6641
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 2116.997,
+        "AllocatedBytes": 11297440,
+        "GcPauseTotalMilliseconds": 16.268,
+        "GcCollections": [
+          2,
+          1,
+          0
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63244544,
+        "SampledPeakMemory": 127158912
+      },
+      {
+        "fixture": 2,
+        "round": 3,
+        "checks": 187,
+        "searchCaretChecked": true,
+        "attachments": [
+          {
+            "Generation": 2,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 41.0201
+          },
+          {
+            "Generation": 4,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 8.925
+          },
+          {
+            "Generation": 5,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.4844
+          },
+          {
+            "Generation": 6,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.5457
+          },
+          {
+            "Generation": 7,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.0187
+          },
+          {
+            "Generation": 8,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 6.2205
+          },
+          {
+            "Generation": 9,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 2.0364
+          },
+          {
+            "Generation": 10,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 1.291
+          },
+          {
+            "Generation": 11,
+            "SourceChars": 1049976,
+            "SourceLines": 103,
+            "Milliseconds": 0.9034
+          },
+          {
+            "Generation": 13,
+            "SourceChars": 1250,
+            "SourceLines": 151,
+            "Milliseconds": 4.9526
+          }
+        ],
+        "shutdown": {
+          "Passed": true,
+          "HistoryCleared": true,
+          "ViewHasDocument": false,
+          "Tabs": 0,
+          "PendingViewCompleted": true,
+          "PendingCopyCompleted": true,
+          "SurvivingWeakHandles": 10,
+          "UnreleasedHandles": 0,
+          "ActiveLeases": 0,
+          "Scope": "After real ViewModel.Stop and StopAndWait, before final native window close."
+        },
+        "CpuMilliseconds": 3046.414,
+        "AllocatedBytes": 53053592,
+        "GcPauseTotalMilliseconds": 58.499,
+        "GcCollections": [
+          8,
+          2,
+          1
+        ],
+        "MemoryMetric": "macOS.phys_footprint",
+        "MemoryBefore": 63391936,
+        "SampledPeakMemory": 136547008
+      }
+    ]
+  }
+}
