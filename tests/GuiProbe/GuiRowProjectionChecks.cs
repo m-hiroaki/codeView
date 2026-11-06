@@ -40,7 +40,8 @@ internal sealed partial class GuiPerformanceProbe
             SendKey(OperatingSystem.IsMacOS() ? Key.Up : Key.Home, documentModifier);
             Check("routed-document-start", source.Caret == 0);
             SendKey(Key.Right, KeyModifiers.Shift);
-            Check("routed-shift-selection", source.SelectionLength == Math.Min(1, source.Length));
+            var firstScalarLength = body.Length > 1 && char.IsHighSurrogate(body[0]) && char.IsLowSurrogate(body[1]) ? 2 : Math.Min(1, body.Length);
+            Check("routed-shift-selection", source.SelectionLength == firstScalarLength);
             SendKey(Key.A, primary);
             Check("routed-select-all-original", source.SelectionLength == source.Length);
             await RowFrame(ct);
@@ -84,6 +85,7 @@ internal sealed partial class GuiPerformanceProbe
 
             var stale = _interactiveRows!;
             source.SetViewport(original.LineCount, 0);
+            _editor.Document = BuildRowDocument(reveal: false); // Replace even for the single empty row at unchanged coordinates.
             RenderInteractive();
             var priorCaret = source.Caret;
             Check("stale-display-rejected", !source.TryMoveFromRows(stale, 0) && source.Caret == priorCaret);
