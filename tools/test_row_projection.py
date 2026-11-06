@@ -33,7 +33,7 @@ class RowProjectionEvidenceTests(unittest.TestCase):
                        'ScrollSynchronousMilliseconds': [1.] * 64, 'AnimationTickIntervalsMilliseconds': [16.] * 64,
                        'RowProjectionSamples': [{'DisplayChars': 4, 'DisplayRows': 2}] * 64, 'PhysicalPaint': 'not-measured'}
         self.report['RowProjectionChecks']['Lifecycle'] = {'Checks': sorted(LIFECYCLE_CHECKS | {
-            'real-search-committed-primary-hit', 'real-search-enter-selects-original'}), 'SearchOutcome': 'hit', 'WorkloadStarts': 1}
+            'real-search-committed-primary-hit', 'real-search-enter-selects-original', 'search-caret-before-deferred-selection'}), 'SearchOutcome': 'hit', 'WorkloadStarts': 1}
         self.shutdown = {'Passed': True, 'HistoryCleared': True, 'ViewHasDocument': False, 'Tabs': 0,
                          'PendingViewCompleted': True, 'PendingCopyCompleted': True, 'SurvivingWeakHandles': 3,
                          'UnreleasedHandles': 0, 'ActiveLeases': 0}

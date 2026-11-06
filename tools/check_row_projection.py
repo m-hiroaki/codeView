@@ -47,7 +47,7 @@ def validate_report(report, expected, commit, expected_os):
         raise ValueError("Wrong build/OS/mode or interrupted/failed native run")
     checks = report.get("RowProjectionChecks") or {}
     lifecycle = checks.get("Lifecycle") or {}
-    required_lifecycle = LIFECYCLE_CHECKS | ({"real-search-committed-primary-hit", "real-search-enter-selects-original"}
+    required_lifecycle = LIFECYCLE_CHECKS | ({"real-search-committed-primary-hit", "real-search-enter-selects-original", "search-caret-before-deferred-selection"}
                                           if expected["characters"] else {"empty-search-has-no-fabricated-hit"})
     if (set(lifecycle.get("Checks", [])) != required_lifecycle or len(lifecycle.get("Checks", [])) != len(required_lifecycle)
             or lifecycle.get("SearchOutcome") != ("hit" if expected["characters"] else "empty") or lifecycle.get("WorkloadStarts") != 1):

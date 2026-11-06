@@ -113,11 +113,19 @@ internal sealed partial class GuiPerformanceProbe
             var results = _window.FindControl<ListBox>("SearchResultsList") ?? throw new InvalidOperationException("No search results control.");
             results.SelectedItem = selected;
             var enter = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter };
-            _scriptedRowKey = enter;
-            try { results.RaiseEvent(enter); }
-            finally { _scriptedRowKey = null; }
-            await _viewModel.PendingWork.WaitAsync(ct);
-            await RowFrame(ct);
+            long? caretAtRestore = null;
+            void Restored(int line, int column) => caretAtRestore = _displaySession!.Caret;
+            _viewModel.RestoreCaret += Restored;
+            try
+            {
+                _scriptedRowKey = enter;
+                try { results.RaiseEvent(enter); }
+                finally { _scriptedRowKey = null; }
+                await _viewModel.PendingWork.WaitAsync(ct);
+                Check("search-caret-before-deferred-selection", caretAtRestore == 0);
+                await RowFrame(ct);
+            }
+            finally { _viewModel.RestoreCaret -= Restored; }
             Check("real-search-enter-selects-original", enter.Handled && _displaySession!.SelectionStart == 0 &&
                 _displaySession.SelectionLength == scalarLength && _displaySession.Caret == 0 && _interactiveRows!.TryDisplayPosition(0, out _));
         }
