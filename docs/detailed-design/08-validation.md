@@ -17,6 +17,8 @@
 
 [記録テンプレート](../measurement-record.template.json)と[計測手順](../diagnostic-measurements.md)を使い、未取得値はnull/理由として残す。EventPipeとCounterの試験用ホストの結果を、製品のGUI性能やカーネルI/Oの結果と混同しない。[I/O計測](../io-measurements.md)ではAPI読取量とプロセス全体のOSカウンターを別項目にし、Warmの0・取得失敗・ファイル別物理I/Oの未取得を区別する。
 
+割当の生成元は[ETLXによるサンプルスタックの確認](../validation-results/2026-11-06-allocation-origins/README.md)のように、原トレースの件数/重みとの一致、欠落/未解決、操作前後を残す。AllocationTickのサンプル数を全割当数へ読み替えず、計測ホストのWarm読取から生じたLOHを本文構築へ誤帰属しない。
+
 通常試験は[GitHub Actionsの両OS実行](../build.md#github-actionsでの通常試験)も用意する。ホステッドランナーでのビルド・単体/I/O結合の証拠と、固定基準機/実機GUI/配布物の受入を区別する。SDK・OS/アーキテクチャ・実行コミット・TRXを保存し、失敗/スキップ/取消を成功扱いにしない。
 
 ## 2. 機能別の単体・結合テスト台帳

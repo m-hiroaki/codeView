@@ -1,0 +1,16 @@
+[Opening a log file of size 0 MB.]
+There were 1 address that did not resolve to a module or method in process dotnet (13908)
+1 distinct processes.
+Totals
+    32,771 events.
+    26,276 events with stack traces.
+         0 events with code addresses in them.
+   329,264 total code address instances. (stacks or other)
+       695 unique code addresses. 
+     3,985 unique stacks.
+       502 unique managed methods parsed.
+     5,228 dynamic methods.
+[Conversion complete 32,771 events.  Conversion took 0 sec.]
+A total of 694 symbolic addresses were looked up.
+Addresses outside any module: 1 out of 694 (0.1%)
+Done with symbolic lookup.

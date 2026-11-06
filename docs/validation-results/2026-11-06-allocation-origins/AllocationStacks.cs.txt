@@ -1,0 +1,82 @@
+#:package Microsoft.Diagnostics.Tracing.TraceEvent@3.1.23
+#:property PublishAot=false
+using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Etlx;
+using System.Text.Json;
+using System.Security.Cryptography;
+
+if (args.Length != 2 || !File.Exists(args[0]) || Directory.Exists(args[1])) return 2;
+Directory.CreateDirectory(args[1]);
+using var conversionLog = File.CreateText(Path.Combine(args[1], "conversion.log"));
+var etlx = TraceLog.CreateFromEventPipeDataFile(args[0], Path.Combine(args[1], "trace.etlx"),
+    new TraceLogOptions { LocalSymbolsOnly = true, ShouldResolveSymbols = _ => false, ContinueOnError = false, ConversionLog = conversionLog });
+using var log = new TraceLog(etlx);
+using var source = log.Events.GetSource();
+var groups = new Dictionary<string, Sample>();
+var markers = new List<object>();
+var missingStacks = 0L;
+var truncatedStacks = 0L;
+var samples = 0L;
+var markerErrors = 0;
+string? label = null;
+int? round = null;
+source.Dynamic.All += e =>
+{
+    if (e.ProviderName != "codeView-Diagnostics") return;
+    var eventLabel = e.PayloadByName("label")?.ToString();
+    var eventRound = Convert.ToInt32(e.PayloadByName("round"));
+    markers.Add(new { e.EventName, e.TimeStampRelativeMSec, Label = eventLabel, Round = eventRound });
+    if (e.EventName == "Round/Start")
+    {
+        if (round is not null) markerErrors++;
+        label = eventLabel; round = eventRound;
+    }
+    else if (e.EventName == "Round/Stop")
+    {
+        if (label != eventLabel || round != eventRound) markerErrors++;
+        label = null; round = null;
+    }
+    else if (e.EventName == "BudgetFailed" && (label != eventLabel || round != eventRound)) markerErrors++;
+
+};
+source.Clr.GCAllocationTick += e =>
+{
+    samples++;
+    var frames = new List<string>();
+    var stack = e.CallStack();
+    if (stack is null) missingStacks++;
+    while (stack is not null && frames.Count < 128)
+    {
+        var method = stack.CodeAddress.FullMethodName;
+        frames.Add(string.IsNullOrEmpty(method) ? "0x" + stack.CodeAddress.Address.ToString("x") : method);
+        stack = stack.Caller;
+    }
+    if (stack is not null) truncatedStacks++;
+    var key = e.AllocationKind + ":" + e.TypeName + ":" + string.Join("\n", frames) + ":" + (round is null ? "outside" : "inside");
+    if (!groups.TryGetValue(key, out var entry))
+        groups.Add(key, entry = new Sample { Kind = e.AllocationKind.ToString(), Type = e.TypeName, Frames = frames,
+            InsideRound = round is not null });
+    entry.Events++;
+    entry.SampledBytes += e.AllocationAmount64;
+    entry.ObjectBytes += e.ObjectSize;
+};
+source.Process();
+using var input = File.OpenRead(args[0]);
+var result = new { InputSha256 = Convert.ToHexString(SHA256.HashData(input)).ToLowerInvariant(),
+    Parser = "TraceEvent 3.1.23 ETLX; no symbol downloads", log.EventsLost, log.Truncated, log.EventCount,
+    MarkerErrors = markerErrors, UnclosedRound = round, Samples = samples, MissingStacks = missingStacks,
+    TruncatedStacks = truncatedStacks, Markers = markers,
+    Groups = groups.Values.OrderByDescending(x => x.SampledBytes),
+    Limits = "AllocationTick sampling weights are estimates, not exact allocation counts or total bytes per type. ObjectBytes is sampled objects only. Only names resolved from collected rundown; unresolved native addresses remain." };
+File.WriteAllText(Path.Combine(args[1], "allocations.json"), JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+return samples > 0 && log.EventsLost == 0 && !log.Truncated && markerErrors == 0 && round is null ? 0 : 1;
+sealed class Sample
+{
+    public required string Kind { get; init; }
+    public required string Type { get; init; }
+    public required List<string> Frames { get; init; }
+    public bool InsideRound { get; init; }
+    public long Events { get; set; }
+    public long SampledBytes { get; set; }
+    public long ObjectBytes { get; set; }
+}

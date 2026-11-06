@@ -1,0 +1,93 @@
+{
+  "scope": "Saved gc-verbose traces; sampled allocation origins only, no new collection or product changes",
+  "parserSha256": "489357e23cb98ada867da395893c373f60912eefb7af101c077198a984402158",
+  "parserBinarySha256": "5c223fbe9e2e7f8fd0e36053adce9bf2b5976af4f1b5233e574f4f32698ea079",
+  "tool": "TraceEvent 3.1.23 / no symbol downloads",
+  "traces": [
+    {
+      "os": "macos",
+      "number": 1,
+      "inputSha256": "204d0440a07c575feaa8ebc4e1bcc2552bf76aa33d1e4b5d1dc68b9b46613b8c",
+      "samples": 24229,
+      "missingStacks": 1,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "4758e99959384440f09278aa72986b0d6ac88c112c0f864296563e4c6d27929d"
+    },
+    {
+      "os": "macos",
+      "number": 2,
+      "inputSha256": "6ddabccd1f600b344bac0f8a0684aa6e62c22727c32c045df7c1592503093b61",
+      "samples": 24228,
+      "missingStacks": 1,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "d78d73dda23154f9ba5010221ea44679f91e86f10c123738f89e6241e3cca2f0"
+    },
+    {
+      "os": "macos",
+      "number": 3,
+      "inputSha256": "d00a126d4a502f6edb48978c1f526a30ebd49b95d62c609669ff3f393db60a70",
+      "samples": 24214,
+      "missingStacks": 0,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "f95e8599f5d528becb142d387470fc3632b149b2dd6d969af8b7b393f8c004ae"
+    },
+    {
+      "os": "windows",
+      "number": 1,
+      "inputSha256": "d0978a28870adb1f3c33143daf47866eaabd836534bdfecbd0139f51453b2a03",
+      "samples": 24308,
+      "missingStacks": 0,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "e44facaa55f19581f42cb642818b0267912e1a869816bbfbc77aa3777a151ed4"
+    },
+    {
+      "os": "windows",
+      "number": 2,
+      "inputSha256": "ef33ac060dab97e0374bf09ed15552addb1bbbfd6f8fe711332bd34d99d011c0",
+      "samples": 24269,
+      "missingStacks": 0,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "42e85485bb20ea2524e5318dea1159d03a67fff7bcf3e5afb1b5f8a9d5a6faa8"
+    },
+    {
+      "os": "windows",
+      "number": 3,
+      "inputSha256": "5ca55d0a9cfea26d4040422a0830bf6294fb70025e21f0a1dac1864558c75e73",
+      "samples": 24299,
+      "missingStacks": 0,
+      "truncatedStacks": 0,
+      "rawParserTypeTotalsMatch": true,
+      "largeSamplesOutsideRounds": 1,
+      "compressedSha256": "e165c60be5da1145e97dd637977647822e5854a9bb1b2e16697e797d3fd9f717"
+    }
+  ],
+  "cliChecks": [
+    {
+      "case": "no-arguments",
+      "exitCode": 2
+    },
+    {
+      "case": "missing-input",
+      "exitCode": 2
+    },
+    {
+      "case": "existing-output",
+      "exitCode": 2
+    },
+    {
+      "case": "invalid-trace",
+      "exitCode": -6,
+      "reportProduced": false
+    }
+  ]
+}

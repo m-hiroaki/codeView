@@ -1,0 +1,9 @@
+Unhandled exception. System.FormatException: Invalid FastSerialization header
+   at Microsoft.Diagnostics.Tracing.FastSerializationObjectParser.ValidateFastSerializationHeader()
+   at Microsoft.Diagnostics.Tracing.FastSerializationObjectParser..ctor(EventPipeEventSource source, RewindableStream stream, Boolean isNetTrace)
+   at Microsoft.Diagnostics.Tracing.EventPipeEventSource.ParseHeaders()
+   at Microsoft.Diagnostics.Tracing.EventPipeEventSource.ParseHeadersAndInitCaches()
+   at Microsoft.Diagnostics.Tracing.EventPipeEventSource..ctor(Stream stream, Boolean isStreaming)
+   at Microsoft.Diagnostics.Tracing.EventPipeEventSource..ctor(String fileName)
+   at Microsoft.Diagnostics.Tracing.Etlx.TraceLog.CreateFromEventPipeDataFile(String filePath, String etlxFilePath, TraceLogOptions options)
+   at Program.<Main>$(String[] args) in /Users/hiroaki/Src/codeview/artifacts/allocation-analysis-20261106/AllocationStacks.cs:line 11

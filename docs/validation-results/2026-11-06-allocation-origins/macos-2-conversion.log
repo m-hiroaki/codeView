@@ -1,0 +1,15 @@
+[Opening a log file of size 0 MB.]
+1 distinct processes.
+Totals
+    32,766 events.
+    26,261 events with stack traces.
+         0 events with code addresses in them.
+   330,142 total code address instances. (stacks or other)
+       709 unique code addresses. 
+     4,277 unique stacks.
+       511 unique managed methods parsed.
+     5,219 dynamic methods.
+[Conversion complete 32,766 events.  Conversion took 0 sec.]
+A total of 708 symbolic addresses were looked up.
+Addresses outside any module: 0 out of 708 (0.0%)
+Done with symbolic lookup.
