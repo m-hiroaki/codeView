@@ -60,3 +60,5 @@
 [.NET 10のStringInfo実装](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/StringInfo.cs)で、公開のGetNextTextElementLength(ReadOnlySpan<char>)があることを確認した。まず、ワーカーが確定した文字素境界だけを疎に保存し、その境界から有界バッファで再走査する候補を検証する。任意Offsetを境界とみなして再開しない。バッファ末尾の最後の文字素は次のスカラー/EOFで確定するまで完結と扱わない。ASCII連続部分も末尾へ付く結合文字を見落とさない。
 
 これにより独自Unicode表を直ちに導入せず評価できる可能性があるが、既知境界からの再開の正しさ、長い結合列、RI偶奇、チャンク末尾、再開量上限を公式適合データとStringInfoの全文対照で証明してから使う。上限超過/未確定は明示した状態で返し、正しい境界と捏造しない。Arabic/Bidiの配置文脈はこの境界索引だけで解決済みとは扱わず、承認済みの文脈付き配置Controlで別に検証する。
+
+初期の独立部品と残課題は[文字素境界索引の試作](grapheme-index-prototype.md)に記録する。ワーカー/Handle/GUIへの接続前であり、設計案全体の実装完了ではない。
