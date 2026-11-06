@@ -508,13 +508,22 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _selectionRow = null;
         _selectionRequest = null;
         _selectionMove = null;
-        SearchPanel.Stop();
-        _lifetime.Cancel();
-        operations.Dispose();
-        SyncTabs();
-        DisplayActiveTab();
-        FileTree.Clear();
-        WorkspaceChanged();
+        List<Exception>? failures = null;
+        Attempt(SearchPanel.Stop);
+        Attempt(_lifetime.Cancel);
+        Attempt(operations.Dispose);
+        Attempt(SyncTabs);
+        Attempt(DisplayActiveTab);
+        Attempt(FileTree.Clear);
+        Attempt(WorkspaceChanged);
+        if (failures?.Count == 1) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+        if (failures is not null) throw new AggregateException(failures);
+
+        void Attempt(Action stop)
+        {
+            try { stop(); }
+            catch (Exception error) { (failures ??= []).Add(error); }
+        }
     }
 
     public void SetStatus(string status) { _status = status; Changed(nameof(Status)); }
