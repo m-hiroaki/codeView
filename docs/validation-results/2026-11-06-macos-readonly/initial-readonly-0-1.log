@@ -1,0 +1,39 @@
+GUI-PROBE 812.482 window-opened
+GUI-PROBE 926.227 attachment-start
+GUI-PROBE 944.000 attachment-end
+READONLY positive-input-undo-redo
+READONLY positive-native-paste
+READONLY positive-text-drop
+READONLY start/text
+READONLY start/newline
+READONLY start/paste
+READONLY start/delete
+READONLY start/cut
+READONLY start/undo
+READONLY start/redo
+READONLY start/text-drop
+READONLY end/text
+READONLY end/newline
+READONLY end/paste
+READONLY end/delete
+READONLY end/cut
+READONLY end/undo
+READONLY end/redo
+READONLY end/text-drop
+READONLY all/text
+READONLY all/newline
+READONLY all/paste
+READONLY all/delete
+READONLY all/cut
+READONLY all/undo
+READONLY all/redo
+READONLY all/text-drop
+System.TimeoutException: Native clipboard value did not match the generated fixture.
+   at CodeView.Presentation.GuiReadOnlyProbe.WaitClipboard(IClipboard clipboard, String expected, CancellationToken ct) in /Users/runner/work/codeView/codeView/tests/GuiProbe/GuiReadOnlyProbe.cs:line 196
+   at CodeView.Presentation.GuiReadOnlyProbe.RunAsync(Window owner, TextEditor editor, MainWindowViewModel view, CancellationToken ct) in /Users/runner/work/codeView/codeView/tests/GuiProbe/GuiReadOnlyProbe.cs:line 148
+   at CodeView.Presentation.GuiReadOnlyProbe.RunAsync(Window owner, TextEditor editor, MainWindowViewModel view, CancellationToken ct) in /Users/runner/work/codeView/codeView/tests/GuiProbe/GuiReadOnlyProbe.cs:line 166
+   at CodeView.Presentation.GuiPerformanceProbe.RunReadOnlyChecksAsync() in /Users/runner/work/codeView/codeView/tests/GuiProbe/GuiPerformanceProbe.cs:line 708
+GUI-PROBE 7011.385 complete
+GUI-PROBE 7011.840 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 7033.859 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 7039.989 window-closed

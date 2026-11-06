@@ -64,13 +64,15 @@ python3 tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView
 
 先に別の編集可能なネイティブWindow/TextEditorで、同じRouted入力/Drop、ネイティブClipboard貼付、Delete、Undo/Redoによって本文が実際に変わることを確認する。PasteはTextPasted完了通知、CopyはClipboardの実値を期限付きで待ち、Main側へ戻ってフォーカスも確認する。対照が機能しない・行列欠落・不整合・期限切れは非0終了し、途中までのJSON/ログを残す。入力ファイルのバイトSHAも前後で一致する必要がある。
 
-この試験はネイティブUI/Clipboardを使うコントロール結合試験であり、OSのキー/マウスやIME、Explorer/Finderのドラッグ操作を注入したものではない。物理操作・メニューショートカット、macOS、ロード/失敗状態の包括受入、実配布物とP1-07全体は別途確認する。通常製品へ試験コード/タイマー/書込経路を追加しない。UI依存処理はこの実機構成で結合検証し、通常単体ではレポートの正常/異常/空/境界・欠落・対照の無効・期限と非CI拒否を検証する。
+この試験はネイティブUI/Clipboardを使うコントロール結合試験であり、OSのキー/マウスやIME、Explorer/Finderのドラッグ操作を注入したものではない。物理操作・メニューショートカット、ロード/失敗状態の包括受入、実配布物とP1-07全体は別途確認する。通常製品へ試験コード/タイマー/書込経路を追加しない。UI依存処理はこの実機構成で結合検証し、通常単体ではレポートの正常/異常/空/境界・欠落・対照の無効・期限と非CI拒否を検証する。
 
 macOS CIも同じ3入力/各3プロセス/216操作を、`--os macos`で実行する。収集器は期待OSを記録し、Windows/Macの取り違えを拒否する。OS省略時は既存Windows手順と互換のためwindowsを使う。Macも破棄されるCIのClipboardだけを書き換え、finallyで生成データを消去する。通常製品や利用者のローカル環境では自動実行しない。既存試験とMacのUnicode/空・OS拒否/取得・改行だけの変換/原文差の保持を合わせた収集器単体10ケースを用意する。
 
 標準Copyの改行変換を原文不変と混同しない。[固定版のCopySelectedText](https://github.com/AvaloniaUI/AvaloniaEdit/blob/86fdebec4cff7affb0e14c7885df71d28edce777/src/AvaloniaEdit/Editing/EditingCommandHandler.cs#L390)はCRLF/CR/LFをEnvironment.NewLineへ変換してClipboardへ渡す。初回Mac試験はCRLF原文との一致を要求して停止したため、原文との一致`NativeCopyRoundTrip`を残し、OS形式との一致`NativeCopyOsRoundTrip`・実文字数・実UTF-16 SHAを別々に記録する。Pythonは入力から独立にOS形式の期待値を作り、文字/空白の欠落や原文一致の誤申告を拒否する。今回のCRLF入力はMacでLFへ変換される。元本文・元ファイルは変換されない。
 
 これは通常UIが使うライブラリ標準Copyの検証である。[専用試作の原文コピー](detailed-design/04-documents-tabs.md#65-原文コピーの受付とクリップボード専用試作)は改行変換しない契約を維持し、通常UIへの採用・包括受入は未完了のままとする。標準Copyを改行保存済みの原文コピーへ読み替えない。
+
+[macOSの検証結果](validation-results/2026-11-06-macos-readonly/README.md)では9プロセス/216操作の本文不変、9回の有効対照、OS形式での非空Copy往復6回を確認した。MacのCRLF→LFの原文差はfalseとして保持し、初回失敗と試験是正も保存した。
 
 CanDeleteの値だけで削除可能と判断しない。固定版AvaloniaEditは文書があればCanDelete=trueとし、実行時の読取専用範囲で保護する。試験では値を保存して実際にDeleteを呼び、その後の原文ハッシュ/履歴を判定する。初回のCIはfalseを要求した試験側の仮定で停止したため、製品を変えずこの判定を是正した。
 

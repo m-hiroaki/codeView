@@ -1,0 +1,83 @@
+{
+  "commit": "165713f79b833b4e616fd1772a8789c2192bbc53",
+  "platforms": {
+    "macos": {
+      "processes": 9,
+      "edit_attempts": 216,
+      "positive_controls": 9,
+      "native_os_copy_roundtrips": 6,
+      "empty_copy_skipped": 3,
+      "raw_copy_equal": 0,
+      "fixtures": [
+        {
+          "name": "起動確認.cs",
+          "source_utf16": 76,
+          "copy_utf16": 71,
+          "raw_copy_equal": false,
+          "input_sha256": "14e0547dfd98c43ac57b4cc7c529fc222644f2ad9542f2c735e842ba4ee202f1"
+        },
+        {
+          "name": "empty.cs",
+          "source_utf16": 0,
+          "copy_utf16": 0,
+          "raw_copy_equal": true,
+          "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "boundary.cs",
+          "source_utf16": 146,
+          "copy_utf16": 145,
+          "raw_copy_equal": false,
+          "input_sha256": "038928445a8f1c92bae798dc5830f55fec534ff0353a1a3b52eee10650f9e9cd"
+        }
+      ],
+      "startup_processes": 20
+    },
+    "windows": {
+      "processes": 9,
+      "edit_attempts": 216,
+      "positive_controls": 9,
+      "native_os_copy_roundtrips": 6,
+      "empty_copy_skipped": 3,
+      "raw_copy_equal": 6,
+      "fixtures": [
+        {
+          "name": "起動確認.cs",
+          "source_utf16": 76,
+          "copy_utf16": 76,
+          "raw_copy_equal": true,
+          "input_sha256": "14e0547dfd98c43ac57b4cc7c529fc222644f2ad9542f2c735e842ba4ee202f1"
+        },
+        {
+          "name": "empty.cs",
+          "source_utf16": 0,
+          "copy_utf16": 0,
+          "raw_copy_equal": true,
+          "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "boundary.cs",
+          "source_utf16": 146,
+          "copy_utf16": 146,
+          "raw_copy_equal": true,
+          "input_sha256": "038928445a8f1c92bae798dc5830f55fec534ff0353a1a3b52eee10650f9e9cd"
+        }
+      ],
+      "startup_processes": 20
+    }
+  },
+  "normal": {
+    "macos": {
+      "dotnet_pass": 698,
+      "dotnet_skip": 0,
+      "python_pass": 81,
+      "python_skip": 0
+    },
+    "windows": {
+      "dotnet_pass": 695,
+      "dotnet_skip": 3,
+      "python_pass": 61,
+      "python_skip": 20
+    }
+  }
+}
