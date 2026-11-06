@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Avalonia;
@@ -736,6 +737,7 @@ internal sealed class GuiPerformanceProbe
         var report = new
         {
             FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
+            ProductInformationalVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
             Scenario = _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
@@ -748,6 +750,8 @@ internal sealed class GuiPerformanceProbe
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,
             DocumentChars = _editor.Document?.TextLength, DocumentLines = _editor.Document?.LineCount,
+            EditorReadOnly = _editor.IsReadOnly, TextDragDropEnabled = _editor.Options.EnableTextDragDrop,
+            UndoCanUndo = _editor.Document?.UndoStack.CanUndo, UndoCanRedo = _editor.Document?.UndoStack.CanRedo,
             SourceChars = _sourceDocument?.TextLength, SourceLines = _sourceDocument?.LineCount,
             LargestDisplayChars = _largestDisplayChars, VisitedSourceOffsets = _sourceOffsets,
             SourceCaretOffset = _displaySession?.Caret, SourceCaretPosition = _displaySession?.Position,

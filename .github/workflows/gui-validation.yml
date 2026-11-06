@@ -1,0 +1,75 @@
+name: Native GUI validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/gui-validation.yml
+      - tools/measure_gui_startup.py
+      - tools/test_measure_gui_startup.py
+      - tests/GuiProbe/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gui-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Native window (Windows)
+    runs-on: windows-2025
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Record environment and small input
+        run: |
+          New-Item -ItemType Directory -Force artifacts/gui-validation | Out-Null
+          "Commit: $env:GITHUB_SHA" | Out-File artifacts/gui-validation/environment.txt
+          dotnet --info | Out-File artifacts/gui-validation/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, TotalVisibleMemorySize | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
+          Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
+          Get-CimInstance Win32_VideoController | Select-Object Name, CurrentRefreshRate, CurrentHorizontalResolution, CurrentVerticalResolution | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
+          "Hosted runner; physical display/input and reference-PC acceptance not verified." | Out-File artifacts/gui-validation/environment.txt -Append
+          python -c "from pathlib import Path; Path('artifacts/gui-validation/起動確認.cs').write_bytes('// GUI_STARTUP 日本語 😀\r\nclass StartupFixture\r\n{\r\n    // original content\r\n}\r\n'.encode('utf-8'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build explicit GUI probe
+        run: |
+          dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/gui-validation/app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify native startup and completion
+        run: |
+          python -m unittest discover -s tools -p test_measure_gui_startup.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView.exe --input artifacts/gui-validation/起動確認.cs --output artifacts/gui-validation/startup --rounds 10 --commit $env:GITHUB_SHA --os windows
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload native GUI evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-gui-windows
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/gui-validation/environment.txt
+            artifacts/gui-validation/起動確認.cs
+            artifacts/gui-validation/startup/
