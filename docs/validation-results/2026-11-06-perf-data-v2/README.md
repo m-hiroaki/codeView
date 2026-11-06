@@ -31,7 +31,14 @@ L2/L3はUTF-8/CP932別の計4条件をplannedOnlyに保存した。各20万/5 Gi
 
 ローカルの[通常試験結果](local-tests.json)は.NET 656件・Python 47件成功。生成器15ケースには、既存通常データ3条件のv1バイト互換、UTF-8/CP932の厳格復号、全行一致、64バイト等の端数、直下10,000/10,001境界、深さ10、L1/L2/L3サイズ式、planの無書込み、既存保護、内容/条件改変の検出を含む。
 
-両OS CIは確認待ち。P0-06の生成手順の最終チェックはCI確認後とし、P0-02/P0-04、実機の性能予算、L2/L3の拡張/限界調査、G0以降のゲートは未完了を維持する。製品のレイヤ・公開API・本文モデルの変更はない。
+d4030336edcb4ff9930b8ab5ae30f4de3194357fの[両OS CI 42169551981](https://github.com/m-hiroaki/codeView/actions/runs/42169551981)が成功した。[実行・ジョブ・成果物の識別](ci-run.json)、[TRX集計とスキップ・ZIP/TRXハッシュ](ci-results.json)、[macOS環境](macos/environment.txt)・[試験抜粋](macos/test.log)、[Windows環境](windows/environment.txt)・[試験抜粋](windows/test.log)を保存した。ダウンロードZIPのSHA-256はGitHubのdigestと一致した。全15ケースの出力行が成功であることも確認した。
+
+| OS | .NET | Python | 生成器 |
+| --- | --- | --- | --- |
+| macOS | 656成功、スキップ0 | 47成功、スキップ0 | 15/15成功 |
+| Windows | 653成功、既存Darwin専用3スキップ | 27成功、既存POSIX/Mac専用20スキップ | 15/15成功 |
+
+これによりP0-06の生成手順を完了とする。計測基準機の採用や計測器の成立を条件とする性能判定を先取りしていない。P0-02/P0-04、実機の性能予算、L2/L3の全実生成/拡張/限界調査、G0以降のゲートは未完了を維持する。製品のレイヤ・公開API・本文モデルの変更はない。
 
 ```sh
 python3 docs/validation-results/2026-11-06-perf-data-v2/prepare.py /private/tmp/codeview-perf-v2-new --freeze-directories

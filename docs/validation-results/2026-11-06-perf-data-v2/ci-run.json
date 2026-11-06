@@ -1,0 +1,33 @@
+{
+  "runId": 42169551981,
+  "sourceCommit": "d4030336edcb4ff9930b8ab5ae30f4de3194357f",
+  "url": "https://github.com/m-hiroaki/codeView/actions/runs/42169551981",
+  "status": "completed",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 127733892968,
+      "name": "Test (macos-15)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 127733893274,
+      "name": "Test (windows-2025)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13480726301,
+      "name": "test-results-macos-15",
+      "digest": "sha256:5cfb9ea79c471271aa60427838a685de0e8776a8658939139b787770bfcfaedf"
+    },
+    {
+      "id": 13480303874,
+      "name": "test-results-windows-2025",
+      "digest": "sha256:24d91e54083c8cdc1d62fa4ce4900ab1c06d6a87d78552838fe4af4b699ffbd9"
+    }
+  ]
+}

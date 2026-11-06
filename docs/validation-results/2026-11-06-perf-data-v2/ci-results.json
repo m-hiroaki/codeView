@@ -1,0 +1,43 @@
+{
+  "macos": {
+    "zipSha256": "5cfb9ea79c471271aa60427838a685de0e8776a8658939139b787770bfcfaedf",
+    "unitTrxSha256": "23ab67546d7f9264844d6781687cb63391a18d7a8fcb9e147f29cf69a2f66c05",
+    "unitOutcomes": {
+      "Passed": 656
+    },
+    "notPassed": [],
+    "pythonTotal": 47,
+    "pythonPassed": 47,
+    "pythonSkipped": 0,
+    "generatorCases": "15/15 passed; see test.log"
+  },
+  "windows": {
+    "zipSha256": "24d91e54083c8cdc1d62fa4ce4900ab1c06d6a87d78552838fe4af4b699ffbd9",
+    "unitTrxSha256": "1099eda9200ffe58b08ad07582a9c485aa5b56742806f4beaed5a4cde7fa4dd3",
+    "unitOutcomes": {
+      "Passed": 653,
+      "NotExecuted": 3
+    },
+    "notPassed": [
+      {
+        "name": "MacPermissionFailureIsReportedAndSiblingFilesRemainWalkable",
+        "class": "CodeView.Tests.Files.DirectoryReaderTests",
+        "outcome": "NotExecuted"
+      },
+      {
+        "name": "MacFifoSettingsCannotBlockStartup",
+        "class": "CodeView.Tests.Settings.SettingsStoreTests",
+        "outcome": "NotExecuted"
+      },
+      {
+        "name": "MacFifoIsRejectedWithoutWaitingForAWriter",
+        "class": "CodeView.Tests.Files.FileReaderTests",
+        "outcome": "NotExecuted"
+      }
+    ],
+    "pythonTotal": 47,
+    "pythonPassed": 27,
+    "pythonSkipped": 20,
+    "generatorCases": "15/15 passed; see test.log"
+  }
+}

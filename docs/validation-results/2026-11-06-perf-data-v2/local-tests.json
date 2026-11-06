@@ -25,5 +25,5 @@
     "passed": 47,
     "failed": 0
   },
-  "ci": "pending"
+  "ci": "completed/success; d403033, run 42169551981. See ci-run.json and ci-results.json"
 }
