@@ -1,11 +1,11 @@
 {
   "formatVersion": 1,
   "date": "2026-11-06",
-  "baseCommit": "a4626ec",
+  "baseCommit": "0442de6",
   "sourceState": "Base commit plus source hashes below; committed with this report.",
   "sourceSha256": {
-    "tools/generate_functional_fixture.py": "13d25142236ed2a04e63470916b2cf8188ae94faf70b995a19a69dafbaca0f8b",
-    "tools/test_functional_fixture.py": "fce98f6ebfb07567cc383c3e5463ed90cfb186e4f5c94ff96b0c3c67acfa2285",
+    "tools/generate_functional_fixture.py": "5224424d1a69d60594a35e02d1ae876a2ed95b458522a1d3533a46e60a62ec04",
+    "tools/test_functional_fixture.py": "40f282e74bfe28fec4de266d2b2072b58c82ab965d75e7a82e3862457b08677d",
     "tests/codeView.Tests/Files/FunctionalFixtureTests.cs": "73093fffafa44af0d0b886503f32fc2740c09e54e23234d00577560ada459345"
   },
   "macOS": {
@@ -28,11 +28,12 @@
       "pending": "0"
     },
     "unitTrxSha256": "5a73d8a4f085996d2ed442b95b10cc5782ff09d8609c92a6634f9046b2c6b0b7",
-    "pythonPassed": 35,
+    "pythonPassed": 36,
     "pythonFailed": 0,
     "nativeCliExitCode": 0,
     "nativeLinks": "created",
-    "readDenied": "verified"
+    "readDenied": "verified",
+    "verificationNote": ".NET 656 results from 0442de6 unchanged C# and fixture-byte content; Python 36 and native CLI rerun after SID column validation update."
   },
   "ci": "pending; check Windows native links and ACL before P0-05 completion",
   "limitations": [

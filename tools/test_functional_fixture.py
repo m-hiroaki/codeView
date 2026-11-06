@@ -126,6 +126,15 @@ class FunctionalFixtureTests(unittest.TestCase):
         with patch("generate_functional_fixture.subprocess.run", return_value=result):
             self.assertEqual(current_windows_sid(), "*S-1-5-21-123-456")
 
+    def test_sid_like_account_name_is_not_used_as_permission_identity(self):
+        result = subprocess.CompletedProcess([], 0, stdout=b'"S-1-5-21-111","S-1-5-21-222"\r\n')
+        with patch("generate_functional_fixture.subprocess.run", return_value=result):
+            self.assertEqual(current_windows_sid(), "*S-1-5-21-222")
+        for malformed in [b'"S-1-5-21-111","invalid"\r\n', b'"name"\r\n', b'']:
+            with patch("generate_functional_fixture.subprocess.run", return_value=subprocess.CompletedProcess([], 0, stdout=malformed)):
+                with self.assertRaises(RuntimeError):
+                    current_windows_sid()
+
 
 if __name__ == "__main__":
     unittest.main()

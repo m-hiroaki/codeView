@@ -2,6 +2,7 @@
 """Generate small deterministic fixtures for detailed-design/08-validation.md."""
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -57,11 +58,11 @@ def fixture_files():
 
 def current_windows_sid():
     result = subprocess.run(["whoami", "/user", "/fo", "csv", "/nh"], check=True, capture_output=True)
-    # SIDs are ASCII, independent of the current user's name and console code page.
-    match = re.search(rb"S-1-\d+(?:-\d+)+", result.stdout)
-    if match is None:
+    # Only the SID column is used; account names may use another console code page.
+    rows = [row for row in csv.reader(result.stdout.decode("utf-8", errors="replace").splitlines()) if row]
+    if len(rows) != 1 or len(rows[0]) != 2 or re.fullmatch(r"S-1-\d+(?:-\d+)+", rows[0][1]) is None:
         raise RuntimeError("whoami did not return a user SID")
-    return "*" + match.group().decode("ascii")
+    return "*" + rows[0][1]
 
 
 def set_read_access(path, *, denied):
