@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "av_libglesv2.dll",
+      "bytes": 5394096,
+      "sha256": "53191a77fe783cd757ca7767077c2a64a662e7043777a5b4ab74980d4a0b73e3",
+      "pe": {
+        "machine": "AMD64",
+        "format": "PE32+",
+        "clr_header": false
+      }
+    },
+    {
+      "path": "codeView.exe",
+      "bytes": 25207808,
+      "sha256": "7f0d40979bf1755fb08f51ab4a15df44bc0f16e7f3cd3cc593031538f4b53c81",
+      "pe": {
+        "machine": "AMD64",
+        "format": "PE32+",
+        "clr_header": false
+      }
+    },
+    {
+      "path": "codeView.pdb",
+      "bytes": 96579584,
+      "sha256": "6e4e4c71aaf935c62ca91e5b4761c71f07845368f9e5c3470008cebf936beb3f"
+    },
+    {
+      "path": "libHarfBuzzSharp.dll",
+      "bytes": 1816088,
+      "sha256": "145ade963eba427027d5e1381db5d51a0ef9e98e9fef9efbfa6074ca20da246f",
+      "pe": {
+        "machine": "AMD64",
+        "format": "PE32+",
+        "clr_header": false
+      }
+    },
+    {
+      "path": "libHarfBuzzSharp.pdb",
+      "bytes": 20918272,
+      "sha256": "4300d75d5af09fbb79d565d9a18573243a93214c811d4f24a33f11f0d4242d93"
+    },
+    {
+      "path": "libonigwrap.dll",
+      "bytes": 540672,
+      "sha256": "b36910e767a4310e2bee38307b3a95bb53da7d5e001c79bcca82ef1a6dbf77db",
+      "pe": {
+        "machine": "AMD64",
+        "format": "PE32+",
+        "clr_header": false
+      }
+    },
+    {
+      "path": "libSkiaSharp.dll",
+      "bytes": 11628896,
+      "sha256": "7dec3ba900ab353491e6446f0083739924c6f8dd668832e2f09d38ebffdbbe1c",
+      "pe": {
+        "machine": "AMD64",
+        "format": "PE32+",
+        "clr_header": false
+      }
+    },
+    {
+      "path": "libSkiaSharp.pdb",
+      "bytes": 84033536,
+      "sha256": "9fa70aeff3122bcceae15cd89d9d2f3c88c8d382122ef70ad694a76d119dcc6e"
+    }
+  ],
+  "total_bytes": 246118952
+}

@@ -1,0 +1,8 @@
+  Determining projects to restore...
+  Restored D:\a\codeView\codeView\src\codeView\codeView.csproj (in 13.73 sec).
+  Determining projects to restore...
+  Restored D:\a\codeView\codeView\src\codeView\codeView.csproj (in 14.89 sec).
+  codeView -> D:\a\codeView\codeView\artifacts\build\win-x64\bin\codeView\release_win-x64\codeView.dll
+  Generating native code
+  codeView -> D:\a\codeView\codeView\artifacts\build\win-x64\stage-7275-25168\payload\
+Built: "D:\a\codeView\codeView\artifacts\publish\win-x64\codeView\codeView.exe"

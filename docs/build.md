@@ -21,7 +21,7 @@ build-windows.bat
 
 バッチは`dotnet publish -c Release -r win-x64 --self-contained true -p:PublishAot=true -p:PublishTrimmed=true`を実行する。通常のJIT発行へ切り替えるフォールバックはない。AOT/トリミングの警告を隠さず、コンパイラー/リンカーの警告もエラーとして扱う。[AvaloniaのAOT資料](https://docs.avaloniaui.net/docs/deployment/native-aot)も参照する。
 
-このバッチの実行とWindows向けAOTリンク・起動はWindows環境で確認が必要。今回の作成環境はMacであり、Windowsでの実行検証は未実施。AOT時の全機能・文法・ネイティブ依存の互換性を確認済みとはしない。
+Windows 2025 CIで実バッチのAOTリンク・通常ウィンドウ起動・終了0を確認した。[実行と結果](validation-results/2026-11-06-windows-aot/README.md)。AOT時の全機能・文法・ネイティブ依存の互換性を確認済みとはしない。
 
 ## macOS：Native AOTの自己完結型.app
 
@@ -55,7 +55,7 @@ macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツ
 - Mac arm64：実スクリプトでNative AOT（コンパイラー10.0.12）の.app生成に成功。Info.plist、arm64ネイティブ実行ファイル、CoreCLR/アプリDLLが残らないこと、描画ライブラリ、元ロックからの管理対象依存の版/ハッシュ維持を確認。生成済み14,000 bytes/1,001行のテキストをCLIで開き、タブ/本文/UTF-8表示と通常終了0を確認した。全機能/性能・配布署名・別PC起動は未検証。
 - Intel Mac：RID選択とパッケージングを模擬SDKで確認。実際のx64発行/起動は未検証。
 - スクリプト単体：正常、CPU選択、空白/`!`を含むパス、別ディレクトリからの実行、不正RID/余分な引数/未知CPU/非Mac、復元/発行失敗、実行ファイル欠落、前回成果物維持、一時物の解放を7件で確認。
-- Windows：バッチの実行・Native AOTコンパイル・起動は未検証。MacからのWindows AOT発行を代替検証にしない。
+- Windows x64：Windows 2025 CIで実バッチのNative AOT発行、全EXE/DLLのAMD64/CLRヘッダー不在、元ロック不変、通常製品の可視ウィンドウ/正常終了0と生成入力SHA不変を確認。本文の表示内容/全機能・別PC・オフライン・性能は未検証。[証跡](validation-results/2026-11-06-windows-aot/README.md)。
 
 ### Windowsの実発行CI
 

@@ -1,0 +1,43 @@
+{
+  "publish_run": 42191000330,
+  "publish_job": 127802696943,
+  "normal_run": 42191000328,
+  "commit": "0fb1b5871b8fcc3639c0db77421895bad0d6bd63",
+  "artifact": {
+    "id": 13490161240,
+    "name": "windows-aot-publish",
+    "size_in_bytes": 8102,
+    "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490161240",
+    "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13490161240/zip",
+    "expired": false,
+    "created_at": "2026-11-06T08:55:56Z",
+    "expires_at": "2026-11-20T08:55:56Z",
+    "updated_at": "2026-11-06T08:55:56Z",
+    "digest": "sha256:e3938b218145427fa92439e9f3e6eed4b6f8b2b91248c0a0268782a2fe885c46",
+    "workflow_run": {
+      "id": 42191000330,
+      "repository_id": 1439751706,
+      "head_repository_id": 1439751706,
+      "head_branch": "main",
+      "head_sha": "0fb1b5871b8fcc3639c0db77421895bad0d6bd63"
+    }
+  },
+  "normal": [
+    {
+      "os": "macos-15",
+      "job": 127802696777,
+      "dotnet_pass": 689,
+      "dotnet_skip": 0,
+      "python_pass": 79,
+      "python_skip": 0
+    },
+    {
+      "os": "windows-2025",
+      "job": 127802697112,
+      "dotnet_pass": 686,
+      "dotnet_skip": 3,
+      "python_pass": 59,
+      "python_skip": 20
+    }
+  ]
+}
