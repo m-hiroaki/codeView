@@ -1,0 +1,416 @@
+{
+  "formatVersion": 1,
+  "generator": "codeView-functional-v1",
+  "files": [
+    {
+      "path": "text/search.txt",
+      "bytes": 17,
+      "sha256": "884b47d3a5c8bdacba4a192d513552452f409b36e0ca750228b7cbcbaf96bbe2",
+      "encoding": "utf-8",
+      "text": "foo food Foo\r\nfoo",
+      "searches": [
+        {
+          "query": "foo",
+          "matchCase": false,
+          "wholeWord": true,
+          "offsets": [
+            0,
+            9,
+            14
+          ],
+          "positions": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              10
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "query": "foo",
+          "matchCase": true,
+          "wholeWord": true,
+          "offsets": [
+            0,
+            14
+          ],
+          "positions": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "text/overlap.txt",
+      "bytes": 3,
+      "sha256": "9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+      "encoding": "utf-8",
+      "text": "aaa",
+      "searches": [
+        {
+          "query": "aa",
+          "offsets": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "path": "text/unicode.txt",
+      "bytes": 18,
+      "sha256": "17491687fe24632c61d6aeb78acb8cbde00c3f321c2dcff929bbc88454035e5b",
+      "encoding": "utf-8",
+      "text": "a😀b\r\nが\nが",
+      "searches": [
+        {
+          "query": "b",
+          "offsets": [
+            3
+          ],
+          "positions": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "query": "が",
+          "offsets": [
+            6
+          ],
+          "positions": [
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "query": "が",
+          "offsets": [
+            8
+          ],
+          "positions": [
+            [
+              3,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "text/empty.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "encoding": "utf-8",
+      "text": "",
+      "lineCount": 1,
+      "eof": {
+        "offset": 0,
+        "line": 1,
+        "column": 1
+      },
+      "searches": [
+        {
+          "query": "x",
+          "offsets": []
+        }
+      ]
+    },
+    {
+      "path": "text/trailing-crlf.txt",
+      "bytes": 3,
+      "sha256": "b35e09fa2ced9ebcad9d16336fb961146fe34bfbebc562679da85f8a314c9dca",
+      "encoding": "utf-8",
+      "text": "x\r\n",
+      "lineCount": 2,
+      "eof": {
+        "offset": 3,
+        "line": 2,
+        "column": 1
+      }
+    },
+    {
+      "path": "csharp/basic.cs",
+      "bytes": 23,
+      "sha256": "ef6d02c1d05288e6f3f1ca61e9e9fa36e4d74f8a131acecfff6cad27d7ef5d93",
+      "encoding": "utf-8",
+      "text": "class C { void M() {} }",
+      "declarations": [
+        {
+          "name": "C",
+          "kind": "class",
+          "offset": 6,
+          "line": 1,
+          "column": 7
+        },
+        {
+          "name": "M",
+          "kind": "method",
+          "offset": 15,
+          "line": 1,
+          "column": 16
+        }
+      ]
+    },
+    {
+      "path": "csharp/non-code.cs",
+      "bytes": 92,
+      "sha256": "9d178a835e78ef7540cd39d564d4a355d9bd652f78a7d7b46c786a239b5d0120",
+      "encoding": "utf-8",
+      "text": "// class C { void M() {} }\n/* class C { void M() {} } */\nvar s = \"class C { void M() {} }\";\n",
+      "declarations": []
+    },
+    {
+      "path": "csharp/members.cs",
+      "bytes": 206,
+      "sha256": "7df4f5b7532542622155849ac3d37c4c844125e33bac63e411b3d0a23495dd39",
+      "encoding": "utf-8",
+      "text": "class Outer {\n    class Inner {}\n    int Field;\n    int Property { get; set; }\n    void Method() {}\n}\nstruct Value {}\ninterface Contract {}\nenum Choice { One }\nrecord Item(int Id);\ndelegate void Handler();\n",
+      "expectedNames": [
+        "Outer",
+        "Inner",
+        "Field",
+        "Property",
+        "Method",
+        "Value",
+        "Contract",
+        "Choice",
+        "Item",
+        "Handler"
+      ]
+    },
+    {
+      "path": "encoding/utf-8.txt",
+      "bytes": 16,
+      "sha256": "6ca8efe47f71b029fd83e5a0b7da10472527140777ed41615ead93fe60e1324f",
+      "encoding": "utf-8",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-8-bom.txt",
+      "bytes": 19,
+      "sha256": "6daa4b7753630abb0f7282d7e75ac0cb2d32e9720b5bfa1f69d226ecddad15b3",
+      "encoding": "utf-8",
+      "bomBytes": 3,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/cp932.txt",
+      "bytes": 13,
+      "sha256": "79c3c3afa54d80ed670a7fd6a506684ff51d91ecc81057607a8f6deffb79aea0",
+      "encoding": "cp932",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-16-le.txt",
+      "bytes": 20,
+      "sha256": "c19eb2cbe0cc54af2947e8776e64016ecdf66b6fe0a24695c8d31e17941ae891",
+      "encoding": "utf-16-le",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-16-le-bom.txt",
+      "bytes": 22,
+      "sha256": "33d79e8de88294878ba72974643506d624a9aba493e2e4c496fe956174d20ba7",
+      "encoding": "utf-16-le",
+      "bomBytes": 2,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-16-be.txt",
+      "bytes": 20,
+      "sha256": "1602f97aaeda499d44f5ef13b3a5af008c9626495dd5c7faca0e8ae9fbc8a108",
+      "encoding": "utf-16-be",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-16-be-bom.txt",
+      "bytes": 22,
+      "sha256": "57f9c06b949788064c2ec44290ec9e1268c7eeb03c380ff762cf9cd62e2d8f01",
+      "encoding": "utf-16-be",
+      "bomBytes": 2,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-32-le.txt",
+      "bytes": 40,
+      "sha256": "31d61ef49e601fca77489667defb83007aa5cf17d67985906c477f2240bdb1bc",
+      "encoding": "utf-32-le",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-32-le-bom.txt",
+      "bytes": 44,
+      "sha256": "cb6c5ed4d0e506683d8679693c3928f91f12dfb87e8a32e7a36b265a4a747564",
+      "encoding": "utf-32-le",
+      "bomBytes": 4,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-32-be.txt",
+      "bytes": 40,
+      "sha256": "0749cbc03fa40d3c00a87d476460299e75813e65d6856290a9792ebf0e50ab27",
+      "encoding": "utf-32-be",
+      "bomBytes": 0,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "encoding/utf-32-be-bom.txt",
+      "bytes": 44,
+      "sha256": "c569eefc9faa170fb6152c19441356549dc485efacef4f9eed780d3d2eafc307",
+      "encoding": "utf-32-be",
+      "bomBytes": 4,
+      "text": "日本語\r\nABC\r\n"
+    },
+    {
+      "path": "invalid/utf8-truncated.txt",
+      "bytes": 2,
+      "sha256": "32b3759b686eff6ba58c397644bf1f5f8c05d303f1e6bab319a16e7d718c159c",
+      "encoding": "utf-8",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/utf8-overlong.txt",
+      "bytes": 2,
+      "sha256": "caf573f0daa6960ecb26f8eddbc4e2059277ad5afc6f72ffd59a0ecead602a22",
+      "encoding": "utf-8",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/cp932-truncated.txt",
+      "bytes": 1,
+      "sha256": "591b7cc95037822dec5a4d593a2e2e8b19c07ddd2570e5699003d17f14c440a6",
+      "encoding": "cp932",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/cp932-bad-trail.txt",
+      "bytes": 2,
+      "sha256": "712a3f21eb8ea1efde18313fe4592cb86f62b9cae423d0674984b178ee8cb2fe",
+      "encoding": "cp932",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/utf16-surrogate.txt",
+      "bytes": 2,
+      "sha256": "205022e3428b7c8276cf247b36e4e512db5651e5cb3472c253d9ee893a8ac750",
+      "encoding": "utf-16-le",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/utf32-out-of-range.txt",
+      "bytes": 4,
+      "sha256": "cacb6fccab78ece756ccf19d4bb5057e8cb5a72121e79ccd6410cfc2a240d345",
+      "encoding": "utf-32-le",
+      "expectedError": "DecodeFailed",
+      "encodingMustBeExplicit": true
+    },
+    {
+      "path": "invalid/binary.txt",
+      "bytes": 8,
+      "sha256": "4c4b6a3be1314ab86138bef4314dde022e600960d8689a2c8f8631802d20dab6",
+      "expectedError": "Binary"
+    },
+    {
+      "path": "io/update-before.txt",
+      "bytes": 8,
+      "sha256": "a6456ed3bde94789512c42c563637b929da22b9b5611962bd2c8ff63343d8195",
+      "encoding": "utf-8",
+      "text": "before\r\n"
+    },
+    {
+      "path": "io/update-after.txt",
+      "bytes": 14,
+      "sha256": "e603dbd7fb6e146f98cac2a07ce7725a623907f687e78e7579af8e58f3540f18",
+      "encoding": "utf-8",
+      "text": "after update\r\n"
+    },
+    {
+      "path": "io/update.txt",
+      "bytes": 8,
+      "sha256": "a6456ed3bde94789512c42c563637b929da22b9b5611962bd2c8ff63343d8195",
+      "encoding": "utf-8",
+      "text": "before\r\n",
+      "scenario": "Prepare then replace with update-after.txt before ReadChunks; expect ChangedDuringRead"
+    },
+    {
+      "path": "io/denied.txt",
+      "bytes": 7,
+      "sha256": "ad9c44baa1b750f4391d73516cd9d55019fbf44f552efde461f9965d598d7640",
+      "encoding": "utf-8",
+      "text": "denied\n",
+      "scenario": "Native generation denies current-user read; expect AccessDenied"
+    }
+  ],
+  "positionUnits": "UTF-16",
+  "links": [
+    {
+      "path": "links/file.txt",
+      "target": "../text/search.txt",
+      "directory": false
+    },
+    {
+      "path": "links/folder",
+      "target": "../text",
+      "directory": true
+    },
+    {
+      "path": "links/broken.txt",
+      "target": "absent.txt",
+      "directory": false
+    },
+    {
+      "path": "links/cycle-a",
+      "target": "cycle-b",
+      "directory": true
+    },
+    {
+      "path": "links/cycle-b",
+      "target": "cycle-a",
+      "directory": true
+    },
+    {
+      "path": "links/loop",
+      "target": "..",
+      "directory": true
+    }
+  ],
+  "native": {
+    "requested": true,
+    "links": "created",
+    "readDenied": "verified"
+  },
+  "errors": [],
+  "update": {
+    "target": "io/update.txt",
+    "before": "io/update-before.txt",
+    "after": "io/update-after.txt"
+  }
+}
