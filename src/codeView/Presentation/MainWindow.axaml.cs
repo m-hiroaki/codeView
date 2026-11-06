@@ -157,7 +157,7 @@ internal sealed partial class MainWindow : Window
                 {
                     _ = task.Exception;
                     markFailed();
-                }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                }, CancellationToken.None, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
             }
         }

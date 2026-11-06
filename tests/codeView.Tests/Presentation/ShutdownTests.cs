@@ -57,9 +57,10 @@ public sealed class ShutdownTests
         Assert.That(failures, Is.EqualTo(1));
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task DeadlineEndsWaitingButObservesLateFailure(bool fault)
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(2)]
+    public async Task DeadlineEndsWaitingButObservesLateFailure(int completion)
     {
         var clock = new ControlledClock();
         var pending = new TaskCompletionSource();
@@ -72,9 +73,10 @@ public sealed class ShutdownTests
         Assert.That(pending.Task.IsCompleted, Is.False, "The deadline must not pretend the worker stopped.");
         Assert.That(failures, Is.Zero);
         Assert.That(clock.Timer.Disposed, Is.True);
-        if (fault) pending.SetException(new InvalidOperationException());
+        if (completion == 1) pending.SetException(new InvalidOperationException());
+        else if (completion == 2) pending.SetCanceled(new CancellationToken(true));
         else pending.SetResult();
-        Assert.That(failures, Is.EqualTo(fault ? 1 : 0));
+        Assert.That(failures, Is.EqualTo(completion == 0 ? 0 : 1));
     }
 
     [Test]
