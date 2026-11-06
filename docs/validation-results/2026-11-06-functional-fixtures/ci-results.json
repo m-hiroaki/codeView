@@ -1,0 +1,62 @@
+{
+  "macos": {
+    "zipSha256": "d81c12f8cc03a2742db3c0932bac3f74b7f18c992aeab76ce4ba46d9ed409a27",
+    "unitTrxSha256": "7126f070369c9ce6ce99eac306d4d9f416038ea844d176d1b7b92ca60584bd10",
+    "unitOutcomes": {
+      "Passed": 656
+    },
+    "fixtureIntegration": [
+      {
+        "name": "GeneratedFixedBytesMatchReaderDocumentAndChunkedSearchExpectations",
+        "class": "CodeView.Tests.Files.FunctionalFixtureTests",
+        "outcome": "Passed",
+        "duration": "00:00:00.2792490"
+      }
+    ],
+    "notPassed": [],
+    "pythonTotal": 37,
+    "pythonPassed": 37,
+    "pythonSkipped": 0,
+    "nativeLinksReadDeniedAndRecovery": "passed; see test.log"
+  },
+  "windows": {
+    "zipSha256": "416a256606a990a0ed449a2c89a161b76377a43ba425e92dde227280799edcf5",
+    "unitTrxSha256": "c15ac1b211501565bffa93d5410ec21b7864eb0a52eade5fcdf4047d1bfb9f8f",
+    "unitOutcomes": {
+      "Passed": 653,
+      "NotExecuted": 3
+    },
+    "fixtureIntegration": [
+      {
+        "name": "GeneratedFixedBytesMatchReaderDocumentAndChunkedSearchExpectations",
+        "class": "CodeView.Tests.Files.FunctionalFixtureTests",
+        "outcome": "Passed",
+        "duration": "00:00:02.3752840"
+      }
+    ],
+    "notPassed": [
+      {
+        "name": "MacFifoIsRejectedWithoutWaitingForAWriter",
+        "class": "CodeView.Tests.Files.FileReaderTests",
+        "outcome": "NotExecuted",
+        "duration": "00:00:00.0017820"
+      },
+      {
+        "name": "MacFifoSettingsCannotBlockStartup",
+        "class": "CodeView.Tests.Settings.SettingsStoreTests",
+        "outcome": "NotExecuted",
+        "duration": "00:00:00.0015550"
+      },
+      {
+        "name": "MacPermissionFailureIsReportedAndSiblingFilesRemainWalkable",
+        "class": "CodeView.Tests.Files.DirectoryReaderTests",
+        "outcome": "NotExecuted",
+        "duration": "00:00:00.0182680"
+      }
+    ],
+    "pythonTotal": 37,
+    "pythonPassed": 17,
+    "pythonSkipped": 20,
+    "nativeLinksReadDeniedAndRecovery": "passed; see test.log"
+  }
+}

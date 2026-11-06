@@ -35,7 +35,7 @@
     "readDenied": "verified",
     "verificationNote": ".NET 656 results from 0442de6 unchanged C# and portable fixture bytes; Python 37 and native CLI rerun after OS-native relative link path fix."
   },
-  "ci": "pending; check Windows native links and ACL before P0-05 completion",
+  "ci": "completed/success; see ci-run.json and ci-results.json for source commit, jobs, native cases, skips and artifacts",
   "limitations": [
     "C# declarations are an oracle for Phase 5, not implemented navigation acceptance",
     "No GUI, performance or large fixture acceptance implied"

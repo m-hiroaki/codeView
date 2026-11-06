@@ -1,0 +1,37 @@
+2026-11-06T05:12:43.4673400Z Passed!  - Failed:     0, Passed:   653, Skipped:     3, Total:   656, Duration: 9 s - codeView.Tests.dll (net10.0)
+2026-11-06T05:12:44.8574800Z test_default_intel_and_explicit_cross_architecture (test_build_scripts.MacBuildTests.test_default_intel_and_explicit_cross_architecture) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.8576202Z test_failed_publish_preserves_previous_app_and_cleans_staging (test_build_scripts.MacBuildTests.test_failed_publish_preserves_previous_app_and_cleans_staging) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.8578374Z test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk (test_build_scripts.MacBuildTests.test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.8579365Z test_rejects_non_mac_host (test_build_scripts.MacBuildTests.test_rejects_non_mac_host) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.8580333Z test_restore_failure_stops_before_publish_and_preserves_exit_code (test_build_scripts.MacBuildTests.test_restore_failure_stops_before_publish_and_preserves_exit_code) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.8581361Z test_success_without_executable_is_failure (test_build_scripts.MacBuildTests.test_success_without_executable_is_failure) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T05:12:44.9937761Z test_cli_portable_success_and_existing_output_failure (test_functional_fixture.FunctionalFixtureTests.test_cli_portable_success_and_existing_output_failure) ... ok
+2026-11-06T05:12:45.0423821Z test_created_but_unreadable_file_link_is_not_reported_as_ready (test_functional_fixture.FunctionalFixtureTests.test_created_but_unreadable_file_link_is_not_reported_as_ready) ... ok
+2026-11-06T05:12:45.0433843Z test_existing_directory_or_file_is_never_overwritten (test_functional_fixture.FunctionalFixtureTests.test_existing_directory_or_file_is_never_overwritten) ... ok
+2026-11-06T05:12:45.1303378Z test_native_links_cycles_and_read_denial_are_real_and_recoverable (test_functional_fixture.FunctionalFixtureTests.test_native_links_cycles_and_read_denial_are_real_and_recoverable) ... ok
+2026-11-06T05:12:45.1313524Z test_native_setup_errors_make_cli_fail (test_functional_fixture.FunctionalFixtureTests.test_native_setup_errors_make_cli_fail) ... ok
+2026-11-06T05:12:45.1794526Z test_portable_bytes_and_expectations_are_deterministic_across_roots (test_functional_fixture.FunctionalFixtureTests.test_portable_bytes_and_expectations_are_deterministic_across_roots) ... ok
+2026-11-06T05:12:45.1797453Z test_sid_extraction_does_not_depend_on_account_name_encoding (test_functional_fixture.FunctionalFixtureTests.test_sid_extraction_does_not_depend_on_account_name_encoding) ... ok
+2026-11-06T05:12:45.1802814Z test_sid_like_account_name_is_not_used_as_permission_identity (test_functional_fixture.FunctionalFixtureTests.test_sid_like_account_name_is_not_used_as_permission_identity) ... ok
+2026-11-06T05:12:45.2183161Z test_strict_encodings_and_invalid_sequences_have_independent_expectations (test_functional_fixture.FunctionalFixtureTests.test_strict_encodings_and_invalid_sequences_have_independent_expectations) ... ok
+2026-11-06T05:12:45.2412407Z test_unsupported_native_setup_is_reported_in_manifest (test_functional_fixture.FunctionalFixtureTests.test_unsupported_native_setup_is_reported_in_manifest) ... ok
+2026-11-06T05:12:45.4070294Z test_windows_acl_uses_current_sid_and_denies_only_file_data (test_functional_fixture.FunctionalFixtureTests.test_windows_acl_uses_current_sid_and_denies_only_file_data) ... ok
+2026-11-06T05:12:45.6930448Z test_deterministic_digest_and_mixed_distribution (test_generate_fixture.FixtureTests.test_deterministic_digest_and_mixed_distribution) ... ok
+2026-11-06T05:12:45.7175054Z test_exact_counts_sizes_and_known_matches (test_generate_fixture.FixtureTests.test_exact_counts_sizes_and_known_matches) ... ok
+2026-11-06T05:12:45.7180743Z test_invalid_arguments_do_not_create_output (test_generate_fixture.FixtureTests.test_invalid_arguments_do_not_create_output) ... ok
+2026-11-06T05:12:45.7206516Z test_output_is_not_overwritten (test_generate_fixture.FixtureTests.test_output_is_not_overwritten) ... ok
+2026-11-06T05:12:45.7208253Z test_coverage_clears_current_results_and_html_but_keeps_other_runs (test_test_scripts.TestRunnerTests.test_coverage_clears_current_results_and_html_but_keeps_other_runs) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7209953Z test_coverage_failure_preserves_exit_and_stops_python (test_test_scripts.TestRunnerTests.test_coverage_failure_preserves_exit_and_stops_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7211750Z test_coverage_mode_instruments_units_and_keeps_results_separate (test_test_scripts.TestRunnerTests.test_coverage_mode_instruments_units_and_keeps_results_separate) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7213792Z test_dotnet_failure_preserves_exit_and_does_not_run_python (test_test_scripts.TestRunnerTests.test_dotnet_failure_preserves_exit_and_does_not_run_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7216285Z test_invalid_and_extra_arguments_stop_before_tools (test_test_scripts.TestRunnerTests.test_invalid_and_extra_arguments_stop_before_tools) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7218027Z test_missing_html_is_failure_even_when_generator_returns_success (test_test_scripts.TestRunnerTests.test_missing_html_is_failure_even_when_generator_returns_success) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7219473Z test_non_mac_host_stops_before_tools (test_test_scripts.TestRunnerTests.test_non_mac_host_stops_before_tools) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7220871Z test_normal_mode_restores_runs_units_then_python_from_repo (test_test_scripts.TestRunnerTests.test_normal_mode_restores_runs_units_then_python_from_repo) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7222446Z test_performance_mode_runs_only_performance_and_no_python (test_test_scripts.TestRunnerTests.test_performance_mode_runs_only_performance_and_no_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7223824Z test_python_failure_preserves_exit (test_test_scripts.TestRunnerTests.test_python_failure_preserves_exit) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7225198Z test_report_failure_stops_python_and_preserves_exit (test_test_scripts.TestRunnerTests.test_report_failure_stops_python_and_preserves_exit) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7226726Z test_report_restore_failure_stops_generation_and_python (test_test_scripts.TestRunnerTests.test_report_restore_failure_stops_generation_and_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7228291Z test_restore_failure_preserves_exit_and_does_not_run_tests (test_test_scripts.TestRunnerTests.test_restore_failure_preserves_exit_and_does_not_run_tests) ... skipped 'POSIX shell runner tests'
+2026-11-06T05:12:45.7229722Z Ran 37 tests in 0.864s
+2026-11-06T05:12:45.7229988Z OK (skipped=20)
