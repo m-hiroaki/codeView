@@ -1,0 +1,12 @@
+[
+  {
+    "tool": "dotnet-trace",
+    "childReturns": 1,
+    "toolExitCode": 1
+  },
+  {
+    "tool": "dotnet-counters",
+    "childReturns": 1,
+    "toolExitCode": 0
+  }
+]

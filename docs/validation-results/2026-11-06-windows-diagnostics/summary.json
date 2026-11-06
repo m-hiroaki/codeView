@@ -1,13 +1,25 @@
 {
   "macos": {
-    "sourceCommit": "68935b452ede504cb39924eb13c17a9f597f2dc7",
+    "sourceCommit": "0afb2f35790c71d4474260611be9a2b7a08881ee",
     "operations": 80,
     "traces": 4,
     "allValidated": true,
-    "compressedReportSha256": "ed02b838af51f075607c87009687e0e8b8a4d61fd31db44eaf9b275111e0be18",
-    "collectorSourceSha256": "fccefb2b66fb810aa1985ea7c1cf3d9e8bd5e576dd1702d52b9959c092822ecc",
+    "compressedReportSha256": "c60e3741f363166ccbc74c7225f798b3ca7638c0c66552e5872fca764dbf3e3b",
+    "collectorSourceSha256": "7530ae3f29fa0f39accdfe97d90d71376df9bb176abe182c69fbf7693335799a",
     "coreAssertionsPassed": true,
-    "acquisitionValidated": true
+    "acquisitionValidated": true,
+    "hostSourceSha256": "2f17aec700aa4fdf9748838521b56f9ab1aa7e555fb4bd820eb42de8dd64730a",
+    "metrics": {
+      "baseline": {
+        "buildMedianSumMs": 4044.1638000000003,
+        "cpuMedianSumMs": 4672.902999999999
+      },
+      "gc-verbose": {
+        "buildMedianSumMs": 4101.160899999999,
+        "cpuMedianSumMs": 4746.181
+      }
+    },
+    "pythonTestsPassed": 57
   },
   "windows": "pending",
   "limits": [

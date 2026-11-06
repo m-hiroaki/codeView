@@ -17,7 +17,7 @@ P0-04用。[記録テンプレート](measurement-record.template.json)へ、ビ
 mkdir -p artifacts/diagnostics
 dotnet tool install dotnet-trace --tool-path artifacts/diagnostics-tools --version 10.0.750501
 dotnet tool install dotnet-counters --tool-path artifacts/diagnostics-tools --version 10.0.750501
-cp docs/validation-results/2026-11-06-eventpipe/CoreHost.cs.txt artifacts/diagnostics/CoreHost.cs
+cp tests/Diagnostics/CoreHost.cs.txt artifacts/diagnostics/CoreHost.cs
 cp docs/validation-results/2026-11-06-eventpipe/TraceSummary.cs.txt artifacts/diagnostics/TraceSummary.cs
 cp docs/validation-results/2026-11-06-eventpipe/run.py.txt artifacts/diagnostics/run.py
 dotnet build artifacts/diagnostics/CoreHost.cs -c Release --output artifacts/diagnostics/host
@@ -75,7 +75,7 @@ dotnet artifacts/diagnostics/reader/TraceSummary.dll artifacts/diagnostics/new-r
 
 収集器`tools/measure_diagnostics.py`は、通常3回・gc-verbose 3回・gc-collect/counters各1回、各10操作を順次実行する。両OSの実行ファイル名、空白を含むパス、UTF-8 BOM付きJSON/CSVを扱い、既存結果の上書きを拒否する。入力の50 MiB、操作数、製品コミット、Warm条件、入力ハッシュ不変、ツール/ホスト終了コード、トレースの欠落/GC対応/20開始終了マーカー、CounterのGC行を検証する。
 
-ホストが全10レポートを残してassertion失敗の終了コード1を返した場合は、原因調査のため残りの収集を継続する。追加のBudgetFailedマーカーを該当操作の開始/終了内に対応付け、ホストの終了コードと照合する。取得の成立`acquisitionValidated`とコア試験の合否`coreAssertionsPassed`を分け、1件でもコア失敗があれば全収集後のスクリプトも非0終了する。既存予算を緩めたり合格へ変換したりしない。レポート欠落・予期しない終了・トレースの不整合は直ちに失敗させる。途中までのログとJSONも保存する。
+ホストは全10レポートの後に、ラベル・操作数・assertion失敗数を`*-host.json`へ記録する。失敗時は終了コード1を返す。dotnet-countersは子の失敗でもツール自体が0終了する場合があるため、ツール終了コードだけでコア成功と判断しない。完了記録が揃うassertion失敗は、原因調査のため残りの収集を継続する。追加のBudgetFailedマーカーを該当操作の開始/終了内に対応付け、ホスト記録の失敗数と照合する。取得の成立`acquisitionValidated`とコア試験の合否`coreAssertionsPassed`を分け、1件でもコア失敗があれば全収集後のスクリプトも非0終了する。既存予算を緩めたり合格へ変換したりしない。レポート欠落・予期しない終了・トレースの不整合は直ちに失敗させる。途中までのログとJSONも保存する。
 
 手元でホスト/ツールの準備後に実行する例（commitは対象ビルドの完全なSHAに置換する）：
 

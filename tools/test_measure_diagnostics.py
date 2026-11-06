@@ -42,6 +42,8 @@ class DiagnosticTests(unittest.TestCase):
                           "CacheCondition": "Warm; test", "BuildMilliseconds": [1]}
                 for index in range(10):
                     (results / f"{label}-{index}-1.json").write_text(json.dumps(report))
+                failures = 1 if label in ("trial-baseline-1", "trial-counters-1") else 0
+                (results / (label + "-host.json")).write_text(json.dumps({"Label": label, "Rounds": 10, "AssertionFailures": failures}))
                 if "-counters-" in label:
                     (output / (label + ".csv")).write_text("Timestamp,Provider,Counter Name,Counter Type,Mean/Increment\ntime,System.Runtime,dotnet.gc.collections,Rate,1\n")
                 return SimpleNamespace(returncode=1 if label == "trial-baseline-1" else 0)
@@ -56,7 +58,10 @@ class DiagnosticTests(unittest.TestCase):
             self.assertFalse(record["coreAssertionsPassed"])
             self.assertEqual(record["runs"][0]["exitCode"], 1)
             self.assertTrue(all(run["acquisitionValidated"] for run in record["runs"]))
-            self.assertEqual(sum(run["coreAssertionsPassed"] for run in record["runs"]), 7)
+            self.assertEqual(sum(run["coreAssertionsPassed"] for run in record["runs"]), 6)
+            counter = next(run for run in record["runs"] if run["mode"] == "counters")
+            self.assertEqual(counter["exitCode"], 0)
+            self.assertEqual(counter["reportedHostExitCode"], 1)
             self.assertTrue((output / "sha256.json").is_file())
 
     def test_hash_streams_empty_and_multiple_blocks_on_supported_python(self):
@@ -129,11 +134,20 @@ class DiagnosticTests(unittest.TestCase):
         original = [{"InputBytes": 50, "Copies": 1, "ProductInformationalVersion": "1.0+" + "a" * 40,
                      "CacheCondition": "Warm; fixture read", "BuildMilliseconds": [1]} for _ in range(10)]
         validate_reports(original, 50, "a" * 40)
-        self.assertTrue(validate_child(0, original, 50, "a" * 40))
-        self.assertFalse(validate_child(1, original, 50, "a" * 40))
+        summary = {"Label": "trial", "Rounds": 10, "AssertionFailures": 0}
+        self.assertTrue(validate_child(0, original, 50, "a" * 40, summary, "trial"))
+        with self.assertRaises(RuntimeError):
+            validate_child(1, original, 50, "a" * 40, summary, "trial")
+        summary["AssertionFailures"] = 1
+        for code in (0, 1):
+            self.assertFalse(validate_child(code, original, 50, "a" * 40, summary, "trial"))
         for code in (-1, 2, 134):
             with self.assertRaises(RuntimeError):
-                validate_child(code, original, 50, "a" * 40)
+                validate_child(code, original, 50, "a" * 40, summary, "trial")
+        for key, value in (("Label", "old"), ("Rounds", 9), ("AssertionFailures", -1), ("AssertionFailures", 11), ("AssertionFailures", True)):
+            changed = {**summary, key: value}
+            with self.assertRaises(ValueError):
+                validate_child(0, original, 50, "a" * 40, changed, "trial")
         with self.assertRaises(ValueError):
             validate_reports(original[:-1], 50, "a" * 40)
         for key, value in (("InputBytes", 51), ("Copies", 5), ("ProductInformationalVersion", "old"),

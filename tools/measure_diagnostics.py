@@ -84,13 +84,19 @@ def validate_reports(reports, input_bytes, commit):
             raise ValueError("Core report differs from requested build/input/conditions")
 
 
-def validate_child(exit_code, reports, input_bytes, commit):
-    # The fixed host returns 1 for caught NUnit assertions, after preserving each report.
-    # Keep collecting diagnostics for the failure; never turn it into a passing core result.
+def validate_child(exit_code, reports, input_bytes, commit, summary, label):
+    # dotnet-counters may return 0 even when its child returns 1. Require the host's
+    # completion record as well as the tool exit; do not infer core success from the tool.
     if exit_code not in (0, 1):
         raise RuntimeError("Diagnostic child did not reach its normal/assertion exit")
     validate_reports(reports, input_bytes, commit)
-    return exit_code == 0
+    failures = summary["AssertionFailures"]
+    if (summary["Label"] != label or summary["Rounds"] != ROUNDS or type(failures) is not int
+            or not 0 <= failures <= ROUNDS):
+        raise ValueError("Invalid host completion record")
+    if exit_code == 1 and failures == 0:
+        raise RuntimeError("Tool failed despite successful host completion")
+    return failures == 0
 
 
 def counter_rows(path):
@@ -118,6 +124,8 @@ def collect(input_file, host, reader, tools, output, commit):
             raise FileNotFoundError(name)
     labels = [f"{output.name}-{mode}-{number}" for mode, number in ORDER]
     for label in labels:
+        if (host.parent / "TestResults" / (label + "-host.json")).exists():
+            raise FileExistsError("Use new output name; preserve previous host result")
         for index in range(ROUNDS):
             if (host.parent / "TestResults" / f"{label}-{index}-1.json").exists():
                 raise FileExistsError("Use new output name; preserve previous reports")
@@ -145,7 +153,9 @@ def collect(input_file, host, reader, tools, output, commit):
                 if path.exists():
                     reports.append(json.loads(path.read_text(encoding="utf-8-sig")))
             run["reports"] = reports
-            run["coreAssertionsPassed"] = validate_child(child.returncode, reports, record["inputBytes"], commit)
+            run["hostSummary"] = json.loads((host.parent / "TestResults" / (label + "-host.json")).read_text(encoding="utf-8-sig"))
+            run["coreAssertionsPassed"] = validate_child(child.returncode, reports, record["inputBytes"], commit, run["hostSummary"], label)
+            run["reportedHostExitCode"] = 0 if run["coreAssertionsPassed"] else 1
             if mode in ("gc-collect", "gc-verbose"):
                 analysis = output / (label + "-trace.json")
                 parsed = subprocess.run(["dotnet", str(reader), str(output / (label + ".nettrace")), str(analysis)],
@@ -158,7 +168,7 @@ def collect(input_file, host, reader, tools, output, commit):
                     raise RuntimeError("Trace parser rejected recording")
                 failures = validate_trace(run["trace"], label)
                 run["assertionFailureMarkers"] = failures
-                if (failures == 0) != run["coreAssertionsPassed"]:
+                if failures != run["hostSummary"]["AssertionFailures"]:
                     raise ValueError("Child exit differs from recorded assertion markers")
                 if mode == "gc-verbose" and not run["trace"]["AllocationSamples"]:
                     raise ValueError("Missing verbose allocation samples")

@@ -1,0 +1,3 @@
+#:property PublishAot=false
+await Task.Delay(1500);
+return 1;

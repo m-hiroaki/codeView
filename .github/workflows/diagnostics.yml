@@ -8,6 +8,7 @@ on:
       - .github/workflows/diagnostics.yml
       - tools/measure_diagnostics.py
       - tools/test_measure_diagnostics.py
+      - tests/Diagnostics/CoreHost.cs.txt
 
 permissions:
   contents: read
@@ -57,7 +58,7 @@ jobs:
         run: |
           dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item docs/validation-results/2026-11-06-eventpipe/CoreHost.cs.txt artifacts/diagnostics/CoreHost.cs
+          Copy-Item tests/Diagnostics/CoreHost.cs.txt artifacts/diagnostics/CoreHost.cs
           Copy-Item docs/validation-results/2026-11-06-eventpipe/TraceSummary.cs.txt artifacts/diagnostics/TraceSummary.cs
           dotnet build artifacts/diagnostics/CoreHost.cs -c Release --output artifacts/diagnostics/host -p:CodeViewPerformanceProbe=false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
