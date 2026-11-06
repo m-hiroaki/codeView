@@ -1,0 +1,178 @@
+{
+  "macos": {
+    "statistics": {
+      "baseline": {
+        "empty": {
+          "OpenedMilliseconds": {
+            "median": 928.70715,
+            "max": 1025.0849
+          },
+          "CpuMilliseconds": {
+            "median": 1096.5,
+            "max": 1241.06
+          },
+          "SampledPeakMemory": {
+            "median": 86723264.0,
+            "max": 87001728
+          }
+        },
+        "file": {
+          "OpenedMilliseconds": {
+            "median": 832.8794499999999,
+            "max": 1153.9551
+          },
+          "CpuMilliseconds": {
+            "median": 1519.1,
+            "max": 1766.747
+          },
+          "SampledPeakMemory": {
+            "median": 105114368.0,
+            "max": 105532096
+          }
+        }
+      },
+      "candidate": {
+        "empty": {
+          "OpenedMilliseconds": {
+            "median": 910.74755,
+            "max": 1080.9672
+          },
+          "CpuMilliseconds": {
+            "median": 1076.4185,
+            "max": 1294.52
+          },
+          "SampledPeakMemory": {
+            "median": 85936832.0,
+            "max": 86035072
+          }
+        },
+        "file": {
+          "OpenedMilliseconds": {
+            "median": 879.1392000000001,
+            "max": 1147.9664
+          },
+          "CpuMilliseconds": {
+            "median": 1586.1945,
+            "max": 2134.696
+          },
+          "SampledPeakMemory": {
+            "median": 104524480.0,
+            "max": 104745728
+          }
+        }
+      }
+    },
+    "checks": {
+      "firstSearchWithin100ms": true,
+      "emptyStartupImproved5Percent": false,
+      "emptyCpuMillisecondsWithin5Percent": true,
+      "emptySampledPeakMemoryWithin5Percent": true,
+      "fileStartupImproved5Percent": false,
+      "fileCpuMillisecondsWithin5Percent": true,
+      "fileSampledPeakMemoryWithin5Percent": true
+    },
+    "candidateAccepted": false,
+    "startupMedianChangePercent": {
+      "empty": -1.933828117937919,
+      "file": 5.554195147929297
+    },
+    "firstSearchSyncMs": [
+      39.424,
+      32.5678,
+      40.6449
+    ],
+    "firstSearchTwoTicksMs": [
+      159.3068,
+      117.728,
+      135.3204
+    ]
+  },
+  "windows": {
+    "statistics": {
+      "baseline": {
+        "empty": {
+          "OpenedMilliseconds": {
+            "median": 1303.07915,
+            "max": 1319.8177
+          },
+          "CpuMilliseconds": {
+            "median": 1773.4375,
+            "max": 1796.875
+          },
+          "SampledPeakMemory": {
+            "median": 56592384.0,
+            "max": 56950784
+          }
+        },
+        "file": {
+          "OpenedMilliseconds": {
+            "median": 1288.93025,
+            "max": 1316.236
+          },
+          "CpuMilliseconds": {
+            "median": 2257.8125,
+            "max": 2359.375
+          },
+          "SampledPeakMemory": {
+            "median": 70156288.0,
+            "max": 70569984
+          }
+        }
+      },
+      "candidate": {
+        "empty": {
+          "OpenedMilliseconds": {
+            "median": 1258.8477,
+            "max": 1273.3986
+          },
+          "CpuMilliseconds": {
+            "median": 1718.75,
+            "max": 1812.5
+          },
+          "SampledPeakMemory": {
+            "median": 56240128.0,
+            "max": 56664064
+          }
+        },
+        "file": {
+          "OpenedMilliseconds": {
+            "median": 1255.9771999999998,
+            "max": 1265.9171
+          },
+          "CpuMilliseconds": {
+            "median": 2234.375,
+            "max": 2281.25
+          },
+          "SampledPeakMemory": {
+            "median": 69709824.0,
+            "max": 70127616
+          }
+        }
+      }
+    },
+    "checks": {
+      "firstSearchWithin100ms": true,
+      "emptyStartupImproved5Percent": false,
+      "emptyCpuMillisecondsWithin5Percent": true,
+      "emptySampledPeakMemoryWithin5Percent": true,
+      "fileStartupImproved5Percent": false,
+      "fileCpuMillisecondsWithin5Percent": true,
+      "fileSampledPeakMemoryWithin5Percent": true
+    },
+    "candidateAccepted": false,
+    "startupMedianChangePercent": {
+      "empty": -3.394379382096624,
+      "file": -2.5566201119106347
+    },
+    "firstSearchSyncMs": [
+      51.0554,
+      49.3986,
+      51.1557
+    ],
+    "firstSearchTwoTicksMs": [
+      211.0278,
+      182.5181,
+      184.4297
+    ]
+  }
+}

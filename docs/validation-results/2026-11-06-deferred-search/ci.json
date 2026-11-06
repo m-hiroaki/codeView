@@ -1,0 +1,774 @@
+{
+  "baseline": "94bbefdf1582b63940f9303ab3abac076c480a07",
+  "candidate": "0391352c71d704a3f49c8138f068348e15ff52df",
+  "comparisonRun": 42205034705,
+  "comparisonJobs": [
+    {
+      "id": 127849415420,
+      "name": "Compare (windows-2025)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 42205034705,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Record environment and isolated fixture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Build both explicit probes on the same host",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Compare startup and check first search use",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 8
+        },
+        {
+          "name": "Upload comparison including rejection evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 16
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        }
+      ]
+    },
+    {
+      "id": 127849415984,
+      "name": "Compare (macos-15)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 42205034705,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Record environment and isolated fixture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Build both explicit probes on the same host",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Compare startup and check first search use",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 8
+        },
+        {
+          "name": "Upload comparison including rejection evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 16
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13496536857,
+      "name": "deferred-search-macos-15",
+      "size_in_bytes": 196213,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13496536857",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13496536857/zip",
+      "expired": false,
+      "created_at": "2026-11-06T10:47:56Z",
+      "expires_at": "2026-11-20T10:47:55Z",
+      "updated_at": "2026-11-06T10:47:56Z",
+      "digest": "sha256:b7b634b79f0c6e37c5323c4dc450665832c9aaf4e61d972b8a876560b901d576",
+      "workflow_run": {
+        "id": 42205034705,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "0391352c71d704a3f49c8138f068348e15ff52df"
+      }
+    },
+    {
+      "id": 13495963113,
+      "name": "deferred-search-windows-2025",
+      "size_in_bytes": 194106,
+      "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13495963113",
+      "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13495963113/zip",
+      "expired": false,
+      "created_at": "2026-11-06T10:48:20Z",
+      "expires_at": "2026-11-20T10:48:19Z",
+      "updated_at": "2026-11-06T10:48:20Z",
+      "digest": "sha256:c2b5ca8065275307f052b4975f13cfbd5d78404a20ac1bc1d2f0c93905079df2",
+      "workflow_run": {
+        "id": 42205034705,
+        "repository_id": 1439751706,
+        "head_repository_id": 1439751706,
+        "head_branch": "main",
+        "head_sha": "0391352c71d704a3f49c8138f068348e15ff52df"
+      }
+    }
+  ],
+  "initial": [
+    {
+      "run": 42200076275,
+      "artifacts": [
+        {
+          "id": 13493588506,
+          "name": "deferred-search-windows-2025",
+          "size_in_bytes": 179518,
+          "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13493588506",
+          "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13493588506/zip",
+          "expired": false,
+          "created_at": "2026-11-06T10:09:16Z",
+          "expires_at": "2026-11-20T10:09:16Z",
+          "updated_at": "2026-11-06T10:09:16Z",
+          "digest": "sha256:d6b43e7fbdf43485e64681f98cb4860cdc541abea7b6f06b9cc1fa5d4c44ef2e",
+          "workflow_run": {
+            "id": 42200076275,
+            "repository_id": 1439751706,
+            "head_repository_id": 1439751706,
+            "head_branch": "main",
+            "head_sha": "39e661c9ecfcb07d804ec59204ec99ad2752cec1"
+          }
+        },
+        {
+          "id": 13493263271,
+          "name": "deferred-search-macos-15",
+          "size_in_bytes": 181304,
+          "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13493263271",
+          "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13493263271/zip",
+          "expired": false,
+          "created_at": "2026-11-06T10:09:11Z",
+          "expires_at": "2026-11-20T10:09:10Z",
+          "updated_at": "2026-11-06T10:09:11Z",
+          "digest": "sha256:bc5f3db55e9444550395d514a3ef932a772612fdc00137fdb3858975ae35b8e0",
+          "workflow_run": {
+            "id": 42200076275,
+            "repository_id": 1439751706,
+            "head_repository_id": 1439751706,
+            "head_branch": "main",
+            "head_sha": "39e661c9ecfcb07d804ec59204ec99ad2752cec1"
+          }
+        }
+      ]
+    },
+    {
+      "run": 42203817166,
+      "artifacts": [
+        {
+          "id": 13496455066,
+          "name": "deferred-search-windows-2025",
+          "size_in_bytes": 180328,
+          "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13496455066",
+          "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13496455066/zip",
+          "expired": false,
+          "created_at": "2026-11-06T10:38:08Z",
+          "expires_at": "2026-11-20T10:38:07Z",
+          "updated_at": "2026-11-06T10:38:08Z",
+          "digest": "sha256:384c865d65b9d78135da5bb2ccb8031f3b68f7ef33b2f9f2772fc84b212ad285",
+          "workflow_run": {
+            "id": 42203817166,
+            "repository_id": 1439751706,
+            "head_repository_id": 1439751706,
+            "head_branch": "main",
+            "head_sha": "11dc63959f056f12f40e0182b7500757a15dc3f8"
+          }
+        },
+        {
+          "id": 13495572466,
+          "name": "deferred-search-macos-15",
+          "size_in_bytes": 181838,
+          "url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13495572466",
+          "archive_download_url": "https://api.github.com/repos/m-hiroaki/codeView/actions/artifacts/13495572466/zip",
+          "expired": false,
+          "created_at": "2026-11-06T10:38:43Z",
+          "expires_at": "2026-11-20T10:38:41Z",
+          "updated_at": "2026-11-06T10:38:43Z",
+          "digest": "sha256:194a06381540cb6e0ff7cc1497f603a3f7f566998015d33d839e169ea3831dec",
+          "workflow_run": {
+            "id": 42203817166,
+            "repository_id": 1439751706,
+            "head_repository_id": 1439751706,
+            "head_branch": "main",
+            "head_sha": "11dc63959f056f12f40e0182b7500757a15dc3f8"
+          }
+        }
+      ]
+    }
+  ],
+  "restored": [
+    {
+      "id": 42206084209,
+      "name": "Build and test",
+      "head_sha": "786d62e82931465711aa7c58704efccf4d899fa6",
+      "jobs": [
+        {
+          "id": 127852950668,
+          "name": "Test (macos-15)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42206084209,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Set up .NET SDK",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record environment",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Test on macOS",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Test on Windows",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 7
+            },
+            {
+              "name": "Upload test evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Post Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Post Set up .NET SDK",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            }
+          ]
+        },
+        {
+          "id": 127852951169,
+          "name": "Test (windows-2025)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42206084209,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Set up .NET SDK",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record environment",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Test on macOS",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 6
+            },
+            {
+              "name": "Test on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Upload test evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Post Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Post Set up .NET SDK",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 42206084178,
+      "name": "Native GUI validation",
+      "head_sha": "786d62e82931465711aa7c58704efccf4d899fa6",
+      "jobs": [
+        {
+          "id": 127852950240,
+          "name": "Native window (macOS)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42206084178,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record environment and small input",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Build explicit GUI probe",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Verify native startup and completion",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Verify native read-only control operations",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Upload native GUI evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        },
+        {
+          "id": 127852950633,
+          "name": "Native window (Windows)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42206084178,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record environment and small input",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Build explicit GUI probe",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Verify native startup and completion",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Verify native read-only control operations",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Upload native GUI evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 42206084160,
+      "name": "Windows Native AOT publish validation",
+      "head_sha": "786d62e82931465711aa7c58704efccf4d899fa6",
+      "jobs": [
+        {
+          "id": 127852950058,
+          "name": "windows",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42206084160,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record environment",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Run actual distribution batch",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Check native payload and visible window",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Verify checked-in dependency locks unchanged",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Upload publish evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
