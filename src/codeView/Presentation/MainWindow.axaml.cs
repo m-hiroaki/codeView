@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Templates;
 using System.ComponentModel;
 using Avalonia.Threading;
 using Avalonia.Input;
@@ -202,8 +201,11 @@ internal sealed partial class MainWindow : Window
 
     private Control CreateSearchPanel()
     {
-        if (Resources["SearchPanelTemplate"] is not IDataTemplate template || template.Build(_viewModel) is not { } panel)
+        if (Resources["SearchPanelTemplate"] is not Avalonia.Markup.Xaml.Templates.DataTemplate template ||
+            Avalonia.Markup.Xaml.Templates.TemplateContent.Load(template.Content) is not { } built)
             throw new InvalidOperationException("検索パネルのテンプレートを読み込めません。");
+        var panel = built.Result;
+        NameScope.SetNameScope(panel, built.NameScope);
         panel.DataContext = _viewModel;
         panel.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);

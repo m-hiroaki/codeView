@@ -27,6 +27,7 @@ internal static class GuiSearchPanelProbe
         var started = Stopwatch.GetTimestamp();
         owner.FindControl<MenuItem>("WorkspaceSearchMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         var synchronous = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        Console.WriteLine($"SEARCH first-show synchronous-ms={synchronous:F3}");
         await Frame(owner, ct);
         await Frame(owner, ct);
         var twoTicks = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
