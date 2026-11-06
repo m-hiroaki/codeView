@@ -1,0 +1,8 @@
+{
+  "commit": "d89d7a27b7f9b9cc68e097874a602ad738d628f8",
+  "runId": 42188557407,
+  "artifactId": 13488697360,
+  "zipSha256": "a66f8c1ab010210045ec511095d43d9fb6009bddbb3e10864d0710e2b36cf2ce",
+  "outcome": "failure",
+  "reason": "Probe incorrectly required CanDelete=false before attempting Delete; fixed library allows command and protects read-only segments during execution."
+}

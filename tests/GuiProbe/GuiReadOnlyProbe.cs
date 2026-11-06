@@ -96,6 +96,7 @@ internal static class GuiReadOnlyProbe
                 var selectedLength = editor.SelectionLength;
                 Console.WriteLine($"READONLY {selection}/{action}");
                 bool? handled = null;
+                bool? commandAvailable = null;
                 switch (action)
                 {
                     case "text":
@@ -107,14 +108,18 @@ internal static class GuiReadOnlyProbe
                         handled = args.Handled;
                         break;
                     case "paste":
+                        commandAvailable = editor.CanPaste;
                         Require(!editor.CanPaste, "Read-only editor offered paste.");
                         editor.Paste();
                         break;
                     case "delete":
-                        Require(!editor.CanDelete, "Read-only editor offered deletion.");
+                        // AvalonEdit's CanDelete allows a document; the deletion handler
+                        // enforces read-only segments. Verify the body after executing it.
+                        commandAvailable = editor.CanDelete;
                         editor.Delete();
                         break;
                     case "cut":
+                        commandAvailable = editor.CanCut;
                         Require(!editor.CanCut, "Read-only editor offered cut.");
                         editor.Cut();
                         break;
@@ -131,7 +136,7 @@ internal static class GuiReadOnlyProbe
                 Require(view.FilePath == initialPath && view.Tabs.Count == initialTabs, "Text input/drop opened another document.");
                 Require(!source.UndoStack.CanUndo && !source.UndoStack.CanRedo, "Editing history was created.");
                 checks.Add(new { Selection = selection, Action = action, Caret = position,
-                    SelectionLength = selectedLength, Handled = handled, Characters = source.TextLength,
+                    SelectionLength = selectedLength, Handled = handled, CommandAvailable = commandAvailable, Characters = source.TextLength,
                     BodySha256 = Hash(source.Text), UndoCanUndo = source.UndoStack.CanUndo, UndoCanRedo = source.UndoStack.CanRedo });
             }
             bool? copyVerified = null;

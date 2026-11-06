@@ -50,6 +50,8 @@ def validate_report(report, characters, body_hash, commit):
             raise ValueError("Editing attempt changed body/history or skipped a selection boundary")
         if row["Action"] in ("text", "newline", "text-drop") and row["Handled"] is not True:
             raise ValueError("Routed input/drop did not reach its handler")
+        if row["Action"] in ("delete", "paste", "cut") and type(row["CommandAvailable"]) is not bool:
+            raise ValueError("Command availability was not recorded")
 
 
 def collect(app, inputs, output, rounds, commit):

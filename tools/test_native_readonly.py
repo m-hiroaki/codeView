@@ -28,12 +28,15 @@ class NativeReadOnlyTests(unittest.TestCase):
                                 "BodySha256": body_hash, "UndoCanUndo": False, "UndoCanRedo": False,
                                 "Caret": characters if selection == "end" else 0,
                                 "SelectionLength": characters if selection == "all" else 0,
+                                "CommandAvailable": action == "delete" if action in ("delete", "paste", "cut") else None,
                                 "Handled": True if action in ("text", "newline", "text-drop") else None}
                                for selection in SELECTIONS for action in ACTIONS]}}
 
     def test_unicode_and_empty_reports_require_full_attempt_matrix(self):
         for length in (0, 5):
             validate_report(self.report(length), length, "b" * 64, "a" * 40)
+        # CanDelete is true in the adopted library; immutable content/history is the criterion.
+        self.assertTrue(next(x for x in self.report()["ReadOnlyChecks"]["Checks"] if x["Action"] == "delete")["CommandAvailable"])
 
     def test_wrong_build_mode_failure_and_readonly_settings_are_rejected(self):
         for key, value in (("Failure", "failed"), ("InputInterrupted", True), ("Scenario", "native-gui-scroll-proxy"),

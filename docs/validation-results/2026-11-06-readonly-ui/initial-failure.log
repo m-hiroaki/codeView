@@ -1,0 +1,19 @@
+GUI-PROBE 1327.248 window-opened
+GUI-PROBE 1385.602 attachment-start
+GUI-PROBE 1417.197 attachment-end
+READONLY positive-input-undo-redo
+READONLY positive-native-paste
+READONLY positive-text-drop
+READONLY start/text
+READONLY start/newline
+READONLY start/paste
+READONLY start/delete
+System.InvalidOperationException: Read-only editor offered deletion.
+   at CodeView.Presentation.GuiReadOnlyProbe.Require(Boolean condition, String message) in D:\a\codeView\codeView\tests\GuiProbe\GuiReadOnlyProbe.cs:line 195
+   at CodeView.Presentation.GuiReadOnlyProbe.RunAsync(Window owner, TextEditor editor, MainWindowViewModel view, CancellationToken ct) in D:\a\codeView\codeView\tests\GuiProbe\GuiReadOnlyProbe.cs:line 114
+   at CodeView.Presentation.GuiReadOnlyProbe.RunAsync(Window owner, TextEditor editor, MainWindowViewModel view, CancellationToken ct) in D:\a\codeView\codeView\tests\GuiProbe\GuiReadOnlyProbe.cs:line 161
+   at CodeView.Presentation.GuiPerformanceProbe.RunReadOnlyChecksAsync() in D:\a\codeView\codeView\tests\GuiProbe\GuiPerformanceProbe.cs:line 708
+GUI-PROBE 2124.289 complete
+GUI-PROBE 2125.237 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 2150.563 window-closing cancelled-at-probe-handler=False
+GUI-PROBE 2179.569 window-closed
