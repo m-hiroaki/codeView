@@ -28,6 +28,8 @@ GCの累積停止合計と、トレースで確認する個別停止は別の指
 
 ## 3. データ生成
 
+v2の正規プロファイル、改行/Unicode/多一致、直下1万件+深さ10+小中大分布、書込みなし計画と内容検証は[性能用データの準備](performance-fixtures.md)を参照する。過去のv1入力は上書きしない。生成器の変更は製品コード・性能予算を変更するものではない。
+
 外部依存なしのPythonスクリプトで、既存出力を上書きせず新しい場所へ生成する。マニフェストは検索対象ルートの外側に保存し、ファイル数・総サイズ・文字コード・配置・seed・期待一致数・不一致語を記録する。生成途中で失敗した出力は不完全として残し、自動削除しない。
 
 ```sh
@@ -40,7 +42,7 @@ python3 tools/generate_fixture.py artifacts/fixtures/l2 --profile l2 --layout mi
 python3 tools/generate_fixture.py artifacts/fixtures/l3 --profile l3 --layout wide
 ```
 
-L1は5万ファイル・1 GiB、L2は20万・5 GiB、L3は100万・20 GiB。実行する前に空き容量と試験対象を確認する。L3は限界調査であり完走を保証しない。UTF-8/CP932を任意バイト位置で切らず、端数はASCIIの空白で埋めるため正確なサイズと厳格なデコードを両立する。`CODEVIEW_MATCH`は各ファイルに1回、`CODEVIEW_ABSENT_QUERY`は0回である。
+L1は5万ファイル・1 GiB、L2は20万・5 GiB、L3は100万・20 GiB。実行する前に空き容量と試験対象を確認する。L3は限界調査であり完走を保証しない。UTF-8/CP932を任意バイト位置で切らず、端数はASCIIの空白で埋めるため正確なサイズと厳格なデコードを両立する。通常の`CODEVIEW_MATCH`は各ファイルに1回、`CODEVIEW_ABSENT_QUERY`は0回である。many-matchesでは全体の期待件数をmanifestから読み、結果表示上限による部分完了と区別する。
 
 ## 4. 後続評価
 

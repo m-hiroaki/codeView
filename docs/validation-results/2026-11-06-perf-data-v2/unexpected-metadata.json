@@ -1,0 +1,102 @@
+{
+  "attempts": [
+    {
+      "reason": "Strict corpus verification found unexpected .DS_Store files",
+      "originalRoot": "/Users/hiroaki/Src/codeview/artifacts/fixtures/perf-v2-20261106",
+      "relocatedRoot": "/private/tmp/codeview-perf-v2-20261106",
+      "archiveSha256": "a97b31dad8be3ffffe86940e113f6b8763338651518c625b1546d78554b75337",
+      "removed": [
+        {
+          "path": ".DS_Store",
+          "sha256": "dce96f2d1a77fb9ad6c0b722f4d76a9bd6ed7021a9663485f4d31cf73041bd7b"
+        },
+        {
+          "path": "l1-utf-8/.DS_Store",
+          "sha256": "20d7a5047465dc353c81812fe72b483c53bdc5552b98156d945a6b8e1c66df33"
+        },
+        {
+          "path": "l1-utf-8/level-01/.DS_Store",
+          "sha256": "15d8cfb0db004a75dbe8fe6644d46d1e1cef10074c64fca4fe873e9c1a2fe98a"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/.DS_Store",
+          "sha256": "a8e02bffdd70dd019cb06d00d75b1ce8f3ff778e6b2d18a1efde13c6d2af6253"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/.DS_Store",
+          "sha256": "08d348f0b2f75659ddac5fe132fab65c1d9d3d69d397e3721502d73990976396"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/level-04/.DS_Store",
+          "sha256": "1feb86df6684d825ef8cfa93f453e8c00ec35127a1d64a65b0f5b861d3cf1eb4"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/level-04/level-05/.DS_Store",
+          "sha256": "ca8e86f3bc5f429091f36b78dc3219953b79f783dab9ebfa8c647cff786acba7"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/level-04/level-05/level-06/.DS_Store",
+          "sha256": "9967e33441e391516305bac29928f05ddc4b6c97b83f86b4535ca8bd3157bf65"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/level-04/level-05/level-06/level-07/.DS_Store",
+          "sha256": "7d71c691d21da0d1bdc6eb76a4297b0c5591141946fbf848701fcf47251217ea"
+        },
+        {
+          "path": "l1-utf-8/level-01/level-02/level-03/level-04/level-05/level-06/level-07/level-08/.DS_Store",
+          "sha256": "965a4bd0ec36ed0d9c5854d1a905b43e43a60b8e41bec995cca31914170dc775"
+        }
+      ],
+      "sourceFilesRemoved": 0,
+      "writerNotIdentified": true
+    },
+    {
+      "reason": "Strict verification again found unexpected .DS_Store files after relocation",
+      "root": "/private/tmp/codeview-perf-v2-20261106/l1-utf-8",
+      "archiveSha256": "1874b5a99d58c2a00b31e22b9c94c2aa1a934fe9d2d6823e37753684cee8ecfa",
+      "removed": [
+        {
+          "path": ".DS_Store",
+          "sha256": "2bbe2dcf2eff372f8da993a7160885f1b0486c58db030074e2f974586ac885b2"
+        },
+        {
+          "path": "level-01/.DS_Store",
+          "sha256": "b4e2368ae5d4a830368814d4aab67eab924445f850e2ba52201e6c5443f924f0"
+        },
+        {
+          "path": "level-01/level-02/.DS_Store",
+          "sha256": "702308ca0f38860c96ee40f627dba45cf187a1afa4fa883782929cf1e652e35b"
+        },
+        {
+          "path": "level-01/level-02/level-03/.DS_Store",
+          "sha256": "b4ddbd51edc6c25cc243749103d3ff1af315822ddaf4fc077a9df27534572a31"
+        },
+        {
+          "path": "level-01/level-02/level-03/level-04/.DS_Store",
+          "sha256": "fc4e18a57060dc4b4a5fbc6a4a46c4cc97fe0ac5f47625fbf7396b44cf679b15"
+        },
+        {
+          "path": "level-01/level-02/level-03/level-04/level-05/.DS_Store",
+          "sha256": "bd9d21977fc4ec308e3f81897ab986a611f8b780ada0dcbf515c9a903b04c452"
+        },
+        {
+          "path": "level-01/level-02/level-03/level-04/level-05/level-06/.DS_Store",
+          "sha256": "e309a290289f1bf830544b0c7eb9d88eaa865ecf89ed9f8aa69d56b4bf8ca823"
+        },
+        {
+          "path": "level-01/level-02/level-03/level-04/level-05/level-06/level-07/.DS_Store",
+          "sha256": "392873bee1d31357c71d689b8e2d3a27a4f6decdbce837364e82f9ed83ac5e43"
+        },
+        {
+          "path": "level-01/level-02/level-03/level-04/level-05/level-06/level-07/level-08/.DS_Store",
+          "sha256": "ae52a2ff7298c1f23964a11cce9080bbbeecd456d007c1b093068ad89fab97c8"
+        }
+      ],
+      "sourceFilesRemoved": 0,
+      "writerNotIdentified": true,
+      "nextAction": "Generated corpus directories only: mode 0555, then verify all data again"
+    }
+  ],
+  "finalOutcome": "All 15 corpora verified after preserving/removing metadata and freezing generated corpus directories only.",
+  "l2l3": "Plans only; no full L2/L3 generation or measurement."
+}
