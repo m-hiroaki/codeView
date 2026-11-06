@@ -57,6 +57,14 @@ macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツ
 - スクリプト単体：正常、CPU選択、空白/`!`を含むパス、別ディレクトリからの実行、不正RID/余分な引数/未知CPU/非Mac、復元/発行失敗、実行ファイル欠落、前回成果物維持、一時物の解放を7件で確認。
 - Windows：バッチの実行・Native AOTコンパイル・起動は未検証。MacからのWindows AOT発行を代替検証にしない。
 
+### Windowsの実発行CI
+
+[Windows Native AOT publish validation](../.github/workflows/publish-validation.yml)はWindows 2025上で実際の`build-windows.bat`を実行する。SDK・C++ツールチェーン・発行ログ・発行用ロック・全成果物のサイズ/SHA-256をActions artifact `windows-aot-publish`へ14日保存する。通常製品のまま、診断コードなし・AOT/トリミング警告をエラーとする設定で発行する。
+
+`tools/check_windows_publish.py`は全EXE/DLLのAMD64 PE32+とCLRヘッダー不在、JIT用ランタイム/製品DLL不在を判定する。不正/切断ヘッダー・異なるCPU・管理対象へのフォールバック・欠落を含む単体6件を用意した。これはバイナリ形式の検査であり、AOTコンパイルの証拠には実発行ログも併用する。
+
+`tools/check_windows_launch.ps1`は破棄されるWindows CI専用で、生成した日本語パスの小入力を通常EXEへ渡す。自身が起動したプロセスの可視ウィンドウ/非空client領域、読み込んだモジュール、通常Closeと終了0、入力SHA不変を確認し、失敗でもレポートを残す。OS操作そのものは実CI結合試験で検証する。本文の表示内容、物理描画・入力、起動性能、オフライン/SDKなしの別PC、全機能・文法・署名をこの起動確認から合格とはしない。
+
 Pythonによるスクリプト試験（ビルド自体にPythonは不要）：
 
 ```sh

@@ -1,0 +1,77 @@
+name: Windows Native AOT publish validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-validation.yml
+      - build-windows.bat
+      - tools/check_windows_publish.py
+      - tools/test_windows_publish.py
+      - tools/check_windows_launch.ps1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Record environment
+        run: |
+          New-Item -ItemType Directory -Force artifacts/publish-validation | Out-Null
+          "Commit: $env:GITHUB_SHA" | Out-File artifacts/publish-validation/environment.txt
+          dotnet --info | Out-File artifacts/publish-validation/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version | Format-List | Out-File artifacts/publish-validation/environment.txt -Append
+          & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | Out-File artifacts/publish-validation/toolchain.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -c "from pathlib import Path; Path('artifacts/publish-validation/起動確認.cs').write_bytes('// AOT 日本語 😀\r\nclass PublishedFixture {}\r\n'.encode('utf-8'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run actual distribution batch
+        run: |
+          & cmd.exe /d /c build-windows.bat 2>&1 | Tee-Object artifacts/publish-validation/build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check native payload and visible window
+        run: |
+          python -m unittest discover -s tools -p test_windows_publish.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_windows_publish.py --folder artifacts/publish/win-x64/codeView --output artifacts/publish-validation/manifest.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile artifacts/publish-validation/起動確認.cs -Output artifacts/publish-validation/launch.json
+      - name: Verify checked-in dependency locks unchanged
+        if: always()
+        run: |
+          git diff --exit-code -- '**/packages.lock.json'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload publish evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-aot-publish
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/publish-validation/
+            artifacts/publish/win-x64/publish.packages.lock.json
