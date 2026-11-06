@@ -1,0 +1,36 @@
+#:project ../../tests/codeView.Tests/codeView.Tests.csproj
+#:property PublishAot=false
+
+using CodeView.Tests.Documents;
+using System.Diagnostics.Tracing;
+
+if (args.Length != 2 || !int.TryParse(args[1], out var rounds) || rounds is < 1 or > 100
+    || !args[0].All(c => char.IsAsciiLetterOrDigit(c) || c == '-')) return 2;
+var input = Environment.GetEnvironmentVariable("CODEVIEW_PERF_FILE")
+    ?? throw new InvalidOperationException("CODEVIEW_PERF_FILE required");
+await using (var stream = File.OpenRead(input)) await stream.CopyToAsync(Stream.Null);
+Environment.SetEnvironmentVariable("CODEVIEW_PERF_CACHE", "Warm; input read immediately before measured operations");
+var failures = 0;
+for (var index = 0; index < rounds; index++)
+{
+    Environment.SetEnvironmentVariable("CODEVIEW_PERF_LABEL", args[0] + "-" + index);
+    ProbeEvents.Log.RoundStart(args[0], index);
+    try { await new CorePerformanceTests().MeasureReadBuildAndSnapshot(); }
+    catch (NUnit.Framework.AssertionException error)
+    {
+        failures++;
+        ProbeEvents.Log.BudgetFailed(args[0], index);
+        Console.Error.WriteLine(error);
+    }
+    finally { ProbeEvents.Log.RoundStop(args[0], index); }
+}
+return failures == 0 ? 0 : 1;
+
+[EventSource(Name = "codeView-Diagnostics")]
+sealed class ProbeEvents : EventSource
+{
+    public static readonly ProbeEvents Log = new();
+    [Event(1)] public void RoundStart(string label, int round) => WriteEvent(1, label, round);
+    [Event(2)] public void RoundStop(string label, int round) => WriteEvent(2, label, round);
+    [Event(3)] public void BudgetFailed(string label, int round) => WriteEvent(3, label, round);
+}

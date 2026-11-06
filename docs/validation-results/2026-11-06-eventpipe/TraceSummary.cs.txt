@@ -1,0 +1,63 @@
+#:package Microsoft.Diagnostics.Tracing.TraceEvent@3.1.23
+#:property PublishAot=false
+
+using Microsoft.Diagnostics.Tracing;
+using System.Text.Json;
+
+if (args.Length != 2 || !File.Exists(args[0]) || File.Exists(args[1])) return 2;
+using var source = new EventPipeEventSource(args[0]);
+var events = new Dictionary<string, int>();
+var pauses = new List<object>();
+var allocations = new Dictionary<string, (long Events, long SampledBytes, long ObjectBytes)>();
+var markers = new List<object>();
+double? suspendStart = null;
+string? suspendReason = null;
+var overlappingStarts = 0;
+var orphanRestarts = 0;
+long lastLohBytes = 0;
+var gcStarts = new Dictionary<int, int>();
+var heapStats = 0;
+source.AllEvents += e =>
+{
+    var key = e.ProviderName + "/" + e.EventName;
+    events[key] = events.GetValueOrDefault(key) + 1;
+};
+source.Dynamic.All += e =>
+{
+    if (e.ProviderName == "codeView-Diagnostics")
+        markers.Add(new { e.EventName, e.TimeStampRelativeMSec, Payload = e.PayloadNames.ToDictionary(name => name, name => e.PayloadByName(name)?.ToString()) });
+};
+source.Clr.GCSuspendEEStart += e =>
+{
+    if (suspendStart is not null) overlappingStarts++;
+    suspendStart = e.TimeStampRelativeMSec;
+    suspendReason = e.Reason.ToString();
+};
+source.Clr.GCRestartEEStop += e =>
+{
+    if (suspendStart is { } start)
+        pauses.Add(new { StartMilliseconds = start, EndMilliseconds = e.TimeStampRelativeMSec,
+            DurationMilliseconds = e.TimeStampRelativeMSec - start, Reason = suspendReason });
+    else orphanRestarts++;
+    suspendStart = null;
+};
+source.Clr.GCStart += e => gcStarts[e.Depth] = gcStarts.GetValueOrDefault(e.Depth) + 1;
+source.Clr.GCHeapStats += e => { heapStats++; lastLohBytes = e.GenerationSize3; };
+source.Clr.GCAllocationTick += e =>
+{
+    var key = e.AllocationKind + ":" + e.TypeName;
+    var previous = allocations.GetValueOrDefault(key);
+    allocations[key] = (previous.Events + 1, previous.SampledBytes + e.AllocationAmount64, previous.ObjectBytes + e.ObjectSize);
+};
+source.Process();
+var report = new
+{
+    Scope = "Whole child process, including prewarm/NUnit/assertions/reporting; marker intervals wrap a full test invocation.",
+    EventsLost = source.EventsLost, Events = events, GcStartsByDepth = gcStarts, HeapStatsEvents = heapStats,
+    LastLohBytes = lastLohBytes, SuspensionIntervals = pauses, UnmatchedFinalSuspendStart = suspendStart,
+    OverlappingSuspendStarts = overlappingStarts, OrphanRestarts = orphanRestarts, Markers = markers,
+    AllocationSamples = allocations.Select(pair => new { KindAndType = pair.Key, pair.Value.Events, pair.Value.SampledBytes, pair.Value.ObjectBytes }),
+    AllocationLimit = "AllocationTick is sampled; event counts/object-size sums are not total allocation counts/bytes. No allocation call stacks decoded here."
+};
+File.WriteAllText(args[1], JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+return source.EventsLost == 0 && suspendStart is null && overlappingStarts == 0 && orphanRestarts == 0 ? 0 : 1;

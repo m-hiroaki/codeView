@@ -1,0 +1,323 @@
+{
+  "formatVersion": 1,
+  "testIds": [
+    "P0-04-01",
+    "QS-11"
+  ],
+  "scenario": "EventPipe availability and overhead on read/build/snapshot core",
+  "outcome": "completed-with-limitations",
+  "scope": "Diagnostic host calling existing public CorePerformanceTests; no native GUI or rendering",
+  "build": {
+    "commit": "b274e81c1a055808af7d221903c50356b40aa406",
+    "configuration": "Release",
+    "sdk": "10.0.401",
+    "runtime": "10.0.12",
+    "binarySha256": {
+      "artifacts/diagnostics/host/CoreHost.dll": "33fc33dd2c709948033e806b71f629494133ace15706c67ed930527f4ec28916",
+      "artifacts/diagnostics/host/codeView.dll": "ad0015d82f425630482ec428b9ef06a3cdac02524d1de3e9b1e95996dd77ba98",
+      "artifacts/diagnostics/host/codeView.Tests.dll": "125fa6a36b749e86cf606e8938157ed275c1054124c2963dd6395d797b6e6892",
+      "artifacts/diagnostics/reader/TraceSummary.dll": "db88fd2bfc7f2f211b09c14df0c96e32b5482244131c37377fadce84504d6faf"
+    },
+    "sourceSha256": {
+      "artifacts/diagnostics/CoreHost.cs": "0884246bea198e98d82139c0698e34feb421c5650fa07fd6300ac90d8baf7d51",
+      "artifacts/diagnostics/TraceSummary.cs": "ccf435dd21316ec82319f31cc901aa9d2174f8509be2208921b39ced07470169",
+      "artifacts/diagnostics/run.py": "2f44756625e8b72f0771f1ff5f5e1504c6a6bbb0e7493af4e2313755895952ea",
+      "tests/codeView.Tests/Documents/CorePerformanceTests.cs": "9fbe80be01c28c7c5d05aff525a1811120e2fbddf825b38f06aa0360ca6278e8"
+    }
+  },
+  "input": {
+    "path": "/private/tmp/codeview-perf-v2-20261106/text50-utf-8/group-00000/source-0000000.cs",
+    "bytes": 52428800,
+    "sha256": "82136e61e7b99fc1a7c5e26927af3ed3eeb5b6ae4824cd7344d2957a0428e0f8",
+    "seed": 20261106,
+    "encoding": "utf-8",
+    "cacheCondition": "Warm; entire input read in host immediately before operations",
+    "allTrialsSameInputHash": true,
+    "manifestSha256": "21a63cd41996beeede3659745d8025150c35f4774a6caf637f7be69f32e20b5a",
+    "contentDigest": "ede1fa7b292cb5010b7a6f284e915416393c6a01248c36c5b3357b56b4b67e5b"
+  },
+  "settings": {
+    "copies": 1,
+    "grammar": "not enabled",
+    "roundsPerProcess": 10
+  },
+  "machine": {
+    "os": "macOS 27.0.1 (26A434)",
+    "architecture": "arm64",
+    "cpu": "Apple M4",
+    "physicalCores": 10,
+    "logicalCores": 10,
+    "ramBytes": 34359738368,
+    "storage": "local generated input; physical storage attribution not measured",
+    "displayHz": null,
+    "privileges": "same-user EventPipe; no root profiler",
+    "otherActivity": "Other user apps present; not an isolated benchmark machine"
+  },
+  "budget": {
+    "reference": "docs/performance-plan.md section 2; existing CorePerformanceTests assertions unchanged",
+    "buildPerRoundMilliseconds": 5000,
+    "sampledMemoryIncreasePerRoundBytes": 536870912,
+    "gcPauseTotalPerRoundMilliseconds": 150,
+    "snapshotMilliseconds": 50,
+    "snapshotAllocatedBytes": 1048576,
+    "all80CoreInvocationsExitSuccessfully": true,
+    "guiOrPhaseGateVerdict": "not evaluated",
+    "fixedBeforeRun": "Existing performance-plan.md section 2 budgets fixed 2026-10-31; no limits changed for this comparison"
+  },
+  "instrumentation": {
+    "dotnetTrace": "10.0.750501",
+    "dotnetCounters": "10.0.750501",
+    "traceEventParser": "3.1.23",
+    "traceBufferMiB": 32,
+    "traceBufferMode": "Drop",
+    "counterIntervalSeconds": 1,
+    "counterTimeZone": [
+      "JST",
+      "JST"
+    ],
+    "counterUtcOffsetSeconds": 32400,
+    "counterRows": 106,
+    "counterTimestamps": 4,
+    "counterNames": [
+      "dotnet.assembly.count ({assembly})",
+      "dotnet.exceptions ({exception} / 1 sec)[error.type=TaskCanceledException]",
+      "dotnet.gc.collections ({collection} / 1 sec)[gc.heap.generation=gen0]",
+      "dotnet.gc.collections ({collection} / 1 sec)[gc.heap.generation=gen1]",
+      "dotnet.gc.collections ({collection} / 1 sec)[gc.heap.generation=gen2]",
+      "dotnet.gc.heap.total_allocated (By / 1 sec)",
+      "dotnet.gc.last_collection.heap.fragmentation.size (By)[gc.heap.generation=gen0]",
+      "dotnet.gc.last_collection.heap.fragmentation.size (By)[gc.heap.generation=gen1]",
+      "dotnet.gc.last_collection.heap.fragmentation.size (By)[gc.heap.generation=gen2]",
+      "dotnet.gc.last_collection.heap.fragmentation.size (By)[gc.heap.generation=loh]",
+      "dotnet.gc.last_collection.heap.fragmentation.size (By)[gc.heap.generation=poh]",
+      "dotnet.gc.last_collection.heap.size (By)[gc.heap.generation=gen0]",
+      "dotnet.gc.last_collection.heap.size (By)[gc.heap.generation=gen1]",
+      "dotnet.gc.last_collection.heap.size (By)[gc.heap.generation=gen2]",
+      "dotnet.gc.last_collection.heap.size (By)[gc.heap.generation=loh]",
+      "dotnet.gc.last_collection.heap.size (By)[gc.heap.generation=poh]",
+      "dotnet.gc.last_collection.memory.committed_size (By)",
+      "dotnet.gc.pause.time (s / 1 sec)",
+      "dotnet.jit.compilation.time (s / 1 sec)",
+      "dotnet.jit.compiled_il.size (By / 1 sec)",
+      "dotnet.jit.compiled_methods ({method} / 1 sec)",
+      "dotnet.monitor.lock_contentions ({contention} / 1 sec)",
+      "dotnet.process.cpu.count ({cpu})",
+      "dotnet.process.cpu.time (s / 1 sec)[cpu.mode=system]",
+      "dotnet.process.cpu.time (s / 1 sec)[cpu.mode=user]",
+      "dotnet.process.memory.working_set (By)",
+      "dotnet.thread_pool.queue.length ({work_item} / 1 sec)",
+      "dotnet.thread_pool.thread.count ({thread} / 1 sec)",
+      "dotnet.thread_pool.work_item.count ({work_item} / 1 sec)",
+      "dotnet.timer.count ({timer})"
+    ],
+    "scopeOfGCEvents": "Whole child process; markers wrap each full test invocation including assertions/reporting; core JSON has narrower read/build metric windows",
+    "sourceLinks": [
+      "https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-trace",
+      "https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-counters",
+      "https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime",
+      "https://github.com/microsoft/perfview"
+    ]
+  },
+  "execution": {
+    "order": [
+      {
+        "mode": "baseline",
+        "trial": 1,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.131049166
+      },
+      {
+        "mode": "gc-collect",
+        "trial": 1,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.202162791999999
+      },
+      {
+        "mode": "gc-verbose",
+        "trial": 1,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.31749625
+      },
+      {
+        "mode": "counters",
+        "trial": 1,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.2520342079999995
+      },
+      {
+        "mode": "baseline",
+        "trial": 2,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.130909625000001
+      },
+      {
+        "mode": "gc-verbose",
+        "trial": 2,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.337977833
+      },
+      {
+        "mode": "baseline",
+        "trial": 3,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.168164042000001
+      },
+      {
+        "mode": "gc-verbose",
+        "trial": 3,
+        "exitCode": 0,
+        "reports": 10,
+        "wholeCommandSeconds": 4.273576332999998
+      }
+    ],
+    "notes": "Baseline and verbose profiles 3 processes each; gc-collect/counters 1 process each. First smoke excluded; final parser re-read saved traces with dynamic EventSource enabled."
+  },
+  "results": {
+    "mediansPerTenRoundProcess": {
+      "baseline": {
+        "buildSumMs": 4048.1623,
+        "cpuSumMs": 4669.793,
+        "gcPauseSumMs": 809.0149999999999,
+        "allocatedBytes": 2804064080,
+        "sampledPeakFootprintBytes": 310330304
+      },
+      "gc-collect": {
+        "buildSumMs": 4005.0870999999993,
+        "cpuSumMs": 4636.022,
+        "gcPauseSumMs": 806.3900000000001,
+        "allocatedBytes": 2804087560,
+        "sampledPeakFootprintBytes": 311804888
+      },
+      "gc-verbose": {
+        "buildSumMs": 4087.3048,
+        "cpuSumMs": 4720.426,
+        "gcPauseSumMs": 841.4449999999999,
+        "allocatedBytes": 2804059856,
+        "sampledPeakFootprintBytes": 312148928
+      },
+      "counters": {
+        "buildSumMs": 4026.5773999999997,
+        "cpuSumMs": 4705.015,
+        "gcPauseSumMs": 818.3069999999999,
+        "allocatedBytes": 2804302008,
+        "sampledPeakFootprintBytes": 313312240
+      }
+    },
+    "verbosePercentDifferenceFromBaselineMedians": {
+      "buildSumMs": 0.9669202245176756,
+      "cpuSumMs": 1.084266476051532,
+      "gcPauseSumMs": 4.008578332911017,
+      "allocatedBytes": -0.0001506384975313857,
+      "sampledPeakFootprintBytes": 0.5860284917582614
+    },
+    "traces": [
+      {
+        "mode": "gc-collect",
+        "number": 1,
+        "analysisExitCode": 0,
+        "eventsLost": 0,
+        "markers": 20,
+        "gcSuspendIntervals": 360,
+        "gcSuspendMaxMs": 7.604125000000067,
+        "gcSuspendSumMs": 820.9707919999994,
+        "lastLohBytes": 131152,
+        "largeAllocationSampleCount": 0
+      },
+      {
+        "mode": "gc-verbose",
+        "number": 1,
+        "analysisExitCode": 0,
+        "eventsLost": 0,
+        "markers": 20,
+        "gcSuspendIntervals": 359,
+        "gcSuspendMaxMs": 20.851292000000285,
+        "gcSuspendSumMs": 856.2114100000005,
+        "lastLohBytes": 131152,
+        "largeAllocationSampleCount": 1
+      },
+      {
+        "mode": "gc-verbose",
+        "number": 2,
+        "analysisExitCode": 0,
+        "eventsLost": 0,
+        "markers": 20,
+        "gcSuspendIntervals": 360,
+        "gcSuspendMaxMs": 7.510000000000218,
+        "gcSuspendSumMs": 858.5704090000035,
+        "lastLohBytes": 131152,
+        "largeAllocationSampleCount": 1
+      },
+      {
+        "mode": "gc-verbose",
+        "number": 3,
+        "analysisExitCode": 0,
+        "eventsLost": 0,
+        "markers": 20,
+        "gcSuspendIntervals": 360,
+        "gcSuspendMaxMs": 7.059334000000035,
+        "gcSuspendSumMs": 847.1183820000031,
+        "lastLohBytes": 131152,
+        "largeAllocationSampleCount": 1
+      }
+    ]
+  },
+  "limitations": [
+    "AllocationTick is sampled, not an exact allocation count or total LOH allocation measure",
+    "Allocation call stacks not decoded; retained LOH is a last-GC snapshot",
+    "No native UI frames/input timing, physical I/O, native heap attribution or Windows EventPipe verification",
+    "Whole-command overhead includes external collector startup/shutdown; target-process metrics exclude collector process resources",
+    "Few pilot runs; overhead figures are not universal guarantees",
+    "GC depth counters use maximum collected generation; GC.CollectionCount in core JSON is inclusive; measurement windows differ"
+  ],
+  "artifacts": {
+    "compressedRunsSha256": "e90e375d4f71319d4c55cc5de6c1ebf5c63e22173db4308401eb239fc7fa6f5a",
+    "rawTraces": {
+      "artifacts/diagnostics/comparison/gc-verbose-3.nettrace": {
+        "bytes": 4894458,
+        "sha256": "efc9d1d6e2a351210a85c47bb54348ac65918be5f078bf57534493724404cbdb"
+      },
+      "artifacts/diagnostics/comparison/gc-verbose-2.nettrace": {
+        "bytes": 4885098,
+        "sha256": "9498dc67524186886c145f77ed35e50cc7e6a535217a2e238cc0dc164787f7c5"
+      },
+      "artifacts/diagnostics/comparison/gc-verbose-1.nettrace": {
+        "bytes": 4873602,
+        "sha256": "3587fbd6f85382c98282248956bf6c628caa8c368f2ac8159755e7ca8bccd2aa"
+      },
+      "artifacts/diagnostics/comparison/gc-collect-1.nettrace": {
+        "bytes": 445574,
+        "sha256": "1631ecfec342e01080596d6c87b067030d52f5c34355dff24136d9e59fccf59e"
+      }
+    }
+  },
+  "validationChecks": [
+    {
+      "name": "host-missing-args",
+      "exitCode": 2
+    },
+    {
+      "name": "host-zero-rounds",
+      "exitCode": 2
+    },
+    {
+      "name": "reader-missing-input",
+      "exitCode": 2
+    },
+    {
+      "name": "reader-existing-output",
+      "exitCode": 2
+    },
+    {
+      "name": "existing-summary-preserved",
+      "sha256": "5cfa4b5f8bc080d7bb4eee46ce7d94539e585900b007d259f4b9bad57e1ad5ca",
+      "passed": true
+    }
+  ]
+}

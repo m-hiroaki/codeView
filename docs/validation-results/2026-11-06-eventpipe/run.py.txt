@@ -1,0 +1,47 @@
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import time
+
+root = Path.cwd()
+out = root / "artifacts/diagnostics/comparison"
+out.mkdir(exist_ok=False)
+input_file = Path("/private/tmp/codeview-perf-v2-20261106/text50-utf-8/group-00000/source-0000000.cs")
+env = {**os.environ, "CODEVIEW_PERF_FILE": str(input_file), "CODEVIEW_PERF_COPIES": "1"}
+host = root / "artifacts/diagnostics/host/CoreHost.dll"
+reader = root / "artifacts/diagnostics/reader/TraceSummary.dll"
+trace = root / "artifacts/diagnostics-tools/dotnet-trace"
+counters = root / "artifacts/diagnostics-tools/dotnet-counters"
+results = []
+for mode, number in [("baseline", 1), ("gc-collect", 1), ("gc-verbose", 1), ("counters", 1),
+                     ("baseline", 2), ("gc-verbose", 2), ("baseline", 3), ("gc-verbose", 3)]:
+    label = mode + "-" + str(number)
+    command = ["dotnet", str(host), label, "10"]
+    if mode in ("gc-collect", "gc-verbose"):
+        command = [str(trace), "collect", "--profile", mode, "--buffersize", "32", "--providers",
+                   "codeView-Diagnostics:0xFFFFFFFFFFFFFFFF:4", "--show-child-io", "--output", str(out / (label + ".nettrace")), "--", *command]
+    elif mode == "counters":
+        command = [str(counters), "collect", "--counters", "System.Runtime", "--refresh-interval", "1", "--format", "csv",
+                   "--output", str(out / (label + ".csv")), "--", *command]
+    started = time.perf_counter()
+    with (out / (label + ".log")).open("w") as log:
+        run = subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
+    result = {"mode": mode, "number": number, "command": command, "exitCode": run.returncode,
+              "wholeCommandSeconds": time.perf_counter() - started, "roundsRequested": 10,
+              "reports": [], "inputSha256": hashlib.sha256(input_file.read_bytes()).hexdigest()}
+    for index in range(10):
+        path = host.parent / "TestResults" / (label + "-" + str(index) + "-1.json")
+        if path.exists():
+            result["reports"].append(json.loads(path.read_text()))
+    if mode in ("gc-collect", "gc-verbose"):
+        analysis = out / (label + "-trace.json")
+        parsed = subprocess.run(["dotnet", str(reader), str(out / (label + ".nettrace")), str(analysis)], capture_output=True, text=True, timeout=30)
+        result["analysisExitCode"] = parsed.returncode
+        result["analysisError"] = parsed.stderr
+        if analysis.exists():
+            result["trace"] = json.loads(analysis.read_text())
+    results.append(result)
+    (out / "runs.json").write_text(json.dumps(results, indent=2) + "\n")
+    print(f"{label}: exit={run.returncode}, reports={len(result['reports'])}/10, seconds={result['wholeCommandSeconds']:.3f}", flush=True)

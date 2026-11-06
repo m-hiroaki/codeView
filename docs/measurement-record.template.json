@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "testIds": [],
+  "scenario": "",
+  "outcome": "not-run",
+  "scope": "",
+  "build": {
+    "commit": null,
+    "dirty": null,
+    "configuration": "Release",
+    "sdk": null,
+    "runtime": null,
+    "rid": null,
+    "binarySha256": {},
+    "dependencyVersions": {}
+  },
+  "input": {
+    "root": null,
+    "manifestSha256": null,
+    "contentDigest": null,
+    "bytes": null,
+    "encoding": null,
+    "seed": null,
+    "cacheCondition": "unknown",
+    "cachePreparation": null
+  },
+  "settings": {
+    "snapshot": null,
+    "grammar": null,
+    "copies": null
+  },
+  "machine": {
+    "os": null,
+    "architecture": null,
+    "cpu": null,
+    "physicalCores": null,
+    "logicalCores": null,
+    "ramBytes": null,
+    "storage": null,
+    "displayHz": null,
+    "privileges": null,
+    "otherActivity": null
+  },
+  "budget": {
+    "reference": null,
+    "fixedBeforeRun": null,
+    "limits": []
+  },
+  "instrumentation": {
+    "tools": [],
+    "scope": null,
+    "samplingIntervalMilliseconds": null,
+    "eventsLost": null,
+    "clockBasis": null,
+    "overheadComparison": null
+  },
+  "execution": {
+    "commands": [],
+    "order": [],
+    "exitCodes": [],
+    "repetitions": null,
+    "timeoutSeconds": null
+  },
+  "results": [
+    {
+      "metric": "",
+      "value": null,
+      "unit": "",
+      "availability": "not-measured",
+      "reason": ""
+    }
+  ],
+  "artifacts": []
+}
