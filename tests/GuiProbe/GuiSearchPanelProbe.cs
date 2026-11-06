@@ -33,7 +33,19 @@ internal static class GuiSearchPanelProbe
         var twoTicks = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
         var query = Find<TextBox>(owner, "SearchQuery") ?? throw new InvalidOperationException("No query control after show.");
         var results = Find<ListBox>(owner, "SearchResultsList") ?? throw new InvalidOperationException("No results control.");
+        Console.WriteLine($"SEARCH after-layout visible={view.SearchPanel.IsVisible} query-matches={query.Text == Query} focused={query.IsFocused}");
         Require(view.SearchPanel.IsVisible && query.Text == Query && query.IsFocused, "First show lost binding/focus.");
+        // Force a failed immediate focus, then simulate a later user interaction.
+        // The queued focus must not steal focus back once the input epoch changes.
+        view.SearchPanel.IsVisible = false;
+        query.IsEnabled = false;
+        owner.FindControl<MenuItem>("WorkspaceSearchMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        view.RecordUserInteraction();
+        editor.TextArea.Focus();
+        query.IsEnabled = true;
+        await Frame(owner, ct);
+        Require(editor.TextArea.IsFocused, "Delayed search focus stole focus after a newer interaction.");
+        query.Focus();
         var regex = owner.GetLogicalDescendants().OfType<CheckBox>().Single(c => Equals(c.Content, "正規表現"));
         query.Text = "[";
         regex.IsChecked = true;
@@ -80,7 +92,7 @@ internal static class GuiSearchPanelProbe
         return new
         {
             Passed = true, FirstShowSynchronousMilliseconds = synchronous, FirstShowTwoTicksMilliseconds = twoTicks,
-            InitiallyAbsent = true, InitialBindingAndFocus = true, TwoWayBinding = true, InvalidRegexReported = true,
+            InitiallyAbsent = true, InitialBindingAndFocus = true, LateFocusCancelled = true, TwoWayBinding = true, InvalidRegexReported = true,
             CommittedMatches = 1, ResultTabReused = true, ResultSelectionAndFocus = true, RepeatedShows = 3,
             ControlsReused = true, ClearWorked = true, EmptyQueryDisabled = true, BodyUnchanged = true,
             BodySha256 = Convert.ToHexString(SHA256.HashData(Encoding.Unicode.GetBytes(text))).ToLowerInvariant(),

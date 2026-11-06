@@ -69,6 +69,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $app = if ($IsWindows) { 'codeView.exe' } else { 'codeView' }
           $platform = if ($IsWindows) { 'windows' } else { 'macos' }
+          python tools/compare_gui_startup.py --functional-only --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit 94bbefdf1582b63940f9303ab3abac076c480a07 --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/functional-pilot --os $platform --functional-rounds 3
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/compare_gui_startup.py --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit 94bbefdf1582b63940f9303ab3abac076c480a07 --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/comparison --os $platform --rounds 10 --functional-rounds 3
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload comparison including rejection evidence
@@ -82,3 +84,4 @@ jobs:
             artifacts/startup-comparison/environment.txt
             artifacts/startup-comparison/input/
             artifacts/startup-comparison/comparison/
+            artifacts/startup-comparison/functional-pilot/

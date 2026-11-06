@@ -195,8 +195,14 @@ internal sealed partial class MainWindow : Window
     private void ShowSearch()
     {
         if (!_viewModel.CanSearchWorkspace) return;
+        var interaction = _viewModel.InteractionEpoch;
         _viewModel.SearchPanel.IsVisible = true;
-        _searchPanel.Value.FindControl<TextBox>("SearchQuery")!.Focus();
+        var query = _searchPanel.Value.FindControl<TextBox>("SearchQuery")!;
+        if (!query.Focus()) Dispatcher.UIThread.Post(() => Run(() =>
+        {
+            if (!_closing && _viewModel.SearchPanel.IsVisible && interaction == _viewModel.InteractionEpoch)
+                query.Focus();
+        }), DispatcherPriority.Loaded);
     }
 
     private Control CreateSearchPanel()

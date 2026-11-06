@@ -10,7 +10,7 @@ import subprocess
 
 from measure_gui_startup import collect, nonnegative, sha256
 
-FLAGS = ("InitiallyAbsent", "InitialBindingAndFocus", "TwoWayBinding", "InvalidRegexReported",
+FLAGS = ("InitiallyAbsent", "InitialBindingAndFocus", "LateFocusCancelled", "TwoWayBinding", "InvalidRegexReported",
          "ResultTabReused", "ResultSelectionAndFocus", "ControlsReused", "ClearWorked", "EmptyQueryDisabled", "BodyUnchanged")
 
 
@@ -143,9 +143,13 @@ def main():
     parser.add_argument("--os", choices=("windows", "macos"), required=True)
     parser.add_argument("--rounds", type=int, default=10)
     parser.add_argument("--functional-rounds", type=int, default=3)
+    parser.add_argument("--functional-only", action="store_true")
     args = parser.parse_args()
     if not all(re.fullmatch(r"[0-9a-f]{40}", sha) for sha in (args.baseline_commit, args.commit)):
         parser.error("Use complete lowercase commits")
+    if args.functional_only:
+        search_checks(args.candidate_app.resolve(), args.input.resolve(), args.output.resolve(), args.commit, args.os, args.functional_rounds)
+        raise SystemExit(0)
     result = compare(args.baseline_app.resolve(), args.candidate_app.resolve(), args.input.resolve(), args.output.resolve(),
                      args.baseline_commit, args.commit, args.os, args.rounds, args.functional_rounds)
     raise SystemExit(0 if result["candidateAccepted"] else 1)
