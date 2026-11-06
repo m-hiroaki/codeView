@@ -92,23 +92,36 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     {
         _workspaceEpoch.Advance();
         _workspaceSearchEpoch.Advance();
-        _resultNavigator?.Clear();
-        _searches?.InvalidateWorkspace();
-        CancelWorkspace();
-        Workspace = null;
+        List<Exception>? failures = null;
+        try { _resultNavigator?.Clear(); }
+        catch (Exception error) { (failures ??= []).Add(error); }
+        try { _searches?.InvalidateWorkspace(); }
+        catch (Exception error) { (failures ??= []).Add(error); }
+        try { CancelWorkspace(); }
+        catch (Exception error) { (failures ??= []).Add(error); }
+        finally { Workspace = null; }
+        if (failures is not null) throw new AggregateException(failures);
     }
 
     private void CancelWorkspace()
     {
+        List<Exception>? failures = null;
         if (Workspace?.Tree is { } tree)
         {
-            tree.Dispose();
-            _retiredTreeWork.RemoveAll(task => task.IsCompletedSuccessfully);
-            _retiredTreeWork.Add(tree.PendingWork);
+            try { tree.Dispose(); }
+            catch (Exception error) { (failures ??= []).Add(error); }
+            finally
+            {
+                _retiredTreeWork.RemoveAll(task => task.IsCompletedSuccessfully);
+                _retiredTreeWork.Add(tree.PendingWork);
+            }
         }
-        _workspaceLifetime?.Cancel();
-        _workspaceLifetime?.Dispose();
+        var lifetime = _workspaceLifetime;
         _workspaceLifetime = null;
+        try { lifetime?.Cancel(); }
+        catch (Exception error) { (failures ??= []).Add(error); }
+        finally { lifetime?.Dispose(); }
+        if (failures is not null) throw new AggregateException(failures);
     }
 
     public async Task<OperationResult<LoadedFile>> OpenFileAsync(SourcePath path, EncodingChoice choice)
@@ -147,12 +160,20 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     {
         if (_stopping) return;
         _stopping = true;
-        Startup.Stop();
-        _resultNavigator?.Dispose();
-        _searches?.Dispose();
-        _tabs?.Dispose();
-        CloseWorkspace();
-        CloseFile();
+        List<Exception>? failures = null;
+        Attempt(Startup.Stop);
+        Attempt(() => _resultNavigator?.Dispose());
+        Attempt(() => _searches?.Dispose());
+        Attempt(() => _tabs?.Dispose());
+        Attempt(CloseWorkspace);
+        Attempt(CloseFile);
         // Cancelled workers still need the semaphore to release their slot.
+        if (failures is not null) throw new AggregateException(failures);
+
+        void Attempt(Action dispose)
+        {
+            try { dispose(); }
+            catch (Exception error) { (failures ??= []).Add(error); }
+        }
     }
 }

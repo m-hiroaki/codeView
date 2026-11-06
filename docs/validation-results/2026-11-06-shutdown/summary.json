@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "date": "2026-11-06",
+  "baseCommit": "66b4ce1",
+  "sourceState": "Base commit plus changes identified by sourceSha256 below; committed with this evidence.",
+  "sourceSha256": {
+    "src/codeView/Presentation/MainWindow.axaml.cs": "aed8eaf2d7b442d4a454f27e438c57d68d0efaad5ac39eac96622bca1c0b304f",
+    "src/codeView/Presentation/MainWindowViewModel.cs": "039b590c5004c9ec03062a4a400dc0343274d194bb9fec28303f2d3d59324ff2",
+    "src/codeView/Operations/AppOperations.cs": "a02013e3d0d73670d808ea0ee8f97880d662c69de28247308a21de2e73e83b95",
+    "src/codeView/Operations/TabManager.cs": "33a869d51b37247d1a4e546f1a1a9c414e0f19cd6850a50f342738376df499e6",
+    "src/codeView/Operations/TreeSession.cs": "1c6e3a287083858eb30762900229f769aee659172856c17d205b27778fb24ac4",
+    "tests/codeView.Tests/Presentation/ShutdownTests.cs": "35300231c7df830e0a4de9e678b379f92dd2ba15d971c5f89de4cf93b74f843d",
+    "tests/codeView.Tests/Presentation/ShutdownIntegrationTests.cs": "6db042f7b24f0b6f8a211ee575176284b115da72de00580219cf2a4c7fbe8e05",
+    "tests/codeView.Tests/Presentation/StartupSettingsIntegrationTests.cs": "14220015550e1f7cae0012671737511974f638028fbb0bfbcf3dbe6375ffac68",
+    "tests/codeView.Tests/Operations/ShutdownCancellationTests.cs": "2a4ffd80391b1bfee03583ec360faa8a3fd756e617902937ddf16cae56d2f84c"
+  },
+  "results": {
+    "normal": {
+      "path": "artifacts/test-results/macos/unit.trx",
+      "sha256": "8cf5eb7ab22819bfaae4ed7206efc2bd04c16613cbd4a09bce3e0a99bce53c04",
+      "counters": {
+        "total": "654",
+        "executed": "654",
+        "passed": "654",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "tabLifecycle": {
+      "path": "artifacts/test-results/macos/shutdown/shutdown-tab-lifecycle.trx",
+      "sha256": "5730be9f721dfbb61d6bb61fe80b7c2c1c1d3876eb0eb3f1bb9fee1a6323082e",
+      "counters": {
+        "total": "1",
+        "executed": "1",
+        "passed": "1",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  },
+  "pythonTests": {
+    "command": "python3 -m unittest discover -s tools -v (through ./test-mac.sh)",
+    "passed": 25,
+    "failed": 0
+  },
+  "limits": [
+    "Native GUI shutdown injection not run",
+    "Windows execution of these source changes pending CI",
+    "One warm view-model lifecycle run; not an isolated before/after performance comparison",
+    "No startup, rendering or search throughput measurement"
+  ]
+}

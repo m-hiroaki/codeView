@@ -198,10 +198,16 @@ internal sealed class TreeSession : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        foreach (var request in _work) request.Cancellation.Cancel();
+        List<Exception>? failures = null;
+        foreach (var request in _work.ToArray())
+        {
+            try { request.Cancellation.Cancel(); }
+            catch (Exception error) { (failures ??= []).Add(error); }
+        }
         _requests.Clear();
         ClearChildren(Root);
         Root.IsAttached = false;
+        if (failures is not null) throw new AggregateException(failures);
     }
 
     private sealed class Request(TreeNodeState node, long generation, CancellationTokenSource cancellation)

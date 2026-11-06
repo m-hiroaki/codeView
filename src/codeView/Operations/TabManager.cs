@@ -107,15 +107,18 @@ internal sealed class TabManager : IDisposable
     {
         if (!Contains(tab)) return false;
         tab.LoadEpoch = checked(tab.LoadEpoch + 1);
-        CancelRequest(tab);
-        var index = _tabs.IndexOf(tab);
-        _tabs.RemoveAt(index);
-        _paths.Remove(tab.Path.FullPath);
-        tab.File?.Document.Dispose();
-        tab.File = null;
-        tab.Status = TabStatus.Closed;
-        tab.Error = null;
-        if (ReferenceEquals(ActiveTab, tab)) Activate(_tabs.Count == 0 ? null : _tabs[Math.Min(index, _tabs.Count - 1)]);
+        try { CancelRequest(tab); }
+        finally
+        {
+            var index = _tabs.IndexOf(tab);
+            _tabs.RemoveAt(index);
+            _paths.Remove(tab.Path.FullPath);
+            tab.File?.Document.Dispose();
+            tab.File = null;
+            tab.Status = TabStatus.Closed;
+            tab.Error = null;
+            if (ReferenceEquals(ActiveTab, tab)) Activate(_tabs.Count == 0 ? null : _tabs[Math.Min(index, _tabs.Count - 1)]);
+        }
         return true;
     }
 
@@ -228,13 +231,16 @@ internal sealed class TabManager : IDisposable
     private void CancelRequest(TabState tab)
     {
         if (!_requests.Remove(tab, out var request)) return;
-        request.Cancellation.Cancel();
-        if (request.Node is { } queued)
+        try { request.Cancellation.Cancel(); }
+        finally
         {
-            _queue.Remove(queued);
-            request.Node = null;
-            request.Completion.TrySetResult(OperationResult<TabState>.Cancelled());
-            request.Cancellation.Dispose();
+            if (request.Node is { } queued)
+            {
+                _queue.Remove(queued);
+                request.Node = null;
+                request.Completion.TrySetResult(OperationResult<TabState>.Cancelled());
+                request.Cancellation.Dispose();
+            }
         }
     }
 
@@ -245,7 +251,13 @@ internal sealed class TabManager : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        foreach (var tab in _tabs.ToArray()) Close(tab);
+        List<Exception>? failures = null;
+        foreach (var tab in _tabs.ToArray())
+        {
+            try { Close(tab); }
+            catch (Exception error) { (failures ??= []).Add(error); }
+        }
+        if (failures is not null) throw new AggregateException(failures);
     }
 
     private sealed class Request(TabState tab, long epoch, EncodingChoice choice)
