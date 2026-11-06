@@ -28,6 +28,8 @@ SetViewport/ScrollViewportは先頭原文行と横のUTF-16 Offsetだけを変�
 
 [Row projection core validation](../.github/workflows/row-projection-validation.yml)は両OSで単体と性能3プロセスを実行する。通常試験からPerformanceを除外する既存方針は維持し、この明示ワークフローで記録する。
 
+`cb6e82c`の両OS CIで単体16ケース/OSと性能3プロセス/OSが成功し、既定予算内を確認した。[数値・原記録・測定限界](validation-results/2026-11-06-row-core/README.md)を保存する。
+
 ```sh
 ./test-mac.sh
 dotnet test tests/codeView.Tests/codeView.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~RowProjectionPerformanceTests --logger 'console;verbosity=normal' -p:PublishAot=false -p:CodeViewPerformanceProbe=false
