@@ -174,6 +174,10 @@ SearchResultsはスライス中の行をStageし、Publishで1回のAddRange通�
 
 Program.MarkFailedはプロセス内のProcessExitStatusへ失敗を保持し、Environment.ExitCodeも設定する。UIの致命的通知/後始末/未知のドロップ障害で使用する。UI終了処理が環境の終了コードを0へ戻しても、Mainは保持した失敗を1として返す。既存の明示的な非0終了コードを優先し、検出済みの失敗を正常終了へ戻さない。通常終了0と専用GUI計測失敗1は実機でも確認したが、全UI例外経路の注入試験の代用にはしない。
 
+UI操作の未知例外も失敗を記録したうえでCloseからClosingへ入る。Avalonia 12.1.3の[Shutdown実装](https://github.com/AvaloniaUI/Avalonia/blob/12.1.3/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs)は強制終了としてClosingのCancelを無視するため、非同期の終了待機の入口には使わない。状態通知が失敗してもfinallyでCloseを実行する。
+
+Closing内のStopAndWaitAsyncはStopの例外を記録し、その後も取得可能なPendingWorkを待つ。待機専用の取消トークンを2秒で失効させ、処理自身のTimeoutExceptionや無関係な取消を正常な待機期限として扱わない。期限到達は実Taskの完了を意味しないため、期限後もfaultを観測して失敗を記録する。待機開始前に失敗した処理、Stop/Task取得の例外、正常完了、未完了のままの期限到達と遅延失敗をShutdownTestsで検証する。追加のタイマーと継続処理は終了時だけ生成し、起動・検索・スクロールの経路には追加しない。実機GUI終了の全経路の受入はP1-08に残す。
+
 UI・ランタイムの最終例外フックはD-01で採用版を固定後に確認する。回復不能なメモリ不足・プロセス障害で通知や全解放が完了するとは保証しない。本文・検索語・例外全文は自動保存・送信しない。
 
 ## 9. テスト

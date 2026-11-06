@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -128,20 +127,41 @@ internal sealed partial class MainWindow : Window
             eventArgs.Cancel = true;
             if (_closing) return;
             _closing = true;
-            viewModel.Stop();
-            try
+            await StopAndWaitAsync(viewModel.Stop, () =>
             {
                 var pending = viewModel.PendingWork;
 #if CODEVIEW_PERFORMANCE_PROBE
                 pending = Task.WhenAll(pending, GuiPerformanceProbe.PendingCopyWork);
 #endif
-                await pending.WaitAsync(TimeSpan.FromSeconds(2));
-            }
-            catch (TimeoutException) { }
-            catch (Exception) { Program.MarkFailed(); }
+                return pending;
+            }, Program.MarkFailed);
             _allowClose = true;
             Dispatcher.UIThread.Post(Close);
         };
+    }
+
+    internal static async Task StopAndWaitAsync(Action stop, Func<Task> getPending, Action markFailed,
+        TimeProvider? timeProvider = null)
+    {
+        try { stop(); }
+        catch (Exception) { markFailed(); }
+        try
+        {
+            var pending = getPending();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider ?? TimeProvider.System);
+            try { await pending.WaitAsync(deadline.Token); }
+            catch (OperationCanceledException) when (deadline.IsCancellationRequested && !pending.IsCompleted)
+            {
+                // The wait expired; keep observing the actual work until process exit.
+                _ = pending.ContinueWith(task =>
+                {
+                    _ = task.Exception;
+                    markFailed();
+                }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+            }
+        }
+        catch (Exception) { markFailed(); }
     }
 
     private async Task OpenFilesAsync()
@@ -193,11 +213,9 @@ internal sealed partial class MainWindow : Window
         try { await operation(); }
         catch (Exception)
         {
-            _viewModel.SetStatus("予期しないエラーのため終了します。");
             Program.MarkFailed();
-            if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                desktop.Shutdown(1);
-            else Close();
+            try { _viewModel.SetStatus("予期しないエラーのため終了します。"); }
+            finally { Close(); }
         }
     }
 
