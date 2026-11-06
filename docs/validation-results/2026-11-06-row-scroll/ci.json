@@ -1,0 +1,101 @@
+{
+  "commit": "d9b117c833b8f3c181dd7d4248fd346a464b22fa",
+  "runs": [
+    {
+      "id": 42214251260,
+      "name": "Windows Native AOT publish validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "d9b117c833b8f3c181dd7d4248fd346a464b22fa"
+    },
+    {
+      "id": 42214251253,
+      "name": "Row projection GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "d9b117c833b8f3c181dd7d4248fd346a464b22fa"
+    },
+    {
+      "id": 42214251220,
+      "name": "Row projection core validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "d9b117c833b8f3c181dd7d4248fd346a464b22fa"
+    },
+    {
+      "id": 42214251147,
+      "name": "Native GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "d9b117c833b8f3c181dd7d4248fd346a464b22fa"
+    },
+    {
+      "id": 42214251032,
+      "name": "Build and test",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "d9b117c833b8f3c181dd7d4248fd346a464b22fa"
+    }
+  ],
+  "artifacts": [
+    {
+      "run": 42214251220,
+      "id": 13500597134,
+      "name": "row-core-windows-2025",
+      "digest": "sha256:57fdd5b3152af4443591fe957bf6f57be5512e56800581257bc80e1481cd11e6"
+    },
+    {
+      "run": 42214251220,
+      "id": 13500213262,
+      "name": "row-core-macos-15",
+      "digest": "sha256:bbb9d0f0913ff0101efe9726db0c7c3a57d415467851c7cda3becf7efb1725e1"
+    },
+    {
+      "run": 42214251253,
+      "id": 13501020002,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:a55ad0c01555e07eac702e0664123f7508a7b435eae5d327d6a379320ef9a16f"
+    },
+    {
+      "run": 42214251253,
+      "id": 13500567773,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:3cb7390073aa4b46854af1806604848acce0a1d723fe31fbe8f4e921372ae4af"
+    },
+    {
+      "run": 42214251260,
+      "id": 13500323529,
+      "name": "windows-aot-publish",
+      "digest": "sha256:ae722a4f466cdca9fee413f4c18b8a7007334a5162b9bc6fcc6d6156d402a311"
+    },
+    {
+      "run": 42214251147,
+      "id": 13501200457,
+      "name": "native-gui-windows",
+      "digest": "sha256:7059b9acb4cca8bdee72089b176e0ca11b93bb368b82dd2fe066e83630976e64"
+    },
+    {
+      "run": 42214251147,
+      "id": 13500771941,
+      "name": "native-gui-macos",
+      "digest": "sha256:dc7e98b97a181b820810d77c7a6a1816638a560b7683b32e4162d3f984099ece"
+    }
+  ],
+  "developmentComparison": {
+    "commit": "2c10bd73a31fe67b9e6091f4085139e00fc97bdd",
+    "run": 42213378919,
+    "limit": "Unwarmed separate baseline class, not final acceptance.",
+    "artifacts": [
+      {
+        "id": 13499382884,
+        "file": "development-core-macos.zip",
+        "digest": "sha256:185ca8577d485cd5e6b8132efd9817a684aaae3908cf35ad54cc6e72f7083172"
+      },
+      {
+        "id": 13499139431,
+        "file": "development-core-windows.zip",
+        "digest": "sha256:c72f426dc1eaed2aae064d75ccf450140278f6226c65bcdff33a69951ad4209b"
+      }
+    ]
+  }
+}

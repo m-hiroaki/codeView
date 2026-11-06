@@ -1,0 +1,13 @@
+{
+  "src/codeView/App.axaml.cs": "58e5ce3015c67473151adbad4628948cdf6c2c89f3bbdbf0265d9cc455135777",
+  "src/codeView/Documents/DocumentAdapter.cs": "792017d63b952f3e61a3ea6adde32cabd0018938054f94e60cb1dc05460d3a79",
+  "src/codeView/Documents/DocumentDisplaySession.cs": "cfe5897e6cf6684aeb585518bb6e5aabe84b00b4ec817b25a46678b43d9b3886",
+  "tests/GuiProbe/GuiRowScrolling.cs": "3a6195244b53b3ef9f1848bbcba85178a7c2b1479808e25f548a3995ca019728",
+  "tests/GuiProbe/GuiRowScrollingChecks.cs": "39bef6c67836bc4bfe2d5375c736d9999bdbc0ec5ed4a326d6c37ef797797494",
+  "tests/GuiProbe/GuiRowProjection.cs": "031f25b878cd8e961e3a9de586b15b215c4ca262a91496b4cd684cbdb97fc5ad",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "eb8b28f68b2b16cd1439e2f00b3c8397f4f318fb1dbf8301bcfec54cfe16ef49",
+  "tests/GuiProbe/RowWheelAccumulator.cs": "2dfc29575edaf6fd4726d2b30dc3ca4e3d6ed7887199aac325d0a6706dcd7f0a",
+  "tests/codeView.Tests/Documents/DocumentLineExtentTests.cs": "d26e89e272393222e3fee33350d3b403fc34db43ba72693aaa55048a92a85fef",
+  "tests/codeView.Tests/Documents/DocumentLineExtentPerformanceTests.cs": "ad99f4769f6ae375f76d5caea93793b19aaf57928bcf041be1862f6e27671941",
+  "tools/check_row_projection.py": "6b2133f2af123f8088919c7571b3c87fde014eb19c1f1f67933a4a5bb427dee9"
+}

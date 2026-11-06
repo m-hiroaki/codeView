@@ -20,7 +20,7 @@ A-03で承認された専用試作のA-04-02を、`1d7b10c1e05013d76f41b7bde23c8
 
 `AnimationTickIntervalsMilliseconds`は各更新後に**2回のAnimationFrame callbackを待つ**測定で、単一tickや物理描画時間ではない（最大Windows 93.7343 ms、macOS 155.6557 ms）。16.7 msの単一tick予算への合否換算には使わない。CPU/割当/GC/10 ms間隔のメモリサンプルは、起動・入力構築・全機能操作・Clipboard・検証用ハッシュ生成を含む試作全体の範囲である。UIなしのコア64取得試験と直接比較しない。全指標を`summary.json`とZIPに保持する。
 
-通常表示のネイティブ回帰は[別CI](https://github.com/m-hiroaki/codeView/actions/runs/42211188905)で実行待ち。通常ビルドには今回のGuiProbeソースは含まれないが、この時点で当該回帰が成功したとは記載しない。
+通常表示のネイティブ回帰は[別CI](https://github.com/m-hiroaki/codeView/actions/runs/42211188905)で両OSとも成功した。後続`d9b117c`でも通常表示の各OS20起動/216操作を再検証し、[後続の原記録](../2026-11-06-row-scroll/README.md)へ保存した。通常ビルドにGuiProbeソースを含めない構成は維持する。
 
 ## 初回失敗と修正
 
