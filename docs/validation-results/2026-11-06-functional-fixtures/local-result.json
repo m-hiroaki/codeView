@@ -1,11 +1,11 @@
 {
   "formatVersion": 1,
   "date": "2026-11-06",
-  "baseCommit": "0442de6",
+  "baseCommit": "2a11128",
   "sourceState": "Base commit plus source hashes below; committed with this report.",
   "sourceSha256": {
-    "tools/generate_functional_fixture.py": "5224424d1a69d60594a35e02d1ae876a2ed95b458522a1d3533a46e60a62ec04",
-    "tools/test_functional_fixture.py": "40f282e74bfe28fec4de266d2b2072b58c82ab965d75e7a82e3862457b08677d",
+    "tools/generate_functional_fixture.py": "d294893bbb781fb14bec5140a1a6b77e85b913f8b6b5d0d8f817718ece4df2d3",
+    "tools/test_functional_fixture.py": "57583421cb4690679f9eb90975e223a52e2e4d656df1028adb948507726a2852",
     "tests/codeView.Tests/Files/FunctionalFixtureTests.cs": "73093fffafa44af0d0b886503f32fc2740c09e54e23234d00577560ada459345"
   },
   "macOS": {
@@ -28,16 +28,23 @@
       "pending": "0"
     },
     "unitTrxSha256": "5a73d8a4f085996d2ed442b95b10cc5782ff09d8609c92a6634f9046b2c6b0b7",
-    "pythonPassed": 36,
+    "pythonPassed": 37,
     "pythonFailed": 0,
     "nativeCliExitCode": 0,
     "nativeLinks": "created",
     "readDenied": "verified",
-    "verificationNote": ".NET 656 results from 0442de6 unchanged C# and fixture-byte content; Python 36 and native CLI rerun after SID column validation update."
+    "verificationNote": ".NET 656 results from 0442de6 unchanged C# and portable fixture bytes; Python 37 and native CLI rerun after OS-native relative link path fix."
   },
   "ci": "pending; check Windows native links and ACL before P0-05 completion",
   "limitations": [
     "C# declarations are an oracle for Phase 5, not implemented navigation acceptance",
     "No GUI, performance or large fixture acceptance implied"
-  ]
+  ],
+  "initialWindowsFailure": {
+    "runId": 42166507922,
+    "jobId": 127724119903,
+    "sourceCommit": "0442de65fb52731b57dc70b78b5befe56ed1ff9b",
+    "outcome": "failure",
+    "reason": "Created file symlink could not be opened (Errno 22); relative target now passed through pathlib.Path and generator verifies file and directory reachability."
+  }
 }

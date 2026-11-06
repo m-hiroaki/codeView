@@ -97,7 +97,11 @@ def generate(output, *, native=True):
         (output / "links").mkdir()
         try:
             for name, target, directory in links:
-                (output / "links" / name).symlink_to(target, target_is_directory=directory)
+                (output / "links" / name).symlink_to(Path(target), target_is_directory=directory)
+            if (output / "links/file.txt").read_bytes() != (output / "text/search.txt").read_bytes():
+                raise OSError("File link does not resolve to the expected fixture")
+            if not (output / "links/folder").is_dir():
+                raise OSError("Directory link does not resolve to the expected fixture")
             native_status["links"] = "created"
         except OSError as error:
             native_status["links"] = "unavailable"

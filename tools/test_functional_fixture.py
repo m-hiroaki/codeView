@@ -92,6 +92,18 @@ class FunctionalFixtureTests(unittest.TestCase):
             self.assertEqual(manifest["native"]["readDenied"], "unavailable")
             self.assertEqual(len(manifest["errors"]), 2)
 
+    def test_created_but_unreadable_file_link_is_not_reported_as_ready(self):
+        original = Path.symlink_to
+
+        def invalid_file_link(path, target, **options):
+            original(path, Path("absent.txt") if path.name == "file.txt" else target, **options)
+
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(Path, "symlink_to", invalid_file_link), patch("generate_functional_fixture.set_read_access"):
+                manifest = generate(Path(directory) / "fixture")
+            self.assertEqual(manifest["native"]["links"], "unavailable")
+            self.assertTrue(any(error.startswith("links:") for error in manifest["errors"]))
+
     def test_cli_portable_success_and_existing_output_failure(self):
         script = Path(__file__).with_name("generate_functional_fixture.py")
         with tempfile.TemporaryDirectory() as directory:

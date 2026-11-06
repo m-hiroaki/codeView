@@ -1,0 +1,18 @@
+ERROR: test_native_links_cycles_and_read_denial_are_real_and_recoverable (test_functional_fixture.FunctionalFixtureTests.test_native_links_cycles_and_read_denial_are_real_and_recoverable)
+2026-11-06T05:08:45.0981988Z ----------------------------------------------------------------------
+2026-11-06T05:08:45.0982550Z Traceback (most recent call last):
+2026-11-06T05:08:45.0989708Z   File "D:\a\codeView\codeView\tools\test_functional_fixture.py", line 75, in test_native_links_cycles_and_read_denial_are_real_and_recoverable
+2026-11-06T05:08:45.0991242Z     self.assertEqual((root / "links/file.txt").read_bytes(), (root / "text/search.txt").read_bytes())
+2026-11-06T05:08:45.0992474Z                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+2026-11-06T05:08:45.0993455Z   File "C:\hostedtoolcache\windows\Python\3.15.2\x64\Lib\pathlib\__init__.py", line 976, in read_bytes
+2026-11-06T05:08:45.0994386Z     with self.open(mode='rb', buffering=0) as f:
+2026-11-06T05:08:45.0995074Z          ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T05:08:45.0995982Z   File "C:\hostedtoolcache\windows\Python\3.15.2\x64\Lib\pathlib\__init__.py", line 970, in open
+2026-11-06T05:08:45.0997025Z     return io.open(self, mode, buffering, encoding, errors, newline)
+2026-11-06T05:08:45.0997767Z            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T05:08:45.0998996Z OSError: [Errno 22] Invalid argument: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp7wfd6x5f\\fixture\\links\\file.txt'
+2026-11-06T05:08:45.0999712Z 
+2026-11-06T05:08:45.0999965Z ----------------------------------------------------------------------
+2026-11-06T05:08:45.1000420Z Ran 35 tests in 0.817s
+2026-11-06T05:08:45.1000604Z 
+2026-11-06T05:08:45.1000752Z FAILED (errors=1, skipped=20)

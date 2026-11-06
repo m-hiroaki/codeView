@@ -33,7 +33,7 @@ py -3 tools\generate_functional_fixture.py artifacts\fixtures\functional
 
 文字コードを明示する不正データの期待値と、自動検出の期待値を混同しない。BOMなしUTF-16/32は文字コードを指定して使う。C#候補はPhase 5用の正解データであり、探索機能の実装/精度の受入完了を意味しない。
 
-ネイティブ生成ではリンク6件を作り、io/denied.txtに現在ユーザーの読取拒否を設定する。POSIXではmode 000、Windowsでは現在ユーザーSIDへのRead Data拒否のみを使う。SIDはwhoamiのCSVのSID列から検証して取得し、アカウント名に似た文字列があっても採用しない。変更は生成した単一ファイルだけに限定する。Windowsの操作は[icaclsの仕様](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls)に従う。生成器自身でreadがPermissionErrorとなることまで確認する。
+ネイティブ生成ではリンク6件を作り、通常リンク経由の読取とフォルダ到達を確認する。リンク先はOSのパス区切りへ変換し、manifestは共通のスラッシュ表記を保つ。io/denied.txtには現在ユーザーの読取拒否を設定する。POSIXではmode 000、Windowsでは現在ユーザーSIDへのRead Data拒否のみを使う。SIDはwhoamiのCSVのSID列から検証して取得し、アカウント名に似た文字列があっても採用しない。変更は生成した単一ファイルだけに限定する。Windowsの操作は[icaclsの仕様](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls)に従う。生成器自身でreadがPermissionErrorとなることまで確認する。
 
 リンク/拒否の準備に失敗した場合はmanifestのnative/errorsに記録し、CLIを非0で終了する。部分生成物へ再実行せず、新しい出力先を使う。バイトデータだけが必要な場合は明示的にportableで生成する。この場合のnativeはnot-runで、リンク/権限失敗の検証には使えない。
 
