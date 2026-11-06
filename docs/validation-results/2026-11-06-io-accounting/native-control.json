@@ -1,0 +1,46 @@
+{
+  "abi": {
+    "rusageInfoV2Size": 160,
+    "diskReadOffset": 144,
+    "diskWriteOffset": 152,
+    "validation": "Compiled C sizeof/offsetof against adopted SDK"
+  },
+  "previousWarmFixture": [
+    {
+      "mode": "normal",
+      "logicalReadBytes": 52428800,
+      "diskReadDelta": 0,
+      "milliseconds": 5.578
+    },
+    {
+      "mode": "nocache",
+      "logicalReadBytes": 52428800,
+      "diskReadDelta": 0,
+      "milliseconds": 3.323
+    }
+  ],
+  "freshControl": {
+    "path": "artifacts/io-probe/uncached-fixture.bin",
+    "bytes": 52428800,
+    "sha256": "975365ab6f1256348ae8289f6e8f55b2a4db2d4ea3f1efde161216d223cad0fe",
+    "creation": "new file only, O_EXCL, read/write handles use F_NOCACHE, fsync after writing; no global cache clearing",
+    "writeResult": {
+      "logicalWriteBytes": 52428800,
+      "diskWrittenBefore": 0,
+      "diskWrittenAfter": 52428800,
+      "diskWrittenDelta": 52428800
+    },
+    "readResult": {
+      "logicalReadBytes": 52428800,
+      "diskReadBefore": 0,
+      "diskReadAfter": 50331648,
+      "diskReadDelta": 50331648,
+      "milliseconds": 105.666
+    }
+  },
+  "limits": [
+    "Per-process kernel accounting, not per-file hardware/controller traffic",
+    "F_NOCACHE success is not proof of a fully Cold read; initial warm input stayed zero",
+    "No source files or OS-wide cache settings changed"
+  ]
+}

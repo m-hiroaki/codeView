@@ -15,7 +15,7 @@
 
 各結果に、試験ID、ビルド識別、データ識別、OS・CPU・RAM・ディスク、依存版、設定・予算、手順、期待値、実測値、合否、未実施理由を残す。初期の試験ランナーはNUnitで、`dotnet test codeView.slnx -c Release`を実行する。実装済みの単体・結合試験と部分的なGUI確認は[実装記録](../development-log.md)へ対応付け、未実装の試験・性能・別OSの確認を合格としない。
 
-[記録テンプレート](../measurement-record.template.json)と[計測手順](../diagnostic-measurements.md)を使い、未取得値はnull/理由として残す。EventPipeとCounterの試験用ホストの結果を、製品のGUI性能やカーネルI/Oの結果と混同しない。
+[記録テンプレート](../measurement-record.template.json)と[計測手順](../diagnostic-measurements.md)を使い、未取得値はnull/理由として残す。EventPipeとCounterの試験用ホストの結果を、製品のGUI性能やカーネルI/Oの結果と混同しない。[I/O計測](../io-measurements.md)ではAPI読取量とプロセス全体のOSカウンターを別項目にし、Warmの0・取得失敗・ファイル別物理I/Oの未取得を区別する。
 
 通常試験は[GitHub Actionsの両OS実行](../build.md#github-actionsでの通常試験)も用意する。ホステッドランナーでのビルド・単体/I/O結合の証拠と、固定基準機/実機GUI/配布物の受入を区別する。SDK・OS/アーキテクチャ・実行コミット・TRXを保存し、失敗/スキップ/取消を成功扱いにしない。
 

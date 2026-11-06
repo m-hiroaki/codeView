@@ -1,0 +1,35 @@
+#include <sys/resource.h>
+#include <libproc.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdint.h>
+
+int main(int argc, char **argv) {
+    if (argc != 2) return 2;
+    int fd = open(argv[1], O_WRONLY | O_CREAT | O_EXCL, 0600);
+    if (fd < 0) { perror("exclusive create"); return 1; }
+    if (fcntl(fd, F_NOCACHE, 1)) { perror("F_NOCACHE"); close(fd); return 1; }
+    unsigned char buffer[65536];
+    for (size_t index = 0; index < sizeof(buffer); index++) buffer[index] = (unsigned char)(index % 251);
+    struct rusage_info_v2 before = {0}, after = {0};
+    if (proc_pid_rusage(getpid(), RUSAGE_INFO_V2, (rusage_info_t *)&before)) { close(fd); return 1; }
+    uint64_t bytes = 0;
+    for (int block = 0; block < 800; block++) {
+        size_t offset = 0;
+        while (offset < sizeof(buffer)) {
+            ssize_t count = write(fd, buffer + offset, sizeof(buffer) - offset);
+            if (count <= 0) { perror("write"); close(fd); return 1; }
+            offset += (size_t)count;
+            bytes += (uint64_t)count;
+        }
+    }
+    if (fsync(fd)) { perror("fsync"); close(fd); return 1; }
+    if (proc_pid_rusage(getpid(), RUSAGE_INFO_V2, (rusage_info_t *)&after)) { close(fd); return 1; }
+    close(fd);
+    if (after.ri_diskio_byteswritten < before.ri_diskio_byteswritten) return 1;
+    printf("{\"logicalWriteBytes\":%llu,\"diskWrittenBefore\":%llu,\"diskWrittenAfter\":%llu,\"diskWrittenDelta\":%llu}\n",
+        (unsigned long long)bytes, (unsigned long long)before.ri_diskio_byteswritten,
+        (unsigned long long)after.ri_diskio_byteswritten, (unsigned long long)(after.ri_diskio_byteswritten - before.ri_diskio_byteswritten));
+    return 0;
+}

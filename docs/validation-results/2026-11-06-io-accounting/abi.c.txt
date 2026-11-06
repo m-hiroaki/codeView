@@ -1,0 +1,7 @@
+#include <sys/resource.h>
+#include <stddef.h>
+#include <stdio.h>
+int main(void) {
+    printf("{\"size\":%zu,\"readOffset\":%zu,\"writeOffset\":%zu}\n", sizeof(struct rusage_info_v2), offsetof(struct rusage_info_v2, ri_diskio_bytesread), offsetof(struct rusage_info_v2, ri_diskio_byteswritten));
+    return 0;
+}

@@ -1,0 +1,6 @@
+Unhandled exception. System.ArgumentException: 'cp932' is not a supported encoding name. For information on defining a custom encoding, see the documentation for the Encoding.RegisterProvider method. (Parameter 'name')
+   at System.Text.EncodingTable.InternalGetCodePageFromName(String name)
+   at System.Text.EncodingTable.GetCodePageFromName(String name)
+   at System.Text.Encoding.GetEncoding(String name, EncoderFallback encoderFallback, DecoderFallback decoderFallback)
+   at CodeView.Tests.Files.IoPerformanceTests.MeasureReadBytesAndProcessIo() in /Users/hiroaki/Src/codeview/tests/codeView.Tests/Files/IoPerformanceTests.cs:line 27
+   at Program.<Main>$(String[] args) in /Users/hiroaki/Src/codeview/artifacts/io-probe/IoHost.cs:line 7

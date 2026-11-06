@@ -1,0 +1,33 @@
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import time
+
+root = Path.cwd()
+output = root / "artifacts/io-probe/comparison-verified"
+output.mkdir(exist_ok=False)
+host = root / "artifacts/io-probe/host/IoHost.dll"
+results = []
+for encoding in ["utf-8", "cp932"]:
+    file = Path("/private/tmp/codeview-perf-v2-20261106") / ("text50-" + encoding) / "group-00000/source-0000000.cs"
+    for number in range(1, 4):
+        for mode in ["baseline", "counted"]:
+            label = f"io-verified-{encoding}-{mode}-{number}"
+            env = {**os.environ, "CODEVIEW_IO_FILE": str(file), "CODEVIEW_IO_ENCODING": encoding,
+                   "CODEVIEW_IO_MODE": mode, "CODEVIEW_IO_LABEL": label}
+            started = time.perf_counter()
+            with (output / (label + ".log")).open("w") as log:
+                run = subprocess.run(["dotnet", str(host)], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=60)
+            report = host.parent / "TestResults" / (label + ".json")
+            if run.returncode or not report.exists():
+                raise RuntimeError(f"{label} failed: {run.returncode}")
+            result = json.loads(report.read_text())
+            if len(result["Rows"]) != 10 or result["InputSha256"] != result["FinalInputSha256"]:
+                raise RuntimeError("Incomplete or modified input")
+            result["WholeCommandSeconds"] = time.perf_counter() - started
+            result["ExitCode"] = run.returncode
+            results.append(result)
+            (output / "runs.json").write_text(json.dumps(results, indent=2) + "\n")
+            print(f"{label}: 10 reads, exit 0, {result['WholeCommandSeconds']:.3f}s", flush=True)

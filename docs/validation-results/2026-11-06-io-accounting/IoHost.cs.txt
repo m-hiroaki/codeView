@@ -1,0 +1,8 @@
+#:project ../../tests/codeView.Tests/codeView.Tests.csproj
+#:property PublishAot=false
+
+using CodeView.Tests.Files;
+
+if (args.Length != 0) return 2;
+new IoPerformanceTests().MeasureReadBytesAndProcessIo();
+return 0;

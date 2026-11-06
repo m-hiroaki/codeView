@@ -1,0 +1,138 @@
+{
+  "formatVersion": 1,
+  "sourceBaseCommit": "5f46423",
+  "sourceState": "Base plus SHA-256 below; no product source changes",
+  "sourceSha256": {
+    "tests/codeView.Tests/Performance/ProcessIo.cs": "e9df46a11ff7ef990788c09bc837492689f94aa5d5337bec189b3a928301005b",
+    "tests/codeView.Tests/Performance/ProcessIoTests.cs": "4dc3cb8f840877d431f0bd7e44888016cfc2b10ef3580f0dee2c8ba781443529",
+    "tests/codeView.Tests/Performance/ReadAccounting.cs": "d3a8ea96fcff96145d899d7ae4b3511e573d73b749e9b0e0042bf3add48f8c6e",
+    "tests/codeView.Tests/Performance/ReadAccountingTests.cs": "2646928e9ba249d169a9dae747b58ad0897cc1f9ee41e69a7a985e056c65b14a",
+    "tests/codeView.Tests/Files/IoPerformanceTests.cs": "476e010ebc1352a52092ee24cfb0b93c8e4f7612f4e34d64f9de815c010c5dff"
+  },
+  "binarySha256": {
+    "artifacts/io-probe/host/IoHost.dll": "eace3d1435070e994a7e67a59611f5fc5b674d8c8d504a68d53bec07cb13799e",
+    "artifacts/io-probe/host/codeView.dll": "9106563fbcab601105326ba5b6607137b6d4f6996390a4a9936134c727ac9820",
+    "artifacts/io-probe/host/codeView.Tests.dll": "a70be651ea81cbff423f416aff17ebb5b49dc230b4eb27112f7c95c2c4975346",
+    "artifacts/io-probe/control": "1cea9ebaf8d303cc2bf937d7a5f4cb7a6eb7bf0920b13dd9f41c69100f7b18e8",
+    "artifacts/io-probe/create-control": "c8730a2470c487d4e54a77f01f2764e18d6fa224ac1fcd4cb7394dc077abd285"
+  },
+  "metrics": {
+    "utf-8": {
+      "baseline": {
+        "trials": 3,
+        "readsPerTrial": 10,
+        "durationSumMedianMs": 290.8178,
+        "durationSumRangeMs": [
+          287.61749999999995,
+          445.16839999999996
+        ],
+        "cpuSumMedianMs": 310.832,
+        "cpuSumRangeMs": [
+          307.256,
+          466.0520000000001
+        ],
+        "samplerMicrosPerCallMedian": 1.0468600000000001,
+        "apiTotalReadBytesPerOperation": [
+          null
+        ],
+        "nativeReadDeltas": [
+          0
+        ]
+      },
+      "counted": {
+        "trials": 3,
+        "readsPerTrial": 10,
+        "durationSumMedianMs": 287.3346,
+        "durationSumRangeMs": [
+          286.9859,
+          432.19470000000007
+        ],
+        "cpuSumMedianMs": 304.945,
+        "cpuSumRangeMs": [
+          302.58900000000006,
+          451.30500000000006
+        ],
+        "samplerMicrosPerCallMedian": 1.01171,
+        "apiTotalReadBytesPerOperation": [
+          104865792
+        ],
+        "nativeReadDeltas": [
+          0
+        ]
+      }
+    },
+    "cp932": {
+      "baseline": {
+        "trials": 3,
+        "readsPerTrial": 10,
+        "durationSumMedianMs": 562.1684,
+        "durationSumRangeMs": [
+          562.0285,
+          570.0785000000001
+        ],
+        "cpuSumMedianMs": 575.671,
+        "cpuSumRangeMs": [
+          574.855,
+          581.602
+        ],
+        "samplerMicrosPerCallMedian": 1.046,
+        "apiTotalReadBytesPerOperation": [
+          null
+        ],
+        "nativeReadDeltas": [
+          0
+        ]
+      },
+      "counted": {
+        "trials": 3,
+        "readsPerTrial": 10,
+        "durationSumMedianMs": 559.2688,
+        "durationSumRangeMs": [
+          556.7577,
+          729.5486999999999
+        ],
+        "cpuSumMedianMs": 573.217,
+        "cpuSumRangeMs": [
+          569.5120000000001,
+          746.6940000000001
+        ],
+        "samplerMicrosPerCallMedian": 1.06865,
+        "apiTotalReadBytesPerOperation": [
+          104931328
+        ],
+        "nativeReadDeltas": [
+          0
+        ]
+      }
+    }
+  },
+  "compressedRunsSha256": "86eb58caf5d247c6786eb630337bf34a2da198fe537511713e44a187b424538d",
+  "localNormalTests": {
+    "total": "677",
+    "executed": "677",
+    "passed": "677",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "unitTrxSha256": "4289b3ac772986ec988f0700005b65f85a7dff860614595f7ea3007dea3d0a66",
+  "pythonPassed": 47,
+  "ci": "pending",
+  "limits": [
+    "macOS kernel disk accounting is process-wide; Windows transfer counters have different meaning",
+    "Both wrapper modes query native I/O; read/build timings exclude the sampler calls",
+    "F_NOCACHE requests are not Cold-cache proof",
+    "Initial CP932 benchmark reference alias failed before FileReader; final numeric-932 reference was tested and all comparison trials rerun",
+    "No GUI/rendering or per-file hardware I/O trace collected"
+  ]
+}
