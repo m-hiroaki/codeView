@@ -10,6 +10,34 @@ internal sealed class BoundedPointerSelection
     private long? _lineAnchor;
     private long _lineTarget;
 
+    public bool BeginRows(DocumentDisplaySession source, DocumentRowProjection rows, int offset, long pointerId, bool extend, bool wholeLine)
+    {
+        if (IsActive) return false;
+        var anchorPosition = source.AnchorPosition;
+        var anchor = anchorPosition.Line;
+        if (source.Anchor > source.Caret && anchorPosition.Column == 1 && anchor > 1) anchor--;
+        if (!source.TryMoveFromRows(rows, offset, extend && !wholeLine)) return false;
+        if (wholeLine)
+        {
+            _lineTarget = source.Position.Line;
+            _lineAnchor = extend ? anchor : _lineTarget;
+            source.SelectLines(_lineAnchor.Value, _lineTarget);
+        }
+        PointerId = pointerId;
+        return true;
+    }
+
+    public bool MoveRows(DocumentDisplaySession source, DocumentRowProjection rows, int offset, long pointerId)
+    {
+        if (PointerId != pointerId || !source.TryMoveFromRows(rows, offset, extendSelection: true)) return false;
+        if (_lineAnchor is { } anchor)
+        {
+            _lineTarget = source.Position.Line;
+            source.SelectLines(anchor, _lineTarget);
+        }
+        return true;
+    }
+
     public bool Begin(DocumentDisplaySession source, DocumentDisplaySlice slice, int offset, long pointerId, bool extend)
     {
         if (IsActive) return false;

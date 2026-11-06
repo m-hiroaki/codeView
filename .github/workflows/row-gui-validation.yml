@@ -1,0 +1,74 @@
+name: Row projection GUI validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/row-gui-validation.yml
+      - tests/GuiProbe/**
+      - tools/check_row_projection.py
+      - tools/test_row_projection.py
+      - src/codeView/Documents/DocumentRowProjection.cs
+      - src/codeView/Documents/DocumentDisplaySession.cs
+
+permissions:
+  contents: read
+
+jobs:
+  gui:
+    name: Row GUI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Prepare mixed long, empty and Unicode fixtures
+        run: |
+          New-Item -ItemType Directory -Force artifacts/row-gui-validation | Out-Null
+          "Commit: $env:GITHUB_SHA; native control integration, physical paint/input not measured." | Out-File artifacts/row-gui-validation/environment.txt
+          dotnet --info | Out-File artifacts/row-gui-validation/environment.txt -Append
+          python -c "from pathlib import Path; p=Path('artifacts/row-gui-validation'); (p/'mixed.cs').write_bytes(('before\r\n'+'x'*(1024*1024)+'\r\n'+''.join('line'+str(i)+' 日本語😀\r\n' for i in range(100))).encode('utf-8')); (p/'empty.cs').write_bytes(b''); (p/'unicode.cs').write_bytes(('日本語😀\tValue\r\nempty\rplain\n'*50).encode('utf-8'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build dedicated row prototype
+        run: |
+          dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/row-gui-validation/app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Three sequential native processes per fixture
+        run: |
+          $app = if ($IsWindows) { 'artifacts/row-gui-validation/app/codeView.exe' } else { 'artifacts/row-gui-validation/app/codeView' }
+          $platform = if ($IsWindows) { 'windows' } else { 'macos' }
+          python -m unittest discover -s tools -p test_row_projection.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/mixed.cs artifacts/row-gui-validation/empty.cs artifacts/row-gui-validation/unicode.cs --output artifacts/row-gui-validation/results --rounds 3 --commit $env:GITHUB_SHA --os $platform
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload row integration evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: row-gui-${{ matrix.os }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/row-gui-validation/environment.txt
+            artifacts/row-gui-validation/*.cs
+            artifacts/row-gui-validation/results/

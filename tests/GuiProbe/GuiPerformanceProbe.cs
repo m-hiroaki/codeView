@@ -19,7 +19,7 @@ using CodeView.Tests.Performance;
 namespace CodeView.Presentation;
 
 /// <summary>Compiled only into an explicitly requested local performance build.</summary>
-internal sealed class GuiPerformanceProbe
+internal sealed partial class GuiPerformanceProbe
 {
     private static readonly Stopwatch Startup = new();
     private static readonly StartupTimeline StartupStages = new();
@@ -157,12 +157,14 @@ internal sealed class GuiPerformanceProbe
              Environment.GetEnvironmentVariable("CODEVIEW_GUI_READONLY_CHECKS") == "1" ||
              Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true"))
             throw new ArgumentException("検索パネルの自動操作は入力あり/通常表示/専用CIで単独実行してください。");
+        ValidateRowMode(hasInput);
         var probe = _instance = new(window, editor, viewModel, output, hasInput);
         // This workload injects no input. Abort rather than mixing an interactive
         // selection/scroll operation with automatic document replacement.
         void InterruptForInput(object? sender, RoutedEventArgs args)
         {
-            if (probe._finished || probe._interactive || ReferenceEquals(args, probe._scriptedSearchKey)) return;
+            if (probe._finished || (probe._interactive && !probe._rowChecks) ||
+                ReferenceEquals(args, probe._scriptedSearchKey) || ReferenceEquals(args, probe._scriptedRowKey)) return;
             args.Handled = true;
             if (probe._inputInterrupted) return;
             probe._inputInterrupted = true;
@@ -212,10 +214,12 @@ internal sealed class GuiPerformanceProbe
         probe._displaySession?.Dispose();
         probe._displaySession = new DocumentDisplaySession(handle);
         probe._interactiveSlice = null;
+        probe.ClearRowProjection();
         probe._documentGeneration++;
         if (probe._interactive)
         {
             probe._displaySession.MoveToPosition(position);
+            if (probe._rowsEnabled) return probe.BuildRowDocument(reveal: true);
             probe._interactiveSlice = probe.CreateSourceSlice(probe._displaySession.Caret);
             var display = CreateDisplayDocument(probe._interactiveSlice.Text);
             probe.ApplyLineNumbers(display, probe._interactiveSlice);
@@ -243,6 +247,8 @@ internal sealed class GuiPerformanceProbe
         if (_instance is not { _interactive: true, _displaySession: { } session } probe) return false;
         session.MoveToPosition(new(line, column));
         probe._interactiveSlice = null;
+        if (probe._rowsEnabled) probe.RevealRowCaret();
+        probe.ClearRowProjection();
         probe.RenderInteractive();
         return true;
     }
@@ -252,6 +258,7 @@ internal sealed class GuiPerformanceProbe
         if (_instance is not { _interactive: true, _displaySession: { } session } probe) return false;
         if (clear) session.MoveCaret(session.Caret);
         else session.Select(checked(offset + length), offset);
+        if (probe._rowsEnabled) probe.RevealRowCaret();
         probe.RenderInteractive();
         return true;
     }
@@ -265,6 +272,7 @@ internal sealed class GuiPerformanceProbe
         probe._displaySession = null;
         probe._sourceDocument = null;
         probe._interactiveSlice = null;
+        probe.ClearRowProjection();
         probe._sourceLineNumbers?.Clear();
         probe._editor.Document = null!;
         probe._documentGeneration++;
@@ -306,6 +314,7 @@ internal sealed class GuiPerformanceProbe
     private void RenderInteractive()
     {
         if (_renderingInteractive || _displaySession is null || _finished) return;
+        if (_rowsEnabled) { RenderRows(); return; }
         _renderingInteractive = true;
         try
         {
@@ -375,7 +384,8 @@ internal sealed class GuiPerformanceProbe
         _editor.AddHandler(InputElement.PointerMovedEvent, InteractivePointerMoved, RoutingStrategies.Tunnel);
         _editor.AddHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased, RoutingStrategies.Tunnel);
         _editor.PointerCaptureLost += InteractivePointerCaptureLost;
-        if (_viewportWindow) _editor.SizeChanged += InteractiveSizeChanged;
+        if (_rowsEnabled) _editor.AddHandler(InputElement.PointerWheelChangedEvent, RowWheelChanged, RoutingStrategies.Tunnel);
+        if (_viewportWindow || _rowsEnabled) _editor.SizeChanged += InteractiveSizeChanged;
     }
 
     private void DetachInteractive()
@@ -388,7 +398,8 @@ internal sealed class GuiPerformanceProbe
         _editor.RemoveHandler(InputElement.PointerMovedEvent, InteractivePointerMoved);
         _editor.RemoveHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased);
         _editor.PointerCaptureLost -= InteractivePointerCaptureLost;
-        if (_viewportWindow) _editor.SizeChanged -= InteractiveSizeChanged;
+        if (_rowsEnabled) _editor.RemoveHandler(InputElement.PointerWheelChangedEvent, RowWheelChanged);
+        if (_viewportWindow || _rowsEnabled) _editor.SizeChanged -= InteractiveSizeChanged;
     }
 
     private void RecordPointer(string phase, PointerEventArgs? args = null)
@@ -427,7 +438,7 @@ internal sealed class GuiPerformanceProbe
     {
         RecordPointer("press", args);
         args.Handled = true; // The library must not start its local-document selection mode.
-        if (_finished || _displaySession is not { } source || _interactiveSlice is not { } slice) return;
+        if (_finished || _displaySession is not { } source || (!_rowsEnabled && _interactiveSlice is null)) return;
         _editor.TextArea.Focus();
         if (!args.GetCurrentPoint(_editor).Properties.IsLeftButtonPressed || args.Pointer.Type != PointerType.Mouse) return;
         try
@@ -438,9 +449,11 @@ internal sealed class GuiPerformanceProbe
                 new Rect(numbers.Bounds.Size).Contains(marginPoint);
             var offset = HitPointer(point, clamp: onLineNumber);
             if (offset is null) return;
-            var started = onLineNumber
-                ? _pointerSelection.BeginLine(source, slice, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                : _pointerSelection.Begin(source, slice, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            var started = _rowsEnabled
+                ? BeginRowPointer(offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift), onLineNumber)
+                : onLineNumber
+                    ? _pointerSelection.BeginLine(source, _interactiveSlice!, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                    : _pointerSelection.Begin(source, _interactiveSlice!, offset.Value, args.Pointer.Id, args.KeyModifiers.HasFlag(KeyModifiers.Shift));
             if (!started) return;
             _selectionPointer = args.Pointer;
             _pointerPosition = args.GetPosition(_editor.TextArea.TextView);
@@ -486,6 +499,7 @@ internal sealed class GuiPerformanceProbe
 
     private void UpdatePointerSelection(long pointerId)
     {
+        if (_rowsEnabled) { UpdateRowPointer(pointerId); return; }
         if (_displaySession is not { } source || _interactiveSlice is not { } slice) return;
         if (HitPointer(_pointerPosition, clamp: true) is { } offset &&
             _pointerSelection.Move(source, slice, offset, pointerId))
@@ -505,6 +519,7 @@ internal sealed class GuiPerformanceProbe
             if (!_pointerSelection.StepOutside(source, id, outside.Horizontal, outside.Vertical))
             { _pointerTimer?.Stop(); return; }
             _pointerEdgeSteps++;
+            if (_rowsEnabled) RevealRowCaret();
             RenderInteractive(); // No selection update from ScrollOffsetChanged; no recursive scroll loop.
         }
         catch (Exception) { Finish("pointer-selection-failed"); }
@@ -560,6 +575,7 @@ internal sealed class GuiPerformanceProbe
                 case BoundedKeyCommand.Copy: StartCopy(source); break;
                 default: _viewModel.SetStatus("このキー操作は表示試作で未対応です。"); break;
             }
+            if (_rowsEnabled && action.Command is not (BoundedKeyCommand.Copy or BoundedKeyCommand.SelectAll)) RevealRowCaret();
             RenderInteractive();
             _interactiveCommands++;
             if (_selectionSamples.Count < 256)
@@ -568,8 +584,8 @@ internal sealed class GuiPerformanceProbe
                     DocumentGeneration = _documentGeneration, Command = action.Command.ToString(), Extend = extend,
                     RawKey = args.Key.ToString(), PhysicalKey = args.PhysicalKey.ToString(), Modifiers = args.KeyModifiers.ToString(), HasKeySymbol = !string.IsNullOrEmpty(args.KeySymbol),
                     SourceAnchor = source.Anchor, SourceCaret = source.Caret, SourcePosition = source.Position,
-                    SourceSelectionLength = source.SelectionLength, SliceOffset = _interactiveSlice!.SourceOffset,
-                    SliceChars = _interactiveSlice.Text.Length, NativeCaret = _editor.CaretOffset,
+                    SourceSelectionLength = source.SelectionLength, SliceOffset = _interactiveSlice?.SourceOffset,
+                    SliceChars = _interactiveSlice?.Text.Length, RowProjection = _rowsEnabled, NativeCaret = _editor.CaretOffset,
                     NativeSelectionStart = _editor.SelectionStart, NativeSelectionLength = _editor.SelectionLength,
                     StatusPosition = _viewModel.Position, SynchronousMilliseconds = Stopwatch.GetElapsedTime(start).TotalMilliseconds
                 });
@@ -684,6 +700,7 @@ internal sealed class GuiPerformanceProbe
                 probe.RenderInteractive();
                 probe._editor.TextArea.Focus();
                 Phase("interactive-ready");
+                if (probe._rowChecks) probe._readOnlyWork = probe.RunRowChecksAsync();
                 return;
             }
             probe._previousTick = Stopwatch.GetTimestamp();
@@ -800,6 +817,8 @@ internal sealed class GuiPerformanceProbe
             Scenario = _searchPanelChecks ? "native-gui-search-panel-controls" : _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             ReadOnlyChecks = _readOnlyResults,
             SearchPanelChecks = _searchPanelResults,
+            RowProjectionEnabled = _rowsEnabled, RowProjectionChecks = _rowResults,
+            RowProjectionSamples = _rowSamples,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
@@ -850,6 +869,7 @@ internal sealed class GuiPerformanceProbe
         _displaySession?.Dispose();
         _displaySession = null;
         _interactiveSlice = null;
+        ClearRowProjection();
         _sourceDocument = null;
         _instance = null;
         _memory.Dispose();
