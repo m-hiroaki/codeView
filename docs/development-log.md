@@ -1,5 +1,11 @@
 # codeView 実装・検証記録
 
+## 2026-11-06：P0-03のSDK/UI/試験ランナー確認を完了
+
+- .NET公式サポート表で現在のLTS系列が.NET 10であることを確認。global.jsonの10.0.401/latestPatch、Avalonia 12.1.3、Microsoft.NET.Test.Sdk 17.14.1/NUnit 4.1.0/Adapter 4.5.0と依存ロックを照合した。SDK/UI公式ソースと固定版NuGet nuspecのMIT表記を記録した。
+- 8efffa1の両OS CIが成功し、許容SDKパッチ10.0.403/host10.0.14による本体/試験のReleaseビルドと通常単体を確認した。Windows627合格/3スキップ、macOS630合格。0ee4d9dで全試験結果・スキップ理由・環境・ログを保存済み。既存の版選択方針を変更せず、手元10.0.401/host10.0.12の性能証跡と区別する。
+- P0-03を完了チェックし、設計07の5.1へ版・互換性・ライセンス確認を反映。D-01の本文/文法の性能採否、P6-03の第三者通知を含む全ライセンス同梱、実機UI/Native AOT/配布受入は未完了のまま維持する。製品コード/依存版/アーキテクチャは変更していない。
+
 ## 2026-11-06：両OSのCI実行成功とP1-01の完了
 
 - 8efffa1をpushし、[初回CI](https://github.com/m-hiroaki/codeView/actions/runs/42162663862)でWindows/macOS両ジョブ成功を確認した。SDK準備、locked-mode復元、本体/試験のReleaseビルド、通常単体、Python補助試験、証跡アップロードが成功した。

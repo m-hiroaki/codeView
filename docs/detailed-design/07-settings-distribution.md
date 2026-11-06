@@ -60,6 +60,18 @@ UTF-8 BOMは除いて検証する。同名JSONプロパティの重複は値の�
 
 製品は`src/codeView`、試験は`tests/codeView.Tests`の2プロジェクトを初期構成とする。追加ツール・テスト基盤の採用は必要性を示し、製品起動経路にテスト・計測依存を混ぜない。文法・テーマ・ライセンスを成果物へ同梱し、初回起動時のネット取得をしない。
 
+### 5.1 P0-03のSDK/UI/試験ランナー確認（2026-11-06）
+
+[Microsoftのサポート表](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)で、確認時点のLTS系列が.NET 10であることを確認した。global.jsonはSDK 10.0.401を最低版とし、同じFeature BandのlatestPatchを許容する。初回の両OS CIでは10.0.403/host10.0.14を使用した。手元の10.0.401/host10.0.12の性能記録と混同しない。
+
+| 対象 | 固定/選択値 | ライセンス確認・検証範囲 |
+| --- | --- | --- |
+| SDK | .NET 10、global.jsonの10.0.401/latestPatch | [.NET SDKソースのMIT表記](https://github.com/dotnet/sdk/blob/main/LICENSE.TXT)。両OSで許容パッチ10.0.403の復元/Releaseビルドを確認 |
+| UI | Avalonia / Avalonia.Desktop / Fluent 12.1.3 | 固定版nuspecのMIT表記と[公式ソースのMIT表記](https://github.com/AvaloniaUI/Avalonia/blob/master/licence.md)。Windows/macOSで本体ビルドと通常モデルの試験を確認 |
+| 試験 | Microsoft.NET.Test.Sdk 17.14.1、NUnit 4.1.0、NUnit3TestAdapter 4.5.0 | 固定版nuspecのMIT表記。Windows627合格/3スキップ、macOS630合格。スキップはDarwin専用条件で個別確認 |
+
+[環境・全試験結果・ログ・パッケージ確認値](../validation-results/2026-11-06-ci-build/README.md)を保存した。P0-03はSDK/UI候補と試験基盤の確認として完了。D-01全体のうち、本文AvaloniaEdit/TextMate文法版の性能・採否はP2-09、配布物の全ライセンス/第三者通知同梱とOS別の実機受入はP6へ残す。UIをWindows実画面で受け入れ済みという判断ではない。
+
 ## 6. 発行候補と確認
 
 | 対象 | 初期候補 | まだ決定しない事項 |
