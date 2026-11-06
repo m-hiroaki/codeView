@@ -64,6 +64,34 @@ public sealed class StartupOpenQueueTests
         Assert.That(queue.Submit(new[] { "x" }, OpenOrigin.Menu).Error!.Code, Is.EqualTo(ErrorCode.QueueFull));
     }
 
+    [Test]
+    public void ExactPathLimitIsAcceptedAndReleasedOnlyWhenTheRequestFinishes()
+    {
+        var queue = new StartupOpenQueue();
+        var paths = Enumerable.Range(0, StartupOpenQueue.MaxPaths).Select(i => $"{i}.cs").ToArray();
+        var request = queue.Submit(paths, OpenOrigin.Drop).Value;
+        Assert.That(queue.Submit(["extra.cs"], OpenOrigin.Menu).Error!.Code, Is.EqualTo(ErrorCode.QueueFull));
+        queue.CompleteSettings(Defaults());
+        Assert.That(queue.TryTake(out var started), Is.True);
+        Assert.That(started, Is.SameAs(request));
+        Assert.That(queue.Submit(["extra.cs"], OpenOrigin.Menu).Error!.Code, Is.EqualTo(ErrorCode.QueueFull));
+        Assert.That(queue.CompleteOpen(request.Id), Is.True);
+        Assert.That(queue.Submit(paths, OpenOrigin.Drop).Status, Is.EqualTo(OperationStatus.Success));
+    }
+
+    [Test]
+    public void EmptyAndOversizedRequestsDoNotPartiallyReservePaths()
+    {
+        var queue = new StartupOpenQueue();
+        Assert.That(queue.Submit([], OpenOrigin.Menu).Error!.Code, Is.EqualTo(ErrorCode.InvalidPath));
+        Assert.That(queue.Submit(["a.cs"], (OpenOrigin)999).Error!.Code, Is.EqualTo(ErrorCode.InvalidPath));
+        Assert.That(queue.Submit(Enumerable.Repeat("x", StartupOpenQueue.MaxPaths + 1).ToArray(), OpenOrigin.Drop).Error!.Code,
+            Is.EqualTo(ErrorCode.QueueFull));
+        Assert.That(queue.OutstandingCount, Is.Zero);
+        Assert.That(queue.Submit(Enumerable.Repeat("x", StartupOpenQueue.MaxPaths).ToArray(), OpenOrigin.Drop).Status,
+            Is.EqualTo(OperationStatus.Success));
+    }
+
     [TestCase("")]
     [TestCase(" ")]
     [TestCase("bad\0.cs")]

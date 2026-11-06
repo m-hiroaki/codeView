@@ -1,0 +1,140 @@
+{
+  "Counters": {
+    "total": "630",
+    "executed": "630",
+    "passed": "630",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "Times": {
+    "creation": "2026-11-06T13:18:45.5539610+09:00",
+    "queuing": "2026-11-06T13:18:45.5539610+09:00",
+    "start": "2026-11-06T13:18:44.7922070+09:00",
+    "finish": "2026-11-06T13:18:46.8779240+09:00"
+  },
+  "AddedTests": [
+    {
+      "executionId": "36a619f9-5113-4cf6-8dc4-c89c53ccd013",
+      "testId": "6d6b2aba-5c81-bf02-fa45-588100f2fb93",
+      "testName": "StopDuringSettingsReadWaitsForActualWorkerAndNeverOpensFiles(False)",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0012610",
+      "startTime": "2026-11-06T13:18:46.4459190+09:00",
+      "endTime": "2026-11-06T13:18:46.4471790+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "36a619f9-5113-4cf6-8dc4-c89c53ccd013"
+    },
+    {
+      "executionId": "6106777d-8fb4-46ca-a0df-4087a52fac9a",
+      "testId": "e2203a8d-f15d-faeb-5e05-3226bde4dd2d",
+      "testName": "EmptyAndOversizedRequestsDoNotPartiallyReservePaths",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0001590",
+      "startTime": "2026-11-06T13:18:46.1022250+09:00",
+      "endTime": "2026-11-06T13:18:46.1023840+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "6106777d-8fb4-46ca-a0df-4087a52fac9a"
+    },
+    {
+      "executionId": "3382fd45-9a9e-43ac-9361-983396c74eba",
+      "testId": "13ea54d9-f228-0a3b-68c8-41358ccb9a30",
+      "testName": "LateUnexpectedFailureIsObservedRatherThanAdoptedAsDefaultsAgain",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0013620",
+      "startTime": "2026-11-06T13:18:46.4445420+09:00",
+      "endTime": "2026-11-06T13:18:46.4459030+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "3382fd45-9a9e-43ac-9361-983396c74eba"
+    },
+    {
+      "executionId": "0b928609-c0f3-4e21-905a-ab67db2f6845",
+      "testId": "61739b51-e889-5889-178f-f312bba1c158",
+      "testName": "TimeoutDrainsQueuedFilesAndLateSuccessCannotReplaceFixedDefaults",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0017690",
+      "startTime": "2026-11-06T13:18:46.4478990+09:00",
+      "endTime": "2026-11-06T13:18:46.4496680+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "0b928609-c0f3-4e21-905a-ab67db2f6845"
+    },
+    {
+      "executionId": "b5634287-9929-4242-8f2f-0298ce20a41c",
+      "testId": "90936374-a50a-dd8c-b9c7-0f066f17d822",
+      "testName": "StopDuringSettingsReadWaitsForActualWorkerAndNeverOpensFiles(True)",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0006950",
+      "startTime": "2026-11-06T13:18:46.4471860+09:00",
+      "endTime": "2026-11-06T13:18:46.4478810+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "b5634287-9929-4242-8f2f-0298ce20a41c"
+    },
+    {
+      "executionId": "ca1917ba-1d60-4050-b130-9a7063ac4e03",
+      "testId": "6ee08ef7-6b46-e4a4-9937-3f9aba20f71a",
+      "testName": "KnownReadFailureUsesDefaultsAndKeepsNoticeAfterQueuedOpen",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0013280",
+      "startTime": "2026-11-06T13:18:46.4431990+09:00",
+      "endTime": "2026-11-06T13:18:46.4445270+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "ca1917ba-1d60-4050-b130-9a7063ac4e03"
+    },
+    {
+      "executionId": "269d5b75-bf5a-437f-bfbc-bf762479ae94",
+      "testId": "f052272c-d781-08d7-c427-503bcdecdaea",
+      "testName": "CliMenuAndDropRemainFifoUntilSettingsCompleteExactlyOnce",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0024740",
+      "startTime": "2026-11-06T13:18:46.4407120+09:00",
+      "endTime": "2026-11-06T13:18:46.4431850+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "269d5b75-bf5a-437f-bfbc-bf762479ae94"
+    },
+    {
+      "executionId": "c2630aaa-098e-4259-8346-c683f9a36f78",
+      "testId": "a8fd9bb3-7fbc-f8d7-f3d1-5cc78cefc468",
+      "testName": "ExactPathLimitIsAcceptedAndReleasedOnlyWhenTheRequestFinishes",
+      "computerName": "Hiro-Mac",
+      "duration": "00:00:00.0005260",
+      "startTime": "2026-11-06T13:18:46.1023890+09:00",
+      "endTime": "2026-11-06T13:18:46.1029150+09:00",
+      "testType": "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
+      "outcome": "Passed",
+      "testListId": "8c84fa94-04c1-424b-9868-57a2d4851a1d",
+      "relativeResultsDirectory": "c2630aaa-098e-4259-8346-c683f9a36f78"
+    }
+  ],
+  "TrxSha256": "a6261d8f42ef69a70cd6d94e50dc91fb268cc1c96fa1de398e8e295e87304e7f",
+  "Sha256": {
+    "src/codeView/Settings/SettingsStore.cs": "006cba53acdc027e3cfb794ab0fea321a2f2741ab9defd190f9fb4882ed798c8",
+    "src/codeView/Presentation/MainWindowViewModel.cs": "b6bbb6aadc12ae6d98ee519e62c61186ea71af83df298335f7e6b55266fa3ad0",
+    "tests/codeView.Tests/Presentation/StartupSettingsIntegrationTests.cs": "1fb15f79895483df49a651f709447ad828537d4228038571a3b36a08878a2534",
+    "tests/codeView.Tests/Operations/StartupOpenQueueTests.cs": "b388948c87bfb0a3bed3a257ee483d6d897eb0c8c7454763d235281b986868b7",
+    "artifacts/startup-settings-20261106/payload/codeView.dll": "05259c74e314517a668fd4eec9b890ab346c7e6ce880aaa1038260c618fb161e"
+  }
+}

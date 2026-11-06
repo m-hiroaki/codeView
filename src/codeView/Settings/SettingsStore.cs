@@ -27,9 +27,9 @@ internal sealed record SettingsLocations(string PortableFile, string UserFile)
 internal sealed record SettingsLoadResult(
     SettingsSnapshot Snapshot, string? FilePath, OperationError? Warning, bool CanSave);
 
-internal sealed class SettingsStore(SettingsLocations locations)
+internal sealed class SettingsStore(SettingsLocations locations, ISourceAccess? sourceAccess = null)
 {
-    private readonly ISourceAccess _access = new SourceAccess();
+    private readonly ISourceAccess _access = sourceAccess ?? new SourceAccess();
 
     public async Task<SettingsLoadResult> LoadAsync(CancellationToken ct)
     {

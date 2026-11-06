@@ -10,7 +10,8 @@ using CodeView.Settings;
 
 namespace CodeView.Presentation;
 
-internal sealed class MainWindowViewModel(AppOperations operations, SettingsStore settingsStore, Func<Task>? treeYield = null) : INotifyPropertyChanged
+internal sealed class MainWindowViewModel(AppOperations operations, SettingsStore settingsStore, Func<Task>? treeYield = null,
+    TimeProvider? timeProvider = null) : INotifyPropertyChanged
 {
     private readonly string _baseDirectory = Environment.CurrentDirectory;
     private readonly CancellationTokenSource _lifetime = new();
@@ -133,7 +134,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var settingsTask = Task.Run(() => settingsStore.LoadAsync(_lifetime.Token), _lifetime.Token);
         _lateSettings = ObserveLateSettingsAsync(settingsTask);
         SettingsLoadResult settings;
-        try { settings = await settingsTask.WaitAsync(TimeSpan.FromSeconds(2), _lifetime.Token); }
+        try { settings = await settingsTask.WaitAsync(TimeSpan.FromSeconds(2), timeProvider ?? TimeProvider.System, _lifetime.Token); }
         catch (TimeoutException)
         {
             settings = new(SettingsSnapshot.Default, null, new(ErrorCode.IoFailure), false);
@@ -141,8 +142,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return; }
         if (_stopping) return;
         operations.Startup.CompleteSettings(settings);
-        if (settings.Warning is not null) SetStatus("設定を読み込めないため、既定値を使用します。");
         await EnsurePumpAsync();
+        // Keep the fallback notice visible after queued files finish loading instead
+        // of immediately replacing it with their loading/completion status.
+        if (!_stopping && settings.Warning is not null)
+            SetStatus(Status + " 設定を読み込めないため、既定値を使用します。");
     }
 
     private async Task ObserveLateSettingsAsync(Task<SettingsLoadResult> task)
