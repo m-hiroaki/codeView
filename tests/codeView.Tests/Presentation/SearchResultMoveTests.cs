@@ -43,6 +43,39 @@ internal sealed class SearchResultMoveTests
         Assert.That(f.View.Status, Does.Contain("検索時と異なります").And.Contain("再検索"));
     });
 
+    [TestCase(0, false)]
+    [TestCase(1, false)]
+    [TestCase(0, true)]
+    public void ConfirmedCaretTargetSurvivesAnOldReentrantPositionNotification(int rowIndex, bool externallyChanged) => WithView(true, async f =>
+    {
+        var row = f.View.SearchPanel.Rows[rowIndex];
+        if (externallyChanged) await File.WriteAllTextAsync(f.File, "externally changed body");
+        var reentered = false;
+        (int Line, int Column)? restored = null;
+        var restoredBeforeSelection = false;
+        f.View.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName != nameof(MainWindowViewModel.Position) || reentered) return;
+            reentered = true;
+            f.View.SetPosition(1, 1); // A pending native caret notification still describes the old view.
+        };
+        f.View.RestoreCaret += (line, column) =>
+        {
+            restored = (line, column);
+            f.View.SetPosition(line, column); // The real editor reports its restored position synchronously.
+        };
+        f.View.SelectSearchRange += (_, length) =>
+        {
+            restoredBeforeSelection = restored == ((int)row.Hit.Range.Start.Line, (int)row.Hit.Range.Start.Column);
+            Assert.That(length, Is.EqualTo(externallyChanged ? 0 : 3));
+        };
+        await f.View.ActivateSearchResultAsync(row);
+        Assert.That(reentered, Is.True);
+        Assert.That(restored, Is.EqualTo(((int)row.Hit.Range.Start.Line, (int)row.Hit.Range.Start.Column)));
+        Assert.That(restoredBeforeSelection, Is.True);
+        Assert.That(f.View.Position, Is.EqualTo($"行 {row.Hit.Range.Start.Line}, 列 {row.Hit.Range.Start.Column}"));
+    });
+
     [Test]
     public void SameStampDifferentTextDoesNotSelectAnUnverifiedMatch() => WithView(false, async f =>
     {

@@ -114,7 +114,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         (_selectionRow, _selectionRequest, _selectionMove, _selectionInteractionEpoch) = (row, request, result.Value, interaction);
         ViewEpoch = checked(ViewEpoch + 1); // Supersede a deferred viewport restoration from document attachment.
         SetPosition(checked((int)move.Position.Line), checked((int)move.Position.Column));
-        RestoreCaret?.Invoke(_line, _column);
+        // A synchronous position notification can still describe the old/projected caret.
+        // Restore from the confirmed move, never from notification-mutated view fields.
+        RestoreCaret?.Invoke(checked((int)move.Position.Line), checked((int)move.Position.Column));
         SelectSearchRange?.Invoke(move.Offset, move.SelectionLength);
         SetStatus(move.Warning switch
         {
