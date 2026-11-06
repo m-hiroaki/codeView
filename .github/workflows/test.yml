@@ -1,0 +1,77 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+
+      - name: Record environment
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts/test-results | Out-Null
+          "Commit: $(git rev-parse HEAD)" | Out-File artifacts/test-results/environment.txt
+          "Runner: $env:RUNNER_OS / $env:RUNNER_ARCH" | Out-File artifacts/test-results/environment.txt -Append
+          dotnet --info | Out-File artifacts/test-results/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python --version | Out-File artifacts/test-results/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($env:RUNNER_OS -eq 'Windows') {
+            py -3 --version | Out-File artifacts/test-results/environment.txt -Append
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Test on macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: ./test-mac.sh
+
+      - name: Test on Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: test-windows.bat
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: artifacts/test-results/
+          retention-days: 14
+          if-no-files-found: warn

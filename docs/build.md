@@ -93,6 +93,14 @@ Performanceカテゴリには生成入力やCODEVIEW_PERF_*環境変数が必要
 
 Macではtest-mac.shを通じて.NET590件・Python19件合格、終了0を確認した。テスト実行スクリプト自身の模擬試験7件は、通常/性能の選別、別CWD/空白と!を含むパス、不正引数/非Mac、復元/.NET/Python各失敗時の終了コードと後続停止を検証する。最初の一時パス表記の比較失敗は同一ファイルシステム位置の判定へ修正した。Windows用.batはこのMacでは実行未検証。
 
+## GitHub Actionsでの通常試験
+
+[Build and test](../.github/workflows/test.yml)はmainへのpush・main向けpull request・手動実行で動く。Windows Server 2025とmacOS 15のGitHubホステッドランナーで、global.json指定のSDKとPython 3.12を用意し、既存のtest-windows.bat / test-mac.shを実行する。SDK・実際のOS/アーキテクチャ・PythonとWindowsのpyランチャーの選択版をenvironment.txtへ記録する。各ランナーのCPU/OSイメージは更新されるため、性能の基準機として使わない。
+
+Actionは確認したリリースのコミットSHAへ固定し、リポジトリの権限はcontents:read、checkoutの資格情報永続化は無効にする。片方のOSが失敗しても他方の試験は実行する。復元・ビルド・単体試験の失敗はジョブ失敗とし、失敗時も環境情報と生成済みTRXをtest-results-<OS>のArtifactへ14日間保存する。スキップ件数もTRXで確認する。後続pushで同じブランチの古い実行は取り消す。
+
+対象は通常のReleaseビルド・.NET単体/I/O結合・Python補助ツール試験。カバレッジ/性能データ生成/GUI操作/Native AOT発行/別PC/署名/完全オフライン/長時間受入は含めない。CI成功をG0〜G6全体の完了や両OSの実機受入へ読み替えない。初回実行の成否と証跡は実装記録へ追記する。
+
 ## コードカバレッジ
 
 通常単体テストと同じSDK/Pythonを用意し、次を実行する。
