@@ -39,3 +39,5 @@ python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView.
 ```
 
 CIは環境、生成入力、20試行のJSON/ログ、SHA-256一覧をartifactへ14日保管する。製品DLL/apphostのハッシュはruns.json、製品コミットは各GUIレポートにも残す。期間内に原記録を取得・照合して記録へ保存する。失敗した環境を黙って別方式へ置き換えて合格にしない。
+
+[Windowsの初回取得結果](validation-results/2026-11-06-native-startup/README.md)は20試行すべて取得できたが、Main→Openedは全試行1秒超、同期本文接続も1回100 ms超だった。取得成功を性能目標達成とは扱わない。

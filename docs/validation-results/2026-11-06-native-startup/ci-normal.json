@@ -1,0 +1,41 @@
+{
+  "commit": "bcd70cd40c7d18ff1bd0a2c4478e034a2f932713",
+  "normalRunId": 42185900152,
+  "url": "https://github.com/m-hiroaki/codeView/actions/runs/42185900152",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "os": "windows-2025",
+      "jobId": 127786032714,
+      "summary": [
+        "2026-11-06T08:13:07.6594976Z Passed!  - Failed:     0, Passed:   686, Skipped:     3, Total:   689, Duration: 11 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T08:13:25.7436121Z test_collection_validates_both_scenarios_and_refuses_existing_output (test_measure_gui_startup.GuiStartupTests.test_collection_validates_both_scenarios_and_refuses_existing_output) ... ok",
+        "2026-11-06T08:13:25.7437964Z test_empty_and_file_native_reports_are_distinct (test_measure_gui_startup.GuiStartupTests.test_empty_and_file_native_reports_are_distinct) ... ok",
+        "2026-11-06T08:13:25.7506394Z test_failed_native_child_preserves_failure_record_and_stops (test_measure_gui_startup.GuiStartupTests.test_failed_native_child_preserves_failure_record_and_stops) ... ok",
+        "2026-11-06T08:13:25.7507923Z test_failure_interruption_wrong_build_mode_or_os_is_rejected (test_measure_gui_startup.GuiStartupTests.test_failure_interruption_wrong_build_mode_or_os_is_rejected) ... ok",
+        "2026-11-06T08:13:25.7509520Z test_incomplete_file_or_unexpected_empty_workload_is_rejected (test_measure_gui_startup.GuiStartupTests.test_incomplete_file_or_unexpected_empty_workload_is_rejected) ... ok",
+        "2026-11-06T08:13:25.7510828Z test_metrics_must_be_finite_with_real_client_area_and_order (test_measure_gui_startup.GuiStartupTests.test_metrics_must_be_finite_with_real_client_area_and_order) ... ok",
+        "2026-11-06T08:13:25.7551813Z test_reference_counts_utf16_and_crlf_without_normalizing (test_measure_gui_startup.GuiStartupTests.test_reference_counts_utf16_and_crlf_without_normalizing) ... ok",
+        "2026-11-06T08:13:25.7620268Z test_timeout_is_not_retried_or_recorded_as_success (test_measure_gui_startup.GuiStartupTests.test_timeout_is_not_retried_or_recorded_as_success) ... ok",
+        "2026-11-06T08:13:25.7639893Z Ran 65 tests in 16.606s",
+        "2026-11-06T08:13:25.7640199Z OK (skipped=20)"
+      ]
+    },
+    {
+      "os": "macos-15",
+      "jobId": 127786032977,
+      "summary": [
+        "2026-11-06T08:12:09.1264260Z Passed!  - Failed:     0, Passed:   689, Skipped:     0, Total:   689, Duration: 5 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T08:12:18.0842650Z test_collection_validates_both_scenarios_and_refuses_existing_output (test_measure_gui_startup.GuiStartupTests.test_collection_validates_both_scenarios_and_refuses_existing_output) ... ok",
+        "2026-11-06T08:12:18.0843780Z test_empty_and_file_native_reports_are_distinct (test_measure_gui_startup.GuiStartupTests.test_empty_and_file_native_reports_are_distinct) ... ok",
+        "2026-11-06T08:12:18.0858220Z test_failed_native_child_preserves_failure_record_and_stops (test_measure_gui_startup.GuiStartupTests.test_failed_native_child_preserves_failure_record_and_stops) ... ok",
+        "2026-11-06T08:12:18.0859610Z test_failure_interruption_wrong_build_mode_or_os_is_rejected (test_measure_gui_startup.GuiStartupTests.test_failure_interruption_wrong_build_mode_or_os_is_rejected) ... ok",
+        "2026-11-06T08:12:18.0861600Z test_incomplete_file_or_unexpected_empty_workload_is_rejected (test_measure_gui_startup.GuiStartupTests.test_incomplete_file_or_unexpected_empty_workload_is_rejected) ... ok",
+        "2026-11-06T08:12:18.0862970Z test_metrics_must_be_finite_with_real_client_area_and_order (test_measure_gui_startup.GuiStartupTests.test_metrics_must_be_finite_with_real_client_area_and_order) ... ok",
+        "2026-11-06T08:12:18.0881980Z test_reference_counts_utf16_and_crlf_without_normalizing (test_measure_gui_startup.GuiStartupTests.test_reference_counts_utf16_and_crlf_without_normalizing) ... ok",
+        "2026-11-06T08:12:18.0896150Z test_timeout_is_not_retried_or_recorded_as_success (test_measure_gui_startup.GuiStartupTests.test_timeout_is_not_retried_or_recorded_as_success) ... ok",
+        "2026-11-06T08:12:19.8502760Z Ran 65 tests in 10.315s"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "commit": "bcd70cd40c7d18ff1bd0a2c4478e034a2f932713",
+  "runId": 42185900241,
+  "jobId": 127786032962,
+  "artifactId": 13487831811,
+  "artifactZipSha256": "815729990553cdc25f4b88d6f1331f37be8c4c16e457fdfbb65c009622a584d1",
+  "validated": true,
+  "operations": 20,
+  "characters": 76,
+  "lines": 6,
+  "inputSha256": "14e0547dfd98c43ac57b4cc7c529fc222644f2ad9542f2c735e842ba4ee202f1",
+  "appHostSha256": "40d04730c377bc9b7bd5d733894818897f794d60323682568c935912d29b4bd0",
+  "productSha256": "6aabbed1266aa48675dff0ee8df4cad7aa7ecfd17ecdd588e3e60806ea8b1cde",
+  "compressedRunsSha256": "0cd8f969507a709115d6aeaf55ec72172fb430806911093106260b50fcc7d353",
+  "metrics": {
+    "empty": {
+      "OpenedMilliseconds": {
+        "median": 1343.9978,
+        "min": 1302.3847,
+        "max": 1702.5527
+      },
+      "WindowTwoTicksMilliseconds": {
+        "median": 1622.45045,
+        "min": 1577.2237,
+        "max": 2128.9635
+      },
+      "CpuMilliseconds": {
+        "median": 1828.125,
+        "min": 1687.5,
+        "max": 2046.875
+      },
+      "ClientWidth": {
+        "median": 1028.0,
+        "min": 1028,
+        "max": 1028
+      },
+      "ClientHeight": {
+        "median": 749.0,
+        "min": 749,
+        "max": 749
+      },
+      "RenderScaling": {
+        "median": 1.0,
+        "min": 1,
+        "max": 1
+      },
+      "wholeProcessSeconds": {
+        "median": 1.8861401000000058,
+        "max": 2.4714697999999657
+      }
+    },
+    "file": {
+      "OpenedMilliseconds": {
+        "median": 1334.1664999999998,
+        "min": 1305.0305,
+        "max": 1445.6633
+      },
+      "WindowTwoTicksMilliseconds": {
+        "median": 1743.4631,
+        "min": 1679.4831,
+        "max": 1893.5395
+      },
+      "DocumentAttachmentMilliseconds": {
+        "median": 30.82395,
+        "min": 30.3805,
+        "max": 116.3353
+      },
+      "DocumentTwoTicksMilliseconds": {
+        "median": 1743.6199000000001,
+        "min": 1679.6384,
+        "max": 1893.7775
+      },
+      "CpuMilliseconds": {
+        "median": 2382.8125,
+        "min": 2218.75,
+        "max": 2546.875
+      },
+      "ClientWidth": {
+        "median": 1028.0,
+        "min": 1028,
+        "max": 1028
+      },
+      "ClientHeight": {
+        "median": 749.0,
+        "min": 749,
+        "max": 749
+      },
+      "RenderScaling": {
+        "median": 1.0,
+        "min": 1,
+        "max": 1
+      },
+      "wholeProcessSeconds": {
+        "median": 3.6622153499999968,
+        "max": 3.8997444000000314
+      }
+    }
+  },
+  "limits": "Probe build, native window only; Main-entry-relative callbacks are not OS launch-to-physical-paint or physical-input acceptance. Whole process includes scroll and shutdown.",
+  "sourceSha256": {
+    "tools/measure_gui_startup.py": "29cb6dcc11e289971124d69cc06e78e9b226cd84887c527230bbcc9e28c8fb28",
+    "tools/test_measure_gui_startup.py": "47edf9cc2135a4efc50150d2901dbb670979638bd35e0a1e82a7ba7705d5f99b",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "ff1b1c4e88455352c955d902319c488025ce844f25ec3c7a2bca6f881177021c"
+  },
+  "phaseLogsVerifiedOpenedCompleteClosed": 20,
+  "normalCi": {
+    "runId": 42185900152,
+    "conclusion": "success",
+    "details": "ci-normal.json"
+  },
+  "attachmentOver100Ms": [
+    1
+  ],
+  "ScrollSynchronousMilliseconds": {
+    "count": 640,
+    "median": 0.036250000000000004,
+    "max": 0.4678
+  },
+  "AnimationTickIntervalsMilliseconds": {
+    "count": 640,
+    "median": 25.7469,
+    "max": 81.3689
+  },
+  "openedOver1000Ms": 20
+}
