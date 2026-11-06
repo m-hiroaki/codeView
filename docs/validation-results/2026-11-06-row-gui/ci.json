@@ -1,0 +1,31 @@
+{
+  "commit": "1d7b10c1e05013d76f41b7bde23c8b2f6cf29435",
+  "rowRun": 42211188954,
+  "normalRun": 42211188967,
+  "nativeRegressionRun": 42211188905,
+  "initialFailedRun": 42210918359,
+  "artifacts": [
+    {
+      "id": 13499610235,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:bdd06bdee6e604ed34672ec99c1407c8a15456ceca74288679d3a523315ef309"
+    },
+    {
+      "id": 13499375931,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:e9721e77e3a2ce5b4474bac3347af130ec3ca3da29d4b7e2e66fabae2fe3c9d3"
+    }
+  ],
+  "initialArtifacts": [
+    {
+      "id": 13497948971,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:a0367a460f46fd6fe5f692033ea698bfb181a12bb84ce0b0ac7c9acaca5a46a9"
+    },
+    {
+      "id": 13497544831,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:fa8c990b57c0aca38c062c74ad2891627c4205967b49c325acec882018be4a5b"
+    }
+  ]
+}

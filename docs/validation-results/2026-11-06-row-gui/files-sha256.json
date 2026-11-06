@@ -1,0 +1,13 @@
+{
+  "ci.json": "d143a1b466b489ac61bf78bae1fac65e993b200aa3066de4f92f09898c325fbf",
+  "initial-failed-mac.zip": "a0367a460f46fd6fe5f692033ea698bfb181a12bb84ce0b0ac7c9acaca5a46a9",
+  "initial-failed-win.zip": "fa8c990b57c0aca38c062c74ad2891627c4205967b49c325acec882018be4a5b",
+  "local-python.log": "92dfc38eb532eb85ab818496be34fb5ae6de3e4d0330979b371f7ba787f8d66c",
+  "local-unit.trx.gz": "076912e1f817b207ea2a5cd7a14eab303fad98d64e5b6c5dd0fe1236c2b98da2",
+  "macos.zip": "e9721e77e3a2ce5b4474bac3347af130ec3ca3da29d4b7e2e66fabae2fe3c9d3",
+  "normal-127869941523.log.gz": "f19471e497c912d0353c3fd591209c87f2118d97b2581391c264003cd698839e",
+  "normal-127869941969.log.gz": "94cb91eb29c86f7cb799e31e03973cea845751a05a73a85033ccb66faf1be0da",
+  "source-sha256.json": "cd8fe9be60dc7e0b43eef218d66de8281bcfe69cbc02e1f246999cad3407d347",
+  "summary.json": "b3201aaa094dfc6fccd6165e11489e2137b217d472b22ba1d1ead48d67021dad",
+  "windows.zip": "bdd06bdee6e604ed34672ec99c1407c8a15456ceca74288679d3a523315ef309"
+}

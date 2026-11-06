@@ -1,0 +1,13 @@
+...........................................trial-baseline-1: 10 reports acquired, child exit 1, core assertions passed=False
+trial-gc-collect-1: 10 reports acquired, child exit 0, core assertions passed=True
+trial-gc-verbose-1: 10 reports acquired, child exit 0, core assertions passed=True
+trial-counters-1: 10 reports acquired, child exit 0, core assertions passed=False
+trial-baseline-2: 10 reports acquired, child exit 0, core assertions passed=True
+trial-gc-verbose-2: 10 reports acquired, child exit 0, core assertions passed=True
+trial-baseline-3: 10 reports acquired, child exit 0, core assertions passed=True
+trial-gc-verbose-3: 10 reports acquired, child exit 0, core assertions passed=True
+....................................................
+----------------------------------------------------------------------
+Ran 95 tests in 4.642s
+
+OK

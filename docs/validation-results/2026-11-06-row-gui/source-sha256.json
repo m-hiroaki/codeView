@@ -1,0 +1,10 @@
+{
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "a9c8f759c18feede8fd97b7dd8e8a5f876e3f2a7d7b5c7eddba37da2ddc36810",
+  "tests/GuiProbe/GuiRowProjection.cs": "dd2092378768066fdef6eeae3dc91c76d383db19982fef1bdad3db88f8efd4c3",
+  "tests/GuiProbe/GuiRowProjectionChecks.cs": "4e0060de19fbe700178ee1f6a25af0faf418523409b34ed6ac5e93e8a8948046",
+  "tests/GuiProbe/BoundedPointerSelection.cs": "eda42948deb1684316510dcfcc41e048ef4bf00d2ffb7bee480f5cbf7509c6f7",
+  "tests/codeView.Tests/Performance/RowPointerSelectionTests.cs": "04fac05cd3520a9d4ad48d5879cc7393db01e60723a716eece167be2b10e4b7d",
+  "tools/check_row_projection.py": "d29b43a162697afdb09cd2007dc0f1d65fb035de1d891a0d9568cbebf673b12a",
+  "tools/test_row_projection.py": "16ac5d06825f8b9e10afe6ea1ca5ec6da16291d179329aad6dc4dd80697f0e38",
+  ".github/workflows/row-gui-validation.yml": "3df59205b61742029e25073b7ef26740ccaff5462e0fea99d81073a474132f7d"
+}

@@ -35,9 +35,9 @@ SetViewport/ScrollViewportは先頭原文行と横のUTF-16 Offsetだけを変�
 dotnet test tests/codeView.Tests/codeView.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~RowProjectionPerformanceTests --logger 'console;verbosity=normal' -p:PublishAot=false -p:CodeViewPerformanceProbe=false
 ```
 
-行番号/背景選択/Caret/検索移動、全文の縦横スクロール、ポインター捕捉・自動移動、タブ/再読込/終了、フォント/タブ幅/結合文字/Bidi、長行メタデータ、10/50/100 MiB・5文書・文法有無のGUI評価は未完了。今回の横Offsetと幅はUTF-16単位であり、タブや絵文字の物理幅を評価済みとしない。通常採用・A-04/A-05/G2全体の完了とは分ける。
+行番号/背景選択/Caret/キー/原文コピーの基本接続は以下のA-04-02で検証した。検索移動、全文の縦横スクロールバー、物理ポインター捕捉・自動移動、タブ/再読込/終了、フォント/タブ幅/結合文字/Bidi、長行メタデータ、10/50/100 MiB・5文書・文法有無の全GUI評価は未完了。今回の横Offsetと幅はUTF-16単位であり、タブや絵文字の物理幅を評価済みとしない。通常採用・A-04/A-05/G2全体の完了とは分ける。
 
-## 専用GUIへの接続（A-04-02、検証中）
+## 専用GUIへの接続（A-04-02）
 
 `CodeViewPerformanceProbe=true`の専用ビルドだけで、`CODEVIEW_GUI_WINDOWED=1`、`CODEVIEW_GUI_INTERACTIVE=1`、`CODEVIEW_GUI_ROWS=1`、既定16 Ki予算を指定すると行別方式を選ぶ。フラグを外すと従来の連続Sliceとの比較へ戻せる。通常ビルドにGUI試作は含まれない。
 
@@ -48,3 +48,5 @@ dotnet test tests/codeView.Tests/codeView.Tests.csproj -c Release --no-restore -
 ホイールは原文先頭行を更新し、Shift/横ホイールは論理UTF-16の横位置を更新する。閲覧だけでは原文Anchor/Caretを変更せずRevealもしない。全文スクロールバー・横の最大列・ピクセル/タブ/結合文字/Bidiの視覚対応は未接続で、従来の局所スクロールバーを全文範囲と解釈しない。
 
 [行別GUI CI](../.github/workflows/row-gui-validation.yml)は専用の使い捨てCIだけで`CODEVIEW_GUI_ROW_CHECKS=1`を実行する。長行混在（1 MiB長行+通常100行）、空、Unicode/混在改行の3入力を独立3プロセス/OSで開く。キーのルーティング、原文コピーのネイティブClipboard読戻し、行別背景描画、64回の独立閲覧、画面外Caretからの入力復帰、旧投影拒否と原文不変を記録する。自動キーのイベント参照だけを許可し、予期しない実入力は中断する。これはネイティブコントロールの機能試験で、物理入力/画面描画完了/大規模性能の受入ではない。
+
+`1d7b10c`で両OSの各9プロセスが成功した。[原記録と限界](validation-results/2026-11-06-row-gui/README.md)を保存する。Windowsの初回長行混在の接続は1,126 msで既定100 msを超えた。機能接続の成功からA-05/G2の性能達成を推定せず、未達を保持する。
