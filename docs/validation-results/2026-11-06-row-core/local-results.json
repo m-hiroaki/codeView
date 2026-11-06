@@ -1,0 +1,62 @@
+[
+  {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 3255720,
+    "CpuMilliseconds": 9.087,
+    "MaximumProjectionMilliseconds": 0.8912,
+    "MemoryMetric": "macOS.phys_footprint",
+    "MemoryBefore": 424035528,
+    "MemoryAfter": 424182984,
+    "GcPauseTotalMilliseconds": 0,
+    "GcCollections": [
+      0,
+      0,
+      0
+    ],
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 3255720,
+    "CpuMilliseconds": 8.963,
+    "MaximumProjectionMilliseconds": 0.8723,
+    "MemoryMetric": "macOS.phys_footprint",
+    "MemoryBefore": 424477776,
+    "MemoryAfter": 424641616,
+    "GcPauseTotalMilliseconds": 0,
+    "GcCollections": [
+      0,
+      0,
+      0
+    ],
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 3255720,
+    "CpuMilliseconds": 9.157,
+    "MaximumProjectionMilliseconds": 0.8484,
+    "MemoryMetric": "macOS.phys_footprint",
+    "MemoryBefore": 424084560,
+    "MemoryAfter": 424232016,
+    "GcPauseTotalMilliseconds": 0,
+    "GcCollections": [
+      0,
+      0,
+      0
+    ],
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  }
+]

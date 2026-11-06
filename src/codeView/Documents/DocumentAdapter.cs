@@ -115,6 +115,32 @@ internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : 
         return source.GetText(checked((int)offset), length);
     }
 
+    /// <summary>Fills bounded projection text without an intermediate row string.</summary>
+    internal void CopyRangeInto(long offset, Span<char> destination)
+    {
+        var source = _snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease));
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(destination.Length, ChunkChars);
+        if (offset > source.TextLength || destination.Length > source.TextLength - offset)
+            throw new ArgumentOutOfRangeException(nameof(destination));
+        if (destination.Length == 0) return;
+        var start = checked((int)offset);
+        if (source is RopeTextSource rope)
+        {
+            var buffer = ArrayPool<char>.Shared.Rent(destination.Length);
+            try
+            {
+                // GetRope returns a private copy-on-write clone; never mutate it.
+                rope.GetRope().CopyTo(start, buffer, 0, destination.Length);
+                buffer.AsSpan(0, destination.Length).CopyTo(destination);
+            }
+            finally { ArrayPool<char>.Shared.Return(buffer, clearArray: true); }
+            return;
+        }
+        for (var index = 0; index < destination.Length; index++)
+            destination[index] = source.GetCharAt(start + index);
+    }
+
     /// <summary>Builds the final clipboard string directly, with cancellation between bounded reads.</summary>
     public string ReadRangeAsString(long offset, int length, CancellationToken ct)
     {

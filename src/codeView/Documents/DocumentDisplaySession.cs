@@ -15,6 +15,9 @@ internal sealed class DocumentDisplaySession : IDisposable
     private TextDocument? _source;
     private DocumentReadLease? _lease;
     private DocumentDisplaySlice? _slice;
+    private DocumentRowProjection? _rowProjection;
+    private long _firstVisibleLine = 1;
+    private long _horizontalOffset;
     private long _anchor;
     private long _caret;
     private long? _preferredColumn;
@@ -34,6 +37,76 @@ internal sealed class DocumentDisplaySession : IDisposable
     public TextPosition AnchorPosition { get { VerifyAccess(); return PositionAt(_anchor); } }
     public long SelectionStart { get { VerifyAccess(); return Math.Min(_anchor, _caret); } }
     public long SelectionLength { get { VerifyAccess(); return Math.Abs(_anchor - _caret); } }
+    public long FirstVisibleLine { get { VerifyAccess(); return _firstVisibleLine; } }
+    public long HorizontalSourceOffset { get { VerifyAccess(); return _horizontalOffset; } }
+
+    public void SetViewport(long firstLine, long horizontalOffset)
+    {
+        VerifyAccess();
+        ArgumentOutOfRangeException.ThrowIfLessThan(firstLine, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLine, _source!.LineCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(horizontalOffset);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(horizontalOffset, Length);
+        if (firstLine == _firstVisibleLine && horizontalOffset == _horizontalOffset) return;
+        (_firstVisibleLine, _horizontalOffset) = (firstLine, horizontalOffset);
+        _rowProjection = null;
+        _slice = null;
+    }
+
+    public void ScrollViewport(long lines, long columns)
+    {
+        VerifyAccess();
+        SetViewport(AddClamped(_firstVisibleLine, lines, 1, _source!.LineCount),
+            AddClamped(_horizontalOffset, columns, 0, Length));
+    }
+
+    public void RevealCaret(int visibleLines, int columns)
+    {
+        VerifyAccess();
+        ArgumentOutOfRangeException.ThrowIfLessThan(visibleLines, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(visibleLines, 512);
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 2);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(columns, MaximumSliceChars);
+        var caret = Position;
+        var first = _firstVisibleLine;
+        var horizontal = _horizontalOffset;
+        if (caret.Line < first) first = caret.Line;
+        else if (caret.Line - first >= visibleLines) first = caret.Line - visibleLines + 1;
+        var column = caret.Column - 1;
+        if (column < horizontal) horizontal = column;
+        else if (column - horizontal > columns) horizontal = column - columns;
+        SetViewport(first, horizontal);
+    }
+
+    public DocumentRowProjection CreateRowProjection(int visibleLines, int columns, int maxChars = MaximumSliceChars)
+    {
+        VerifyAccess();
+        var projection = DocumentRowProjection.Create(_source!, _lease!, _firstVisibleLine, _horizontalOffset, visibleLines, columns, maxChars);
+        _slice = null;
+        return _rowProjection = projection;
+    }
+
+    public bool TryMoveFromRows(DocumentRowProjection projection, int offset, bool extendSelection = false)
+    {
+        VerifyAccess();
+        ArgumentNullException.ThrowIfNull(projection);
+        if (!ReferenceEquals(projection, _rowProjection) || !projection.TrySourcePosition(offset, out var source)) return false;
+        MoveCaret(source, extendSelection);
+        return true;
+    }
+
+    public bool TryGetRowSelection(DocumentRowProjection projection, out DocumentRowSelection? selection)
+    {
+        VerifyAccess();
+        ArgumentNullException.ThrowIfNull(projection);
+        selection = null;
+        if (!ReferenceEquals(projection, _rowProjection)) return false;
+        selection = projection.ProjectSelection(_anchor, _caret);
+        return true;
+    }
+
+    private static long AddClamped(long value, long delta, long minimum, long maximum) =>
+        delta > maximum - value ? maximum : delta < minimum - value ? minimum : value + delta;
 
     public void MoveCaret(long offset, bool extendSelection = false)
     {
@@ -132,6 +205,7 @@ internal sealed class DocumentDisplaySession : IDisposable
         if (SplitsBoundary(end)) end--;
         var text = _lease!.ReadRange(start, checked((int)(end - start)));
         // Identity also invalidates delayed events from an earlier slice at the same offsets.
+        _rowProjection = null;
         return _slice = new DocumentDisplaySlice(start, PositionAt(start), target, text);
     }
 
@@ -157,6 +231,7 @@ internal sealed class DocumentDisplaySession : IDisposable
             if (_source.GetLineByNumber(first + delta).Length > maxLineChars)
                 return CreateSlice(target, maxLineChars);
         var text = _lease!.ReadRange(start, end - start);
+        _rowProjection = null;
         return _slice = new(start, PositionAt(start), target, text);
     }
 
@@ -196,6 +271,7 @@ internal sealed class DocumentDisplaySession : IDisposable
         if (_source is null) return;
         VerifyAccess();
         _slice = null;
+        _rowProjection = null;
         _source = null;
         _handle = null;
         _lease?.Dispose();

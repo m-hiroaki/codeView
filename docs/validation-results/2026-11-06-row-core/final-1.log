@@ -1,0 +1,15 @@
+/Users/hiroaki/Src/codeview/tests/codeView.Tests/bin/Release/net10.0/codeView.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+NUnit Adapter 4.5.0.0: Test execution started
+Running selected tests in /Users/hiroaki/Src/codeview/tests/codeView.Tests/bin/Release/net10.0/codeView.Tests.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Non-Explicit run
+{"Scenario":"row-projection-50MiB-mixed","SourceChars":52529250,"Steps":64,"Rows":48,"AllocatedBytes":3255720,"CpuMilliseconds":9.087,"MaximumProjectionMilliseconds":0.8912,"MemoryMetric":"macOS.phys_footprint","MemoryBefore":424035528,"MemoryAfter":424182984,"GcPauseTotalMilliseconds":0,"GcCollections":[0,0,0],"DisplayBudgetChars":16384,"Scope":"UI-free core; source construction excluded; assertions included in allocation."}
+
+NUnit Adapter 4.5.0.0: Test execution complete
+  成功 FiftyMiBMixedLinesKeepProjectionWorkBounded [254 ms]
+
+テストの実行に成功しました。
+テストの合計数: 1
+     成功: 1
+合計時間: 1.0042 秒
+結果ファイル: /Users/hiroaki/Src/codeview/artifacts/row-projection/validation-final/run-1/performance.trx

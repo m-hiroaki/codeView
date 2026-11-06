@@ -1,0 +1,50 @@
+.NET SDK:
+ Version:           10.0.401
+ Commit:            e34a38d2ae
+ Workload version:  10.0.400-manifests.63b36e85
+ MSBuild version:   18.9.11+e34a38d2a
+
+ランタイム環境:
+ OS Name:     Mac OS X
+ OS Version:  27.0
+ OS Platform: Darwin
+ RID:         osx-arm64
+ Base Path:   /usr/local/share/dotnet/sdk/10.0.401/
+
+インストール済みの .NET ワークロード:
+表示するインストール済みワークロードはありません。
+新しいマニフェストをインストールするときに workload sets を使用するように構成されています。
+ワークロード セットがインストールされていません。"dotnet workload restore" を実行してワークロード セットをインストールします。
+
+Host:
+  Version:      10.0.12
+  Architecture: arm64
+  Commit:       95017c711e
+
+.NET SDKs installed:
+  10.0.400 [/usr/local/share/dotnet/sdk]
+  10.0.401 [/usr/local/share/dotnet/sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 10.0.11 [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.12 [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 10.0.11 [/usr/local/share/dotnet/shared/Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.12 [/usr/local/share/dotnet/shared/Microsoft.NETCore.App]
+
+Other architectures found:
+  None
+
+Environment variables:
+  Not set
+
+global.json file:
+  /Users/hiroaki/Src/codeview/global.json
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434

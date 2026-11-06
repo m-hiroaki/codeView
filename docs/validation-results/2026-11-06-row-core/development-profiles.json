@@ -1,0 +1,57 @@
+{
+  "row-string": {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 5319144,
+    "CpuMilliseconds": 9.156,
+    "MaximumProjectionMilliseconds": 0.9502,
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  "subrope-reader": {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 10313816,
+    "CpuMilliseconds": 14.649,
+    "MaximumProjectionMilliseconds": 1.0764,
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  "get-memory": {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 5966624,
+    "CpuMilliseconds": 6.498,
+    "MaximumProjectionMilliseconds": 0.112,
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  "direct-character": {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 4050496,
+    "CpuMilliseconds": 48.077,
+    "MaximumProjectionMilliseconds": 0.781,
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  },
+  "rope-copy-batch": {
+    "Scenario": "row-projection-50MiB-mixed",
+    "SourceChars": 52529250,
+    "Steps": 64,
+    "Rows": 48,
+    "AllocatedBytes": 3253240,
+    "CpuMilliseconds": 6.462,
+    "MaximumProjectionMilliseconds": 0.1169,
+    "DisplayBudgetChars": 16384,
+    "Scope": "UI-free core; source construction excluded; assertions included in allocation."
+  }
+}

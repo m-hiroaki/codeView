@@ -1,0 +1,7 @@
+{
+  "src/codeView/Documents/DocumentAdapter.cs": "0faa1eb980e44c1f3aab4a5d298e7eb77f621b2bae5fe49f7218e407e91b5634",
+  "src/codeView/Documents/DocumentDisplaySession.cs": "2a489f31e5a233ed3f7d4a6fb59f80607f6607ede16364d6db81836e89cf48a5",
+  "src/codeView/Documents/DocumentRowProjection.cs": "aaedeedc005b44a12ea598133dbe11684e33f612c032faa61532754c5893acd6",
+  "tests/codeView.Tests/Documents/DocumentRowProjectionTests.cs": "91ddb510ff6b17df34a65641448c22ba347d1b022afa4cf2bf8c2783b8328988",
+  "tests/codeView.Tests/Documents/RowProjectionPerformanceTests.cs": "ab7803b4e36f624d7681dc417224f3d9a9bdfb4000d75bf15a3f4e6b9d3d6fbc"
+}
