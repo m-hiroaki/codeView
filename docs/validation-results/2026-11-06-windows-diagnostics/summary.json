@@ -4,8 +4,10 @@
     "operations": 80,
     "traces": 4,
     "allValidated": true,
-    "compressedReportSha256": "2a1f0bb68d68fbb8633ba810cc030f6d6af33788b679ca6839a36f4c5387f9f0",
-    "collectorSourceSha256": "61bc5b8dfe45c2699a35a837e53fb6a96a2c8f24a65633baaff9aadd79d7ae15"
+    "compressedReportSha256": "ed02b838af51f075607c87009687e0e8b8a4d61fd31db44eaf9b275111e0be18",
+    "collectorSourceSha256": "fccefb2b66fb810aa1985ea7c1cf3d9e8bd5e576dd1702d52b9959c092822ecc",
+    "coreAssertionsPassed": true,
+    "acquisitionValidated": true
   },
   "windows": "pending",
   "limits": [

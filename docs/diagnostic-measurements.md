@@ -73,7 +73,9 @@ dotnet artifacts/diagnostics/reader/TraceSummary.dll artifacts/diagnostics/new-r
 
 [Diagnostic acquisition](../.github/workflows/diagnostics.yml)は通常試験から独立した明示収集用ワークフローである。ActionsのRun workflow、または収集器/その試験/ワークフロー変更のmainへのpushで実行する。`contents: read`だけで、ホスト型windows-2025上にseed 20261106の50 MiB UTF-8を生成・検証し、同じ一時ホストと解析器を使用する。SDKはglobal.json、ツールは10.0.750501、TraceEventは3.1.23である。製品/試験のプロジェクトや依存を追加せず、製品公開APIも変更しない。
 
-収集器`tools/measure_diagnostics.py`は、通常3回・gc-verbose 3回・gc-collect/counters各1回、各10操作を順次実行する。両OSの実行ファイル名、空白を含むパス、UTF-8 BOM付きJSON/CSVを扱い、既存結果の上書きを拒否する。入力の50 MiB、操作数、製品コミット、Warm条件、入力ハッシュ不変、ツール/ホスト終了コード、トレースの欠落/GC対応/20マーカー、CounterのGC行を検証する。既存のコア予算違反を取得成功へ変換しない。失敗した試行のログと収集済みJSONも保存し、異常終了する。
+収集器`tools/measure_diagnostics.py`は、通常3回・gc-verbose 3回・gc-collect/counters各1回、各10操作を順次実行する。両OSの実行ファイル名、空白を含むパス、UTF-8 BOM付きJSON/CSVを扱い、既存結果の上書きを拒否する。入力の50 MiB、操作数、製品コミット、Warm条件、入力ハッシュ不変、ツール/ホスト終了コード、トレースの欠落/GC対応/20開始終了マーカー、CounterのGC行を検証する。
+
+ホストが全10レポートを残してassertion失敗の終了コード1を返した場合は、原因調査のため残りの収集を継続する。追加のBudgetFailedマーカーを該当操作の開始/終了内に対応付け、ホストの終了コードと照合する。取得の成立`acquisitionValidated`とコア試験の合否`coreAssertionsPassed`を分け、1件でもコア失敗があれば全収集後のスクリプトも非0終了する。既存予算を緩めたり合格へ変換したりしない。レポート欠落・予期しない終了・トレースの不整合は直ちに失敗させる。途中までのログとJSONも保存する。
 
 手元でホスト/ツールの準備後に実行する例（commitは対象ビルドの完全なSHAに置換する）：
 

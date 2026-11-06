@@ -1,0 +1,12 @@
+2026-11-06T07:12:03.0876177Z FAIL: test_commands_quote_with_argument_lists_and_select_os_executable (test_measure_diagnostics.DiagnosticTests.test_commands_quote_with_argument_lists_and_select_os_executable)
+2026-11-06T07:12:03.0876953Z ----------------------------------------------------------------------
+2026-11-06T07:12:03.0877340Z Traceback (most recent call last):
+2026-11-06T07:12:03.0884218Z   File "D:\a\codeView\codeView\tools\test_measure_diagnostics.py", line 56, in test_commands_quote_with_argument_lists_and_select_os_executable
+2026-11-06T07:12:03.0884922Z     self.assertIn("space dir/host.dll", args)
+2026-11-06T07:12:03.0885420Z AssertionError: 'space dir/host.dll' not found in ['dotnet', 'space dir\\host.dll', 'trial', '10']
+2026-11-06T07:12:03.0886136Z 
+2026-11-06T07:12:03.0888517Z ----------------------------------------------------------------------
+2026-11-06T07:12:03.0888900Z Ran 8 tests in 0.020s
+2026-11-06T07:12:03.0889037Z 
+2026-11-06T07:12:03.0889122Z FAILED (failures=1)
+2026-11-06T07:12:03.1407808Z ##[error]Process completed with exit code 1.

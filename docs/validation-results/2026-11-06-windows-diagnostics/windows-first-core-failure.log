@@ -1,0 +1,90 @@
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  171.864d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  220.88900000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  177.333d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  196.44200000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  170.15100000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  213.07599999999999d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  194.82900000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  209.643d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  223.34100000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18
+NUnit.Framework.AssertionException:   Assert.That(report.GcPauseTotalMilliseconds, Is.LessThanOrEqualTo(150 * copies))
+  Expected: less than or equal to 150
+  But was:  179.57900000000001d
+
+   at NUnit.Framework.Assert.ReportFailure(String message)
+   at NUnit.Framework.Assert.ReportFailure(ConstraintResult result, String message, String actualExpression, String constraintExpression)
+   at NUnit.Framework.Assert.That[TActual](TActual actual, IResolveConstraint expression, NUnitString message, String actualExpression, String constraintExpression)
+   at CodeView.Tests.Documents.CorePerformanceTests.MeasureReadBuildAndSnapshot() in D:\a\codeView\codeView\tests\codeView.Tests\Documents\CorePerformanceTests.cs:line 122
+   at Program.<Main>$(String[] args) in D:\a\codeView\codeView\artifacts\diagnostics\CoreHost.cs:line 18

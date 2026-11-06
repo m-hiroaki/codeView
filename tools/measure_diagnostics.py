@@ -47,7 +47,8 @@ def validate_trace(trace, label):
         raise ValueError("Unmatched final GC suspension")
     if not trace["GcStartsByDepth"] or trace["HeapStatsEvents"] <= 0:
         raise ValueError("Missing GC/heap events")
-    markers = trace["Markers"]
+    failures = [marker for marker in trace["Markers"] if marker["EventName"] == "BudgetFailed"]
+    markers = [marker for marker in trace["Markers"] if marker["EventName"] != "BudgetFailed"]
     if len(markers) != 2 * ROUNDS:
         raise ValueError("Missing or extra operation markers")
     previous = -1
@@ -58,9 +59,18 @@ def validate_trace(trace, label):
                 or marker["TimeStampRelativeMSec"] < previous):
             raise ValueError("Invalid operation marker pairing")
         previous = marker["TimeStampRelativeMSec"]
+    failed_rounds = set()
+    for marker in failures:
+        payload = marker["Payload"]
+        number = int(payload["round"])
+        if (payload["label"] != label or number not in range(ROUNDS) or number in failed_rounds
+                or not markers[number * 2]["TimeStampRelativeMSec"] <= marker["TimeStampRelativeMSec"] <= markers[number * 2 + 1]["TimeStampRelativeMSec"]):
+            raise ValueError("Invalid assertion-failure marker")
+        failed_rounds.add(number)
     for pause in trace["SuspensionIntervals"]:
         if pause["DurationMilliseconds"] < 0 or pause["EndMilliseconds"] < pause["StartMilliseconds"]:
             raise ValueError("Negative GC suspension")
+    return len(failures)
 
 
 def validate_reports(reports, input_bytes, commit):
@@ -72,6 +82,15 @@ def validate_reports(reports, input_bytes, commit):
                 or not report["CacheCondition"].startswith("Warm;")
                 or len(report["BuildMilliseconds"]) != 1):
             raise ValueError("Core report differs from requested build/input/conditions")
+
+
+def validate_child(exit_code, reports, input_bytes, commit):
+    # The fixed host returns 1 for caught NUnit assertions, after preserving each report.
+    # Keep collecting diagnostics for the failure; never turn it into a passing core result.
+    if exit_code not in (0, 1):
+        raise RuntimeError("Diagnostic child did not reach its normal/assertion exit")
+    validate_reports(reports, input_bytes, commit)
+    return exit_code == 0
 
 
 def counter_rows(path):
@@ -126,9 +145,7 @@ def collect(input_file, host, reader, tools, output, commit):
                 if path.exists():
                     reports.append(json.loads(path.read_text(encoding="utf-8-sig")))
             run["reports"] = reports
-            if child.returncode:
-                raise RuntimeError("Child or existing core budget assertion failed")
-            validate_reports(reports, record["inputBytes"], commit)
+            run["coreAssertionsPassed"] = validate_child(child.returncode, reports, record["inputBytes"], commit)
             if mode in ("gc-collect", "gc-verbose"):
                 analysis = output / (label + "-trace.json")
                 parsed = subprocess.run(["dotnet", str(reader), str(output / (label + ".nettrace")), str(analysis)],
@@ -139,22 +156,30 @@ def collect(input_file, host, reader, tools, output, commit):
                     run["trace"] = json.loads(analysis.read_text(encoding="utf-8-sig"))
                 if parsed.returncode:
                     raise RuntimeError("Trace parser rejected recording")
-                validate_trace(run["trace"], label)
+                failures = validate_trace(run["trace"], label)
+                run["assertionFailureMarkers"] = failures
+                if (failures == 0) != run["coreAssertionsPassed"]:
+                    raise ValueError("Child exit differs from recorded assertion markers")
                 if mode == "gc-verbose" and not run["trace"]["AllocationSamples"]:
                     raise ValueError("Missing verbose allocation samples")
             elif mode == "counters":
                 run["counterRows"] = counter_rows(output / (label + ".csv"))
             if digest(input_file) != initial_hash:
                 raise ValueError("Input changed during acquisition")
-            run["validated"] = True
+            run["acquisitionValidated"] = True
         except Exception as error:
             run["error"] = str(error)
             raise
         finally:
             (output / "runs.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-        print(f"{label}: 10 reports validated, exit 0", flush=True)
+        print(f"{label}: 10 reports acquired, child exit {run['exitCode']}, core assertions passed={run['coreAssertionsPassed']}", flush=True)
+    record["acquisitionValidated"] = True
+    record["coreAssertionsPassed"] = all(run["coreAssertionsPassed"] for run in record["runs"])
+    (output / "runs.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     files = sorted(path for path in output.iterdir() if path.is_file())
     (output / "sha256.json").write_text(json.dumps({path.name: digest(path) for path in files}, indent=2) + "\n", encoding="utf-8")
+    if not record["coreAssertionsPassed"]:
+        raise RuntimeError("Acquisition completed; core assertions failed. Inspect reports/logs; budgets unchanged.")
 
 
 def main():
