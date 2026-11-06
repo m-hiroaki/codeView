@@ -130,7 +130,7 @@ flowchart LR
 
 - [ ] **P1-07：最小DocumentAdapterと単体ファイル表示を接続する**
   依存：P1-03、P1-05、P1-06。完了条件：読込中・表示・失敗を区別し、小ファイルを表示する。DT-01の基礎ケース、入力・貼付・Undo・ドロップ挿入による本文不変を確認。
-  - [ ] **P1-07-01：Windowsの実コントロールで読取専用の操作経路を検証する**。専用CIで通常/空/Unicode境界の小入力を各3回開き、先頭/EOF/全選択×入力/改行/貼付/削除/切取/Undo/Redo/テキストDropの本文・タブ・履歴不変を確認する。別の編集可能なネイティブコントロールで入力/Clipboard貼付/削除/Undo/Redo/Dropが機能することも検証し、空振りを成功にしない。[手順・実キー/IME等の残条件](native-gui-validation.md#読み取り専用のコントロール結合試験)。通常製品/アーキテクチャは変更しない。
+  - [x] **P1-07-01：Windowsの実コントロールで読取専用の操作経路を検証する**（2026-11-06）。`2749c1d`の[ネイティブCI](https://github.com/m-hiroaki/codeView/actions/runs/42189237117)で通常/空/Unicode境界を各3回、9プロセス/216操作すべての全文ハッシュ・文書/タブ/履歴不変を確認。9回の編集可能な対照で同じ入力/Native Clipboard貼付/削除/Undo/Redo/Dropが機能し、非空6回のCopy往復も一致。初回のCanDelete=falseを求めた試験側の仮定を是正し、実削除後の不変で判定した。起動20プロセスの回帰と通常[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42189237167)も成功（macOS .NET689/Python73、Windows .NET686+既存3スキップ/Python53+既存20スキップ）。[原記録・失敗/是正・範囲](validation-results/2026-11-06-readonly-ui/README.md)、[手順](native-gui-validation.md#読み取り専用のコントロール結合試験)。通常製品/アーキテクチャは変更せず、実キー/IME/OSドラッグ・macOS・包括受入とP1-07/G1全体は未完了。
 
 - [ ] **P1-08：セッション・処理枠・Task観測・例外・終了境界を作る**
   依存：P1-02、P1-05、P1-07。完了条件：本文枠1件、旧結果拒否、取消・停止待ち、未知例外の異常終了、設定保存停止、終了待ち上限をRT-02・RT-05で確認。

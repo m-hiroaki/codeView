@@ -1,0 +1,50 @@
+{
+  "commit": "2749c1d9f9a1472eb5fdb3136ffe977c690915e8",
+  "runId": 42189237117,
+  "jobId": 127796879675,
+  "artifactId": 13488977661,
+  "artifactZipSha256": "d175814af6d02092d4b87183a5f0b741e1d3a33e000ec51f37397847eb4b1def",
+  "validated": true,
+  "processes": 9,
+  "editingAttempts": 216,
+  "positiveControls": 9,
+  "nonemptyCopyRoundTrips": 6,
+  "emptyCopySkipped": 3,
+  "startupRegressionProcesses": 20,
+  "appHostSha256": "2329d1b4eacf71b33a238e1dcf88b5e524e9677dd8b89bcc2512b55ae064cf67",
+  "productSha256": "993070ea2e2660379287b4fbd56890245dcd8df58949c8309718aa26c30e214a",
+  "fixtures": [
+    {
+      "path": "D:\\a\\codeView\\codeView\\artifacts\\gui-validation\\\u8d77\u52d5\u78ba\u8a8d.cs",
+      "characters": 76,
+      "lines": 6,
+      "inputSha256": "14e0547dfd98c43ac57b4cc7c529fc222644f2ad9542f2c735e842ba4ee202f1",
+      "bodySha256": "08573a6372477a39b082b74e98ae509c50a57467a58d4cbad7f3a0b2d4e1dd84"
+    },
+    {
+      "path": "D:\\a\\codeView\\codeView\\artifacts\\gui-validation\\empty.cs",
+      "characters": 0,
+      "lines": 1,
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\a\\codeView\\codeView\\artifacts\\gui-validation\\boundary.cs",
+      "characters": 146,
+      "lines": 2,
+      "inputSha256": "038928445a8f1c92bae798dc5830f55fec534ff0353a1a3b52eee10650f9e9cd",
+      "bodySha256": "a6f85ef57e3f9f8ebd915687762a09d6f38fc97f758ded150faf9d994b7975e4"
+    }
+  ],
+  "compressedRunsSha256": "466c5fcb647c61c0adcbccd92454390250dc20b16c994a61c8b129387c15ff2e",
+  "sourceSha256": {
+    "tests/GuiProbe/GuiReadOnlyProbe.cs": "8780a778e4afe7fcc9948fb86267a61d494b1d1585a3bfd2b1cb7789fdd6ff37",
+    "tests/GuiProbe/GuiPerformanceProbe.cs": "8427baba51d584e515123824936ed4d679fb96a436bf0f4d03b41b062e8785ab",
+    "tools/check_native_readonly.py": "261b100872b3a98418088b3618833194b0ee769e100e2119bdfc4f7f5a487b79",
+    "tools/test_native_readonly.py": "947745bfe1cd67917f33811500a7b3937d45683fd00192201b6c170ffb833064"
+  },
+  "limits": "CI native windows/clipboard, routed TextInput/Drop and control commands. No OS keyboard/mouse/IME, Explorer drag, macOS or normal-distribution acceptance.",
+  "deleteCommandAvailability": {
+    "True": 27
+  }
+}

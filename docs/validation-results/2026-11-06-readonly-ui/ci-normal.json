@@ -1,0 +1,39 @@
+{
+  "commit": "2749c1d9f9a1472eb5fdb3136ffe977c690915e8",
+  "runId": 42189237167,
+  "url": "https://github.com/m-hiroaki/codeView/actions/runs/42189237167",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "os": "macos-15",
+      "summary": [
+        "2026-11-06T08:40:09.7402370Z Passed!  - Failed:     0, Passed:   689, Skipped:     0, Total:   689, Duration: 7 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T08:40:16.9312520Z test_body_tabs_focus_and_native_copy_must_match (test_native_readonly.NativeReadOnlyTests.test_body_tabs_focus_and_native_copy_must_match) ... ok",
+        "2026-11-06T08:40:16.9420200Z test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence (test_native_readonly.NativeReadOnlyTests.test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence) ... ok",
+        "2026-11-06T08:40:16.9787780Z test_collector_preserves_utf16_hash_and_runs_each_fixture_without_interactive_flags (test_native_readonly.NativeReadOnlyTests.test_collector_preserves_utf16_hash_and_runs_each_fixture_without_interactive_flags) ... ok",
+        "2026-11-06T08:40:16.9807780Z test_guard_and_invalid_counts_do_not_launch_or_create_output (test_native_readonly.NativeReadOnlyTests.test_guard_and_invalid_counts_do_not_launch_or_create_output) ... ok",
+        "2026-11-06T08:40:16.9811660Z test_ineffective_positive_controls_cannot_prove_body_invariance (test_native_readonly.NativeReadOnlyTests.test_ineffective_positive_controls_cannot_prove_body_invariance) ... ok",
+        "2026-11-06T08:40:16.9816630Z test_missing_duplicate_unhandled_and_wrong_boundary_attempts_fail (test_native_readonly.NativeReadOnlyTests.test_missing_duplicate_unhandled_and_wrong_boundary_attempts_fail) ... ok",
+        "2026-11-06T08:40:16.9822560Z test_unicode_and_empty_reports_require_full_attempt_matrix (test_native_readonly.NativeReadOnlyTests.test_unicode_and_empty_reports_require_full_attempt_matrix) ... ok",
+        "2026-11-06T08:40:16.9828650Z test_wrong_build_mode_failure_and_readonly_settings_are_rejected (test_native_readonly.NativeReadOnlyTests.test_wrong_build_mode_failure_and_readonly_settings_are_rejected) ... ok",
+        "2026-11-06T08:40:19.2010770Z Ran 73 tests in 8.928s"
+      ]
+    },
+    {
+      "os": "windows-2025",
+      "summary": [
+        "2026-11-06T08:40:44.1370376Z Passed!  - Failed:     0, Passed:   686, Skipped:     3, Total:   689, Duration: 13 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T08:41:02.1838752Z test_body_tabs_focus_and_native_copy_must_match (test_native_readonly.NativeReadOnlyTests.test_body_tabs_focus_and_native_copy_must_match) ... ok",
+        "2026-11-06T08:41:02.2103690Z test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence (test_native_readonly.NativeReadOnlyTests.test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence) ... ok",
+        "2026-11-06T08:41:02.2418854Z test_collector_preserves_utf16_hash_and_runs_each_fixture_without_interactive_flags (test_native_readonly.NativeReadOnlyTests.test_collector_preserves_utf16_hash_and_runs_each_fixture_without_interactive_flags) ... ok",
+        "2026-11-06T08:41:02.2469479Z test_guard_and_invalid_counts_do_not_launch_or_create_output (test_native_readonly.NativeReadOnlyTests.test_guard_and_invalid_counts_do_not_launch_or_create_output) ... ok",
+        "2026-11-06T08:41:02.2471245Z test_ineffective_positive_controls_cannot_prove_body_invariance (test_native_readonly.NativeReadOnlyTests.test_ineffective_positive_controls_cannot_prove_body_invariance) ... ok",
+        "2026-11-06T08:41:02.2474010Z test_missing_duplicate_unhandled_and_wrong_boundary_attempts_fail (test_native_readonly.NativeReadOnlyTests.test_missing_duplicate_unhandled_and_wrong_boundary_attempts_fail) ... ok",
+        "2026-11-06T08:41:02.2476707Z test_unicode_and_empty_reports_require_full_attempt_matrix (test_native_readonly.NativeReadOnlyTests.test_unicode_and_empty_reports_require_full_attempt_matrix) ... ok",
+        "2026-11-06T08:41:02.2479236Z test_wrong_build_mode_failure_and_readonly_settings_are_rejected (test_native_readonly.NativeReadOnlyTests.test_wrong_build_mode_failure_and_readonly_settings_are_rejected) ... ok",
+        "2026-11-06T08:41:02.2512637Z Ran 73 tests in 16.899s",
+        "2026-11-06T08:41:02.2512975Z OK (skipped=20)"
+      ]
+    }
+  ]
+}
