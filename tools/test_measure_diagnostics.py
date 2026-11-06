@@ -53,7 +53,7 @@ class DiagnosticTests(unittest.TestCase):
         for windows in (False, True):
             for mode in ("baseline", "gc-collect", "gc-verbose", "counters"):
                 args = command_for(mode, Path("space dir/host.dll"), Path("space dir/tools"), Path("out"), "trial", windows)
-                self.assertIn("space dir/host.dll", args)
+                self.assertIn(str(Path("space dir/host.dll")), args)
                 self.assertEqual(args[-2:], ["trial", "10"])
                 if mode != "baseline":
                     self.assertEqual(args[0].endswith(".exe"), windows)

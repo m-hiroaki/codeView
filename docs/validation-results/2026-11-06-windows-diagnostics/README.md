@@ -12,4 +12,6 @@ P0-04-03。[収集手順](../../diagnostic-measurements.md#windowsの取得確�
 
 ## Windows CI
 
+初回`b8975f3`の[実行](https://github.com/m-hiroaki/codeView/actions/runs/42179181006)は、収集前のPython試験でパスの期待値を`/`に固定していたため失敗した。実際のWindows Pathは`space dir\\host.dll`であり、コマンド生成の問題ではなかった。期待値もPathから構築する形へ修正し、ワークフローを再実行する。実収集成功はこの失敗からは判断しない。
+
 実行結果を確認して追記する。ホスト型windows-2025は基準PCではない。メモリはWindows PrivateMemorySize64とmacOS phys_footprintを別指標として扱い、絶対量を同一視しない。原記録はActions artifact（14日保管）で取得する。CIでの収集成立と、専用機での性能受入・フレーム・Cold/物理I/O・LOH生成元は区別し、P0-04全体は未完了を維持する。
