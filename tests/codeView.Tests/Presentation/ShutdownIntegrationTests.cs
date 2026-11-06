@@ -9,6 +9,69 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class ShutdownIntegrationTests
 {
+    [TestCase(false)]
+    [TestCase(true)]
+    public void UiFailureNotificationCannotBypassActualIoShutdown(bool notificationFails) => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Path.Combine(Path.GetTempPath(), "codeview-ui-failure-" + Guid.NewGuid().ToString("N"));
+        var folder = Path.Combine(root, "first");
+        Directory.CreateDirectory(folder);
+        var file = Path.Combine(folder, "body.cs");
+        File.WriteAllText(file, "// unchanged original");
+        using var source = new CodeView.Tests.Operations.WorkspaceTests.ControlledSource();
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+        var view = new MainWindowViewModel(operations,
+            new SettingsStore(new(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"))), YieldAsync);
+        Task refresh = Task.CompletedTask;
+        Task? shutdown = null;
+        var failures = 0;
+        var closeRequests = 0;
+        PropertyChangedEventHandler notification = (_, args) =>
+        {
+            if (notificationFails && args.PropertyName == nameof(view.Status))
+                throw new InvalidOperationException("UI status subscriber");
+        };
+        try
+        {
+            await view.InitializeAsync([folder, file]);
+            var handle = view.SelectedTab!.State.File!.Document;
+            using var lease = handle.AcquireReadView();
+            source.DelayResolution = true;
+            refresh = view.RefreshWorkspaceAsync();
+            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            view.PropertyChanged += notification;
+            MainWindow.RunUiAction(() => throw new InvalidOperationException("UI command"), () =>
+                MainWindow.ReportUiFailure(() => failures++, () => view.SetStatus("Fatal UI error"), () =>
+                {
+                    closeRequests++;
+                    shutdown = MainWindow.StopAndWaitAsync(view.Stop, () => view.PendingWork, () => failures++);
+                }));
+            Assert.That(closeRequests, Is.EqualTo(1));
+            Assert.That(failures, Is.EqualTo(notificationFails ? 2 : 1));
+            Assert.That(operations.Startup.State, Is.EqualTo(StartupState.Stopping));
+            Assert.That(view.Document, Is.Null);
+            Assert.That(view.Tabs, Is.Empty);
+            Assert.That(handle.IsReleased, Is.True);
+            Assert.That(lease.ReadRange(0, (int)lease.Length), Is.EqualTo("// unchanged original"));
+            Assert.That(shutdown, Is.Not.Null);
+            Assert.That(shutdown!.IsCompleted, Is.False, "Notification failure must not abandon pending native I/O.");
+            source.Release.Set();
+            await shutdown.WaitAsync(TimeSpan.FromSeconds(5));
+            await refresh;
+            Assert.That(File.ReadAllText(file), Is.EqualTo("// unchanged original"));
+        }
+        finally
+        {
+            view.PropertyChanged -= notification;
+            source.Release.Set();
+            view.Stop();
+            await refresh;
+            if (shutdown is not null) await shutdown;
+            await view.PendingWork;
+            Directory.Delete(root, true);
+        }
+    });
+
     [TestCase(0)]
     [TestCase(1)]
     [TestCase(3)]

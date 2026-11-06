@@ -11,6 +11,7 @@ on:
       - tools/check_native_readonly.py
       - tools/test_native_readonly.py
       - tests/GuiProbe/**
+      - src/codeView/Presentation/MainWindow.axaml.cs
 
 permissions:
   contents: read

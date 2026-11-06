@@ -35,12 +35,15 @@ internal sealed partial class MainWindow : Window
         KeyDown += async (_, key) =>
         {
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
-            { key.Handled = true; ShowSearch(); return; }
+            { key.Handled = true; Run(ShowSearch); return; }
             if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
             {
                 key.Handled = true;
-                viewModel.CycleTab(key.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
-                if (viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+                Run(() =>
+                {
+                    viewModel.CycleTab(key.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                    if (viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+                });
                 return;
             }
             if (key.KeyModifiers != modifier) return;
@@ -52,7 +55,7 @@ internal sealed partial class MainWindow : Window
             else if (key.Key == Key.W)
             {
                 key.Handled = true;
-                viewModel.CloseFile();
+                Run(viewModel.CloseFile);
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
@@ -181,11 +184,11 @@ internal sealed partial class MainWindow : Window
         this.FindControl<TextBox>("SearchQuery")!.Focus();
     }
 
-    private void ShowSearchClicked(object? sender, RoutedEventArgs args) => ShowSearch();
+    private void ShowSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowSearch);
     private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);
-    private void CancelSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Cancel();
-    private void ClearSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.Clear();
-    private void HideSearchClicked(object? sender, RoutedEventArgs args) => _viewModel.SearchPanel.IsVisible = false;
+    private void CancelSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Cancel);
+    private void ClearSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Clear);
+    private void HideSearchClicked(object? sender, RoutedEventArgs args) => Run(() => _viewModel.SearchPanel.IsVisible = false);
     private async void SearchResultDoubleTapped(object? sender, TappedEventArgs args)
     {
         if (args.Source is Avalonia.StyledElement { DataContext: SearchResultRow row })
@@ -213,10 +216,29 @@ internal sealed partial class MainWindow : Window
         try { await operation(); }
         catch (Exception)
         {
-            Program.MarkFailed();
-            try { _viewModel.SetStatus("予期しないエラーのため終了します。"); }
-            finally { Close(); }
+            FailAndClose();
         }
+    }
+
+    private void Run(Action operation) => RunUiAction(operation, FailAndClose);
+
+    internal static void RunUiAction(Action operation, Action failed)
+    {
+        try { operation(); }
+        catch (Exception) { failed(); }
+    }
+
+    private void FailAndClose() => ReportUiFailure(Program.MarkFailed,
+        () => _viewModel.SetStatus("予期しないエラーのため終了します。"), Close);
+
+    internal static void ReportUiFailure(Action markFailed, Action notify, Action close)
+    {
+        markFailed();
+        // A failing status subscriber must not escape an async-void event and bypass
+        // Closing's cancellation/wait boundary. The process is already marked failed.
+        try { notify(); }
+        catch (Exception) { }
+        close();
     }
 
     private void FileDragOver(object? sender, DragEventArgs args)
@@ -227,9 +249,7 @@ internal sealed partial class MainWindow : Window
         catch (Exception)
         {
             args.DragEffects = DragDropEffects.None;
-            _viewModel.SetStatus("ドロップデータを確認できません。");
-            Program.MarkFailed();
-            Close();
+            FailAndClose();
         }
     }
 
@@ -259,9 +279,12 @@ internal sealed partial class MainWindow : Window
         args.Handled = true;
         if (sender is Button { DataContext: FileTreeRow row })
         {
-            _viewModel.FileTree.SelectedRow = row;
-            await RunAsync(() => _viewModel.ActivateTreeRowAsync(row));
-            this.FindControl<ListBox>("FileTreeList")!.Focus();
+            await RunAsync(async () =>
+            {
+                _viewModel.FileTree.SelectedRow = row;
+                await _viewModel.ActivateTreeRowAsync(row);
+                this.FindControl<ListBox>("FileTreeList")!.Focus();
+            });
         }
     }
 
@@ -306,26 +329,35 @@ internal sealed partial class MainWindow : Window
         else if (row is not null && args.Key == Key.Left)
         {
             args.Handled = true;
-            if (row.CanExpand && row.Node.IsExpanded) _viewModel.CollapseTreeRow(row);
-            else if (row.Parent is { } parent) _viewModel.FileTree.SelectedRow = parent;
+            Run(() =>
+            {
+                if (row.CanExpand && row.Node.IsExpanded) _viewModel.CollapseTreeRow(row);
+                else if (row.Parent is { } parent) _viewModel.FileTree.SelectedRow = parent;
+            });
         }
     }
-    private void CloseWorkspaceClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseWorkspace();
+    private void CloseWorkspaceClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.CloseWorkspace);
     private async void ReloadClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.ReloadAsync);
     private async void EncodingClicked(object? sender, RoutedEventArgs args)
     {
         if (sender is MenuItem { Tag: string tag } && Enum.TryParse<EncodingChoice>(tag, out var choice))
             await RunAsync(() => _viewModel.ReopenEncodingAsync(choice));
     }
-    private void CloseFileClicked(object? sender, RoutedEventArgs args) => _viewModel.CloseFile();
+    private void CloseFileClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.CloseFile);
     private void TabSelectionChanged(object? sender, SelectionChangedEventArgs args)
     {
-        if (ReferenceEquals(args.Source, sender) && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+        Run(() =>
+        {
+            if (ReferenceEquals(args.Source, sender) && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+        });
     }
     private void CloseTabClicked(object? sender, RoutedEventArgs args)
     {
         args.Handled = true;
-        if (sender is Button { DataContext: TabViewModel tab }) _viewModel.CloseTab(tab);
+        Run(() =>
+        {
+            if (sender is Button { DataContext: TabViewModel tab }) _viewModel.CloseTab(tab);
+        });
     }
     private void ExitClicked(object? sender, RoutedEventArgs args) => Close();
 }

@@ -10,6 +10,7 @@ on:
       - tools/check_windows_publish.py
       - tools/test_windows_publish.py
       - tools/check_windows_launch.ps1
+      - src/codeView/Presentation/MainWindow.axaml.cs
 
 permissions:
   contents: read
