@@ -1,0 +1,20 @@
+{
+  "runs.json": "d9ee82dddd2a40c814c554145345d43706d8debfff08c0fc526df1f8745924db",
+  "windows-acquisition-baseline-1.log": "4c91082533d1144b64a59f77122a05c46020d7797feab2ba136909393f96db8e",
+  "windows-acquisition-baseline-2.log": "a20fa3b54e3fde2ae7f46e1777e37b4548fff5f1b4c7e9f1da91e9d21a1739cd",
+  "windows-acquisition-baseline-3.log": "174d53c7c8f1f72548c94041067a64d93b545a1a6ee46bacbc456f735522e318",
+  "windows-acquisition-counters-1.csv": "3ba098310c6f00efdcbd69467d0f697c80f54c44d8e39a4b3f655d91a5bbfbb1",
+  "windows-acquisition-counters-1.log": "4b2806d059fcebbbcef22b0febf7f189326a2744fad919a7b77d42685e3ed431",
+  "windows-acquisition-gc-collect-1-trace.json": "b0068198c2d99e03908c989fec1974a38a4455071480c1feeefd481ddb8d9a04",
+  "windows-acquisition-gc-collect-1.log": "838280b57d5df18915fb358932815597f95553c6af3b1cd6cb8d7e95ea583135",
+  "windows-acquisition-gc-collect-1.nettrace": "1b431c83b807b427fd9d0bd75b3b28f7ec3a62d52ac3fb214b563b354ba967c9",
+  "windows-acquisition-gc-verbose-1-trace.json": "34f41717e4d680c2d585bebf6b2ceea28f5f015dba0f98050a4feecb8989b2da",
+  "windows-acquisition-gc-verbose-1.log": "41a21fe062042d5d3d2e0025edac8043f48af8e654ace7325510ebc64f774cfc",
+  "windows-acquisition-gc-verbose-1.nettrace": "e2190f6fd9c1ebbaec446164079af545c5204a3eb9992969e8a0acdaa0d01c15",
+  "windows-acquisition-gc-verbose-2-trace.json": "c4e7f18d324cd01c5322304269d540bdb5363e03ec602d5df7e64788b7c3c90b",
+  "windows-acquisition-gc-verbose-2.log": "8c81af575e7f171df4ea074c0df79d5b39d1e9f124f6d3e82321714995277ea4",
+  "windows-acquisition-gc-verbose-2.nettrace": "06c883420d1616730c7413c6b4a0f3b5912ede6a96d959e2a6258c299720e139",
+  "windows-acquisition-gc-verbose-3-trace.json": "92172689414315573ff27fc41b795f9c83dc2979d431c7fb69246db9f5de354f",
+  "windows-acquisition-gc-verbose-3.log": "60a9a8835ad4516d167265c8ec61553f8ad93c2e030776ca0c3c417f3bf15e62",
+  "windows-acquisition-gc-verbose-3.nettrace": "9091b839a0f9d898f89628bd88bcbfedf61c0cd83a6823d82d00c8901d9872b0"
+}

@@ -21,7 +21,7 @@ Phase 2の試作候補は、非表示の文書をワーカー上で構築し、�
 
 本文構築は、準備後に1つのバックグラウンド実行区間でBuilderを作り、FileReaderの同期ReadChunksからAppendを呼び、Complete・所有解放までを同じスレッド上で行う案とする。同期I/OはUIへ持ち込まない。文書所有中にawaitで任意のスレッドへ移る構造にせず、チャンク間で取消を確認する。検索では文書を構築しないので非同期ReadChunksAsyncを利用できる。
 
-DocumentBuilder.Appendは既存TextDocumentへ挿入する。借用チャンクが配列なら、その範囲をRopeの配列コンストラクターで同期コピーし、RopeTextSourceとして挿入する。非配列メモリは範囲だけを配列化してから同じ経路へ渡す。文字列化とライブラリ内の一時配列化を避け、Append後にデコーダーが同じ配列を再利用しても原文を変えない。TextDocumentの保持形式・Builder/Handleの型・所有/ReadLease・Undo無効化・構築枠は変更しない。[コピー削減の検証と性能比較](../validation-results/2026-11-06-document-copy/README.md)。
+DocumentBuilder.Appendは借用チャンクだけを一時文字列化し、既存TextDocumentへ挿入する。Append後のデコーダー配列再利用で原文を変えない。RopeTextSource経由のコピー削減も比較したが、割当減に対して時間/CPU増とGC予算未達が残ったため採用せず、この通常経路を維持する。[コピー削減の不採用根拠・回帰](../validation-results/2026-11-06-document-copy/README.md)。保持形式・型・所有/ReadLease・Undo無効化・構築枠は変更しない。
 
 AvaloniaEditの現行ソースには所有スレッドの移譲と不変スナップショット取得がある。ただし採用版の契約とコストを確認するまで、具体APIを前提に実装を確定しない。参照：[TextDocumentの一次ソース](https://raw.githubusercontent.com/AvaloniaUI/AvaloniaEdit/master/src/AvaloniaEdit/Document/TextDocument.cs)。
 

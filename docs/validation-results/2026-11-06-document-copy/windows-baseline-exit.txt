@@ -1,0 +1,2 @@
+Collector exit: 1
+Baseline core assertions passed: False

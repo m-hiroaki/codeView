@@ -1,7 +1,5 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Utils;
 
 namespace CodeView.Documents;
 
@@ -30,13 +28,8 @@ internal sealed class DocumentBuilder : IDisposable
         VerifyOwner();
         var document = _document ?? throw new ObjectDisposedException(nameof(DocumentBuilder));
         _ = checked(document.TextLength + chunk.Length);
-        if (chunk.IsEmpty) return;
-        // Rope copies the borrowed array range before Append returns. Inserting its snapshot
-        // avoids the string -> temporary char[] path without retaining the decoder's buffer.
-        var rope = MemoryMarshal.TryGetArray(chunk, out var array)
-            ? new Rope<char>(array.Array!, array.Offset, array.Count)
-            : new Rope<char>(chunk.ToArray(), 0, chunk.Length);
-        document.Insert(document.TextLength, new RopeTextSource(rope));
+        // Only this bounded chunk is transiently copied, never the whole decoded source.
+        document.Insert(document.TextLength, chunk.ToString());
     }
 
     public DocumentHandle Complete()

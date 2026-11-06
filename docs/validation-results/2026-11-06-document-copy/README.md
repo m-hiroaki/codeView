@@ -1,6 +1,6 @@
 # 本文挿入の中間コピー削減
 
-A-01-02。対象はDocumentBuilder.Appendの挿入処理。[割当スタックの根拠](../2026-11-06-allocation-origins/README.md)に基づき、借用配列範囲を既存Ropeへ同期コピーし、同じTextDocumentへRopeTextSourceを挿入する。非配列メモリはその範囲だけ配列化する。製品のレイヤ・公開API・Builder/Handleの型・保持モデル・所有移譲・ReadLease・処理枠・Undo無効化を変えず、新しい依存を追加しない。行別投影の未承認変更案A-03は実施しない。
+A-01-02。**候補は不採用とし、通常コードを変更前の文字列挿入へ戻した。** 対象はDocumentBuilder.Appendの挿入処理。[割当スタックの根拠](../2026-11-06-allocation-origins/README.md)に基づき、借用配列範囲を既存Ropeへ同期コピーし、同じTextDocumentへRopeTextSourceを挿入する候補を比較した。非配列メモリはその範囲だけ配列化した。レイヤ・公開API・Builder/Handleの型・保持モデル・所有/ReadLease・枠・Undo無効化は変えず、依存も追加していない。行別投影の未承認変更案A-03は実施していない。
 
 ## 正確性
 
@@ -22,6 +22,24 @@ DocumentBuilderCopyTestsの12ケースで、配列部分範囲/再利用、0/1/2
 
 ## Windowsの比較
 
-[診断ワークフロー](../../../.github/workflows/diagnostics.yml)で、同一ランナーに変更前固定版と現在版を別々にビルドし、それぞれ通常/GC/Counterの8プロセス・80操作を測定する。比較先の基準版のassertion失敗を保存し、現在版の合否と分ける。結果の取得/照合は実行後に追記する。既存の150 ms GC予算は変更しない。
+[比較時の診断ワークフロー](https://github.com/m-hiroaki/codeView/actions/runs/42183296248)で、同一ランナーに変更前`f98f394`と候補`3cc8228`を別々にビルドし、各8プロセス・80操作、計160操作/8トレースを取得した。両者の入力SHAが一致し、全収集ファイルのハッシュ、各20開始/終了マーカーとBudgetFailed、ホストの失敗数、欠落/GC対応を再照合した。全8トレースの欠落/対応エラーは0。比較先も候補もコア失敗を保持し、全体は非0終了した。通常試験の両OS CIは成功した。
 
-`local-runs.json.gz`に全60操作とホスト完了記録、`summary.json`に製品ソース/バイナリ/入力/TRXのSHA、集計と限界を保存した。元ログ・個別JSONは`artifacts/document-copy-comparison`へ保持する。通常モデルと共有ライブラリは維持するが、G2の採用・長行描画・実機受入は未完了のままとする。
+| 指標（収集なしの各10操作平均の3プロセス間中央値） | 変更前 | 候補 |
+| --- | ---: | ---: |
+| 構築時間ms | 623.872 | 660.747 |
+| CPU ms | 776.563 | 817.188 |
+| 割当bytes | 280,535,886 | 165,967,234 |
+| GC停止合計ms | 150.100 | 161.613 |
+| 操作内PrivateMemorySize64の観測増分bytes | 65,526,989 | 51,013,222 |
+
+割当は約40.8%減ったが、中央値で構築時間は約5.9%、CPUは約5.2%増えた。GC停止150 msの違反は全条件で変更前48/80操作、候補50/80操作。収集なしの個別GC停止合計は変更前120.011–221.431 ms、候補116.705–209.016 msだった。構築/メモリ/ReadLeaseの既存上限は満たしたが、GC予算未達を解消していない。少数かつ基準版→候補の順次測定で分布も重なるため、2件の差を普遍的な悪化と断定しない。速度改善の根拠を得られなかったため、この候補は採用しない。新しい合格予算やOS設定は導入しない。
+
+Windowsはホスト型Server 2025 Datacenter / SDK 10.0.403 / runtime 10.0.14。`windows-environment.txt`にCPU/可視メモリ等を保存し、専用基準機や実UIの性能と区別する。元ZIPは`artifacts/document-copy-comparison/windows/comparison.zip`、ID/ハッシュはsummary.json。各版の全操作/解析は`windows-*-runs.json.gz`、原ファイルのSHAは`windows-*-sha256.json`に保存した。
+
+## 候補の回帰と復元
+
+候補`3cc8228`でも既存の50 MiB×5タブとReadLease走査の性能試験が各1件成功した。タブはCPU 2,968.113 ms、GC合計374.339 ms、OS増分約898 MiB、閉鎖後の弱参照0/10。走査は全30,980,684文字のchecksum一致、約29.5–37.8 ms/約33.5 KiB割当、GC停止0だった。生値は`retention.json`/`scan.json`。これらは候補の資源/走査回帰であり、実描画やコピー削減効果の証明ではない。CacheConditionの欄がunknownでも、タブ試験は測定前の独立厳格UTF-8文字数照合で入力をWarmにしている。
+
+通常コードは変更前と同じ製品ソースSHAへ復元した。借用メモリ/Unicode/全内容ハッシュを確認する12テストは通常経路の回帰として残す。復元後の通常試験と両OSの確認結果を追記する。候補差分は`candidate.patch`とコミット`3cc8228`に保存し、通常経路への比較フラグや追加依存は残さない。
+
+`local-runs.json.gz`に全60操作とホスト完了記録、`summary.json`に候補/復元ソース・バイナリ・入力・TRXのSHAと集計を保存した。元ログ・個別JSONは`artifacts/document-copy-comparison`へ保持する。CPU・メモリ・GCのトレードオフを評価して不採用とした比較タスクであり、GC予算未達の是正、G2の採用・長行描画・実機受入・A-01全体は未完了のままとする。

@@ -92,7 +92,136 @@
       }
     }
   },
-  "windows": "pending",
+  "windows": {
+    "commit": "3cc8228e8616b62707f78a311b35be6fb06f1474",
+    "runId": 42183296248,
+    "artifactId": 13486975412,
+    "zipSha256": "70cad75a3bd68cd7f5370e11b5fb9322d29975798f31f1990e3702faa5a58d82",
+    "variants": {
+      "baseline": {
+        "commit": "f98f3941c1b3b93af4a70c8c26df92097e17b3f7",
+        "acquisitionValidated": true,
+        "coreAssertionsPassed": false,
+        "totalAssertionFailures": 48,
+        "metrics": {
+          "BuildMilliseconds": {
+            "medianOfTenOperationMeans": 623.8717399999999,
+            "rangeOfTenOperationMeans": [
+              617.63213,
+              730.3925499999999
+            ]
+          },
+          "CpuMilliseconds": {
+            "medianOfTenOperationMeans": 776.5625,
+            "rangeOfTenOperationMeans": [
+              762.5,
+              951.5625
+            ]
+          },
+          "AllocatedBytes": {
+            "medianOfTenOperationMeans": 280535885.6,
+            "rangeOfTenOperationMeans": [
+              280525853.6,
+              280552027.2
+            ]
+          },
+          "GcPauseTotalMilliseconds": {
+            "medianOfTenOperationMeans": 150.0996,
+            "rangeOfTenOperationMeans": [
+              141.1132,
+              199.73409999999998
+            ]
+          },
+          "MemoryIncrease": {
+            "medianOfTenOperationMeans": 65526988.8,
+            "rangeOfTenOperationMeans": [
+              52337459.2,
+              67366912.0
+            ]
+          }
+        },
+        "gcPauseRange": [
+          120.011,
+          221.431
+        ],
+        "eventsLost": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "failureMarkers": [
+          10,
+          3,
+          6,
+          6
+        ],
+        "compressedRunsSha256": "16329b3c90b72926bed9d9cd899cb4bfc7eaa0e10036bb58bf88a42ea0dfe398"
+      },
+      "candidate": {
+        "commit": "3cc8228e8616b62707f78a311b35be6fb06f1474",
+        "acquisitionValidated": true,
+        "coreAssertionsPassed": false,
+        "totalAssertionFailures": 50,
+        "metrics": {
+          "BuildMilliseconds": {
+            "medianOfTenOperationMeans": 660.74695,
+            "rangeOfTenOperationMeans": [
+              648.6964,
+              680.32788
+            ]
+          },
+          "CpuMilliseconds": {
+            "medianOfTenOperationMeans": 817.1875,
+            "rangeOfTenOperationMeans": [
+              815.625,
+              851.5625
+            ]
+          },
+          "AllocatedBytes": {
+            "medianOfTenOperationMeans": 165967234.4,
+            "rangeOfTenOperationMeans": [
+              165955085.6,
+              165975780.0
+            ]
+          },
+          "GcPauseTotalMilliseconds": {
+            "medianOfTenOperationMeans": 161.6125,
+            "rangeOfTenOperationMeans": [
+              145.60250000000002,
+              167.4017
+            ]
+          },
+          "MemoryIncrease": {
+            "medianOfTenOperationMeans": 51013222.4,
+            "rangeOfTenOperationMeans": [
+              49637376.0,
+              51920486.4
+            ]
+          }
+        },
+        "gcPauseRange": [
+          116.705,
+          209.016
+        ],
+        "eventsLost": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "failureMarkers": [
+          7,
+          5,
+          6,
+          6
+        ],
+        "compressedRunsSha256": "aca0f05acd2da2e5a73efa857c93cba208636ece4499f6a2241bef7ea97ec939"
+      }
+    },
+    "sameInputSha256": "82136e61e7b99fc1a7c5e26927af3ed3eeb5b6ae4824cd7344d2957a0428e0f8",
+    "workflowConclusion": "failure"
+  },
   "localNormalTests": {
     "total": "689",
     "executed": "689",
@@ -113,5 +242,8 @@
   },
   "localTrxSha256": "06e4c526e55418d9bbf857c3cf292252c25f7f14e44b562951b79f77e2004d42",
   "localPythonPassed": 57,
-  "compressedRunsSha256": "a41652fbc9bebb68e51500bcb637c20a475c1c497faadb8ea13aa0c3ddc04698"
+  "compressedRunsSha256": "a41652fbc9bebb68e51500bcb637c20a475c1c497faadb8ea13aa0c3ddc04698",
+  "decision": "Not adopted: lower allocation, higher build time/CPU and GC budget still violated; product insertion path restored to baseline.",
+  "restoredProductSourceSha256": "9a3e66cf22c429fe287d9b28725fbc7a204ff3d615428e02c823f62f951e54e6",
+  "candidatePatchSha256": "f3ce75fd5ae0723189250dbb27a90578dc506f2cce6f3b5588d26ef9620cecc1"
 }

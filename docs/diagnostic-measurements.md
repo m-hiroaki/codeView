@@ -87,4 +87,4 @@ Windows CIではPowerShellから同じ引数を渡し、`--commit`に`$env:GITHU
 
 [Windowsの確認結果](validation-results/2026-11-06-windows-diagnostics/README.md)では取得が成立した一方、既存GC予算に違反してワークフローが非0終了した。結果の取得可否と性能の合否を分けて読む。
 
-中間コピー削減の比較では、同一ランナーで変更前`f98f394`と現在のホストを別々にビルドし、同じ生成入力で順次収集する。baseline_refは手動実行時に変更可能で、通常は上記の固定コミットを使う。baselineのコア予算違反は失敗値のまま保存し、取得自体が成立した場合だけ現在版へ進む。現在版のコア失敗はワークフローも非0終了する。基準版が失敗したことと現在版の成功を混同しない。通常のBuild and testとは独立し、DocumentAdapter/コピー試験の変更でも明示収集を起動する。[比較結果](validation-results/2026-11-06-document-copy/README.md)。
+中間コピー削減の比較では、[比較時点のワークフロー](https://github.com/m-hiroaki/codeView/blob/3cc8228e8616b62707f78a311b35be6fb06f1474/.github/workflows/diagnostics.yml)で同一ランナーに変更前`f98f394`と候補`3cc8228`を別々にビルドし、同じ生成入力で各80操作を順次収集した。基準版のコア失敗を保存して候補へ進み、候補も失敗なら全体を非0終了した。候補は不採用のため通常コード/単独収集手順へ戻し、比較時点のGit/差分/原記録を保存する。[不採用の根拠](validation-results/2026-11-06-document-copy/README.md)。
