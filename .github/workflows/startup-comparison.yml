@@ -1,0 +1,84 @@
+name: Deferred search startup comparison
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/startup-comparison.yml
+      - tools/compare_gui_startup.py
+      - tools/test_compare_startup.py
+      - tests/GuiProbe/GuiSearchPanelProbe.cs
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: 94bbefdf1582b63940f9303ab3abac076c480a07
+          path: baseline
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Record environment and isolated fixture
+        run: |
+          New-Item -ItemType Directory -Force artifacts/startup-comparison/input | Out-Null
+          "Candidate: $env:GITHUB_SHA; baseline: 94bbefdf1582b63940f9303ab3abac076c480a07" | Out-File artifacts/startup-comparison/environment.txt
+          dotnet --info | Out-File artifacts/startup-comparison/environment.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($IsWindows) { Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version | Out-File artifacts/startup-comparison/environment.txt -Append }
+          else { sw_vers | Out-File artifacts/startup-comparison/environment.txt -Append }
+          python -c "from pathlib import Path; Path('artifacts/startup-comparison/input/起動確認.cs').write_bytes('// CODEVIEW_FIND 日本語 😀\r\n'.encode('utf-8'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build both explicit probes on the same host
+        run: |
+          dotnet restore baseline/src/codeView/codeView.csproj --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build baseline/src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/startup-comparison/baseline -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet restore src/codeView/codeView.csproj --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/startup-comparison/candidate -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare startup and check first search use
+        run: |
+          python -m unittest discover -s tools -p test_compare_startup.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $app = if ($IsWindows) { 'codeView.exe' } else { 'codeView' }
+          $platform = if ($IsWindows) { 'windows' } else { 'macos' }
+          python tools/compare_gui_startup.py --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit 94bbefdf1582b63940f9303ab3abac076c480a07 --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/comparison --os $platform --rounds 10 --functional-rounds 3
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload comparison including rejection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: deferred-search-${{ matrix.os }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/startup-comparison/environment.txt
+            artifacts/startup-comparison/input/
+            artifacts/startup-comparison/comparison/

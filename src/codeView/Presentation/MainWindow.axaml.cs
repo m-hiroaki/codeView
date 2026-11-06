@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
+using System.ComponentModel;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -15,6 +17,7 @@ namespace CodeView.Presentation;
 internal sealed partial class MainWindow : Window
 {
     private readonly MainWindowViewModel _viewModel;
+    private readonly Lazy<Control> _searchPanel;
     private bool _allowClose;
     private bool _closing;
 
@@ -29,12 +32,14 @@ internal sealed partial class MainWindow : Window
         GuiPerformanceProbe.Checkpoint("window-xaml-loaded");
 #endif
         DataContext = viewModel;
+        _searchPanel = new(CreateSearchPanel, LazyThreadSafetyMode.None);
+        viewModel.SearchPanel.PropertyChanged += SearchPanelVisibilityChanged;
+        Closed += (_, _) => viewModel.SearchPanel.PropertyChanged -= SearchPanelVisibilityChanged;
+        if (viewModel.SearchPanel.IsVisible) _ = _searchPanel.Value;
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
-        this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
-            RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(KeyDownEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerPressedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -192,7 +197,24 @@ internal sealed partial class MainWindow : Window
     {
         if (!_viewModel.CanSearchWorkspace) return;
         _viewModel.SearchPanel.IsVisible = true;
-        this.FindControl<TextBox>("SearchQuery")!.Focus();
+        _searchPanel.Value.FindControl<TextBox>("SearchQuery")!.Focus();
+    }
+
+    private Control CreateSearchPanel()
+    {
+        if (Resources["SearchPanelTemplate"] is not IDataTemplate template || template.Build(_viewModel) is not { } panel)
+            throw new InvalidOperationException("検索パネルのテンプレートを読み込めません。");
+        panel.DataContext = _viewModel;
+        panel.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
+            RoutingStrategies.Tunnel, handledEventsToo: true);
+        this.FindControl<ContentControl>("SearchPanelHost")!.Content = panel;
+        return panel;
+    }
+
+    private void SearchPanelVisibilityChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (!_closing && args.PropertyName == nameof(SearchPanelViewModel.IsVisible) && _viewModel.SearchPanel.IsVisible)
+            Run(() => _ = _searchPanel.Value);
     }
 
     private void ShowSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowSearch);

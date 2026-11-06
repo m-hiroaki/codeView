@@ -45,8 +45,11 @@ internal sealed class GuiPerformanceProbe
     private readonly bool _holdAfterReport = Environment.GetEnvironmentVariable("CODEVIEW_GUI_HOLD_AFTER_REPORT") == "1";
     private readonly bool _interactive = Environment.GetEnvironmentVariable("CODEVIEW_GUI_INTERACTIVE") == "1";
     private readonly bool _readOnlyChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_READONLY_CHECKS") == "1";
+    private readonly bool _searchPanelChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEARCH_PANEL_CHECKS") == "1";
+    private KeyEventArgs? _scriptedSearchKey;
     private Task _readOnlyWork = Task.CompletedTask;
     private object? _readOnlyResults;
+    private object? _searchPanelResults;
     private DocumentDisplaySlice? _interactiveSlice;
     private bool _interactiveAttached;
     private bool _renderingInteractive;
@@ -149,12 +152,17 @@ internal sealed class GuiPerformanceProbe
             (!hasInput || Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1" ||
              Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true"))
             throw new ArgumentException("読み取り専用の自動操作は入力あり/通常表示/専用CIで実行してください。");
+        if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEARCH_PANEL_CHECKS") == "1" &&
+            (!hasInput || Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1" ||
+             Environment.GetEnvironmentVariable("CODEVIEW_GUI_READONLY_CHECKS") == "1" ||
+             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true"))
+            throw new ArgumentException("検索パネルの自動操作は入力あり/通常表示/専用CIで単独実行してください。");
         var probe = _instance = new(window, editor, viewModel, output, hasInput);
         // This workload injects no input. Abort rather than mixing an interactive
         // selection/scroll operation with automatic document replacement.
         void InterruptForInput(object? sender, RoutedEventArgs args)
         {
-            if (probe._finished || probe._interactive) return;
+            if (probe._finished || probe._interactive || ReferenceEquals(args, probe._scriptedSearchKey)) return;
             args.Handled = true;
             if (probe._inputInterrupted) return;
             probe._inputInterrupted = true;
@@ -168,6 +176,7 @@ internal sealed class GuiPerformanceProbe
         {
             Phase($"window-closing cancelled-at-probe-handler={args.Cancel}");
             if (probe._interactive && !probe._finished) probe.Finish();
+            if (probe._searchPanelChecks && !probe._finished) probe.Finish("unexpected-close-during-search-checks");
         };
         window.Closed += (_, _) => Phase("window-closed");
         window.Opened += (_, _) =>
@@ -664,7 +673,7 @@ internal sealed class GuiPerformanceProbe
         {
             if (probe._finished || generation != probe._documentGeneration) return;
             probe._documentTwoTicksMilliseconds = Startup.Elapsed.TotalMilliseconds;
-            if (probe._readOnlyChecks)
+            if (probe._readOnlyChecks || probe._searchPanelChecks)
             {
                 probe._readOnlyWork = probe.RunReadOnlyChecksAsync();
                 return;
@@ -717,14 +726,25 @@ internal sealed class GuiPerformanceProbe
     {
         try
         {
-            _readOnlyResults = await GuiReadOnlyProbe.RunAsync(_window, _editor, _viewModel, _sampling.Token);
+            if (_searchPanelChecks)
+                _searchPanelResults = await GuiSearchPanelProbe.RunAsync(_window, _editor, _viewModel, _sampling.Token);
+            else _readOnlyResults = await GuiReadOnlyProbe.RunAsync(_window, _editor, _viewModel, _sampling.Token);
             Finish();
         }
         catch (Exception error)
         {
             Console.Error.WriteLine(error);
-            Finish("readonly-check-failed: " + error.Message);
+            Finish((_searchPanelChecks ? "search-panel-check-failed: " : "readonly-check-failed: ") + error.Message);
         }
+    }
+
+    internal static void RaiseSearchKey(Control target, KeyEventArgs args)
+    {
+        var probe = _instance ?? throw new InvalidOperationException("No active GUI probe.");
+        if (!probe._searchPanelChecks) throw new InvalidOperationException("Not a search panel test.");
+        probe._scriptedSearchKey = args;
+        try { target.RaiseEvent(args); }
+        finally { probe._scriptedSearchKey = null; }
     }
 
     private void ApplyNavigationSelection(int step)
@@ -777,8 +797,9 @@ internal sealed class GuiPerformanceProbe
         {
             FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
             ProductInformationalVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
-            Scenario = _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            Scenario = _searchPanelChecks ? "native-gui-search-panel-controls" : _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
             ReadOnlyChecks = _readOnlyResults,
+            SearchPanelChecks = _searchPanelResults,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
