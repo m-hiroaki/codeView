@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/publish-validation.yml
       - build-windows.bat
+      - global.json
       - tools/check_windows_publish.py
       - tools/test_windows_publish.py
       - tools/check_windows_launch.ps1

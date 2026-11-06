@@ -77,6 +77,8 @@ flowchart LR
   依存：P0-01。完了条件：実装時点の.NET LTSとAvalonia候補の互換性、ライセンス、両OSビルド可否を確認する。本文・文法版はPhase 2の採否待ちと区別する（D-01）。
   完了：2026-11-06。.NET 10が確認時点のLTS系列であること、SDK 10.0.401/latestPatchとAvalonia 12.1.3・試験ランナーの固定版/ライセンスを確認。8efffa1の両OS CIで許容パッチ10.0.403により本体/試験のReleaseビルドと通常試験が成功。[版・ライセンス・D-01の残り](detailed-design/07-settings-distribution.md#51-p0-03のsdkui試験ランナー確認2026-11-06)、[実行証跡](validation-results/2026-11-06-ci-build/README.md)。本文/文法の性能採否と最終配布はP2/P6に維持する。
 
+  - [x] **P0-03-01：脆弱なILCompilerを選ぶ旧SDKを最低要件から外す**（2026-11-06）。最低SDKを10.0.403へ更新し、macOS arm64の実AOT発行とILCompiler 10.0.14の解決を確認。通常.NET766/Python108件と発行スクリプト7件が成功。監査/警告設定は維持し、SDK変更をWindows発行CIの起動対象へ追加。[証跡・検証範囲](validation-results/2026-11-06-aot-sdk-fix/README.md)。
+
 - [ ] **P0-04：試験結果の記録様式とローカル計測手順を準備する**
   依存：P0-02。完了条件：ビルド・データ・設定・機材・予算・結果・未実施理由を残せる。CPU、ヒープ、GC、LOH、フレーム、I/Oの取得可否と計測負荷を確認する。
   - [x] **P0-04-01：記録テンプレートとマネージド診断の取得・負荷を確認する**（2026-11-06）。macOSの一時ホストで既存50 MiBコア試験を8実行/80操作し、通常とGC/Counterを比較。4トレースの欠落0・各20マーカー・停止対応を確認し、GC区間、LOHサンプル/保持、Counter 106行を保存した。[テンプレート・手順](diagnostic-measurements.md)、[結果・ソース・ハッシュ・限界](validation-results/2026-11-06-eventpipe/README.md)。フレーム/物理I/O・Windows側の診断・LOH生成元等はP0-04に残す。製品の構成/APIは変更しない。

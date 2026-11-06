@@ -1,0 +1,44 @@
+.NET SDK:
+ Version:           10.0.403
+ Commit:            5a2162bea6
+ Workload version:  10.0.400-manifests.a00bebb6
+ MSBuild version:   18.9.15+5a2162bea
+
+ランタイム環境:
+ OS Name:     Mac OS X
+ OS Version:  27.0
+ OS Platform: Darwin
+ RID:         osx-arm64
+ Base Path:   /private/tmp/codeview-aot-sdk-10.0.403/sdk/sdk/10.0.403/
+
+インストール済みの .NET ワークロード:
+表示するインストール済みワークロードはありません。
+新しいマニフェストをインストールするときに workload sets を使用するように構成されています。
+ワークロード セットがインストールされていません。"dotnet workload restore" を実行してワークロード セットをインストールします。
+
+Host:
+  Version:      10.0.14
+  Architecture: arm64
+  Commit:       0427b9abbe
+
+.NET SDKs installed:
+  10.0.403 [/private/tmp/codeview-aot-sdk-10.0.403/sdk/sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 10.0.14 [/private/tmp/codeview-aot-sdk-10.0.403/sdk/shared/Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 10.0.14 [/private/tmp/codeview-aot-sdk-10.0.403/sdk/shared/Microsoft.NETCore.App]
+
+Other architectures found:
+  None
+
+Environment variables:
+  Not set
+
+global.json file:
+  /Users/hiroaki/Src/codeview/global.json
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download

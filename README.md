@@ -7,7 +7,7 @@ Windows / macOS向けの、コードリーディングに特化したソース�
 
 ## 必要なツール・SDK
 
-- .NET SDK 10.0.401（許容パッチ版は[global.json](global.json)に従う）
+- .NET SDK 10.0.403（許容パッチ版は[global.json](global.json)に従う）
 - Python 3（通常テスト・カバレッジ計測用。macOSは`python3`、Windowsは`py`ランチャー）
 - Xcode Command Line ToolsまたはXcode（macOSのNative AOT発行用）
 - Visual Studio 2022以降または対応するBuild Toolsの「C++によるデスクトップ開発」（WindowsのNative AOT発行用。MSVC・Windows SDKを含む）

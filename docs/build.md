@@ -6,7 +6,7 @@
 
 Windows上で、次を用意する。
 
-- [global.json](../global.json)で指定した.NET SDK（10.0.401、許容パッチ版は同ファイルに従う）。
+- [global.json](../global.json)で指定した.NET SDK（10.0.403、許容パッチ版は同ファイルに従う）。
 - Visual Studio 2022以降、または対応するBuild Tools。「C++によるデスクトップ開発」と既定のMSVC/Windows SDKコンポーネントを含める。[Microsoftの前提条件](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/#prerequisites)を参照。
 
 コマンドプロンプトで実行する。
@@ -41,6 +41,19 @@ macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツ
 出力先：`artifacts/publish/<RID>/codeView.app`
 
 `.app`全体を使う。Mac版もPublishAot=trueとPublishTrimmed=trueを指定してNative AOTで発行し、コンパイラー/リンカーの警告をエラーとする。通常のJIT発行へフォールバックしない。SDKが生成する.dSYMも同梱する。`build/Info.plist`と発行された全ファイルを組み合わせる。署名・公証・インストーラー・アーカイブ生成は行わない。Info.plistの製品名/識別子/版は同ファイルで管理する。配布時のGatekeeperと署名確認は別途必要である。
+
+## NU1903（ILCompiler 10.0.12）が出る場合
+
+.NET SDKを10.0.403以降の許容パッチ版へ更新する。旧SDK 10.0.401が選択するILCompiler 10.0.12は[GHSA-p3jp-9v83-76w9](https://github.com/advisories/GHSA-p3jp-9v83-76w9)の対象で、修正版は10.0.14。SDK 10.0.403は[公式リリース情報](https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json)で対応する修正ランタイムを含む。ランタイムだけでなくSDKを更新する。NuGet監査や警告のエラー扱いを無効にしない。
+
+macOS arm64で修正版SDKによるAOT発行を確認済み。[検証記録](validation-results/2026-11-06-aot-sdk-fix/README.md)。
+
+SDKの更新後、リポジトリのルートで確認して再発行する。
+
+```sh
+dotnet --version
+./build-mac.sh
+```
 
 ## 依存関係と生成物
 
