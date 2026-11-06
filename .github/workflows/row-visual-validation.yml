@@ -1,0 +1,66 @@
+name: Row visual comparison acquisition
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/row-visual-validation.yml
+      - tests/GuiProbe/**
+      - tools/compare_row_visual.py
+      - tools/test_row_visual.py
+      - src/codeView/Documents/**
+      - src/codeView/codeView.csproj
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    name: Visual comparison (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Build explicit probe and record environment
+        run: |
+          New-Item -ItemType Directory -Force artifacts/row-visual | Out-Null
+          "Commit: $env:GITHUB_SHA; small native full-paragraph reference comparison, not physical paint/input." | Out-File artifacts/row-visual/environment.txt
+          dotnet --info | Out-File artifacts/row-visual/environment.txt -Append
+          dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/row-visual/app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Acquire three independent comparisons and preserve rejection
+        run: |
+          $app = if ($IsWindows) { 'artifacts/row-visual/app/codeView.exe' } else { 'artifacts/row-visual/app/codeView' }
+          $platform = if ($IsWindows) { 'windows' } else { 'macos' }
+          python -m unittest discover -s tools -p test_row_visual.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/compare_row_visual.py --app $app --output artifacts/row-visual/results --rounds 3 --commit $env:GITHUB_SHA --os $platform
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload comparisons and control-render images
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: row-visual-${{ matrix.os }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/row-visual/environment.txt
+            artifacts/row-visual/results/

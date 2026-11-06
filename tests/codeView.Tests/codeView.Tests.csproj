@@ -21,5 +21,6 @@
         <Compile Include="../GuiProbe/BoundedKeyMap.cs" Link="Performance/BoundedKeyMap.cs" />
         <Compile Include="../GuiProbe/RowWheelAccumulator.cs" Link="Performance/RowWheelAccumulator.cs" />
         <Compile Include="../GuiProbe/RowViewHistory.cs" Link="Performance/RowViewHistory.cs" />
+        <Compile Include="../GuiProbe/RowVisualCases.cs" Link="Performance/RowVisualCases.cs" />
     </ItemGroup>
 </Project>
