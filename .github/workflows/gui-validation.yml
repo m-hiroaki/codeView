@@ -8,6 +8,8 @@ on:
       - .github/workflows/gui-validation.yml
       - tools/measure_gui_startup.py
       - tools/test_measure_gui_startup.py
+      - tools/check_native_readonly.py
+      - tools/test_native_readonly.py
       - tests/GuiProbe/**
 
 permissions:
@@ -44,6 +46,8 @@ jobs:
           "Commit: $env:GITHUB_SHA" | Out-File artifacts/gui-validation/environment.txt
           dotnet --info | Out-File artifacts/gui-validation/environment.txt -Append
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -c "from pathlib import Path; Path('artifacts/gui-validation/empty.cs').write_bytes(b''); Path('artifacts/gui-validation/boundary.cs').write_bytes((('日本語😀\tValue ' * 12) + '\r\n').encode('utf-8'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, TotalVisibleMemorySize | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
           Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
           Get-CimInstance Win32_VideoController | Select-Object Name, CurrentRefreshRate, CurrentHorizontalResolution, CurrentVerticalResolution | Format-List | Out-File artifacts/gui-validation/environment.txt -Append
@@ -62,6 +66,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView.exe --input artifacts/gui-validation/起動確認.cs --output artifacts/gui-validation/startup --rounds 10 --commit $env:GITHUB_SHA --os windows
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify native read-only control operations
+        run: |
+          python -m unittest discover -s tools -p test_native_readonly.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_native_readonly.py --app artifacts/gui-validation/app/codeView.exe --inputs artifacts/gui-validation/起動確認.cs artifacts/gui-validation/empty.cs artifacts/gui-validation/boundary.cs --output artifacts/gui-validation/readonly --rounds 3 --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload native GUI evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -72,4 +82,7 @@ jobs:
           path: |
             artifacts/gui-validation/environment.txt
             artifacts/gui-validation/起動確認.cs
+            artifacts/gui-validation/empty.cs
+            artifacts/gui-validation/boundary.cs
             artifacts/gui-validation/startup/
+            artifacts/gui-validation/readonly/

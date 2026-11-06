@@ -41,3 +41,13 @@ python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView.
 CIは環境、生成入力、20試行のJSON/ログ、SHA-256一覧をartifactへ14日保管する。製品DLL/apphostのハッシュはruns.json、製品コミットは各GUIレポートにも残す。期間内に原記録を取得・照合して記録へ保存する。失敗した環境を黙って別方式へ置き換えて合格にしない。
 
 [Windowsの初回取得結果](validation-results/2026-11-06-native-startup/README.md)は20試行すべて取得できたが、Main→Openedは全試行1秒超、同期本文接続も1回100 ms超だった。取得成功を性能目標達成とは扱わない。
+
+## 読み取り専用のコントロール結合試験
+
+同じ明示診断ビルドを、別プロセスの`CODEVIEW_GUI_READONLY_CHECKS=1`で実行する。自動操作は`GITHUB_ACTIONS=true`の専用CIセッションだけで許可し、通常起動や手元の利用者のクリップボードへ適用しない。専用セッションのClipboardへ生成文字列を書き、試験後に消去する。
+
+`GuiReadOnlyProbe`は通常の製品エディターへRouted TextInput/DropとコントロールのPaste/Delete/Cut/Undo/Redoを適用する。先頭・EOF・全選択の各8操作で、全文のUTF-16 SHA-256、文書同一性、タブ、Undo/Redo不変を確認する。非空文書はCopyからネイティブClipboardへ出した文字列も往復照合する。空文書のCopyは対象文字なしとして分ける。入力例は日本語/絵文字/CRLF、空、タブ/Unicodeを含む横に長い小ファイルの3条件で、各3プロセス実行する。
+
+先に別の編集可能なネイティブWindow/TextEditorで、同じRouted入力/Drop、ネイティブClipboard貼付、Delete、Undo/Redoによって本文が実際に変わることを確認する。PasteはTextPasted完了通知、CopyはClipboardの実値を期限付きで待ち、Main側へ戻ってフォーカスも確認する。対照が機能しない・行列欠落・不整合・期限切れは非0終了し、途中までのJSON/ログを残す。入力ファイルのバイトSHAも前後で一致する必要がある。
+
+この試験はネイティブUI/Clipboardを使うコントロール結合試験であり、OSのキー/マウスやIME、Explorer/Finderのドラッグ操作を注入したものではない。物理操作・メニューショートカット、macOS、ロード/失敗状態の包括受入、実配布物とP1-07全体は別途確認する。通常製品へ試験コード/タイマー/書込経路を追加しない。UI依存処理はこの実機構成で結合検証し、通常単体ではレポートの正常/異常/空/境界・欠落・対照の無効・期限と非CI拒否を検証する。

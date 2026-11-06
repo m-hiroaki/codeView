@@ -43,6 +43,9 @@ internal sealed class GuiPerformanceProbe
     private readonly bool _selectionProbe = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SELECTION") == "1";
     private readonly bool _holdAfterReport = Environment.GetEnvironmentVariable("CODEVIEW_GUI_HOLD_AFTER_REPORT") == "1";
     private readonly bool _interactive = Environment.GetEnvironmentVariable("CODEVIEW_GUI_INTERACTIVE") == "1";
+    private readonly bool _readOnlyChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_READONLY_CHECKS") == "1";
+    private Task _readOnlyWork = Task.CompletedTask;
+    private object? _readOnlyResults;
     private DocumentDisplaySlice? _interactiveSlice;
     private bool _interactiveAttached;
     private bool _renderingInteractive;
@@ -130,6 +133,10 @@ internal sealed class GuiPerformanceProbe
         if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_INTERACTIVE") == "1" &&
             (Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") != "1" || !hasInput))
             throw new ArgumentException("対話試作には有界表示と入力ファイルを指定してください。");
+        if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_READONLY_CHECKS") == "1" &&
+            (!hasInput || Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOWED") == "1" ||
+             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true"))
+            throw new ArgumentException("読み取り専用の自動操作は入力あり/通常表示/専用CIで実行してください。");
         var probe = _instance = new(window, editor, viewModel, output, hasInput);
         // This workload injects no input. Abort rather than mixing an interactive
         // selection/scroll operation with automatic document replacement.
@@ -207,7 +214,8 @@ internal sealed class GuiPerformanceProbe
 
     internal static bool HasInteractiveDocument => _instance is { _interactive: true, _displaySession: not null };
     internal static Task PendingCopyWork => _instance is { _copies: { } copies } probe
-        ? Task.WhenAll(copies.PendingWork, probe._copyObserver) : _retiredCopyWork;
+        ? Task.WhenAll(copies.PendingWork, probe._copyObserver, probe._readOnlyWork)
+        : _instance is { } active ? active._readOnlyWork : _retiredCopyWork;
 
     internal static bool TryRestoreOriginal(int line, int column)
     {
@@ -644,6 +652,11 @@ internal sealed class GuiPerformanceProbe
         {
             if (probe._finished || generation != probe._documentGeneration) return;
             probe._documentTwoTicksMilliseconds = Startup.Elapsed.TotalMilliseconds;
+            if (probe._readOnlyChecks)
+            {
+                probe._readOnlyWork = probe.RunReadOnlyChecksAsync();
+                return;
+            }
             if (probe._interactive)
             {
                 probe.AttachInteractive();
@@ -688,6 +701,20 @@ internal sealed class GuiPerformanceProbe
         });
     }
 
+    private async Task RunReadOnlyChecksAsync()
+    {
+        try
+        {
+            _readOnlyResults = await GuiReadOnlyProbe.RunAsync(_window, _editor, _viewModel, _sampling.Token);
+            Finish();
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine(error);
+            Finish("readonly-check-failed: " + error.Message);
+        }
+    }
+
     private void ApplyNavigationSelection(int step)
     {
         GuiNavigationPlan.Apply(_displaySession!, step);
@@ -723,7 +750,7 @@ internal sealed class GuiPerformanceProbe
         DetachInteractive();
         _copyUiRequest = null;
         _copies?.Dispose();
-        _retiredCopyWork = _copies is { } copies ? Task.WhenAll(copies.PendingWork, _copyObserver) : Task.CompletedTask;
+        _retiredCopyWork = _copies is { } copies ? Task.WhenAll(copies.PendingWork, _copyObserver, _readOnlyWork) : _readOnlyWork;
         _sampling.Cancel();
         // The sampler uses only worker continuations, never the UI SynchronizationContext.
         _sampler.GetAwaiter().GetResult();
@@ -738,7 +765,8 @@ internal sealed class GuiPerformanceProbe
         {
             FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
             ProductInformationalVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
-            Scenario = _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            Scenario = _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            ReadOnlyChecks = _readOnlyResults,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
