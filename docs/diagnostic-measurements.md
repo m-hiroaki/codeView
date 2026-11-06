@@ -86,3 +86,5 @@ python3 tools/measure_diagnostics.py --input /private/tmp/codeview-perf-v2-20261
 Windows CIではPowerShellから同じ引数を渡し、`--commit`に`$env:GITHUB_SHA`を使用する。取得ZIPは14日保管する。必要な環境・manifest・全操作JSON・CSV・解析JSON・原nettrace・各ログ・SHA-256は期限前に別途保存する。Windowsのメモリ指標はPrivateMemorySize64、macOSはphys_footprintなので、異なる指標を同じ絶対値として比較しない。収集成功はホスト型CIでの取得可否の確認であり、専用基準機・Cold・表示/入力・実機性能の合格ではない。
 
 [Windowsの確認結果](validation-results/2026-11-06-windows-diagnostics/README.md)では取得が成立した一方、既存GC予算に違反してワークフローが非0終了した。結果の取得可否と性能の合否を分けて読む。
+
+中間コピー削減の比較では、同一ランナーで変更前`f98f394`と現在のホストを別々にビルドし、同じ生成入力で順次収集する。baseline_refは手動実行時に変更可能で、通常は上記の固定コミットを使う。baselineのコア予算違反は失敗値のまま保存し、取得自体が成立した場合だけ現在版へ進む。現在版のコア失敗はワークフローも非0終了する。基準版が失敗したことと現在版の成功を混同しない。通常のBuild and testとは独立し、DocumentAdapter/コピー試験の変更でも明示収集を起動する。[比較結果](validation-results/2026-11-06-document-copy/README.md)。

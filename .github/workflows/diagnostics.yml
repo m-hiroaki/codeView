@@ -2,6 +2,11 @@ name: Diagnostic acquisition
 
 on:
   workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: Pre-copy-change baseline commit for the same-runner comparison
+        type: string
+        default: f98f3941c1b3b93af4a70c8c26df92097e17b3f7
   push:
     branches: [main]
     paths:
@@ -9,6 +14,8 @@ on:
       - tools/measure_diagnostics.py
       - tools/test_measure_diagnostics.py
       - tests/Diagnostics/CoreHost.cs.txt
+      - src/codeView/Documents/DocumentAdapter.cs
+      - tests/codeView.Tests/Documents/DocumentBuilderCopyTests.cs
 
 permissions:
   contents: read
@@ -25,6 +32,7 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_NOLOGO: 'true'
+      CODEVIEW_DIAGNOSTIC_BASELINE: ${{ inputs.baseline_ref || 'f98f3941c1b3b93af4a70c8c26df92097e17b3f7' }}
     defaults:
       run:
         shell: pwsh
@@ -38,6 +46,12 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      - name: Checkout comparison baseline
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.CODEVIEW_DIAGNOSTIC_BASELINE }}
+          path: artifacts/diagnostics-baseline-source
+          persist-credentials: false
       - name: Record environment
         run: |
           New-Item -ItemType Directory -Force artifacts/diagnostics | Out-Null
@@ -64,6 +78,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet build artifacts/diagnostics/TraceSummary.cs -c Release --output artifacts/diagnostics/reader
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build comparison baseline
+        run: |
+          $baselineRoot = "$env:GITHUB_WORKSPACE/artifacts/diagnostics-baseline-source"
+          $baselineCommit = git -C $baselineRoot rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $baselineCommit | Out-File artifacts/diagnostics/baseline-commit.txt
+          dotnet restore "$baselineRoot/codeView.slnx" --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force "$baselineRoot/artifacts/diagnostics" | Out-Null
+          Copy-Item "$baselineRoot/tests/Diagnostics/CoreHost.cs.txt" "$baselineRoot/artifacts/diagnostics/CoreHost.cs"
+          dotnet build "$baselineRoot/artifacts/diagnostics/CoreHost.cs" -c Release --output "$env:GITHUB_WORKSPACE/artifacts/diagnostics/baseline-host" -p:CodeViewPerformanceProbe=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Install fixed diagnostic tools
         run: |
           dotnet tool install dotnet-trace --tool-path artifacts/diagnostics-tools --version 10.0.750501
@@ -78,6 +104,14 @@ jobs:
         run: |
           python -m unittest discover -s tools -p test_measure_diagnostics.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $baselineCommit = (Get-Content artifacts/diagnostics/baseline-commit.txt -Raw).Trim()
+          python tools/measure_diagnostics.py --input artifacts/diagnostic-input/group-00000/source-0000000.cs --host artifacts/diagnostics/baseline-host/CoreHost.dll --reader artifacts/diagnostics/reader/TraceSummary.dll --tools artifacts/diagnostics-tools --output artifacts/diagnostics/windows-baseline --commit $baselineCommit
+          $baselineExit = $LASTEXITCODE
+          "Collector exit: $baselineExit" | Out-File artifacts/diagnostics/baseline-exit.txt
+          if (-not (Test-Path artifacts/diagnostics/windows-baseline/runs.json)) { exit 1 }
+          $baseline = Get-Content artifacts/diagnostics/windows-baseline/runs.json -Raw | ConvertFrom-Json
+          if (-not $baseline.acquisitionValidated) { exit 1 }
+          "Baseline core assertions passed: $($baseline.coreAssertionsPassed)" | Out-File artifacts/diagnostics/baseline-exit.txt -Append
           python tools/measure_diagnostics.py --input artifacts/diagnostic-input/group-00000/source-0000000.cs --host artifacts/diagnostics/host/CoreHost.dll --reader artifacts/diagnostics/reader/TraceSummary.dll --tools artifacts/diagnostics-tools --output artifacts/diagnostics/windows-acquisition --commit $env:GITHUB_SHA
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload diagnostic evidence
@@ -91,4 +125,7 @@ jobs:
             artifacts/diagnostics/environment.txt
             artifacts/diagnostics/tools.txt
             artifacts/diagnostics/input.manifest.json
+            artifacts/diagnostics/baseline-commit.txt
+            artifacts/diagnostics/baseline-exit.txt
+            artifacts/diagnostics/windows-baseline/
             artifacts/diagnostics/windows-acquisition/

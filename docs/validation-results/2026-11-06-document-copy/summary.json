@@ -1,0 +1,117 @@
+{
+  "sourceBaseCommit": "f98f3941c1b3b93af4a70c8c26df92097e17b3f7",
+  "candidateState": "Base plus source SHA below; no API/model/layer changes",
+  "productSourceSha256": "befd50041bf23490488980adc9f9a0696b017618ea93d4e133a0826dbeef4273",
+  "baselineSourceSha256": "9a3e66cf22c429fe287d9b28725fbc7a204ff3d615428e02c823f62f951e54e6",
+  "inputSha256": "82136e61e7b99fc1a7c5e26927af3ed3eeb5b6ae4824cd7344d2957a0428e0f8",
+  "binarySha256": {
+    "baseline": {
+      "CoreHost.dll": "2819c1725302be8a1c0e0d889725bad25db66fa4a931b3fde9591352964ee54a",
+      "codeView.dll": "4349dbac60e2d338daac19c661805ac8213581448be8b222edc3ade1302b6ce7",
+      "codeView.Tests.dll": "3174472d7b4f42a97326087b6ed0553bfe19375473b0ea0f2acac4dd99f1b156"
+    },
+    "candidate": {
+      "CoreHost.dll": "61f51c8ba23acbe730bc109a661fbdf2e96432773fc975327bd966d285a5d6cf",
+      "codeView.dll": "16ee9eaca3f94b2b46f1761328fb994b7340a5e97de603aeab80626b15440e9e",
+      "codeView.Tests.dll": "eb35ad964de2128987d157ef2050c84270126acbe032874ec122e98613810a7b"
+    }
+  },
+  "localMetrics": {
+    "baseline": {
+      "BuildMilliseconds": {
+        "medianOfTenOperationMeans": 401.15256,
+        "rangeOfTenOperationMeans": [
+          401.11631,
+          401.3435099999999
+        ]
+      },
+      "CpuMilliseconds": {
+        "medianOfTenOperationMeans": 462.5875,
+        "rangeOfTenOperationMeans": [
+          462.02790000000005,
+          462.8008
+        ]
+      },
+      "AllocatedBytes": {
+        "medianOfTenOperationMeans": 280395673.6,
+        "rangeOfTenOperationMeans": [
+          280395108.8,
+          280402201.6
+        ]
+      },
+      "GcPauseTotalMilliseconds": {
+        "medianOfTenOperationMeans": 83.48920000000001,
+        "rangeOfTenOperationMeans": [
+          81.4016,
+          83.5562
+        ]
+      },
+      "MemoryIncrease": {
+        "medianOfTenOperationMeans": 47194143.2,
+        "rangeOfTenOperationMeans": [
+          47033572.8,
+          47285888.8
+        ]
+      }
+    },
+    "candidate": {
+      "BuildMilliseconds": {
+        "medianOfTenOperationMeans": 425.4478399999999,
+        "rangeOfTenOperationMeans": [
+          425.11238000000003,
+          430.84797
+        ]
+      },
+      "CpuMilliseconds": {
+        "medianOfTenOperationMeans": 479.09940000000006,
+        "rangeOfTenOperationMeans": [
+          478.96099999999996,
+          484.9046
+        ]
+      },
+      "AllocatedBytes": {
+        "medianOfTenOperationMeans": 165815677.6,
+        "rangeOfTenOperationMeans": [
+          165805165.6,
+          165821573.6
+        ]
+      },
+      "GcPauseTotalMilliseconds": {
+        "medianOfTenOperationMeans": 78.59400000000001,
+        "rangeOfTenOperationMeans": [
+          78.0617,
+          78.62219999999999
+        ]
+      },
+      "MemoryIncrease": {
+        "medianOfTenOperationMeans": 47525097.6,
+        "rangeOfTenOperationMeans": [
+          47325215.2,
+          47549688.0
+        ]
+      }
+    }
+  },
+  "windows": "pending",
+  "localNormalTests": {
+    "total": "689",
+    "executed": "689",
+    "passed": "689",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "localTrxSha256": "06e4c526e55418d9bbf857c3cf292252c25f7f14e44b562951b79f77e2004d42",
+  "localPythonPassed": 57,
+  "compressedRunsSha256": "a41652fbc9bebb68e51500bcb637c20a475c1c497faadb8ea13aa0c3ddc04698"
+}
