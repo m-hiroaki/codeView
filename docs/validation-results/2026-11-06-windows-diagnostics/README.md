@@ -20,4 +20,21 @@ P0-04-03。[収集手順](../../diagnostic-measurements.md#windowsの取得確�
 
 初回`b8975f3`の[実行](https://github.com/m-hiroaki/codeView/actions/runs/42179181006)は、収集前のPython試験でパスの期待値を`/`に固定していたため失敗した。実際のWindows Pathは`space dir\\host.dll`であり、コマンド生成の問題ではなかった。期待値もPathから構築する形へ修正し、ワークフローを再実行する。実収集成功はこの失敗からは判断しない。
 
-実行結果を確認して追記する。ホスト型windows-2025は基準PCではない。メモリはWindows PrivateMemorySize64とmacOS phys_footprintを別指標として扱い、絶対量を同一視しない。原記録はActions artifact（14日保管）で取得する。CIでの収集成立と、専用機での性能受入・フレーム・Cold/物理I/O・LOH生成元は区別し、P0-04全体は未完了を維持する。
+## 最終結果（f6eae8f）
+
+[収集ワークフロー](https://github.com/m-hiroaki/codeView/actions/runs/42180488290)で8プロセス/80操作、4トレース、Counter 232行を取得し、`acquisitionValidated=true`を確認した。4トレースすべてEventsLost 0・GC対応エラー0。各20開始/終了マーカーと10 BudgetFailedマーカーの計30イベントが対応し、ホスト完了記録の失敗数とも一致した。入力SHAはmacOSと一致し、各実行後も不変。ZIPのGitHub digestと全収集ファイルのSHA-256も照合した。
+
+通常試験の[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42180488223)は成功（macOS .NET677/Python57、Windows .NET674+既存3スキップ/Python37+既存20スキップ）。収集器10ケースは両OSすべて成功した（`ci-normal.json`）。製品コード/予算は変更していない。
+
+収集先はWindows Server 2025 Datacenter 10.0.26100 / X64 / AMD EPYC 7763（CIM報告2 cores・4 logical processors）/可視メモリ約16 GiB、SDK 10.0.403/runtime 10.0.14。専用基準機ではない。ストレージ・表示条件・他負荷・オフライン受入は未確定。メモリ指標はPrivateMemorySize64で、macOS phys_footprintの絶対量と同一視しない。
+
+| 指標（各10操作の合計の3プロセス間中央値） | 通常 | gc-verbose | 差 |
+| --- | ---: | ---: | ---: |
+| 構築時間ms | 8,551.958 | 8,594.044 | +0.49% |
+| CPU ms | 10,843.750 | 11,078.125 | +2.16% |
+
+少数のホスト型CI観測であり、性能改善/一般的な計測負荷や他機材の合否へ外挿しない。**80操作すべてGC停止合計150 msの既存予算に違反**し、観測範囲は155.609–212.933 msだった。構築/メモリ/ReadLeaseの既存上限は取得JSONで満たしたが、`coreAssertionsPassed=false`を維持し、全収集後もワークフローは終了コード1（failure）とした。Counterツールは0終了でもホスト記録は失敗1であり、誤った成功判定を防げた。150 msは1操作の累積値で、トレース全区間の単独GC停止最大は各約17.999/17.832/20.038/17.408 msだった。単独停止と累積値、トレース全区間と操作内を混同しない。
+
+`windows-runs.json.gz`に全操作/完了記録/解析、`windows-files-sha256.json`に原記録のハッシュ、`windows-counters.csv`、`windows-environment.txt`、`windows-tools.txt`、`windows-input.manifest.json`を保存した。`summary.json`に取得ZIPのハッシュ/ID/限界を保存。原nettraceと各ログを含むZIPは`artifacts/diagnostics/windows-ci/host-record.zip`に保持し、Actions artifactでも14日保管する。
+
+P0-04-03は取得手順と負荷比較の確認として完了する。GC予算未達の原因/専用機での再評価はP2-01/P2-07・必要時A-01へ残す。フレーム・Cold/ファイル別物理I/O・LOH生成元・基準機と実UIの性能受入は未完了で、P0-04全体やG0/G1/G2は完了にしない。

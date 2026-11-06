@@ -67,7 +67,7 @@ dotnet artifacts/diagnostics/reader/TraceSummary.dll artifacts/diagnostics/new-r
 
 元のnettrace、Counter CSV、各コアJSON、解析結果、コマンド・ハッシュを保存する。Counter CSVの時刻は今回JSTで、トレース内の相対ミリ秒とは別の軸である。GUIとの相関はUI側の時刻/イベント接続まで確認してから判断する。
 
-計測負荷は計測なしと同じ入力・同じ回数の別プロセスで比較する。コアのCPU/時間/GC/割当/footprintと、外部ツールの起動終了を含むコマンド全体時間を分ける。今回の比較から、別機材・別処理・WindowsやGUIの負荷を推定しない。フレーム、物理I/O、Windowsの診断接続、LOH生成元の解析が残るため、P0-04全体は未完了を維持する。
+計測負荷は計測なしと同じ入力・同じ回数の別プロセスで比較する。コアのCPU/時間/GC/割当/footprintと、外部ツールの起動終了を含むコマンド全体時間を分ける。今回のmacOS比較から、別機材・別処理・WindowsやGUIの負荷を推定しない。フレーム、ファイル別物理I/O、専用基準機での診断/負荷確認、LOH生成元の解析が残るため、P0-04全体は未完了を維持する。
 
 ## Windowsの取得確認
 
@@ -84,3 +84,5 @@ python3 tools/measure_diagnostics.py --input /private/tmp/codeview-perf-v2-20261
 ```
 
 Windows CIではPowerShellから同じ引数を渡し、`--commit`に`$env:GITHUB_SHA`を使用する。取得ZIPは14日保管する。必要な環境・manifest・全操作JSON・CSV・解析JSON・原nettrace・各ログ・SHA-256は期限前に別途保存する。Windowsのメモリ指標はPrivateMemorySize64、macOSはphys_footprintなので、異なる指標を同じ絶対値として比較しない。収集成功はホスト型CIでの取得可否の確認であり、専用基準機・Cold・表示/入力・実機性能の合格ではない。
+
+[Windowsの確認結果](validation-results/2026-11-06-windows-diagnostics/README.md)では取得が成立した一方、既存GC予算に違反してワークフローが非0終了した。結果の取得可否と性能の合否を分けて読む。

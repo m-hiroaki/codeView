@@ -21,7 +21,56 @@
     },
     "pythonTestsPassed": 57
   },
-  "windows": "pending",
+  "windows": {
+    "commit": "f6eae8ffa4f785affb95ec290658b79416a7ec5c",
+    "runId": 42180488290,
+    "jobId": 127768702628,
+    "artifactId": 13484564830,
+    "artifactZipSha256": "e128b60fb032b1990e408f751e96e5aaef549c3138d93dbfba91887d301f841f",
+    "workflowConclusion": "failure",
+    "acquisitionValidated": true,
+    "coreAssertionsPassed": false,
+    "operations": 80,
+    "traces": 4,
+    "eventsLost": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "markersPerTrace": [
+      30,
+      30,
+      30,
+      30
+    ],
+    "counterRows": 232,
+    "coreAssertionFailures": 80,
+    "counterToolExitCode": 0,
+    "counterReportedHostExitCode": 1,
+    "metrics": {
+      "baseline": {
+        "buildMedianSumMs": 8551.958200000001,
+        "cpuMedianSumMs": 10843.75,
+        "gcPauseRangeMs": [
+          155.609,
+          212.933
+        ],
+        "coreAssertionFailures": 30
+      },
+      "gc-verbose": {
+        "buildMedianSumMs": 8594.0437,
+        "cpuMedianSumMs": 11078.125,
+        "gcPauseRangeMs": [
+          157.215,
+          202.398
+        ],
+        "coreAssertionFailures": 30
+      }
+    },
+    "compressedReportSha256": "57c996e6ea15d381fee11255bdd0528feeac11ac1f37694f6852423d87b7d067",
+    "rawEvidenceLocalPath": "artifacts/diagnostics/windows-ci/host-record.zip"
+  },
   "limits": [
     "Hosted CI acquisition, not reference PC product performance",
     "No GUI, physical I/O or LOH allocation stacks",

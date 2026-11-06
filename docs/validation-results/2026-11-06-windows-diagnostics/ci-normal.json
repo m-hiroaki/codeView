@@ -1,0 +1,45 @@
+{
+  "commit": "f6eae8ffa4f785affb95ec290658b79416a7ec5c",
+  "runId": 42180488223,
+  "url": "https://github.com/m-hiroaki/codeView/actions/runs/42180488223",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "os": "windows-2025",
+      "jobId": 127768702591,
+      "summary": [
+        "2026-11-06T07:24:22.6555302Z Passed!  - Failed:     0, Passed:   674, Skipped:     3, Total:   677, Duration: 8 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T07:24:35.8389424Z test_assertion_failure_is_retained_inside_its_round (test_measure_diagnostics.DiagnosticTests.test_assertion_failure_is_retained_inside_its_round) ... ok",
+        "2026-11-06T07:24:35.8401602Z test_commands_quote_with_argument_lists_and_select_os_executable (test_measure_diagnostics.DiagnosticTests.test_commands_quote_with_argument_lists_and_select_os_executable) ... ok",
+        "2026-11-06T07:24:38.1634582Z test_core_failure_collects_all_modes_and_finishes_nonzero_with_evidence (test_measure_diagnostics.DiagnosticTests.test_core_failure_collects_all_modes_and_finishes_nonzero_with_evidence) ... ok",
+        "2026-11-06T07:24:38.1652744Z test_counter_csv_accepts_bom_but_rejects_empty_or_wrong_schema (test_measure_diagnostics.DiagnosticTests.test_counter_csv_accepts_bom_but_rejects_empty_or_wrong_schema) ... ok",
+        "2026-11-06T07:24:38.1744862Z test_hash_streams_empty_and_multiple_blocks_on_supported_python (test_measure_diagnostics.DiagnosticTests.test_hash_streams_empty_and_multiple_blocks_on_supported_python) ... ok",
+        "2026-11-06T07:24:38.1747373Z test_report_identity_and_counts_are_required (test_measure_diagnostics.DiagnosticTests.test_report_identity_and_counts_are_required) ... ok",
+        "2026-11-06T07:24:38.1749084Z test_trace_accepts_ten_paired_rounds (test_measure_diagnostics.DiagnosticTests.test_trace_accepts_ten_paired_rounds) ... ok",
+        "2026-11-06T07:24:38.1750820Z test_trace_rejects_incomplete_or_duplicate_or_wrong_markers (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_incomplete_or_duplicate_or_wrong_markers) ... ok",
+        "2026-11-06T07:24:38.1752418Z test_trace_rejects_loss_or_unmatched_gc (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_loss_or_unmatched_gc) ... ok",
+        "2026-11-06T07:24:38.1753689Z test_trace_rejects_missing_gc_or_negative_interval (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_missing_gc_or_negative_interval) ... ok",
+        "2026-11-06T07:24:38.1771149Z Ran 57 tests in 14.324s",
+        "2026-11-06T07:24:38.1771514Z OK (skipped=20)"
+      ]
+    },
+    {
+      "os": "macos-15",
+      "jobId": 127768702812,
+      "summary": [
+        "2026-11-06T07:23:41.5767340Z Passed!  - Failed:     0, Passed:   677, Skipped:     0, Total:   677, Duration: 8 s - codeView.Tests.dll (net10.0)",
+        "2026-11-06T07:23:47.0905540Z test_assertion_failure_is_retained_inside_its_round (test_measure_diagnostics.DiagnosticTests.test_assertion_failure_is_retained_inside_its_round) ... ok",
+        "2026-11-06T07:23:47.1010140Z test_commands_quote_with_argument_lists_and_select_os_executable (test_measure_diagnostics.DiagnosticTests.test_commands_quote_with_argument_lists_and_select_os_executable) ... ok",
+        "2026-11-06T07:23:47.4854590Z test_core_failure_collects_all_modes_and_finishes_nonzero_with_evidence (test_measure_diagnostics.DiagnosticTests.test_core_failure_collects_all_modes_and_finishes_nonzero_with_evidence) ... ok",
+        "2026-11-06T07:23:47.4883880Z test_counter_csv_accepts_bom_but_rejects_empty_or_wrong_schema (test_measure_diagnostics.DiagnosticTests.test_counter_csv_accepts_bom_but_rejects_empty_or_wrong_schema) ... ok",
+        "2026-11-06T07:23:47.4960170Z test_hash_streams_empty_and_multiple_blocks_on_supported_python (test_measure_diagnostics.DiagnosticTests.test_hash_streams_empty_and_multiple_blocks_on_supported_python) ... ok",
+        "2026-11-06T07:23:47.4984320Z test_report_identity_and_counts_are_required (test_measure_diagnostics.DiagnosticTests.test_report_identity_and_counts_are_required) ... ok",
+        "2026-11-06T07:23:47.4987410Z test_trace_accepts_ten_paired_rounds (test_measure_diagnostics.DiagnosticTests.test_trace_accepts_ten_paired_rounds) ... ok",
+        "2026-11-06T07:23:47.4989870Z test_trace_rejects_incomplete_or_duplicate_or_wrong_markers (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_incomplete_or_duplicate_or_wrong_markers) ... ok",
+        "2026-11-06T07:23:47.4991490Z test_trace_rejects_loss_or_unmatched_gc (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_loss_or_unmatched_gc) ... ok",
+        "2026-11-06T07:23:47.4993330Z test_trace_rejects_missing_gc_or_negative_interval (test_measure_diagnostics.DiagnosticTests.test_trace_rejects_missing_gc_or_negative_interval) ... ok",
+        "2026-11-06T07:23:49.4653230Z Ran 57 tests in 7.412s"
+      ]
+    }
+  ]
+}
