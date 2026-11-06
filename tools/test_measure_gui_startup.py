@@ -1,4 +1,5 @@
 import contextlib
+import copy
 import io
 import json
 from pathlib import Path
@@ -8,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from measure_gui_startup import collect, expected_text, validate_report
+from measure_gui_startup import STARTUP_STAGES, collect, expected_text, validate_report
 
 
 class GuiStartupTests(unittest.TestCase):
@@ -18,6 +19,8 @@ class GuiStartupTests(unittest.TestCase):
                 "EditorReadOnly": True, "TextDragDropEnabled": False, "UndoCanUndo": False, "UndoCanRedo": False,
                 "Os": "Microsoft Windows test", "OpenedMilliseconds": 20, "WindowTwoTicksMilliseconds": 40,
                 "ClientWidth": 1180, "ClientHeight": 800, "RenderScaling": 1, "CpuMilliseconds": 100,
+                "StartupStages": [{"Stage": stage, "Milliseconds": i * 20 / (len(STARTUP_STAGES) - 1)}
+                                  for i, stage in enumerate(STARTUP_STAGES)],
                 "DocumentChars": 5 if scenario == "file" else None,
                 "DocumentLines": 2 if scenario == "file" else None,
                 "DocumentTwoTicksMilliseconds": 60 if scenario == "file" else None,
@@ -51,6 +54,20 @@ class GuiStartupTests(unittest.TestCase):
             report = self.report("file"); report[key] = value
             with self.assertRaises(ValueError):
                 validate_report(report, "file", 5, 2, "a" * 40, "windows")
+
+    def test_startup_timeline_rejects_missing_duplicate_out_of_order_and_invalid_times(self):
+        cases = [None, [], self.report('empty')['StartupStages'][:-1]]
+        for index, key, value in [(1, 'Stage', 'main-entered'), (2, 'Milliseconds', -1),
+                                  (2, 'Milliseconds', float('nan')), (2, 'Milliseconds', True),
+                                  (2, 'Milliseconds', 0), (0, 'Milliseconds', 1),
+                                  (11, 'Milliseconds', 21)]:
+            stages = copy.deepcopy(self.report('empty')['StartupStages'])
+            stages[index][key] = value
+            cases.append(stages)
+        for stages in cases:
+            with self.subTest(stages=stages), self.assertRaises(ValueError):
+                report = self.report('empty'); report['StartupStages'] = stages
+                validate_report(report, 'empty', 5, 2, 'a' * 40, 'windows')
 
     def test_incomplete_file_or_unexpected_empty_workload_is_rejected(self):
         for key, value in (("DocumentChars", 4), ("DocumentLines", 1), ("ScrollSynchronousMilliseconds", [1] * 63),

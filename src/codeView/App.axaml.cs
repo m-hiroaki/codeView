@@ -13,12 +13,21 @@ internal sealed partial class App : Application
 {
     public override void Initialize()
     {
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("app-initialize-start");
+#endif
         Name = "codeView";
         AvaloniaXamlLoader.Load(this);
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("app-initialize-end");
+#endif
     }
 
     public override void OnFrameworkInitializationCompleted()
     {
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("framework-start");
+#endif
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var source = new SourceAccess();
@@ -28,5 +37,8 @@ internal sealed partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("framework-end");
+#endif
     }
 }

@@ -9,6 +9,11 @@ import re
 import subprocess
 import time
 
+STARTUP_STAGES = (
+    "main-entered", "builder-configured", "app-initialize-start", "app-initialize-end",
+    "framework-start", "window-constructor-start", "window-xaml-loaded",
+    "probe-attach-start", "probe-attach-end", "window-constructor-end", "framework-end", "window-opened")
+
 
 def sha256(path):
     value = hashlib.sha256()
@@ -50,6 +55,17 @@ def validate_report(report, scenario, characters, lines, commit, expected_os):
         raise ValueError("Native window has no client area/scaling")
     if report["WindowTwoTicksMilliseconds"] < report["OpenedMilliseconds"]:
         raise ValueError("Animation callbacks precede Opened")
+    stages = report.get("StartupStages")
+    if not isinstance(stages, list) or len(stages) != len(STARTUP_STAGES):
+        raise ValueError("Incomplete startup timeline")
+    previous = 0
+    for expected, sample in zip(STARTUP_STAGES, stages):
+        if (not isinstance(sample, dict) or sample.get("Stage") != expected
+                or not nonnegative(sample.get("Milliseconds")) or sample["Milliseconds"] < previous):
+            raise ValueError("Invalid startup checkpoint/order")
+        previous = sample["Milliseconds"]
+    if stages[0]["Milliseconds"] != 0 or previous != report["OpenedMilliseconds"]:
+        raise ValueError("Startup timeline does not span Main to Opened")
     scrolls = report["ScrollSynchronousMilliseconds"]
     ticks = report["AnimationTickIntervalsMilliseconds"]
     if scenario == "file":

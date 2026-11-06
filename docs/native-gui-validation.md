@@ -20,8 +20,19 @@ P1-09の取得確認と、後続のP1-07の実操作検証に使う。[Native GU
 | DocumentTwoTicksMilliseconds | 本文接続後の2通知到達。実キーを受け付ける時刻の証明ではない |
 | ScrollSynchronousMilliseconds / AnimationTickIntervalsMilliseconds | 64回の明示スクロール同期処理/通知間隔。物理スクロールやフレーム提示の計測ではない |
 | wholeProcessSeconds | Pythonのプロセス生成→終了待機。64回のスクロールと終了処理も含むため起動時間として使わない |
+| StartupStages | Main→Openedの12時刻。UI基盤/アプリXAML/ウィンドウXAML/計測器Attach/表示開始までの区間を分ける。診断ビルドだけに含める |
 
 定義は[既存GUI計測条件](performance-plan.md#6-ネイティブguiの代理指標の測定)に従う。ホスト型CIは基準PCではなく、表示アダプターの情報が取れても物理60 Hz/Retina/入力応答を受け入れたことにしない。1秒の実起動目標、通常配布物、両OS実機10回、GUIの実操作、G1の合格は別途検証する。
+
+### 起動段階の切り分け
+
+診断ビルドだけで、main-entered、builder-configured、app-initialize-start/end、framework-start、window-constructor-start、window-xaml-loaded、probe-attach-start/end、window-constructor-end、framework-end、window-openedの12時刻を固定順で取得する。隣接差分の総和がMain→Openedとなり、最後の値はOpenedMillisecondsと一致する。
+
+app-initialize-start/endはアプリのXAML/テーマ読込、window-constructor-start→window-xaml-loadedはウィンドウXAML読込、probe-attach-start/endは既存計測器の生成を含む。framework-end→window-openedは構築後からネイティブウィンドウのOpenedまでで、スタイル/レイアウト/表示準備などを区別せず含む。builder-configured→app-initialize-startも単一のUI基盤処理やI/Oではなく、その区間のJIT/型初期化を含む。呼出し先の最初の命令より前に起きるJITは前区間へ入るため、段階の差分だけで個々の関数のCPU原因を断定しない。
+
+StartupTimelineは12件までの有界保持とし、欠落/重複/順序/逆行/非数値を単体・収集器で拒否する。失敗途中のレポートは元の失敗を隠さないため、タイムラインの途中状態も保存できる。成功レポートには全12件が必須である。新形式の再検証には対応するコミットの収集器を使う。
+
+時刻追加の呼出しと型はCodeViewPerformanceProbe条件内だけにあり、通常製品の起動経路へ追加しない。明示診断ビルドでは時刻取得/少量の割当が増える。以前の別ホストとの数値差を負荷や改善の証明には使わず、必要なら同一ホストの別対照で負荷を評価する。この取得だけで起動予算未達を是正済みにはしない。
 
 ## 手元での実行例
 

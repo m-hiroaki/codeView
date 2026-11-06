@@ -20,8 +20,14 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow(MainWindowViewModel viewModel, string[] args)
     {
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("window-constructor-start");
+#endif
         _viewModel = viewModel;
         AvaloniaXamlLoader.Load(this);
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("window-xaml-loaded");
+#endif
         DataContext = viewModel;
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
@@ -67,7 +73,9 @@ internal sealed partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, FileDragOver, RoutingStrategies.Bubble, handledEventsToo: true);
         AddHandler(DragDrop.DropEvent, FileDropped, RoutingStrategies.Bubble, handledEventsToo: true);
 #if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("probe-attach-start");
         GuiPerformanceProbe.Attach(this, editor, viewModel, args.Length > 0);
+        GuiPerformanceProbe.Checkpoint("probe-attach-end");
 #endif
         editor.TextArea.Caret.PositionChanged += (_, _) => viewModel.SetPosition(editor.TextArea.Caret.Line, editor.TextArea.Caret.Column);
         editor.TextArea.TextView.ScrollOffsetChanged += (_, _) =>
@@ -141,6 +149,9 @@ internal sealed partial class MainWindow : Window
             _allowClose = true;
             Dispatcher.UIThread.Post(Close);
         };
+#if CODEVIEW_PERFORMANCE_PROBE
+        GuiPerformanceProbe.Checkpoint("window-constructor-end");
+#endif
     }
 
     internal static async Task StopAndWaitAsync(Action stop, Func<Task> getPending, Action markFailed,

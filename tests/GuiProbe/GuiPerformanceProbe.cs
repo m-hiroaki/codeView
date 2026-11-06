@@ -22,6 +22,7 @@ namespace CodeView.Presentation;
 internal sealed class GuiPerformanceProbe
 {
     private static readonly Stopwatch Startup = new();
+    private static readonly StartupTimeline StartupStages = new();
     private static GuiPerformanceProbe? _instance;
     private static Task _retiredCopyWork = Task.CompletedTask;
     private readonly Window _window;
@@ -119,7 +120,18 @@ internal sealed class GuiPerformanceProbe
         });
     }
 
-    internal static void Start() => Startup.Start();
+    internal static void Start()
+    {
+        Startup.Start();
+        StartupStages.Record("main-entered", 0);
+    }
+
+    internal static double Checkpoint(string stage)
+    {
+        var milliseconds = Startup.Elapsed.TotalMilliseconds;
+        StartupStages.Record(stage, milliseconds);
+        return milliseconds;
+    }
 
     internal static void Attach(Window window, TextEditor editor, MainWindowViewModel viewModel, bool hasInput)
     {
@@ -160,7 +172,7 @@ internal sealed class GuiPerformanceProbe
         window.Closed += (_, _) => Phase("window-closed");
         window.Opened += (_, _) =>
         {
-            probe._openedMilliseconds = Startup.Elapsed.TotalMilliseconds;
+            probe._openedMilliseconds = Checkpoint("window-opened");
             Phase("window-opened");
             window.RequestAnimationFrame(_ => window.RequestAnimationFrame(_ =>
             {
@@ -775,6 +787,7 @@ internal sealed class GuiPerformanceProbe
             SourceLineCount = _sourceDocument?.LineCount, DisplayLineCount = _editor.Document?.LineCount,
             ViewportSamples = _viewportSamples,
             OpenedMilliseconds = _openedMilliseconds, WindowTwoTicksMilliseconds = _emptyWindowTwoTicksMilliseconds,
+            StartupStages = StartupStages.Snapshot(),
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,
             DocumentChars = _editor.Document?.TextLength, DocumentLines = _editor.Document?.LineCount,

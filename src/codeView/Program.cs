@@ -17,8 +17,12 @@ internal static class Program
     {
 #if CODEVIEW_PERFORMANCE_PROBE
         Presentation.GuiPerformanceProbe.Start();
-#endif
+        var builder = BuildAvaloniaApp();
+        Presentation.GuiPerformanceProbe.Checkpoint("builder-configured");
+        var result = builder.StartWithClassicDesktopLifetime(args);
+#else
         var result = BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+#endif
         return ExitStatus.Resolve(result != 0 ? result : Environment.ExitCode);
     }
 
