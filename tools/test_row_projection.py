@@ -4,13 +4,13 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from check_row_projection import fixture, validate_report
+from check_row_projection import SCROLL_CHECKS, fixture, validate_report
 
 
 class RowProjectionEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.commit = 'a' * 40
-        self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body'}
+        self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body', 'maximumLineLength': 3}
         checks = ['routed-document-end', 'end-caret-projected', 'routed-document-start', 'routed-shift-selection',
                   'routed-select-all-original', 'native-selection-excludes-synthetic-lf', 'selection-spans-exclude-separators',
                   'offscreen-caret-stays-independent', 'selection-background-rendered', 'next-input-reveals-source-caret',
@@ -22,7 +22,8 @@ class RowProjectionEvidenceTests(unittest.TestCase):
                        'Scenario': 'native-interactive-bounded-candidate', 'DisplayMode': 'bounded-window-prototype',
                        'ProductInformationalVersion': '1.0+' + self.commit, 'Os': 'macOS test',
                        'RowProjectionChecks': {'Checks': checks, 'SourceSha256': 'body', 'Utf16Characters': 4,
-                                               'SourceLineCount': 2, 'ScrollSteps': 64},
+                                               'SourceLineCount': 2, 'ScrollSteps': 64,
+                                               'ScrollChecks': sorted(SCROLL_CHECKS), 'MaximumLineLength': 3},
                        'SourceChars': 4, 'SourceLines': 2, 'ConfiguredWindowChars': 16384, 'EditorReadOnly': True,
                        'UndoCanUndo': False, 'ClipboardVerificationChecks': 1, 'ClipboardVerificationFailures': 0,
                        'ScrollSynchronousMilliseconds': [1.] * 64, 'AnimationTickIntervalsMilliseconds': [16.] * 64,
@@ -68,10 +69,10 @@ class RowProjectionEvidenceTests(unittest.TestCase):
                 self.validate(report)
 
     def test_empty_fixture_requires_no_fake_clipboard_copy(self):
-        self.expected.update(characters=0, lines=1)
+        self.expected.update(characters=0, lines=1, maximumLineLength=0)
         self.report.update(SourceChars=0, SourceLines=1, ClipboardVerificationChecks=0)
         result = self.report['RowProjectionChecks']
-        result.update(Utf16Characters=0, SourceLineCount=1)
+        result.update(Utf16Characters=0, SourceLineCount=1, MaximumLineLength=0)
         result['Checks'].remove('native-clipboard-original-count')
         self.validate()
 
@@ -83,10 +84,20 @@ class RowProjectionEvidenceTests(unittest.TestCase):
             result = fixture(path)
             self.assertEqual(result['characters'], 9)
             self.assertEqual(result['lines'], 4)
+            self.assertEqual(result['maximumLineLength'], 3)
             self.assertEqual(result['bodySha256'], hashlib.sha256(body.encode('utf-16-le')).hexdigest())
             path.write_bytes(b'\xff')
             with self.assertRaises(UnicodeError):
                 fixture(path)
+
+    def test_rejects_incomplete_scroll_capture_or_wrong_extent_evidence(self):
+        for field, value in [('ScrollChecks', sorted(SCROLL_CHECKS)[:-1]),
+                             ('ScrollChecks', sorted(SCROLL_CHECKS) + ['routed-pointer-captured']),
+                             ('MaximumLineLength', 4)]:
+            report = copy.deepcopy(self.report)
+            report['RowProjectionChecks'][field] = value
+            with self.assertRaises(ValueError):
+                self.validate(report)
 
 
 if __name__ == '__main__':

@@ -19,6 +19,7 @@ internal sealed partial class GuiPerformanceProbe
     private readonly List<object> _rowSamples = [];
     private object? _rowResults;
     private KeyEventArgs? _scriptedRowKey;
+    private PointerEventArgs? _scriptedRowPointer;
     private int _rowCount;
     private bool _sawClippedRow;
     private const int RowColumns = 512;
@@ -47,10 +48,12 @@ internal sealed partial class GuiPerformanceProbe
         var lines = RequestedRowCount();
         // Use the full row budget even at EOF: RevealCaret can move the first row back.
         _displaySession!.RevealCaret(lines, Math.Max(2, Math.Min(RowColumns, (_windowChars - lines + 1) / lines) - 2));
+        _revealRowsPending = true;
     }
 
     private TextDocument BuildRowDocument(bool reveal)
     {
+        InstallSourceScrollBars();
         if (reveal) RevealRowCaret();
         _rowCount = RequestedRowCount();
         _interactiveRows = _displaySession!.CreateRowProjection(_rowCount, RowColumns, _windowChars);
@@ -83,17 +86,16 @@ internal sealed partial class GuiPerformanceProbe
             _editor.TextArea.Caret.CaretBrush = Brushes.Transparent;
             if (selection!.CaretOffset is { } caret) _editor.CaretOffset = caret;
             _rowRenderer!.Apply(_editor.Document, _interactiveRows!, selection);
-            if (selection.CaretOffset.HasValue)
-            {
-                _editor.TextArea.TextView.EnsureVisualLines();
-                _editor.TextArea.Caret.BringCaretToView();
-            }
+            KeepRowCaretPhysicallyVisible();
+            SyncSourceScrollBars();
+            if (!source.TryGetRowSelection(_interactiveRows!, out selection))
+                throw new InvalidOperationException("再表示後の行投影が失効しました。");
             _viewModel.SetPosition(1, 1);
             if (_rowSamples.Count < 256)
                 _rowSamples.Add(new { source.FirstVisibleLine, source.HorizontalSourceOffset,
                     source.Anchor, source.Caret, DisplayChars = _interactiveRows!.Text.Length,
                     DisplayRows = _interactiveRows.Rows.Length, _interactiveRows.EffectiveColumns,
-                    CaretVisible = selection.CaretOffset.HasValue, Spans = selection.Spans.ToArray() });
+                    CaretVisible = selection!.CaretOffset.HasValue, Spans = selection.Spans.ToArray() });
         }
         finally { _renderingInteractive = false; }
     }
@@ -103,6 +105,8 @@ internal sealed partial class GuiPerformanceProbe
         _interactiveRows = null;
         _rowRenderer?.Clear();
         _rowMargin?.Clear();
+        _rowWheel.Reset();
+        _revealRowsPending = false;
     }
 
     private bool BeginRowPointer(int offset, long id, bool extend, bool wholeLine) =>
@@ -123,13 +127,8 @@ internal sealed partial class GuiPerformanceProbe
         args.Handled = true;
         if (_finished || _displaySession is null) return;
         CancelPointerSelection();
-        var shift = args.KeyModifiers.HasFlag(KeyModifiers.Shift);
-        var vertical = shift ? 0 : args.Delta.Y;
-        var horizontal = args.Delta.X + (shift ? args.Delta.Y : 0);
-        if (!double.IsFinite(vertical) || !double.IsFinite(horizontal)) return;
-        _displaySession.ScrollViewport(-(long)Math.Clamp(Math.Round(vertical * 3), -512, 512),
-            -(long)Math.Clamp(Math.Round(horizontal * 16), -4096, 4096));
-        RenderInteractive(); // Explicitly no RevealCaret: browsing preserves original anchor/caret.
+        var delta = _rowWheel.Consume(args.Delta.X, args.Delta.Y, args.KeyModifiers.HasFlag(KeyModifiers.Shift));
+        if (delta.Lines != 0 || delta.Columns != 0) ScrollRows(delta.Lines, delta.Columns);
     }
 }
 

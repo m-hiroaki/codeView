@@ -37,9 +37,13 @@ internal sealed class DocumentBuilder : IDisposable
         VerifyOwner();
         var document = _document ?? throw new ObjectDisposedException(nameof(DocumentBuilder));
         document.UndoStack.ClearAll();
+        var maximumLineLength = 0;
+        // Reuse the completed line index on the builder's worker. No text scan or UI traversal.
+        for (var line = document.GetLineByNumber(1); line is not null; line = line.NextLine)
+            maximumLineLength = Math.Max(maximumLineLength, line.Length);
         document.SetOwnerThread(null!);
         _document = null;
-        return new DocumentHandle(document);
+        return new DocumentHandle(document, maximumLineLength);
     }
 
     public void Dispose() => _document = null;
@@ -57,14 +61,16 @@ internal sealed class DocumentHandle : IDisposable
     private int _readLeases;
     private readonly object _gate = new();
 
-    internal DocumentHandle(TextDocument document)
+    internal DocumentHandle(TextDocument document, int maximumLineLength)
     {
         _document = document;
         // CreateSnapshot is documented thread-safe even after ownership is released.
         Length = document.CreateSnapshot().TextLength;
+        MaximumLineLength = maximumLineLength;
     }
 
     public long Length { get; }
+    public int MaximumLineLength { get; }
     public int ActiveReadLeases => Volatile.Read(ref _readLeases);
     public bool IsReleased { get { lock (_gate) return _document is null; } }
 

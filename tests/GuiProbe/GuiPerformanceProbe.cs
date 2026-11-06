@@ -107,6 +107,7 @@ internal sealed partial class GuiPerformanceProbe
             _sourceLineNumbers.SetValue(TextBlock.ForegroundProperty, original.GetValue(TextBlock.ForegroundProperty));
             margins[margins.IndexOf(original)] = _sourceLineNumbers;
         }
+        if (_rowsEnabled) InstallSourceScrollBars(); // Reparent before any full source is attached to bindings.
         _memoryBefore = _peakMemory = _memory.ReadBytes();
         _sampler = Task.Run(async () =>
         {
@@ -164,7 +165,8 @@ internal sealed partial class GuiPerformanceProbe
         void InterruptForInput(object? sender, RoutedEventArgs args)
         {
             if (probe._finished || (probe._interactive && !probe._rowChecks) ||
-                ReferenceEquals(args, probe._scriptedSearchKey) || ReferenceEquals(args, probe._scriptedRowKey)) return;
+                ReferenceEquals(args, probe._scriptedSearchKey) || ReferenceEquals(args, probe._scriptedRowKey) ||
+                ReferenceEquals(args, probe._scriptedRowPointer)) return;
             args.Handled = true;
             if (probe._inputInterrupted) return;
             probe._inputInterrupted = true;
@@ -247,8 +249,8 @@ internal sealed partial class GuiPerformanceProbe
         if (_instance is not { _interactive: true, _displaySession: { } session } probe) return false;
         session.MoveToPosition(new(line, column));
         probe._interactiveSlice = null;
-        if (probe._rowsEnabled) probe.RevealRowCaret();
         probe.ClearRowProjection();
+        if (probe._rowsEnabled) probe.RevealRowCaret();
         probe.RenderInteractive();
         return true;
     }
@@ -274,6 +276,7 @@ internal sealed partial class GuiPerformanceProbe
         probe._interactiveSlice = null;
         probe.ClearRowProjection();
         probe._sourceLineNumbers?.Clear();
+        if (probe._rowsEnabled) probe.SyncSourceScrollBars();
         probe._editor.Document = null!;
         probe._documentGeneration++;
     }

@@ -10,6 +10,12 @@ import subprocess
 
 from measure_gui_startup import sha256
 
+SCROLL_CHECKS = {"source-scrollbar-extents", "source-scrollbar-last-position", "scrollbar-preserves-source-selection",
+                 "scrollbar-preserves-original-copy", "sub-unit-wheel-retained", "routed-trackpad-accumulation",
+                 "routed-shift-wheel-horizontal", "routed-diagonal-wheel", "wheel-preserves-source-selection",
+                 "routed-pointer-captured", "routed-pointer-selects-original", "routed-edge-timer", "routed-pointer-release",
+                 "routed-capture-loss", "replacement-detaches-capture", "reattach-single-owner", "source-caret-rectangle-visible"}
+
 
 def fixture(path):
     data = path.read_bytes()
@@ -18,7 +24,8 @@ def fixture(path):
     text = data.decode("utf-8-sig", errors="strict")
     raw = text.encode("utf-16-le")
     return {"path": str(path), "inputSha256": sha256(path), "bodySha256": hashlib.sha256(raw).hexdigest(),
-            "characters": len(raw) // 2, "lines": 1 + len(re.findall(r"\r\n|\r|\n", text))}
+            "characters": len(raw) // 2, "lines": 1 + len(re.findall(r"\r\n|\r|\n", text)),
+            "maximumLineLength": max(len(line.encode("utf-16-le")) // 2 for line in re.split(r"\r\n|\r|\n", text))}
 
 
 def validate_report(report, expected, commit, expected_os):
@@ -30,6 +37,10 @@ def validate_report(report, expected, commit, expected_os):
             or not report.get("Os", "").startswith({"windows": "Microsoft Windows", "macos": "macOS"}[expected_os])):
         raise ValueError("Wrong build/OS/mode or interrupted/failed native run")
     checks = report.get("RowProjectionChecks") or {}
+    scroll_checks = checks.get("ScrollChecks", [])
+    if (set(scroll_checks) != SCROLL_CHECKS or len(scroll_checks) != len(SCROLL_CHECKS)
+            or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
+        raise ValueError("Source scrollbar, wheel/pointer or line extent evidence incomplete")
     names = checks.get("Checks", [])
     required = {"routed-document-end", "end-caret-projected", "routed-document-start", "routed-shift-selection",
                 "routed-select-all-original", "native-selection-excludes-synthetic-lf", "selection-spans-exclude-separators",

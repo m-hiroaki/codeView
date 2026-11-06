@@ -58,6 +58,7 @@ internal sealed partial class GuiPerformanceProbe
                 await _copyObserver.WaitAsync(ct);
                 Check("native-clipboard-original-count", _lastCopiedCharacters == source.Length && _clipboardVerificationFailures == 0);
             }
+            var scrollChecks = await CheckRowScrollingAsync(ct);
             var anchor = source.Anchor;
             var caret = source.Caret;
             var beforeSpans = _rowRenderer!.DrawnSpans;
@@ -65,7 +66,8 @@ internal sealed partial class GuiPerformanceProbe
             for (var i = 0; i < 64; i++)
             {
                 var start = Stopwatch.GetTimestamp();
-                source.SetViewport(1 + i % original.LineCount, i % 2 == 0 ? 0 : Math.Min(32, source.Length));
+                _sourceVerticalBar!.Value = 1 + i % original.LineCount;
+                _sourceHorizontalBar!.Value = i % 2 == 0 ? 0 : Math.Min(32, source.MaximumLineLength);
                 RenderInteractive();
                 _editor.TextArea.TextView.EnsureVisualLines();
                 _scrollTimes.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
@@ -101,7 +103,8 @@ internal sealed partial class GuiPerformanceProbe
                 ScrollSteps = _scrollTimes.Count, DrawnSelectionSpans = _rowRenderer.DrawnSpans,
                 DrawnClippingMarks = _rowMargin!.DrawnMarks, SawClippedRow = _sawClippedRow,
                 OriginalClipboardChecks = _clipboardVerificationChecks,
-                Limit = "Native control integration; no physical input injection/paint. Logical UTF-16 horizontal axis; full scrollbars/visual-column alignment pending."
+                ScrollChecks = scrollChecks, SourceBarChanges = _sourceBarChanges, MaximumLineLength = source.MaximumLineLength,
+                Limit = "Native control integration including source scrollbars/routed wheel/pointer capture; no physical input/paint. Logical UTF-16 axis; visual-column alignment pending."
             };
             Finish();
         }

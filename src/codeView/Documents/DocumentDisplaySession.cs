@@ -39,6 +39,7 @@ internal sealed class DocumentDisplaySession : IDisposable
     public long SelectionLength { get { VerifyAccess(); return Math.Abs(_anchor - _caret); } }
     public long FirstVisibleLine { get { VerifyAccess(); return _firstVisibleLine; } }
     public long HorizontalSourceOffset { get { VerifyAccess(); return _horizontalOffset; } }
+    public int MaximumLineLength { get { VerifyAccess(); return _handle!.MaximumLineLength; } }
 
     public void SetViewport(long firstLine, long horizontalOffset)
     {
