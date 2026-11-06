@@ -18,6 +18,10 @@ public sealed class DocumentLineExtentPerformanceTests
         foreach (var shape in new[] { "normal", "long" })
         {
             var chunk = shape == "normal" ? string.Concat(Enumerable.Repeat(new string('x', 126) + "\r\n", 128)) : new string('x', 16384);
+            // Warm both full-size shapes/paths before recording. A tiny append does not warm
+            // large-rope/line-manager paths and would penalize the first baseline process sample.
+            foreach (var warmCandidate in new[] { false, true, true, false })
+                using (Build(chunk, warmCandidate, 3200, out _)) { }
             for (var pair = 0; pair < 3; pair++)
             {
                 foreach (var candidate in pair % 2 == 0 ? new[] { false, true } : new[] { true, false })
@@ -45,6 +49,7 @@ public sealed class DocumentLineExtentPerformanceTests
                         CompletionMilliseconds = completionMs,
                         AllocatedBytes = allocated, CpuMilliseconds = cpu, GcPauseMilliseconds = pause, GcCollections = gc,
                         MemoryMetric = memory.Metric, MemoryBefore = beforeMemory, MemoryAfter = afterMemory,
+                        Warmup = "Four unmeasured full-size builds per shape in ABBA order, then three measured AB/BA/AB pairs.",
                         Scope = "In-memory worker build; final index traversal compared to previous builder; endpoints not peak; not I/O/startup acceptance."
                     }));
                     Assert.That(handle.Length, Is.EqualTo(50 * 1024 * 1024));
