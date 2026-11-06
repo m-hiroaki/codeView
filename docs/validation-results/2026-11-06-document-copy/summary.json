@@ -245,5 +245,29 @@
   "compressedRunsSha256": "a41652fbc9bebb68e51500bcb637c20a475c1c497faadb8ea13aa0c3ddc04698",
   "decision": "Not adopted: lower allocation, higher build time/CPU and GC budget still violated; product insertion path restored to baseline.",
   "restoredProductSourceSha256": "9a3e66cf22c429fe287d9b28725fbc7a204ff3d615428e02c823f62f951e54e6",
-  "candidatePatchSha256": "f3ce75fd5ae0723189250dbb27a90578dc506f2cce6f3b5588d26ef9620cecc1"
+  "candidatePatchSha256": "f3ce75fd5ae0723189250dbb27a90578dc506f2cce6f3b5588d26ef9620cecc1",
+  "restoredLocalNormalTests": {
+    "total": "689",
+    "executed": "689",
+    "passed": "689",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "restoredLocalTrxSha256": "9cb565afcddcd9c84ace8a26b0ee7d02277a15b0f8da4e9fec2d628ed256e79a",
+  "restoredCi": {
+    "runId": 42184234581,
+    "conclusion": "success",
+    "details": "restored-ci.json"
+  }
 }

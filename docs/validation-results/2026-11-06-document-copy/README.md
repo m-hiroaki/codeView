@@ -38,8 +38,8 @@ Windowsはホスト型Server 2025 Datacenter / SDK 10.0.403 / runtime 10.0.14。
 
 ## 候補の回帰と復元
 
-候補`3cc8228`でも既存の50 MiB×5タブとReadLease走査の性能試験が各1件成功した。タブはCPU 2,968.113 ms、GC合計374.339 ms、OS増分約898 MiB、閉鎖後の弱参照0/10。走査は全30,980,684文字のchecksum一致、約29.5–37.8 ms/約33.5 KiB割当、GC停止0だった。生値は`retention.json`/`scan.json`。これらは候補の資源/走査回帰であり、実描画やコピー削減効果の証明ではない。CacheConditionの欄がunknownでも、タブ試験は測定前の独立厳格UTF-8文字数照合で入力をWarmにしている。
+候補`3cc8228`でも既存の50 MiB×5タブとReadLease走査の性能試験が各1件成功した。タブはCPU 2,968.113 ms、GC合計374.339 ms、OS増分約898 MiB、閉鎖後の弱参照0/10。走査は全30,980,684文字のchecksum一致、約29.5–37.8 ms/約32.7 KiB割当、GC停止0だった。生値は`retention.json`/`scan.json`。これらは候補の資源/走査回帰であり、実描画やコピー削減効果の証明ではない。CacheConditionの欄がunknownでも、タブ試験は測定前の独立厳格UTF-8文字数照合で入力をWarmにしている。
 
-通常コードは変更前と同じ製品ソースSHAへ復元した。借用メモリ/Unicode/全内容ハッシュを確認する12テストは通常経路の回帰として残す。復元後の通常試験と両OSの確認結果を追記する。候補差分は`candidate.patch`とコミット`3cc8228`に保存し、通常経路への比較フラグや追加依存は残さない。
+通常コードは変更前と同じ製品ソースSHAへ復元した。借用メモリ/Unicode/全内容ハッシュを確認する12テストは通常経路の回帰として残す。復元後もローカル.NET 689/Python 57件が成功し、`0a56cef`の[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42184234581)も成功した。TRXを直接照合して追加12ケースは両OSすべて合格（macOS .NET689/Python57、Windows .NET686+既存Darwin専用3スキップ/Python37+既存POSIX専用20スキップ）。`restored-ci.json`にケース別結果・ZIP/TRX/環境のハッシュを保存。候補差分は`candidate.patch`とコミット`3cc8228`に保存し、通常経路への比較フラグや追加依存は残さない。
 
 `local-runs.json.gz`に全60操作とホスト完了記録、`summary.json`に候補/復元ソース・バイナリ・入力・TRXのSHAと集計を保存した。元ログ・個別JSONは`artifacts/document-copy-comparison`へ保持する。CPU・メモリ・GCのトレードオフを評価して不採用とした比較タスクであり、GC予算未達の是正、G2の採用・長行描画・実機受入・A-01全体は未完了のままとする。
