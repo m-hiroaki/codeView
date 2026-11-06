@@ -31,7 +31,11 @@ internal sealed partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var source = new SourceAccess();
-            var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+            var documents = new AvaloniaEditDocumentAdapter();
+#if CODEVIEW_PERFORMANCE_PROBE
+            documents = new AvaloniaEditDocumentAdapter(Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1");
+#endif
+            var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source));
             var settings = new SettingsStore(SettingsLocations.ForApplication(AppContext.BaseDirectory));
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(operations, settings), desktop.Args ?? []);
         }

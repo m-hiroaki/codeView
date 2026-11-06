@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using AvaloniaEdit.Document;
 using CodeView.Documents;
 using CodeView.Tests.Performance;
 
@@ -11,7 +10,7 @@ public sealed class DocumentLineExtentPerformanceTests
     [Test, Category("Performance")]
     public void CompareWorkerCompletionWithAndWithoutFinalIndexTraversal()
     {
-        // The baseline reproduces the previous builder (same insertion, undo, snapshot and handoff).
+        // Same production builder with extent collection disabled/enabled; all other paths are common.
         // Only candidate completion traverses the existing final index; no source decoding/file I/O.
         using (Build("warmup", false, 1, out _)) { }
         using (Build("warmup", true, 1, out _)) { }
@@ -50,11 +49,12 @@ public sealed class DocumentLineExtentPerformanceTests
                         AllocatedBytes = allocated, CpuMilliseconds = cpu, GcPauseMilliseconds = pause, GcCollections = gc,
                         MemoryMetric = memory.Metric, MemoryBefore = beforeMemory, MemoryAfter = afterMemory,
                         Warmup = "Four unmeasured full-size builds per shape in ABBA order, then three measured AB/BA/AB pairs.",
-                        Scope = "In-memory worker build; final index traversal compared to previous builder; endpoints not peak; not I/O/startup acceptance."
+                        Scope = "In-memory worker build; same production builder, optional final index traversal OFF/ON; endpoints not peak; not I/O/startup acceptance."
                     }));
                     Assert.That(handle.Length, Is.EqualTo(50 * 1024 * 1024));
                     Assert.That(handle.ClaimForDisplay().LineCount, Is.EqualTo(shape == "normal" ? 409601 : 1));
                     if (candidate) Assert.That(handle.MaximumLineLength, Is.EqualTo(shape == "normal" ? 126 : 50 * 1024 * 1024));
+                    else Assert.That(handle.MaximumLineLength, Is.Null);
                 }
             }
         }
@@ -62,50 +62,11 @@ public sealed class DocumentLineExtentPerformanceTests
 
     private static DocumentHandle Build(string chunk, bool candidate, int count, out double completionMs)
     {
-        if (candidate)
-        {
-            using var builder = new DocumentBuilder();
-            for (var i = 0; i < count; i++) builder.Append(chunk.AsMemory());
-            var start = Stopwatch.GetTimestamp();
-            var handle = builder.Complete();
-            completionMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
-            return handle;
-        }
-        using var previous = new PreviousDocumentBuilder();
-        for (var i = 0; i < count; i++) previous.Append(chunk.AsMemory());
-        var previousStart = Stopwatch.GetTimestamp();
-        var previousHandle = previous.Complete();
-        completionMs = Stopwatch.GetElapsedTime(previousStart).TotalMilliseconds;
-        return previousHandle;
-    }
-
-    // Previous builder implementation, including owner/range checks; current handle layout is common.
-    private sealed class PreviousDocumentBuilder : IDisposable
-    {
-        private TextDocument? _document = new();
-        private readonly int _ownerThread = Environment.CurrentManagedThreadId;
-        public PreviousDocumentBuilder() => _document!.UndoStack.SizeLimit = 0;
-        public void Append(ReadOnlyMemory<char> chunk)
-        {
-            VerifyOwner();
-            var document = _document ?? throw new ObjectDisposedException(nameof(PreviousDocumentBuilder));
-            _ = checked(document.TextLength + chunk.Length);
-            document.Insert(document.TextLength, chunk.ToString());
-        }
-        public DocumentHandle Complete()
-        {
-            VerifyOwner();
-            var document = _document ?? throw new ObjectDisposedException(nameof(PreviousDocumentBuilder));
-            document.UndoStack.ClearAll();
-            document.SetOwnerThread(null!);
-            _document = null;
-            return new DocumentHandle(document, 0);
-        }
-        public void Dispose() => _document = null;
-        private void VerifyOwner()
-        {
-            if (Environment.CurrentManagedThreadId != _ownerThread)
-                throw new InvalidOperationException("文書構築中に所有スレッドを変更できません。");
-        }
+        using var builder = new DocumentBuilder(collectLineExtent: candidate);
+        for (var i = 0; i < count; i++) builder.Append(chunk.AsMemory());
+        var start = Stopwatch.GetTimestamp();
+        var handle = builder.Complete();
+        completionMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+        return handle;
     }
 }

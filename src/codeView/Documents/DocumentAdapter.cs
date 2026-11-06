@@ -10,9 +10,9 @@ internal interface IDocumentAdapter
 }
 
 /// <summary>Initial AvaloniaEdit candidate; production adoption still requires Phase 2 measurements.</summary>
-internal sealed class AvaloniaEditDocumentAdapter : IDocumentAdapter
+internal sealed class AvaloniaEditDocumentAdapter(bool collectLineExtent = false) : IDocumentAdapter
 {
-    public DocumentBuilder CreateBuilder() => new();
+    public DocumentBuilder CreateBuilder() => new(collectLineExtent);
     public DocumentReadLease AcquireReadView(DocumentHandle document) => document.AcquireReadView();
 }
 
@@ -20,8 +20,10 @@ internal sealed class DocumentBuilder : IDisposable
 {
     private TextDocument? _document = new();
     private readonly int _ownerThread = Environment.CurrentManagedThreadId;
+    private readonly bool _collectLineExtent;
 
-    internal DocumentBuilder() => _document!.UndoStack.SizeLimit = 0;
+    internal DocumentBuilder(bool collectLineExtent = false)
+    { _collectLineExtent = collectLineExtent; _document!.UndoStack.SizeLimit = 0; }
 
     public void Append(ReadOnlyMemory<char> chunk)
     {
@@ -37,10 +39,15 @@ internal sealed class DocumentBuilder : IDisposable
         VerifyOwner();
         var document = _document ?? throw new ObjectDisposedException(nameof(DocumentBuilder));
         document.UndoStack.ClearAll();
-        var maximumLineLength = 0;
+        int? maximumLineLength = null;
         // Reuse the completed line index on the builder's worker. No text scan or UI traversal.
-        for (var line = document.GetLineByNumber(1); line is not null; line = line.NextLine)
-            maximumLineLength = Math.Max(maximumLineLength, line.Length);
+        if (_collectLineExtent)
+        {
+            var maximum = 0;
+            for (var line = document.GetLineByNumber(1); line is not null; line = line.NextLine)
+                maximum = Math.Max(maximum, line.Length);
+            maximumLineLength = maximum;
+        }
         document.SetOwnerThread(null!);
         _document = null;
         return new DocumentHandle(document, maximumLineLength);
@@ -61,7 +68,7 @@ internal sealed class DocumentHandle : IDisposable
     private int _readLeases;
     private readonly object _gate = new();
 
-    internal DocumentHandle(TextDocument document, int maximumLineLength)
+    internal DocumentHandle(TextDocument document, int? maximumLineLength)
     {
         _document = document;
         // CreateSnapshot is documented thread-safe even after ownership is released.
@@ -70,7 +77,7 @@ internal sealed class DocumentHandle : IDisposable
     }
 
     public long Length { get; }
-    public int MaximumLineLength { get; }
+    public int? MaximumLineLength { get; }
     public int ActiveReadLeases => Volatile.Read(ref _readLeases);
     public bool IsReleased { get { lock (_gate) return _document is null; } }
 
