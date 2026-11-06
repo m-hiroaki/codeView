@@ -1,0 +1,69 @@
+{
+  "commit": "c7f2fc9fa8baa9cc69c352a022aefef09f7640fd",
+  "runs": [
+    {
+      "type": "run",
+      "id": 42216937995,
+      "name": "Native GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "c7f2fc9fa8baa9cc69c352a022aefef09f7640fd"
+    },
+    {
+      "type": "run",
+      "id": 42216937993,
+      "name": "Build and test",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "c7f2fc9fa8baa9cc69c352a022aefef09f7640fd"
+    },
+    {
+      "type": "run",
+      "id": 42216937989,
+      "name": "Windows Native AOT publish validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "c7f2fc9fa8baa9cc69c352a022aefef09f7640fd"
+    },
+    {
+      "type": "run",
+      "id": 42216937981,
+      "name": "Row projection GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "c7f2fc9fa8baa9cc69c352a022aefef09f7640fd"
+    }
+  ],
+  "artifacts": [
+    {
+      "run": 42216937981,
+      "id": 13502460330,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:f60b3de7e7847e102222a130d56beffc502a88072307d633a8285fac3595ff7a"
+    },
+    {
+      "run": 42216937981,
+      "id": 13501318284,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:d43a9d1fb2d3797fd833297551f505581ef5e08c570feff65aab972c875bcd73"
+    },
+    {
+      "run": 42216937995,
+      "id": 13502126138,
+      "name": "native-gui-windows",
+      "digest": "sha256:a08ceec51086eb6e264864d454825269404bbd834a2ac528732f77cdb8d982f4"
+    },
+    {
+      "run": 42216937995,
+      "id": 13500649604,
+      "name": "native-gui-macos",
+      "digest": "sha256:201f7d37f75f128255f643d1be51d63d0c5e071764e55f5e2c02a2904260842d"
+    },
+    {
+      "run": 42216937989,
+      "id": 13501153855,
+      "name": "windows-aot-publish",
+      "digest": "sha256:cfb5a8d11a9cfcd087bfa333e3974bc356b1897252253e84c264e7db5c8a87b3"
+    }
+  ]
+}

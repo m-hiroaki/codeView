@@ -37,7 +37,7 @@ SetViewport/ScrollViewportは先頭原文行と横のUTF-16 Offsetだけを変�
 dotnet test tests/codeView.Tests/codeView.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~RowProjectionPerformanceTests --logger 'console;verbosity=normal' -p:PublishAot=false -p:CodeViewPerformanceProbe=false
 ```
 
-行番号/背景選択/Caret/キー/原文コピーの基本接続は以下のA-04-02で検証した。検索移動、全文の縦横スクロールバー、物理ポインター捕捉・自動移動、タブ/再読込/終了、フォント/タブ幅/結合文字/Bidi、長行メタデータ、10/50/100 MiB・5文書・文法有無の全GUI評価は未完了。今回の横Offsetと幅はUTF-16単位であり、タブや絵文字の物理幅を評価済みとしない。通常採用・A-04/A-05/G2全体の完了とは分ける。
+行番号/背景選択/Caret/キー/原文コピーの基本接続は以下のA-04-02で検証した。全文スクロール制御は[A-04-03-01](row-scroll-prototype.md)、実際のタブ/再読込/検索/終了は[A-04-03-02](row-lifecycle-prototype.md)で専用CIの機能接続を検証した。物理ポインター/自動移動、フォント/タブ幅/結合文字/Bidi、10/50/100 MiB・5文書・文法有無の全GUI評価は未完了。今回の横Offsetと幅はUTF-16単位であり、タブや絵文字の物理幅を評価済みとしない。通常採用・A-04/A-05/G2全体の完了とは分ける。
 
 ## 専用GUIへの接続（A-04-02）
 

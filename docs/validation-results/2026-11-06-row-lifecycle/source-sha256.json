@@ -1,0 +1,13 @@
+{
+  "src/codeView/Presentation/MainWindow.axaml.cs": "4989c0f2ee7b0588b1eddf7e684ed6f9c4ac6ec38b860c89910d932d40acd7d1",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "1d6baec66f97f30acfb850827036f7e097336348df5bfb463b452cc60793bf1f",
+  "tests/GuiProbe/GuiRowViewHistory.cs": "a2bfa865600ebe4f6ab3102bf2d24b9e2cb656085a47dd44f1b9eded4a4d5dc6",
+  "tests/GuiProbe/RowViewHistory.cs": "3bfdacc1c5ea099236aaf7d709834602f4180aaac4116b0b7c6982c48150adbd",
+  "tests/GuiProbe/GuiRowLifecycleChecks.cs": "206dcf5e0baaca0bfb845e468de4c2c89cb958fde178c4c244e9ea415fe45f3e",
+  "tests/GuiProbe/GuiRowShutdown.cs": "6cce6c7cfd0fb1c527db6d070726a6fe064ea6f283b588e46cc78eafd92b39e1",
+  "tests/GuiProbe/GuiRowProjectionChecks.cs": "607bf5ca6f831d33a25851c5104f2b12d8fbfb8eff4a608d0ac14d734b71ac0d",
+  "tests/codeView.Tests/Performance/RowViewHistoryTests.cs": "2e5f27d8f9900d1654789fb0d4340c5ac3f986fbdcdff4fcfa490c4e819491f6",
+  "tools/check_row_projection.py": "7a8ec0f80b9293282a80385760a447204110e8e869eba72ccc14e667bc3b3da7",
+  "tools/test_row_projection.py": "d43b93a4b70d409cc5e3fd77d67222cb22e69efe745caddcc51023520e912148",
+  ".github/workflows/row-gui-validation.yml": "b8380437ad5f8711941711877921ae5c9a173708489d1557d9fa9619784d72fe"
+}
