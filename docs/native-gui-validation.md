@@ -48,6 +48,8 @@ macOSジョブも同じ収集器/通常UsePlatformDetect/全文表示候補を�
 
 Mac側は起動/本文接続/64スクロール通知/終了だけを測定し、Windows専用のClipboard操作試験は実行しない。GUIコールバックは実OS上での結合試験、収集器の正常/異常/境界は既存8件の単体試験で検証する。
 
+[macOSの初回取得結果](validation-results/2026-11-06-macos-startup/README.md)では全20試行の本文/通知/正常終了を確認した。Main→Openedは全20回1秒以内だが、2通知に1秒超があり、物理描画/操作の受入ではない。後続のMacコントロール操作検証は未実施である。
+
 ```sh
 dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
 dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/gui-validation/app -m:1 -nr:false

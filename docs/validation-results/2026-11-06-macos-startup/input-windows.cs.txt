@@ -1,0 +1,5 @@
+// GUI_STARTUP 日本語 😀
+class StartupFixture
+{
+    // original content
+}

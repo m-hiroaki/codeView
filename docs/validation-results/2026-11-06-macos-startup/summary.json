@@ -1,0 +1,122 @@
+{
+  "commit": "6e1204580b9cd8e6d021a0c3d8881da0daf7d269",
+  "platforms": {
+    "macos": {
+      "empty": {
+        "OpenedMilliseconds": {
+          "median": 734.28565,
+          "max": 993.0327,
+          "count_above_1000": 0
+        },
+        "WindowTwoTicksMilliseconds": {
+          "median": 869.65905,
+          "max": 1429.359,
+          "count_above_1000": 2
+        },
+        "CpuMilliseconds": {
+          "median": 868.7650000000001,
+          "max": 935.419
+        },
+        "SampledPeakMemory": {
+          "median": 86706816.0,
+          "max": 88787520
+        }
+      },
+      "file": {
+        "OpenedMilliseconds": {
+          "median": 640.7583999999999,
+          "max": 972.7718,
+          "count_above_1000": 0
+        },
+        "WindowTwoTicksMilliseconds": {
+          "median": 779.3915999999999,
+          "max": 1143.3521,
+          "count_above_1000": 1
+        },
+        "DocumentTwoTicksMilliseconds": {
+          "median": 790.21785,
+          "max": 1143.4369,
+          "count_above_1000": 1
+        },
+        "DocumentAttachmentMilliseconds": {
+          "median": 14.62255,
+          "max": 19.8943
+        },
+        "CpuMilliseconds": {
+          "median": 1146.3335000000002,
+          "max": 1305.139
+        },
+        "SampledPeakMemory": {
+          "median": 105360032.0,
+          "max": 105728704
+        }
+      }
+    },
+    "windows": {
+      "empty": {
+        "OpenedMilliseconds": {
+          "median": 699.82205,
+          "max": 1161.3117,
+          "count_above_1000": 1
+        },
+        "WindowTwoTicksMilliseconds": {
+          "median": 838.91425,
+          "max": 1316.1556,
+          "count_above_1000": 1
+        },
+        "CpuMilliseconds": {
+          "median": 968.75,
+          "max": 1078.125
+        },
+        "SampledPeakMemory": {
+          "median": 55805952.0,
+          "max": 57171968
+        }
+      },
+      "file": {
+        "OpenedMilliseconds": {
+          "median": 698.3932,
+          "max": 705.9817,
+          "count_above_1000": 0
+        },
+        "WindowTwoTicksMilliseconds": {
+          "median": 896.71465,
+          "max": 977.5989,
+          "count_above_1000": 0
+        },
+        "DocumentTwoTicksMilliseconds": {
+          "median": 896.8207,
+          "max": 977.7031,
+          "count_above_1000": 0
+        },
+        "DocumentAttachmentMilliseconds": {
+          "median": 18.12195,
+          "max": 81.1819
+        },
+        "CpuMilliseconds": {
+          "median": 1296.875,
+          "max": 2093.75
+        },
+        "SampledPeakMemory": {
+          "median": 69740544.0,
+          "max": 70819840
+        }
+      }
+    }
+  },
+  "windows_readonly_operations": 216,
+  "normal": {
+    "macos": {
+      "dotnet_pass": 698,
+      "dotnet_skip": 0,
+      "python_pass": 79,
+      "python_skip": 0
+    },
+    "windows": {
+      "dotnet_pass": 695,
+      "dotnet_skip": 3,
+      "python_pass": 59,
+      "python_skip": 20
+    }
+  }
+}
