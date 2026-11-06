@@ -14,7 +14,8 @@ SCROLL_CHECKS = {"source-scrollbar-extents", "source-scrollbar-last-position", "
                  "scrollbar-preserves-original-copy", "sub-unit-wheel-retained", "routed-trackpad-accumulation",
                  "routed-shift-wheel-horizontal", "routed-diagonal-wheel", "wheel-preserves-source-selection",
                  "routed-pointer-captured", "routed-pointer-selects-original", "routed-edge-timer", "routed-pointer-release",
-                 "routed-capture-loss", "replacement-detaches-capture", "reattach-single-owner", "source-caret-rectangle-visible"}
+                 "routed-capture-loss", "replacement-detaches-capture", "reattach-single-owner", "source-caret-rectangle-visible",
+                 "stale-scrollbar-gesture-rejected", "stale-scrollbar-release-rejected", "current-scrollbar-release-retires"}
 
 
 def fixture(path):

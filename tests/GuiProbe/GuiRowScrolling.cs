@@ -4,6 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 
 namespace CodeView.Presentation;
 
@@ -15,6 +17,8 @@ internal sealed partial class GuiPerformanceProbe
     private bool _revealRowsPending;
     private readonly RowWheelAccumulator _rowWheel = new();
     private long _sourceBarChanges;
+    private int? _sourceBarGestureGeneration;
+    private long _sourceBarGestureToken;
 
     private void InstallSourceScrollBars()
     {
@@ -44,6 +48,12 @@ internal sealed partial class GuiPerformanceProbe
         _editor.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
         _sourceVerticalBar.ValueChanged += SourceBarChanged;
         _sourceHorizontalBar.ValueChanged += SourceBarChanged;
+        foreach (var bar in new[] { _sourceVerticalBar, _sourceHorizontalBar })
+        {
+            bar.AddHandler(InputElement.PointerPressedEvent, SourceBarGestureStarted, RoutingStrategies.Tunnel);
+            bar.AddHandler(InputElement.PointerReleasedEvent, SourceBarGestureEnded, RoutingStrategies.Tunnel);
+            bar.AddHandler(InputElement.PointerCaptureLostEvent, SourceBarCaptureLost, RoutingStrategies.Bubble);
+        }
     }
 
     private void SyncSourceScrollBars()
@@ -72,11 +82,35 @@ internal sealed partial class GuiPerformanceProbe
     private void SourceBarChanged(object? sender, RangeBaseValueChangedEventArgs args)
     {
         if (_syncingSourceBars || _finished || _displaySession is not { } source) return;
+        if (_sourceBarGestureGeneration is { } generation && generation != _documentGeneration)
+        { SyncSourceScrollBars(); return; }
         CancelPointerSelection();
         source.SetViewport((long)Math.Round(_sourceVerticalBar!.Value), (long)Math.Round(_sourceHorizontalBar!.Value));
         _revealRowsPending = false;
         _sourceBarChanges++;
         RenderInteractive();
+    }
+
+    private void SourceBarGestureStarted(object? sender, PointerPressedEventArgs args)
+    {
+        CancelPointerSelection();
+        _sourceBarGestureGeneration = _documentGeneration;
+        _sourceBarGestureToken++;
+    }
+
+    private void SourceBarGestureEnded(object? sender, PointerReleasedEventArgs args) => RetireSourceBarGesture();
+    private void SourceBarCaptureLost(object? sender, PointerCaptureLostEventArgs args) => RetireSourceBarGesture();
+
+    private void RetireSourceBarGesture()
+    {
+        var token = _sourceBarGestureToken;
+        // Keep rejecting stale changes until the native thumb's release handlers have completed.
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_finished || token != _sourceBarGestureToken) return;
+            _sourceBarGestureGeneration = null;
+            SyncSourceScrollBars();
+        });
     }
 
     private void ScrollRows(long lines, long columns)

@@ -36,6 +36,23 @@ internal sealed partial class GuiPerformanceProbe
 
         Check("source-scrollbar-extents", _sourceVerticalBar!.Maximum == _sourceDocument!.LineCount &&
             _sourceHorizontalBar!.Maximum == source.MaximumLineLength);
+        var currentGeneration = _documentGeneration;
+        var staleFirst = source.FirstVisibleLine;
+        var staleHorizontal = source.HorizontalSourceOffset;
+        _sourceBarGestureGeneration = currentGeneration - 1;
+        _sourceVerticalBar.Value = _sourceVerticalBar.Maximum;
+        _sourceHorizontalBar!.Value = _sourceHorizontalBar.Maximum;
+        Check("stale-scrollbar-gesture-rejected", source.FirstVisibleLine == staleFirst && source.HorizontalSourceOffset == staleHorizontal &&
+            _sourceVerticalBar.Value == staleFirst && _sourceHorizontalBar.Value == staleHorizontal);
+        _sourceBarGestureToken++;
+        RetireSourceBarGesture();
+        _sourceBarGestureToken++;
+        _sourceBarGestureGeneration = currentGeneration; // A new gesture must survive an older release callback.
+        await RowFrame(ct);
+        Check("stale-scrollbar-release-rejected", _sourceBarGestureGeneration == currentGeneration);
+        RetireSourceBarGesture();
+        await RowFrame(ct);
+        Check("current-scrollbar-release-retires", _sourceBarGestureGeneration is null);
         _sourceVerticalBar.Value = _sourceVerticalBar.Maximum;
         _sourceHorizontalBar!.Value = _sourceHorizontalBar.Maximum;
         Check("source-scrollbar-last-position", source.FirstVisibleLine == _sourceDocument.LineCount &&
