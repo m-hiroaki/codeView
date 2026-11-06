@@ -1,0 +1,75 @@
+{
+  "commit": "fef21f412acf0d68200c6e4b8206888d1e8f054d",
+  "runs": [
+    {
+      "type": "run",
+      "id": 42219651152,
+      "name": "Build and test",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "fef21f412acf0d68200c6e4b8206888d1e8f054d"
+    },
+    {
+      "type": "run",
+      "id": 42219651150,
+      "name": "Native GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "fef21f412acf0d68200c6e4b8206888d1e8f054d"
+    },
+    {
+      "type": "run",
+      "id": 42219651126,
+      "name": "Row projection GUI validation",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "fef21f412acf0d68200c6e4b8206888d1e8f054d"
+    },
+    {
+      "type": "run",
+      "id": 42219651122,
+      "name": "Row visual comparison acquisition",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "fef21f412acf0d68200c6e4b8206888d1e8f054d"
+    }
+  ],
+  "artifacts": [
+    {
+      "run": 42219651122,
+      "id": 13503365477,
+      "name": "row-visual-macos-15",
+      "digest": "sha256:5601e9f2beda700b185b59fa1340fec7de1b7f03caa09c59926e67f3c9669aeb"
+    },
+    {
+      "run": 42219651122,
+      "id": 13502957083,
+      "name": "row-visual-windows-2025",
+      "digest": "sha256:95db8b559b0953881d869990a36332f50fe5dca5cf0f7bd9a439d8622680ca29"
+    },
+    {
+      "run": 42219651150,
+      "id": 13503141195,
+      "name": "native-gui-macos",
+      "digest": "sha256:971832c55ab71d961f5b3b7c5788832b61295ac7e4feda6d4c0dcf7c5544ad3f"
+    },
+    {
+      "run": 42219651150,
+      "id": 13503076574,
+      "name": "native-gui-windows",
+      "digest": "sha256:e609794e579006b06ab8492297a1be6b54c57126ab0765db7425e791557bf8c6"
+    },
+    {
+      "run": 42219651126,
+      "id": 13503505027,
+      "name": "row-gui-macos-15",
+      "digest": "sha256:beb8b473f4bb9024f0d80dc7172bdb964019eae6a526bd4c6d32365204ea7ac1"
+    },
+    {
+      "run": 42219651126,
+      "id": 13502024323,
+      "name": "row-gui-windows-2025",
+      "digest": "sha256:7eb4993b4ac64dd94431a9384711da75931a16eb9324947ca7c5b621bcd7bb85"
+    }
+  ]
+}

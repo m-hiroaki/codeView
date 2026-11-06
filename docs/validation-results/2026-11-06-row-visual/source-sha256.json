@@ -1,0 +1,9 @@
+{
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "5a5743b12d23817d3559fba76df356bfb50a1f66e424daf26a8f7ae32cc5a975",
+  "tests/GuiProbe/GuiRowVisualChecks.cs": "7054c9899173284b220bcb80462dae076fe110f5cb0db4356f28175db3873faa",
+  "tests/GuiProbe/RowVisualCases.cs": "447e9b37885037808b0a2e3f82687d8a9c8131a7bc379f2b4b29d618d280812c",
+  "tests/codeView.Tests/Performance/RowVisualCasesTests.cs": "c0f3aa15c60aaadb7b1cd8159a2d16ddd66bdf837b20526b87e3f6070658b92c",
+  "tools/compare_row_visual.py": "1515b72556565094a6c5893208454517189c2b1d040819954c06bda9d6b5158a",
+  "tools/test_row_visual.py": "d04e81e3d845b7cf50132b852f2096e8d24ec914b6d6fe9c62d7ddfbb6c67eaa",
+  ".github/workflows/row-visual-validation.yml": "1a3ba7196c8fd6c9774eb61584ca0cb5cdb40190e64a8ba7ec895f92bd6c00b9"
+}
