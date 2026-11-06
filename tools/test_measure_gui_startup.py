@@ -26,8 +26,15 @@ class GuiStartupTests(unittest.TestCase):
                 "AnimationTickIntervalsMilliseconds": [16] * 64 if scenario == "file" else []}
 
     def test_empty_and_file_native_reports_are_distinct(self):
-        for scenario in ("empty", "file"):
-            validate_report(self.report(scenario), scenario, 5, 2, "a" * 40, "windows")
+        for platform, description in (("windows", "Microsoft Windows test"), ("macos", "macOS test")):
+            for scenario in ("empty", "file"):
+                with self.subTest(platform=platform, scenario=scenario):
+                    report = self.report(scenario)
+                    report["Os"] = description
+                    validate_report(report, scenario, 5, 2, "a" * 40, platform)
+                    with self.assertRaises(ValueError):
+                        validate_report(report, scenario, 5, 2, "a" * 40,
+                                        "macos" if platform == "windows" else "windows")
 
     def test_failure_interruption_wrong_build_mode_or_os_is_rejected(self):
         for key, value in (("Failure", "open-failed"), ("InputInterrupted", True), ("ProductInformationalVersion", "old"),

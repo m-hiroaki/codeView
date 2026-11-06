@@ -144,6 +144,7 @@ flowchart LR
 
 - [ ] **P1-09：起動・安全性の初期評価と文書更新を行う**
   依存：P1-01〜P1-08。完了条件：両OSのRelease起動を10回以上測定し、初回描画・指定ファイル操作可能時刻を分離。ソースハッシュ不変・依存方向と最小起動を確認し、READMEの実装状況を更新。
+  - [ ] **P1-09-02：macOSのネイティブウィンドウで起動指標を取得する**。既存診断ビルドをmacOS CIで空/小ファイル各10回実行し、本文接続・通知/64スクロール・入力SHA・通常終了を照合する。[手順・制限](native-gui-validation.md#macosの取得)。CI取得成功まで未完了とし、実機の物理描画/入力・通常配布物・性能合格とは区別する。
   - [x] **P1-09-01：Windowsのネイティブウィンドウで起動指標を取得する**（2026-11-06）。`bcd70cd`の[明示CI](https://github.com/m-hiroaki/codeView/actions/runs/42185900241)で既存診断ビルドの空画面/日本語小ファイル各10回、正常終了・Opened/2通知・本文接続/640スクロール・入力SHA・読取専用/ドロップ無効/Undoなしを照合した。Main→Opened中央値は空1,343.998 ms/ファイル1,334.166 msで全20回が1秒超、同期本文接続も初回116.335 msで100 ms予算超。取得成立と未達を分離し、Hyper-V表示のCIを基準PCへ採用しない。収集器8ケースと通常[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42185900152)も成功（macOS .NET689/Python65、Windows .NET686+既存3スキップ/Python45+既存20スキップ）。[手順](native-gui-validation.md)、[原記録・限界・次の検証](validation-results/2026-11-06-native-startup/README.md)。物理描画/入力、操作を試みる読み取り専用受入、通常配布物、macOS、起動/接続未達の是正とP1-07/P1-09/G1全体は未完了。
 
 

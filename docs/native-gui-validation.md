@@ -4,7 +4,7 @@ P1-09の取得確認と、後続のP1-07の実操作検証に使う。[Native GU
 
 ## 対象と判定
 
-ホスト型windows-2025で、Avaloniaの通常UsePlatformDetectによる実ウィンドウを起動する。ヘッドレス化や別レンダラーへの変更は行わない。空画面と小さなUTF-8日本語/絵文字/CRLFファイルを交互に各10回、独立プロセスで実行する。指定ファイルは独立したUTF-16文字数/CRLF行数と照合し、入力SHA-256の不変を毎回確認する。各起動の前に小さな入力をハッシュしており、ファイル条件はWarmである。
+ホスト型windows-2025/macOS-15で、Avaloniaの通常UsePlatformDetectによる実ウィンドウを起動する。ヘッドレス化や別レンダラーへの変更は行わない。空画面と小さなUTF-8日本語/絵文字/CRLFファイルを交互に各10回、独立プロセスで実行する。指定ファイルは独立したUTF-16文字数/CRLF行数と照合し、入力SHA-256の不変を毎回確認する。各起動の前に小さな入力をハッシュしており、ファイル条件はWarmである。
 
 `tools/measure_gui_startup.py`はプロセス終了、製品コミット、失敗/割込なし、通常の全文表示候補、正のクライアント領域/scaling、Openedとアニメーション通知の順序を確認する。ファイルありでは本文接続・2tick・64回のScrollTo/EnsureVisualLines・64通知を確認する。読取専用、テキストドロップ無効、Undo/Redo履歴なしも実コントロールの値から確認する。これらは入力を試みる試験ではなく、入力/貼付/Undo/ドロップ操作の受入は別途実施する。
 
@@ -21,7 +21,7 @@ P1-09の取得確認と、後続のP1-07の実操作検証に使う。[Native GU
 | ScrollSynchronousMilliseconds / AnimationTickIntervalsMilliseconds | 64回の明示スクロール同期処理/通知間隔。物理スクロールやフレーム提示の計測ではない |
 | wholeProcessSeconds | Pythonのプロセス生成→終了待機。64回のスクロールと終了処理も含むため起動時間として使わない |
 
-定義は[既存GUI計測条件](performance-plan.md#6-ネイティブguiの代理指標の測定)に従う。ホスト型CIは基準PCではなく、表示アダプターの情報が取れても物理60 Hz/Retina/入力応答を受け入れたことにしない。1秒の実起動目標、通常配布物、両OS10回、macOS、GUIの実操作、G1の合格は別途検証する。
+定義は[既存GUI計測条件](performance-plan.md#6-ネイティブguiの代理指標の測定)に従う。ホスト型CIは基準PCではなく、表示アダプターの情報が取れても物理60 Hz/Retina/入力応答を受け入れたことにしない。1秒の実起動目標、通常配布物、両OS実機10回、GUIの実操作、G1の合格は別途検証する。
 
 ## 手元での実行例
 
@@ -41,6 +41,18 @@ python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView.
 CIは環境、生成入力、20試行のJSON/ログ、SHA-256一覧をartifactへ14日保管する。製品DLL/apphostのハッシュはruns.json、製品コミットは各GUIレポートにも残す。期間内に原記録を取得・照合して記録へ保存する。失敗した環境を黙って別方式へ置き換えて合格にしない。
 
 [Windowsの初回取得結果](validation-results/2026-11-06-native-startup/README.md)は20試行すべて取得できたが、Main→Openedは全試行1秒超、同期本文接続も1回100 ms超だった。取得成功を性能目標達成とは扱わない。
+
+## macOSの取得
+
+macOSジョブも同じ収集器/通常UsePlatformDetect/全文表示候補を使い、明示診断ビルドのapphostを直接起動する。.app配布物の受入ではない。OS/CPU/メモリ/表示情報を保存し、MacのレポートをWindowsと誤認しないことも単体で検証する。ネイティブウィンドウを作成できない場合はそのジョブを失敗させ、別方式のレポートへ置き換えない。ローカルのログイン/ロック/権限を変更する処理はない。
+
+Mac側は起動/本文接続/64スクロール通知/終了だけを測定し、Windows専用のClipboard操作試験は実行しない。GUIコールバックは実OS上での結合試験、収集器の正常/異常/境界は既存8件の単体試験で検証する。
+
+```sh
+dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/gui-validation/app -m:1 -nr:false
+python3 tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView --input artifacts/gui-validation/起動確認.cs --output artifacts/gui-validation/new-startup --rounds 10 --commit "$(git rev-parse HEAD)" --os macos
+```
 
 ## 読み取り専用のコントロール結合試験
 
