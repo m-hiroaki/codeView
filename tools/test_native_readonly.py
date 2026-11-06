@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from check_native_readonly import ACTIONS, POSITIVE, SELECTIONS, collect, validate_report
+from check_native_readonly import ACTIONS, POSITIVE, SELECTIONS, clipboard_text, collect, validate_report
 
 
 class NativeReadOnlyTests(unittest.TestCase):
@@ -24,6 +24,9 @@ class NativeReadOnlyTests(unittest.TestCase):
                     "ProductTabsPreserved": True, "ProductFocused": True,
                     "PositiveControl": {key: True for key in POSITIVE},
                     "NativeCopyRoundTrip": True if characters else None, "CopySkippedForEmpty": characters == 0,
+                    "NativeCopyOsRoundTrip": True if characters else None,
+                    "ClipboardSha256": body_hash if characters else None,
+                    "ClipboardCharacters": characters if characters else None,
                     "Checks": [{"Selection": selection, "Action": action, "Characters": characters,
                                 "BodySha256": body_hash, "UndoCanUndo": False, "UndoCanRedo": False,
                                 "Caret": characters if selection == "end" else 0,
@@ -69,7 +72,8 @@ class NativeReadOnlyTests(unittest.TestCase):
     def test_body_tabs_focus_and_native_copy_must_match(self):
         for key, value in (("OriginalSha256", "wrong"), ("FinalSha256", "wrong"), ("OriginalCharacters", 4),
                            ("ProductDocumentPreserved", False), ("ProductTabsPreserved", False),
-                           ("ProductFocused", False), ("NativeCopyRoundTrip", False)):
+                           ("ProductFocused", False), ("NativeCopyRoundTrip", False),
+                           ("NativeCopyOsRoundTrip", False), ("ClipboardSha256", "wrong"), ("ClipboardCharacters", 4)):
             report = self.report(); report["ReadOnlyChecks"][key] = value
             with self.assertRaises(ValueError):
                 validate_report(report, 5, "b" * 64, "a" * 40)
@@ -124,9 +128,14 @@ class NativeReadOnlyTests(unittest.TestCase):
             inputs = [root / "日本語.cs", root / "empty.cs"]
             inputs[0].write_bytes("a😀\r\nb".encode()); inputs[1].write_bytes(b"")
             def execute(command, **kwargs):
-                body = Path(command[1]).read_bytes().decode('utf-8').encode('utf-16-le')
+                text = Path(command[1]).read_bytes().decode('utf-8')
+                body = text.encode('utf-16-le')
                 report = self.report(len(body) // 2, hashlib.sha256(body).hexdigest())
                 report["Os"] = "macOS test"
+                if text:
+                    copied = text.replace('\r\n', '\n').encode('utf-16-le')
+                    report['ReadOnlyChecks'].update(NativeCopyRoundTrip=copied == body,
+                        ClipboardSha256=hashlib.sha256(copied).hexdigest(), ClipboardCharacters=len(copied) // 2)
                 Path(kwargs["env"]["CODEVIEW_GUI_PERF_REPORT"]).write_text(json.dumps(report))
                 return SimpleNamespace(returncode=0)
             with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}), \
@@ -138,6 +147,22 @@ class NativeReadOnlyTests(unittest.TestCase):
             self.assertEqual(record["expectedOs"], "macos")
             self.assertTrue(record["validated"])
             self.assertTrue(all(row["validated"] for row in record["runs"]))
+
+    def test_copy_normalization_preserves_non_newline_text_and_raw_mismatch(self):
+        text = 'a\r\nb\rc\n😀\u2028\t'
+        self.assertEqual(clipboard_text(text, 'macos'), 'a\nb\nc\n😀\u2028\t')
+        self.assertEqual(clipboard_text(text, 'windows'), 'a\r\nb\r\nc\r\n😀\u2028\t')
+        self.assertEqual(clipboard_text('', 'macos'), '')
+        with self.assertRaises(ValueError):
+            clipboard_text(text, 'linux')
+        report = self.report(); report['Os'] = 'macOS test'
+        result = report['ReadOnlyChecks']
+        result.update(NativeCopyRoundTrip=False, ClipboardSha256='c' * 64, ClipboardCharacters=4)
+        validate_report(report, 5, 'b' * 64, 'a' * 40, 'macos', 'c' * 64, 4)
+        for key, value in [('NativeCopyRoundTrip', True), ('ClipboardSha256', 'wrong'), ('ClipboardCharacters', 5)]:
+            broken = copy.deepcopy(report); broken['ReadOnlyChecks'][key] = value
+            with self.assertRaises(ValueError):
+                validate_report(broken, 5, 'b' * 64, 'a' * 40, 'macos', 'c' * 64, 4)
 
     def test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence(self):
         for failure in (False, True):

@@ -140,13 +140,23 @@ internal static class GuiReadOnlyProbe
                     BodySha256 = Hash(source.Text), UndoCanUndo = source.UndoStack.CanUndo, UndoCanRedo = source.UndoStack.CanRedo });
             }
             bool? copyVerified = null;
+            bool? osCopyVerified = null;
+            int? clipboardCharacters = null;
+            string? clipboardHash = null;
             if (original.Length > 0)
             {
                 editor.Select(0, source.TextLength);
                 Require(editor.CanCopy, "Read-only source selection cannot be copied.");
                 editor.Copy();
-                await WaitClipboard(clipboard, original, ct);
-                copyVerified = true;
+                // Standard AvaloniaEdit Copy normalizes CR/LF to Environment.NewLine.
+                // Keep the raw-source comparison separate from the OS-format round trip.
+                var expectedCopy = original.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n')
+                    .Replace("\n", Environment.NewLine, StringComparison.Ordinal);
+                var copied = await WaitClipboard(clipboard, expectedCopy, ct);
+                copyVerified = copied == original;
+                osCopyVerified = true;
+                clipboardCharacters = copied.Length;
+                clipboardHash = Hash(copied);
             }
             Require(source.Text == original, "Copy changed the product body.");
             return new
@@ -154,7 +164,9 @@ internal static class GuiReadOnlyProbe
                 Passed = true, OriginalCharacters = original.Length, OriginalSha256 = Hash(original), FinalSha256 = Hash(source.Text),
                 PositiveControl = new { RoutedInputChanged = true, NativeClipboardPasteChanged = true, DeleteChanged = true,
                     UndoChanged = true, RedoChanged = true, TextDropChanged = true },
-                Checks = checks, NativeCopyRoundTrip = copyVerified, CopySkippedForEmpty = original.Length == 0, ProductDocumentPreserved = true,
+                Checks = checks, NativeCopyRoundTrip = copyVerified, NativeCopyOsRoundTrip = osCopyVerified,
+                ClipboardCharacters = clipboardCharacters, ClipboardSha256 = clipboardHash,
+                CopySkippedForEmpty = original.Length == 0, ProductDocumentPreserved = true,
                 ProductTabsPreserved = true, ProductFocused = editor.TextArea.IsFocused,
                 Scope = "Native CI UI and clipboard; routed TextInput/Drop and control commands. No OS key/mouse/IME injection."
             };
@@ -184,13 +196,14 @@ internal static class GuiReadOnlyProbe
         await next.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
     }
 
-    private static async Task WaitClipboard(IClipboard clipboard, string expected, CancellationToken ct)
+    private static async Task<string> WaitClipboard(IClipboard clipboard, string expected, CancellationToken ct)
     {
         var wait = Stopwatch.StartNew();
         while (wait.Elapsed < TimeSpan.FromSeconds(5))
         {
             ct.ThrowIfCancellationRequested();
-            if (await clipboard.TryGetValueAsync(DataFormat.Text) == expected) return;
+            var actual = await clipboard.TryGetValueAsync(DataFormat.Text);
+            if (actual == expected) return actual;
             await Task.Delay(10, ct);
         }
         throw new TimeoutException("Native clipboard value did not match the generated fixture.");

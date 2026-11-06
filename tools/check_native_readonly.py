@@ -16,7 +16,14 @@ POSITIVE = ("RoutedInputChanged", "NativeClipboardPasteChanged", "DeleteChanged"
 OS_PREFIXES = {"windows": "Microsoft Windows", "macos": "macOS"}
 
 
-def validate_report(report, characters, body_hash, commit, expected_os="windows"):
+def clipboard_text(text, expected_os):
+    if expected_os not in OS_PREFIXES:
+        raise ValueError("Use windows or macos")
+    return re.sub(r"\r\n|\r|\n", "\r\n" if expected_os == "windows" else "\n", text)
+
+
+def validate_report(report, characters, body_hash, commit, expected_os="windows",
+                    copy_hash=None, copy_characters=None):
     if expected_os not in OS_PREFIXES:
         raise ValueError("Use windows or macos")
     if (report["Failure"] is not None or report["InputInterrupted"]
@@ -36,9 +43,16 @@ def validate_report(report, characters, body_hash, commit, expected_os="windows"
     if not all(result["PositiveControl"][key] is True for key in POSITIVE):
         raise ValueError("Editing attempts were not proven effective on the editable control")
     if characters:
-        if result["NativeCopyRoundTrip"] is not True or result["CopySkippedForEmpty"] is not False:
+        copy_hash = body_hash if copy_hash is None else copy_hash
+        copy_characters = characters if copy_characters is None else copy_characters
+        same_as_source = copy_hash == body_hash and copy_characters == characters
+        if (result["NativeCopyRoundTrip"] is not same_as_source
+                or result["NativeCopyOsRoundTrip"] is not True or result["CopySkippedForEmpty"] is not False
+                or result["ClipboardSha256"] != copy_hash or result["ClipboardCharacters"] != copy_characters):
             raise ValueError("Read-only native copy failed")
-    elif result["NativeCopyRoundTrip"] is not None or result["CopySkippedForEmpty"] is not True:
+    elif (result["NativeCopyRoundTrip"] is not None or result["NativeCopyOsRoundTrip"] is not None
+          or result["ClipboardSha256"] is not None or result["ClipboardCharacters"] is not None
+          or result["CopySkippedForEmpty"] is not True):
         raise ValueError("Empty copy was misreported")
     checks = result["Checks"]
     expected = {(selection, action) for selection in SELECTIONS for action in ACTIONS}
@@ -70,8 +84,10 @@ def collect(app, inputs, output, rounds, commit, expected_os="windows"):
     for path in inputs:
         characters, lines = expected_text(path)
         text = path.read_bytes().decode("utf-8-sig", errors="strict")
+        copied = clipboard_text(text, expected_os).encode("utf-16-le")
         fixtures.append({"path": str(path), "characters": characters, "lines": lines,
-                         "inputSha256": sha256(path), "bodySha256": hashlib.sha256(text.encode("utf-16-le")).hexdigest()})
+                         "inputSha256": sha256(path), "bodySha256": hashlib.sha256(text.encode("utf-16-le")).hexdigest(),
+                         "copySha256": hashlib.sha256(copied).hexdigest(), "copyCharacters": len(copied) // 2})
     output.mkdir(parents=True, exist_ok=False)
     record = {"formatVersion": 1, "commit": commit, "expectedOs": expected_os, "fixtures": fixtures, "rounds": rounds,
               "productSha256": sha256(app.parent / "codeView.dll"), "appHostSha256": sha256(app), "runs": []}
@@ -94,7 +110,8 @@ def collect(app, inputs, output, rounds, commit, expected_os="windows"):
                     row["report"] = json.loads(target.read_text(encoding="utf-8-sig"))
                 if child.returncode:
                     raise RuntimeError("Native read-only process failed: " + label)
-                validate_report(row["report"], fixture["characters"], fixture["bodySha256"], commit, expected_os)
+                validate_report(row["report"], fixture["characters"], fixture["bodySha256"], commit, expected_os,
+                                fixture["copySha256"], fixture["copyCharacters"])
                 if sha256(Path(fixture["path"])) != fixture["inputSha256"]:
                     raise ValueError("Fixture changed during native editing attempts")
                 row["validated"] = True
