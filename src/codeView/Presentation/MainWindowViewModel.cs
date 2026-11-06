@@ -152,14 +152,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private async Task ObserveLateSettingsAsync(Task<SettingsLoadResult> task)
     {
         try { _ = await task; }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
-        catch (Exception)
+        catch (OperationCanceledException error) when (_lifetime.IsCancellationRequested && error.CancellationToken == _lifetime.Token) { }
+        catch (Exception) when (!_stopping)
         {
-            if (!_stopping)
-            {
-                SetStatus("予期しない設定読込エラーのため終了します。");
-                FatalFailure?.Invoke();
-            }
+            try { SetStatus("予期しない設定読込エラーのため終了します。"); }
+            finally { FatalFailure?.Invoke(); }
         }
     }
 

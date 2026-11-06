@@ -119,6 +119,62 @@ internal sealed class StartupSettingsIntegrationTests
         Assert.That(fixture.View.Document!.Text, Is.EqualTo("// cli"));
     });
 
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(true, true)]
+    public void FailureAfterStoppingReachesShutdownWithoutUpdatingUi(bool timeoutFirst, bool unrelatedCancellation) => SingleThreadTestContext.Run(async () =>
+    {
+        await using var fixture = new Fixture();
+        var startup = fixture.View.InitializeAsync([]);
+        await fixture.Access.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        if (timeoutFirst) { fixture.Clock.Expire(); await startup; }
+        fixture.View.Stop();
+        await startup.WaitAsync(TimeSpan.FromSeconds(5));
+        var status = fixture.View.Status;
+        var fatalNotifications = 0;
+        fixture.View.FatalFailure += () => fatalNotifications++;
+        var failures = 0;
+        var shutdown = MainWindow.StopAndWaitAsync(fixture.View.Stop, () => fixture.View.PendingWork, () => failures++);
+        Assert.That(shutdown.IsCompleted, Is.False);
+        fixture.ExpectedPendingFailure = fixture.Access.Failure = unrelatedCancellation
+            ? new OperationCanceledException(new CancellationToken(true))
+            : new InvalidOperationException("settings failed during shutdown");
+        fixture.Access.Release.Set();
+        await shutdown.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.That(failures, Is.EqualTo(1));
+        Assert.That(fatalNotifications, Is.Zero, "Already closing: report through PendingWork instead of reopening a UI notification.");
+        Assert.That(fixture.View.Status, Is.EqualTo(status));
+        Assert.That(fixture.View.HasDocument, Is.False);
+        Assert.That(fixture.Operations.Startup.State, Is.EqualTo(StartupState.Stopping));
+    });
+
+    [Test]
+    public void FailedStatusNotificationStillSignalsFatalShutdown() => SingleThreadTestContext.Run(async () =>
+    {
+        await using var fixture = new Fixture();
+        var startup = fixture.View.InitializeAsync([]);
+        await fixture.Access.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        fixture.Clock.Expire();
+        await startup;
+        var fatal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        fixture.View.FatalFailure += () => fatal.TrySetResult();
+        fixture.ExpectedPendingFailure = new InvalidOperationException("status notification failed");
+        System.ComponentModel.PropertyChangedEventHandler failedNotification = (_, args) =>
+        {
+            if (args.PropertyName == nameof(fixture.View.Status)) throw fixture.ExpectedPendingFailure;
+        };
+        fixture.View.PropertyChanged += failedNotification;
+        try
+        {
+            fixture.Access.Failure = new InvalidOperationException("settings read failed");
+            fixture.Access.Release.Set();
+            await fatal.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await fixture.View.PendingWork);
+        }
+        finally { fixture.View.PropertyChanged -= failedNotification; }
+    });
+
     private sealed class Fixture : IAsyncDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "codeview-startup-" + Guid.NewGuid().ToString("N"));
@@ -126,6 +182,7 @@ internal sealed class StartupSettingsIntegrationTests
         public readonly ControlledClock Clock = new();
         public readonly AppOperations Operations;
         public readonly MainWindowViewModel View;
+        public Exception? ExpectedPendingFailure;
         public string Cli => Path.Combine(_root, "cli.cs");
         public string Menu => Path.Combine(_root, "menu.cs");
         public string Drop => Path.Combine(_root, "drop.cs");
@@ -147,10 +204,14 @@ internal sealed class StartupSettingsIntegrationTests
         {
             Access.Release.Set();
             View.Stop();
-            await View.PendingWork.WaitAsync(TimeSpan.FromSeconds(5));
-            Operations.Dispose();
-            Access.Release.Dispose();
-            Directory.Delete(_root, true);
+            try { await View.PendingWork.WaitAsync(TimeSpan.FromSeconds(5)); }
+            catch (Exception error) when (ReferenceEquals(error, ExpectedPendingFailure)) { }
+            finally
+            {
+                Operations.Dispose();
+                Access.Release.Dispose();
+                Directory.Delete(_root, true);
+            }
         }
     }
 
