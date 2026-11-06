@@ -1,5 +1,12 @@
 # codeView 実装・検証記録
 
+## 2026-11-06：両OSのCI実行成功とP1-01の完了
+
+- 8efffa1をpushし、[初回CI](https://github.com/m-hiroaki/codeView/actions/runs/42162663862)でWindows/macOS両ジョブ成功を確認した。SDK準備、locked-mode復元、本体/試験のReleaseビルド、通常単体、Python補助試験、証跡アップロードが成功した。
+- Windows-2025/X64は.NET627合格・Darwin専用3スキップ、Python5合格・Macシェル専用20スキップ。macOS-15/ARM64は.NET630/Python25すべて合格。スキップを合格へ読み替えず、個々のTRX結果で理由を確認。Windowsバッチの通常実行も初めて確認した。
+- 両OSの実SDKはglobal.jsonの許容パッチ10.0.403、host10.0.14。PATH Pythonは3.12.10、Windowsのpy -3は3.15.2を選択していた。厳密な同一Python版の試験とはせず、環境ファイルへ記録した。[全結果・環境・ログ・Artifact識別](validation-results/2026-11-06-ci-build/README.md)。
+- 製品1/試験1・版選択/依存ロック・両OSのReleaseビルド/通常試験手順を満たしたためP1-01をチェックした。ランナーを固定性能基準機やGUI/別PC/AOT/署名/オフライン/長時間受入の代用にはせず、P0-02/P1-09/P2〜P6および全ゲートは未完了を維持する。
+
 ## 2026-11-06：両OSのビルド・通常単体試験CIを準備
 
 - A-03の承認待ちと独立して、P0-03/P1-01の両OS確認を進めるためGitHub Actionsを追加。Windows-2025/macOS-15のマトリックスでglobal.json指定SDKとPython 3.12を用意し、既存のtest-windows.bat/test-mac.shでlocked-mode復元→Release通常単体→Python試験を実行する。Windowsの実際のpy選択版も環境情報へ記録する。

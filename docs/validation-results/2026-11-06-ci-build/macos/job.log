@@ -1,0 +1,313 @@
+2026-11-06T04:27:59.8936220Z Current runner version: '2.338.2'
+2026-11-06T04:27:59.8951890Z ##[group]Runner Image Provisioner
+2026-11-06T04:27:59.8952520Z Hosted Compute Agent
+2026-11-06T04:27:59.8952910Z Version: 20261103.629
+2026-11-06T04:27:59.8953430Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-06T04:27:59.8953920Z Build Date: 2026-11-03T17:26:59Z
+2026-11-06T04:27:59.8954370Z Worker ID: {21ce01b0-cd41-4806-a8a7-8ca832375f2f}
+2026-11-06T04:27:59.8954850Z Region: westus
+2026-11-06T04:27:59.8955220Z Cloud: MacCloud
+2026-11-06T04:27:59.8955580Z ##[endgroup]
+2026-11-06T04:27:59.8956490Z ##[group]Operating System
+2026-11-06T04:27:59.8956900Z macOS
+2026-11-06T04:27:59.8957250Z 15.8.2
+2026-11-06T04:27:59.8957600Z 24H232
+2026-11-06T04:27:59.8957930Z ##[endgroup]
+2026-11-06T04:27:59.8958290Z ##[group]Runner Image
+2026-11-06T04:27:59.8958680Z Image: macos-15-arm64
+2026-11-06T04:27:59.8959060Z Version: 20261104.0514.1
+2026-11-06T04:27:59.8959920Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20261104.0514/images/macos/macos-15-arm64-Readme.md
+2026-11-06T04:27:59.8960960Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20261104.0514
+2026-11-06T04:27:59.8961620Z ##[endgroup]
+2026-11-06T04:27:59.8962360Z ##[group]GITHUB_TOKEN Permissions
+2026-11-06T04:27:59.8963460Z Contents: read
+2026-11-06T04:27:59.8963840Z Metadata: read
+2026-11-06T04:27:59.8964200Z ##[endgroup]
+2026-11-06T04:27:59.8965550Z Secret source: Actions
+2026-11-06T04:27:59.8966110Z Cache mode: write
+2026-11-06T04:27:59.8966560Z Prepare workflow directory
+2026-11-06T04:27:59.9344480Z Prepare all required actions
+2026-11-06T04:27:59.9380820Z Getting action download info
+2026-11-06T04:28:00.3837880Z Download action repository 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-11-06T04:28:00.7007910Z Download action repository 'actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1' (SHA:26b0ec14cb23fa6904739307f278c14f94c95bf1)
+2026-11-06T04:28:01.2367420Z Download action repository 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1' (SHA:ece7cb06caefa5fff74198d8649806c4678c61a1)
+2026-11-06T04:28:01.3568870Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-06T04:28:01.6025430Z Complete job name: Test (macos-15)
+2026-11-06T04:28:01.6667610Z ##[group]Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+2026-11-06T04:28:01.6670590Z with:
+2026-11-06T04:28:01.6671460Z   persist-credentials: false
+2026-11-06T04:28:01.6671870Z   repository: m-hiroaki/codeView
+2026-11-06T04:28:01.6674680Z   token: ***
+2026-11-06T04:28:01.6674990Z   ssh-strict: true
+2026-11-06T04:28:01.6675300Z   ssh-user: git
+2026-11-06T04:28:01.6675610Z   clean: true
+2026-11-06T04:28:01.6675930Z   sparse-checkout-cone-mode: true
+2026-11-06T04:28:01.6676310Z   fetch-depth: 1
+2026-11-06T04:28:01.6676620Z   fetch-tags: false
+2026-11-06T04:28:01.6676940Z   show-progress: true
+2026-11-06T04:28:01.6677350Z   lfs: false
+2026-11-06T04:28:01.6677650Z   submodules: false
+2026-11-06T04:28:01.6677980Z   set-safe-directory: true
+2026-11-06T04:28:01.6678340Z   allow-unsafe-pr-checkout: false
+2026-11-06T04:28:01.6678930Z env:
+2026-11-06T04:28:01.6679240Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:01.6679600Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:01.6679960Z ##[endgroup]
+2026-11-06T04:28:02.2821910Z Syncing repository: m-hiroaki/codeView
+2026-11-06T04:28:02.2823350Z ##[group]Getting Git version info
+2026-11-06T04:28:02.2823960Z Working directory is '/Users/runner/work/codeView/codeView'
+2026-11-06T04:28:02.2824700Z [command]/opt/homebrew/bin/git version
+2026-11-06T04:28:02.4141940Z git version 2.56.0
+2026-11-06T04:28:02.4214540Z ##[endgroup]
+2026-11-06T04:28:02.4221180Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/3db03429-e9f6-4447-a7b0-2734fe25309c/.gitconfig'
+2026-11-06T04:28:02.4345630Z Temporarily overriding HOME='/Users/runner/work/_temp/3db03429-e9f6-4447-a7b0-2734fe25309c' before making global git config changes
+2026-11-06T04:28:02.4348030Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T04:28:02.4349100Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/codeView/codeView
+2026-11-06T04:28:02.4822200Z Deleting the contents of '/Users/runner/work/codeView/codeView'
+2026-11-06T04:28:02.4825130Z ##[group]Determining repository object format
+2026-11-06T04:28:02.4828890Z ##[endgroup]
+2026-11-06T04:28:02.4829670Z ##[group]Initializing the repository
+2026-11-06T04:28:02.4831880Z [command]/opt/homebrew/bin/git init /Users/runner/work/codeView/codeView
+2026-11-06T04:28:02.5224610Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-06T04:28:02.5225540Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-06T04:28:02.5226260Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-06T04:28:02.5226850Z hint: call:
+2026-11-06T04:28:02.5227210Z hint:
+2026-11-06T04:28:02.5227620Z hint: 	git config --global init.defaultBranch <name>
+2026-11-06T04:28:02.5228100Z hint:
+2026-11-06T04:28:02.5228540Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-06T04:28:02.5229240Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-06T04:28:02.5229800Z hint:
+2026-11-06T04:28:02.5230150Z hint: 	git branch -m <name>
+2026-11-06T04:28:02.5230540Z hint:
+2026-11-06T04:28:02.5231050Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-06T04:28:02.5462490Z Initialized empty Git repository in /Users/runner/work/codeView/codeView/.git/
+2026-11-06T04:28:02.5487040Z [command]/opt/homebrew/bin/git remote add origin https://github.com/m-hiroaki/codeView
+2026-11-06T04:28:02.5938480Z ##[endgroup]
+2026-11-06T04:28:02.5939440Z ##[group]Disabling automatic garbage collection
+2026-11-06T04:28:02.5940490Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-11-06T04:28:02.6077690Z ##[endgroup]
+2026-11-06T04:28:02.6078590Z ##[group]Setting up auth
+2026-11-06T04:28:02.6079150Z Removing SSH command configuration
+2026-11-06T04:28:02.6079980Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:28:02.6133790Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T04:28:02.7428670Z Removing HTTP extra header
+2026-11-06T04:28:02.7429610Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:28:02.7580260Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T04:28:02.8526800Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:28:02.8656620Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:28:02.8666170Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T04:28:02.9458130Z [command]/opt/homebrew/bin/git config --file /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-06T04:28:02.9531910Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/codeView/codeView/.git.path /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:02.9608120Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/codeView/codeView/.git/worktrees/*.path /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:02.9656520Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:02.9727190Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:02.9789060Z ##[endgroup]
+2026-11-06T04:28:02.9790010Z ##[group]Fetching the repository
+2026-11-06T04:28:02.9794120Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96:refs/remotes/origin/main
+2026-11-06T04:28:03.7282850Z From https://github.com/m-hiroaki/codeView
+2026-11-06T04:28:03.7285400Z  * [new ref]         8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96 -> origin/main
+2026-11-06T04:28:03.7289860Z [command]/opt/homebrew/bin/git branch --list --remote origin/main
+2026-11-06T04:28:03.7384540Z   origin/main
+2026-11-06T04:28:03.7390510Z [command]/opt/homebrew/bin/git rev-parse refs/remotes/origin/main
+2026-11-06T04:28:03.7456640Z 8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96
+2026-11-06T04:28:03.7461780Z ##[endgroup]
+2026-11-06T04:28:03.7463840Z ##[group]Determining the checkout info
+2026-11-06T04:28:03.7466190Z ##[endgroup]
+2026-11-06T04:28:03.7471990Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-11-06T04:28:03.7561910Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-06T04:28:03.7633810Z ##[group]Checking out the ref
+2026-11-06T04:28:03.7636250Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-06T04:28:03.8316500Z Switched to a new branch 'main'
+2026-11-06T04:28:03.8321070Z branch 'main' set up to track 'origin/main'.
+2026-11-06T04:28:03.8325060Z ##[endgroup]
+2026-11-06T04:28:03.8428460Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-11-06T04:28:03.8498340Z 8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96
+2026-11-06T04:28:03.8511030Z ##[group]Removing auth
+2026-11-06T04:28:03.8512670Z Removing SSH command configuration
+2026-11-06T04:28:03.8516740Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:28:03.8589830Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T04:28:03.9462870Z Removing HTTP extra header
+2026-11-06T04:28:03.9464210Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:28:03.9538780Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T04:28:04.0503390Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:28:04.0508320Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:28:04.0572380Z includeif.gitdir:/Users/runner/work/codeView/codeView/.git.path
+2026-11-06T04:28:04.0578260Z includeif.gitdir:/Users/runner/work/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:28:04.0579270Z includeif.gitdir:/github/workspace/.git.path
+2026-11-06T04:28:04.0579710Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-06T04:28:04.0596910Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/codeView/codeView/.git.path
+2026-11-06T04:28:04.0665010Z /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.0671430Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/codeView/codeView/.git.path /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.0764080Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:28:04.0820610Z /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.0830810Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/codeView/codeView/.git/worktrees/*.path /Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.0927040Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-06T04:28:04.0981930Z /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.0993910Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.1098310Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-06T04:28:04.1161240Z /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.1185780Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config
+2026-11-06T04:28:04.1284830Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T04:28:04.2431450Z Removing credentials config '/Users/runner/work/_temp/git-credentials-b9c3686f-0738-4caf-9ee6-2e4c4ad4350d.config'
+2026-11-06T04:28:04.2434100Z ##[endgroup]
+2026-11-06T04:28:04.2648920Z ##[group]Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+2026-11-06T04:28:04.2649290Z with:
+2026-11-06T04:28:04.2649470Z   global-json-file: global.json
+2026-11-06T04:28:04.2649640Z   cache: false
+2026-11-06T04:28:04.2649820Z env:
+2026-11-06T04:28:04.2649990Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:04.2650280Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:04.2650480Z ##[endgroup]
+2026-11-06T04:28:04.4138720Z [command]/Users/runner/work/_actions/actions/setup-dotnet/26b0ec14cb23fa6904739307f278c14f94c95bf1/externals/install-dotnet.sh --skip-non-versioned-files --runtime dotnet --channel LTS
+2026-11-06T04:28:04.6506910Z dotnet-install: .NET Core Runtime with version '10.0.14' is already installed.
+2026-11-06T04:28:04.6521690Z [command]/Users/runner/work/_actions/actions/setup-dotnet/26b0ec14cb23fa6904739307f278c14f94c95bf1/externals/install-dotnet.sh --skip-non-versioned-files --channel 10.0.4xx
+2026-11-06T04:28:04.9446170Z dotnet-install: .NET Core SDK with version '10.0.403' is already installed.
+2026-11-06T04:28:04.9612090Z ##[group]Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+2026-11-06T04:28:04.9612990Z with:
+2026-11-06T04:28:04.9613160Z   python-version: 3.12
+2026-11-06T04:28:04.9613350Z   check-latest: false
+2026-11-06T04:28:04.9615520Z   token: ***
+2026-11-06T04:28:04.9615710Z   update-environment: true
+2026-11-06T04:28:04.9615930Z   allow-prereleases: false
+2026-11-06T04:28:04.9616140Z   freethreaded: false
+2026-11-06T04:28:04.9616330Z env:
+2026-11-06T04:28:04.9616470Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:04.9616660Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:04.9616830Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-11-06T04:28:04.9617040Z ##[endgroup]
+2026-11-06T04:28:05.1053530Z ##[group]Installed versions
+2026-11-06T04:28:05.1109420Z Successfully set up CPython (3.12.10)
+2026-11-06T04:28:05.1110030Z ##[endgroup]
+2026-11-06T04:28:05.1185700Z ##[group]Run New-Item -ItemType Directory -Force artifacts/test-results | Out-Null
+2026-11-06T04:28:05.1186300Z [36;1mNew-Item -ItemType Directory -Force artifacts/test-results | Out-Null[0m
+2026-11-06T04:28:05.1186770Z [36;1m"Commit: $(git rev-parse HEAD)" | Out-File artifacts/test-results/environment.txt[0m
+2026-11-06T04:28:05.1187290Z [36;1m"Runner: $env:RUNNER_OS / $env:RUNNER_ARCH" | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:05.1188110Z [36;1mdotnet --info | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:05.1188480Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:05.1188860Z [36;1mpython --version | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:05.1189260Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:05.1189580Z [36;1mif ($env:RUNNER_OS -eq 'Windows') {[0m
+2026-11-06T04:28:05.1190030Z [36;1m  py -3 --version | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:05.1190420Z [36;1m  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:05.1190670Z [36;1m}[0m
+2026-11-06T04:28:05.1229860Z shell: /usr/local/bin/pwsh -command ". '{0}'"
+2026-11-06T04:28:05.1230130Z env:
+2026-11-06T04:28:05.1230310Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:05.1230520Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:05.1230720Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-11-06T04:28:05.1231020Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:05.1231470Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.12.10/arm64/lib/pkgconfig
+2026-11-06T04:28:05.1232000Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:05.1232440Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:05.1232840Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:05.1233150Z ##[endgroup]
+2026-11-06T04:28:06.9088630Z ##[group]Run ./test-mac.sh
+2026-11-06T04:28:06.9088920Z [36;1m./test-mac.sh[0m
+2026-11-06T04:28:06.9125650Z shell: /bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T04:28:06.9125920Z env:
+2026-11-06T04:28:06.9126090Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:06.9126300Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:06.9126470Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-11-06T04:28:06.9126770Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:06.9127290Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.12.10/arm64/lib/pkgconfig
+2026-11-06T04:28:06.9127710Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:06.9128150Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:06.9128520Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:06.9128810Z ##[endgroup]
+2026-11-06T04:28:08.2118960Z   Determining projects to restore...
+2026-11-06T04:28:16.7379720Z   Restored /Users/runner/work/codeView/codeView/tests/codeView.Tests/codeView.Tests.csproj (in 8.27 sec).
+2026-11-06T04:28:16.7493610Z   Restored /Users/runner/work/codeView/codeView/src/codeView/codeView.csproj (in 6 ms).
+2026-11-06T04:28:21.3636870Z   codeView -> /Users/runner/work/codeView/codeView/src/codeView/bin/Release/net10.0/codeView.dll
+2026-11-06T04:28:24.0780510Z   codeView.Tests -> /Users/runner/work/codeView/codeView/tests/codeView.Tests/bin/Release/net10.0/codeView.Tests.dll
+2026-11-06T04:28:24.0976530Z Test run for /Users/runner/work/codeView/codeView/tests/codeView.Tests/bin/Release/net10.0/codeView.Tests.dll (.NETCoreApp,Version=v10.0)
+2026-11-06T04:28:24.3718640Z A total of 1 test files matched the specified pattern.
+2026-11-06T04:28:28.0826050Z Results File: /Users/runner/work/codeView/codeView/artifacts/test-results/macos/unit.trx
+2026-11-06T04:28:28.0826970Z
+2026-11-06T04:28:28.0855430Z Passed!  - Failed:     0, Passed:   630, Skipped:     0, Total:   630, Duration: 3 s - codeView.Tests.dll (net10.0)
+2026-11-06T04:28:28.5698220Z test_default_arm64_packages_self_contained_app_and_keeps_source_lock (test_build_scripts.MacBuildTests.test_default_arm64_packages_self_contained_app_and_keeps_source_lock) ... ok
+2026-11-06T04:28:28.8026790Z test_default_intel_and_explicit_cross_architecture (test_build_scripts.MacBuildTests.test_default_intel_and_explicit_cross_architecture) ... ok
+2026-11-06T04:28:28.8989560Z test_failed_publish_preserves_previous_app_and_cleans_staging (test_build_scripts.MacBuildTests.test_failed_publish_preserves_previous_app_and_cleans_staging) ... ok
+2026-11-06T04:28:28.9509930Z test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk (test_build_scripts.MacBuildTests.test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk) ... ok
+2026-11-06T04:28:28.9678290Z test_rejects_non_mac_host (test_build_scripts.MacBuildTests.test_rejects_non_mac_host) ... ok
+2026-11-06T04:28:29.0355390Z test_restore_failure_stops_before_publish_and_preserves_exit_code (test_build_scripts.MacBuildTests.test_restore_failure_stops_before_publish_and_preserves_exit_code) ... ok
+2026-11-06T04:28:29.1472490Z test_success_without_executable_is_failure (test_build_scripts.MacBuildTests.test_success_without_executable_is_failure) ... ok
+2026-11-06T04:28:29.1649310Z test_cp932_and_single_line_are_valid_at_exact_byte_boundaries (test_generate_fixture.FixtureTests.test_cp932_and_single_line_are_valid_at_exact_byte_boundaries) ... ok
+2026-11-06T04:28:29.1963560Z test_deterministic_digest_and_mixed_distribution (test_generate_fixture.FixtureTests.test_deterministic_digest_and_mixed_distribution) ... ok
+2026-11-06T04:28:29.1992290Z test_exact_counts_sizes_and_known_matches (test_generate_fixture.FixtureTests.test_exact_counts_sizes_and_known_matches) ... ok
+2026-11-06T04:28:29.1995310Z test_invalid_arguments_do_not_create_output (test_generate_fixture.FixtureTests.test_invalid_arguments_do_not_create_output) ... ok
+2026-11-06T04:28:29.2004890Z test_output_is_not_overwritten (test_generate_fixture.FixtureTests.test_output_is_not_overwritten) ... ok
+2026-11-06T04:28:29.3671670Z test_coverage_clears_current_results_and_html_but_keeps_other_runs (test_test_scripts.TestRunnerTests.test_coverage_clears_current_results_and_html_but_keeps_other_runs) ... ok
+2026-11-06T04:28:29.4463530Z test_coverage_failure_preserves_exit_and_stops_python (test_test_scripts.TestRunnerTests.test_coverage_failure_preserves_exit_and_stops_python) ... ok
+2026-11-06T04:28:29.6102320Z test_coverage_mode_instruments_units_and_keeps_results_separate (test_test_scripts.TestRunnerTests.test_coverage_mode_instruments_units_and_keeps_results_separate) ... ok
+2026-11-06T04:28:29.6829480Z test_dotnet_failure_preserves_exit_and_does_not_run_python (test_test_scripts.TestRunnerTests.test_dotnet_failure_preserves_exit_and_does_not_run_python) ... ok
+2026-11-06T04:28:29.7545620Z test_invalid_and_extra_arguments_stop_before_tools (test_test_scripts.TestRunnerTests.test_invalid_and_extra_arguments_stop_before_tools) ... ok
+2026-11-06T04:28:29.8923610Z test_missing_html_is_failure_even_when_generator_returns_success (test_test_scripts.TestRunnerTests.test_missing_html_is_failure_even_when_generator_returns_success) ... ok
+2026-11-06T04:28:29.9061450Z test_non_mac_host_stops_before_tools (test_test_scripts.TestRunnerTests.test_non_mac_host_stops_before_tools) ... ok
+2026-11-06T04:28:30.0111110Z test_normal_mode_restores_runs_units_then_python_from_repo (test_test_scripts.TestRunnerTests.test_normal_mode_restores_runs_units_then_python_from_repo) ... ok
+2026-11-06T04:28:30.0922190Z test_performance_mode_runs_only_performance_and_no_python (test_test_scripts.TestRunnerTests.test_performance_mode_runs_only_performance_and_no_python) ... ok
+2026-11-06T04:28:30.2039700Z test_python_failure_preserves_exit (test_test_scripts.TestRunnerTests.test_python_failure_preserves_exit) ... ok
+2026-11-06T04:28:30.3625350Z test_report_failure_stops_python_and_preserves_exit (test_test_scripts.TestRunnerTests.test_report_failure_stops_python_and_preserves_exit) ... ok
+2026-11-06T04:28:30.4934750Z test_report_restore_failure_stops_generation_and_python (test_test_scripts.TestRunnerTests.test_report_restore_failure_stops_generation_and_python) ... ok
+2026-11-06T04:28:30.5393640Z test_restore_failure_preserves_exit_and_does_not_run_tests (test_test_scripts.TestRunnerTests.test_restore_failure_preserves_exit_and_does_not_run_tests) ... ok
+2026-11-06T04:28:30.5395120Z
+2026-11-06T04:28:30.5395560Z ----------------------------------------------------------------------
+2026-11-06T04:28:30.5396220Z Ran 25 tests in 2.103s
+2026-11-06T04:28:30.5396430Z
+2026-11-06T04:28:30.5396640Z OK
+2026-11-06T04:28:30.5499800Z Results: /Users/runner/work/codeView/codeView/artifacts/test-results/macos/unit.trx
+2026-11-06T04:28:30.5678910Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-11-06T04:28:30.5679360Z with:
+2026-11-06T04:28:30.5679710Z   name: test-results-macos-15
+2026-11-06T04:28:30.5680010Z   path: artifacts/test-results/
+2026-11-06T04:28:30.5680340Z   retention-days: 14
+2026-11-06T04:28:30.5680560Z   if-no-files-found: warn
+2026-11-06T04:28:30.5681230Z   compression-level: 6
+2026-11-06T04:28:30.5682270Z   overwrite: false
+2026-11-06T04:28:30.5682620Z   include-hidden-files: false
+2026-11-06T04:28:30.5682990Z env:
+2026-11-06T04:28:30.5683200Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:30.5683520Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:30.5683760Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-11-06T04:28:30.5711380Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:30.5712840Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.12.10/arm64/lib/pkgconfig
+2026-11-06T04:28:30.5713710Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:30.5714310Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:30.5715670Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-11-06T04:28:30.5716670Z ##[endgroup]
+2026-11-06T04:28:31.0449150Z (node:2552) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T04:28:31.0479110Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T04:28:31.0520800Z With the provided path, there will be 2 files uploaded
+2026-11-06T04:28:31.0526410Z Artifact name is valid!
+2026-11-06T04:28:31.0528410Z Root directory input is valid!
+2026-11-06T04:28:31.4735520Z Beginning upload of artifact content to blob storage
+2026-11-06T04:28:31.5025390Z (node:2552) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-06T04:28:31.9525580Z Uploaded bytes 144655
+2026-11-06T04:28:32.0331900Z Finished uploading artifact content to blob storage!
+2026-11-06T04:28:32.0334070Z SHA256 digest of uploaded artifact zip is 9e267afdca0c7eb3364988bacf127d752f93bb9ac80e1dc4cbf2e487821e42db
+2026-11-06T04:28:32.0338820Z Finalizing artifact upload
+2026-11-06T04:28:32.5088280Z Artifact test-results-macos-15.zip successfully finalized. Artifact ID 13477298218
+2026-11-06T04:28:32.5090670Z Artifact test-results-macos-15 has been successfully uploaded! Final size is 144655 bytes. Artifact ID is 13477298218
+2026-11-06T04:28:32.5104810Z Artifact download URL: https://github.com/m-hiroaki/codeView/actions/runs/42162663862/artifacts/13477298218
+2026-11-06T04:28:32.5306910Z Post job cleanup.
+2026-11-06T04:28:32.6831710Z Post job cleanup.
+2026-11-06T04:28:32.8220710Z Post job cleanup.
+2026-11-06T04:28:32.9339700Z [command]/opt/homebrew/bin/git version
+2026-11-06T04:28:32.9535190Z git version 2.56.0
+2026-11-06T04:28:32.9559300Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/e58a869b-4cdf-4258-a836-ce74882da91c/.gitconfig'
+2026-11-06T04:28:32.9569650Z Temporarily overriding HOME='/Users/runner/work/_temp/e58a869b-4cdf-4258-a836-ce74882da91c' before making global git config changes
+2026-11-06T04:28:32.9571680Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T04:28:32.9572500Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/codeView/codeView
+2026-11-06T04:28:32.9672250Z Removing SSH command configuration
+2026-11-06T04:28:32.9679280Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:28:32.9746520Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T04:28:33.0848570Z Removing HTTP extra header
+2026-11-06T04:28:33.0849360Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:28:33.0935120Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T04:28:33.1882250Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:28:33.1888260Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:28:33.1965210Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T04:28:33.3040240Z Cleaning up orphan processes
+2026-11-06T04:28:33.3546460Z Terminate orphan process: pid (2132) (VBCSCompiler)
+2026-11-06T04:28:33.4048350Z Terminate orphan process: pid (2131) (dotnet)
+2026-11-06T04:28:33.4216020Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

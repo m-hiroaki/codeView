@@ -1,0 +1,69 @@
+[
+  {
+    "Package": "Avalonia",
+    "Version": "12.1.3",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "branch": "refs/heads/release/12.1.3",
+      "commit": "8eeda4f6f546165b3f72e63c9f42247abb306905"
+    }
+  },
+  {
+    "Package": "Avalonia.Desktop",
+    "Version": "12.1.3",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "branch": "refs/heads/release/12.1.3",
+      "commit": "8eeda4f6f546165b3f72e63c9f42247abb306905"
+    }
+  },
+  {
+    "Package": "Avalonia.Themes.Fluent",
+    "Version": "12.1.3",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "branch": "refs/heads/release/12.1.3",
+      "commit": "8eeda4f6f546165b3f72e63c9f42247abb306905"
+    }
+  },
+  {
+    "Package": "Microsoft.NET.Test.Sdk",
+    "Version": "17.14.1",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/microsoft/vstest",
+      "commit": "490850ae3fdc1b470e3804ceab4f6a41cf89ae51"
+    }
+  },
+  {
+    "Package": "NUnit",
+    "Version": "4.1.0",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/nunit/nunit"
+    }
+  },
+  {
+    "Package": "NUnit3TestAdapter",
+    "Version": "4.5.0",
+    "LicenseType": "expression",
+    "License": "MIT",
+    "Repository": {
+      "type": "git",
+      "url": "https://github.com/nunit/nunit3-vs-adapter"
+    }
+  }
+]

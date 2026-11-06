@@ -1,0 +1,3185 @@
+{
+  "Counts": {
+    "Passed": 630,
+    "NotExecuted": 0,
+    "Failed": 0
+  },
+  "TrxCounters": {
+    "total": "630",
+    "executed": "630",
+    "passed": "630",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "Times": {
+    "creation": "2026-11-06T04:28:25.0469020+00:00",
+    "queuing": "2026-11-06T04:28:25.0469020+00:00",
+    "start": "2026-11-06T04:28:24.3600160+00:00",
+    "finish": "2026-11-06T04:28:28.0170830+00:00"
+  },
+  "TrxSha256": "b768daee156bb498ab7b501d4f900068f67952dfdf172c46139de5e1ebebca2f",
+  "ArchiveSha256": "9e267afdca0c7eb3364988bacf127d752f93bb9ac80e1dc4cbf2e487821e42db",
+  "Results": [
+    {
+      "testName": "LongRegexMatchMovesWithoutClaimingFullSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0036550"
+    },
+    {
+      "testName": "BackgroundCompletionOrCloseCannotReplaceSelectedBody(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0052530"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.csproj\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0066620"
+    },
+    {
+      "testName": "EmptyAndFinalEmptyLinesAreEvaluatedOnce(\"\",[0L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002580"
+    },
+    {
+      "testName": "SnapshotScanDoesNotObserveLaterLiveDocumentChanges",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004500"
+    },
+    {
+      "testName": "CaptureKeepsActualSourceCaseAndOnlyCurrentLine",
+      "outcome": "Passed",
+      "duration": "00:00:00.0023420"
+    },
+    {
+      "testName": "RejectsNonPositivePosition(0,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003790"
+    },
+    {
+      "testName": "CancelledLoadDoesNotReturnSuccess",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006590"
+    },
+    {
+      "testName": "InvalidPathFails(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021030"
+    },
+    {
+      "testName": "HorizontalWithoutShiftCollapsesSelectionToRequestedEdge(8,2,-1,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "OnlySuccessfulResultsExposeTheirValue",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008020"
+    },
+    {
+      "testName": "InvalidSourcePlanStepDoesNotMoveCaret",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009640"
+    },
+    {
+      "testName": "SurrogatePairsAndOutputBufferBoundaryArePreserved(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011010"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Left,None,False,Left,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010290"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003970"
+    },
+    {
+      "testName": "InvalidPlanInputsFail(64,1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002110"
+    },
+    {
+      "testName": "NewlinesAndUtf16PositionsAreIndependentOfChunkBoundaries(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000570"
+    },
+    {
+      "testName": "InvalidQueryIsRejectedBeforeScanning(null)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000870"
+    },
+    {
+      "testName": "RootProjectionIsBatchedAndOldBindingCannotReappear",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021110"
+    },
+    {
+      "testName": "ClosingBackgroundAndLastTabsReleasesOnlyTheirDocuments",
+      "outcome": "Passed",
+      "duration": "00:00:00.0040490"
+    },
+    {
+      "testName": "ExplicitLifetimeFailureIsPreserved(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001660"
+    },
+    {
+      "testName": "ResetDoesNotJoinCrLfOrCarrySkippedLineStateAcrossFiles",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005720"
+    },
+    {
+      "testName": "PathCharacterBudgetIsAppliedAtomically(1,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025920"
+    },
+    {
+      "testName": "LimitKeepsProvisionalRowsClearlyIncompleteAndNonNavigable",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001810"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"1024 \")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000110"
+    },
+    {
+      "testName": "TreeNameOrderIsStableWithCaseTies",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017980"
+    },
+    {
+      "testName": "InvalidOriginalLineRangeDoesNotChangeSelection(0,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003959"
+    },
+    {
+      "testName": "NativeTokenizerDistinguishesCommentsStringsAndKeywords(\"cpp-header.h\",\"template<class T> struct Box { const char* text = \\\"text\\\"; }; // comment\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.1671820"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.CPP\",\"source.cpp\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0229660"
+    },
+    {
+      "testName": "UnknownOrUnrelatedCancellationFaultsStopWaiterAndRemainObservable(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005450"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Utf8)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0037380"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Utf16Le)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013740"
+    },
+    {
+      "testName": "EverySliceRowMatchesOriginalDocumentLineIncludingTrailingEmptyLine(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003930"
+    },
+    {
+      "testName": "PreviewOnlyOffersCopyAndDoesNotReadFileValues(Copy,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013480"
+    },
+    {
+      "testName": "DragKeepsOriginalAnchorAcrossSlicesAndCopiesOriginalRange",
+      "outcome": "Passed",
+      "duration": "00:00:00.0085210"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.cs\",\"source.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0213320"
+    },
+    {
+      "testName": "ClosingDuringReadCancelsWorkerAndStopRejectsNewLoads",
+      "outcome": "Passed",
+      "duration": "00:00:00.0090940"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(12,9,1,3,1,True,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000230"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"excludedDirectoryNames\\\":[\\\"../src\\\"]}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "NewlinesAndUtf16PositionsAreIndependentOfChunkBoundaries(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003180"
+    },
+    {
+      "testName": "EmptyAndBomOnlyFilesProduceEmptyText",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013490"
+    },
+    {
+      "testName": "ReversedSelectionAndCopySnapshotSurviveLaterSelectionAndClosure",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007069"
+    },
+    {
+      "testName": "RejectsBinaryAndInvalidExplicitEncoding",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010889"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(99L,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "DropWaitsForSettingsCopiesNativeValuesAndKeepsSourcesUnchanged",
+      "outcome": "Passed",
+      "duration": "00:00:00.0161770"
+    },
+    {
+      "testName": "InvalidPlanInputsFail(-1,1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001310"
+    },
+    {
+      "testName": "ViewStateAndCloseSelectionAreIndependentPerTab",
+      "outcome": "Passed",
+      "duration": "00:00:00.0040450"
+    },
+    {
+      "testName": "RootFailureAndCancellationDuringMoveDoNotBecomeSuccessfulFileNotifications",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010650"
+    },
+    {
+      "testName": "MacFifoIsRejectedWithoutWaitingForAWriter",
+      "outcome": "Passed",
+      "duration": "00:00:00.0566770"
+    },
+    {
+      "testName": "DefaultAndOutOfRangeRowsCannotProduceLabels",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004220"
+    },
+    {
+      "testName": "UnknownWriteFailureCancelsLatestWithoutStartingItsPreparation(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003120"
+    },
+    {
+      "testName": "OutOfRangePositionClampsWithoutSelecting(long.MaxValue,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000749"
+    },
+    {
+      "testName": "WholeWordUsesTheSameOuterScalarCategoriesAsLiteralSearch",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003520"
+    },
+    {
+      "testName": "OffsetIsConstrainedToCurrentDocument(80,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000140"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.targets\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0058300"
+    },
+    {
+      "testName": "FailedReplacementKeepsOldDocumentAndCloseReleasesIt",
+      "outcome": "Passed",
+      "duration": "00:00:00.0023830"
+    },
+    {
+      "testName": "OldEqualAndForeignSliceEventsCannotChangeSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010810"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(long.MaxValue,19)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "OffsetIsConstrainedToCurrentDocument(81,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "InvalidateOrShutdownCancelsPrepareAndWaitingAndWaitsForWorker(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0055680"
+    },
+    {
+      "testName": "ConfirmedResultOpensOrReusesTabAndSelectsOriginalCase(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026100"
+    },
+    {
+      "testName": "EmptyShortAndExtremeDocumentsStayInRange",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004670"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"\\ud83d\\ude00\",True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "InvalidSavedOffsetIsRejected(double.NaN)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001320"
+    },
+    {
+      "testName": "WorkerBuiltDocumentCanBeTransferredWithoutUndoHistory",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025980"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.md\",\"text.html.markdown\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0084239"
+    },
+    {
+      "testName": "SettingsAreFixedAndSwitchOrFailureKeepsTheOpenDocument",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029359"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(65536)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012520"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Right,Shift,True,Right,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002420"
+    },
+    {
+      "testName": "InvalidRequestsDoNotReserveBudget(\"bad\\0.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000210"
+    },
+    {
+      "testName": "PreCancelledScanDoesNotDeliverEvenForEmptyDocument(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004220"
+    },
+    {
+      "testName": "TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(63)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005770"
+    },
+    {
+      "testName": "ChangedShorterFileClampsOldPositionAndDoesNotSelect",
+      "outcome": "Passed",
+      "duration": "00:00:00.0098750"
+    },
+    {
+      "testName": "StartupPathsMenuOpenReloadAndCloseUseTheSameReadonlyPipeline",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031370"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(0,16385,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000300"
+    },
+    {
+      "testName": "LateUnexpectedFailureIsObservedRatherThanAdoptedAsDefaultsAgain",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033350"
+    },
+    {
+      "testName": "EmptyAndOversizedRequestsDoNotPartiallyReservePaths",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003480"
+    },
+    {
+      "testName": "OutOfRangePositionClampsWithoutSelecting(1,long.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001630"
+    },
+    {
+      "testName": "ExactCasePrefixAndUtf16CoordinatesProduceBoundedSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004080"
+    },
+    {
+      "testName": "FullQueueCanBeCancelledWithoutDrainingOrWritingTerminalEvent",
+      "outcome": "Passed",
+      "duration": "00:00:00.0109190"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(0,1024)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005910"
+    },
+    {
+      "testName": "ConfirmedResultOpensOrReusesTabAndSelectsOriginalCase(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024180"
+    },
+    {
+      "testName": "LatestWaiterReplacesIntermediateAndOldPreparationNeverWrites",
+      "outcome": "Passed",
+      "duration": "00:00:00.0032429"
+    },
+    {
+      "testName": "SupplementaryCaseAndCultureFollowOrdinalIgnoreCase",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004350"
+    },
+    {
+      "testName": "BackgroundCompletionOrCloseCannotReplaceSelectedBody(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017260"
+    },
+    {
+      "testName": "LineDragSelectsOriginalWholeLinesInBothDirections(\"\\r\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011390"
+    },
+    {
+      "testName": "ClearedResultNeverCreatesATab",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025209"
+    },
+    {
+      "testName": "ExternalChangeKeepsOldBodyAndSuppressesSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0040240"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(64)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015910"
+    },
+    {
+      "testName": "WorkerReadsOriginalUtf16AndCrLfAcrossChunkBoundariesAfterClose",
+      "outcome": "Passed",
+      "duration": "00:00:00.0041720"
+    },
+    {
+      "testName": "MissingNamesUseDefaults(\"{\\\"schemaVersion\\\":1}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001120"
+    },
+    {
+      "testName": "InProgressSnapshotScanSurvivesCloseOrReplacement(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024430"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(50000,4096)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015150"
+    },
+    {
+      "testName": "NormalLinesFillRequestedRowsAndKeepOriginalCoordinates(\"\\n\",0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0109859"
+    },
+    {
+      "testName": "WholeWordFiltersOriginalMatchesWithoutChangingAlternationPriority",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001760"
+    },
+    {
+      "testName": "LiteralSnippetRemainsAlignedAcrossChunksAndCompaction(7)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019450"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002690"
+    },
+    {
+      "testName": "LateNonCancellableResolutionCannotRestoreClosedOrReplacedRoot(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029240"
+    },
+    {
+      "testName": "MainWindowWorkspaceCloseClearsRowsAndTracksPendingSearch",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027940"
+    },
+    {
+      "testName": "PreviewOnlyOffersCopyAndDoesNotReadFileValues(Move,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003450"
+    },
+    {
+      "testName": "SwitchingRestoresIndependentPositionViewportAndGuardsBindingResets",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028300"
+    },
+    {
+      "testName": "CliMenuAndDropRemainFifoUntilSettingsCompleteExactlyOnce",
+      "outcome": "Passed",
+      "duration": "00:00:00.0082880"
+    },
+    {
+      "testName": "LongMatchesCopyOnlyBoundedActualSourcePrefix(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006320"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"cpp-header.H\",\"source.cpp\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0200360"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(F,Shift, Meta,True,None,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000250"
+    },
+    {
+      "testName": "EmptyAndFinalEmptyLinesAreEvaluatedOnce(\"\\r\\n\",[0L, 2L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001320"
+    },
+    {
+      "testName": "CallbackFailureRevokesBorrowedStorageAccess(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003840"
+    },
+    {
+      "testName": "StopDuringSettingsReadWaitsForActualWorkerAndNeverOpensFiles(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033230"
+    },
+    {
+      "testName": "ItemLimitIsCheckedBeforeReadingValues(255,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0154460"
+    },
+    {
+      "testName": "MapsDisplayRowsWithoutOverflow(1L,1L,1,1,1L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000960"
+    },
+    {
+      "testName": "LineDragRejectsStaleSliceOtherPointersAndInvalidHitWithoutChangingSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003900"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"aabaaaab\",\"aab\",[0L, 5L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000410"
+    },
+    {
+      "testName": "ClosingActiveLoadDisposesLateDocumentAndReopenGetsANewIdentity",
+      "outcome": "Passed",
+      "duration": "00:00:00.0036500"
+    },
+    {
+      "testName": "RequestsWaitForExactlyOneSettingsCompletionAndRemainFifo",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002400"
+    },
+    {
+      "testName": "LineEdgeStepsUseHitLineRatherThanDelimiterEndpointAndIgnoreHorizontalMotion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003850"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"3\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001240"
+    },
+    {
+      "testName": "UnknownPathsRemainPlainAndDoNotInitializeAssets(\"README\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "CursorPreservesOriginalUtf16Positions(\"x\\ry\\nz\",5,3,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000310"
+    },
+    {
+      "testName": "DisposalTracksNativeWaitAndRejectsFutureExpansion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026410"
+    },
+    {
+      "testName": "LineLimitNeverSearchesOnlyThePrefix(3,1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002390"
+    },
+    {
+      "testName": "InvalidatedResultsDoNotRefundGeneratedBudget",
+      "outcome": "Passed",
+      "duration": "00:00:00.0297960"
+    },
+    {
+      "testName": "InvalidQueryIsRejectedBeforeScanning(\"\\r\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.markdown\",\"text.html.markdown\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0072320"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Left,Meta,True,LineStart,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000220"
+    },
+    {
+      "testName": "ShiftMovementCrossesWindowWithoutResettingOriginalAnchor",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013280"
+    },
+    {
+      "testName": "CollapseCancelsLateResultAndReexpandUsesNewGeneration",
+      "outcome": "Passed",
+      "duration": "00:00:00.0044580"
+    },
+    {
+      "testName": "RejectsInvalidInput(\"file\\0.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000260"
+    },
+    {
+      "testName": "DeepLogicalTreeUsesExplicitFramesAndNoRecursion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0156450"
+    },
+    {
+      "testName": "CancellationIsObservedBeforeInputAndAfterEachResult",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007180"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001750"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017830"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(0,7,0,0,null,False,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000270"
+    },
+    {
+      "testName": "HidingPanelKeepsSearchAndResultsAlive",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029320"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(A,Control,True,Unsupported,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "RootMustBeReadyAndRequestUsesFixedWorkspaceSettings",
+      "outcome": "Passed",
+      "duration": "00:00:00.0036170"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Utf32Be)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011460"
+    },
+    {
+      "testName": "RootFailureIsFatalButChildFailureIsPartialAndContinues",
+      "outcome": "Passed",
+      "duration": "00:00:00.0018470"
+    },
+    {
+      "testName": "CollapsedCacheHonorsBoundaryAndEvictsOldest(3,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000960"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"input\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011240"
+    },
+    {
+      "testName": "TenThousandResultsAreIncrementalAndLastFileRemainsUncommitted",
+      "outcome": "Passed",
+      "duration": "00:00:00.0486140"
+    },
+    {
+      "testName": "LargeRangeStreamsInBoundedWritesWithoutOwningOrClosingDestination",
+      "outcome": "Passed",
+      "duration": "00:00:00.0095600"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(uint.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008030"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015160"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(C,Control,True,Copy,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "LatestWaitingRequestReplacesIntermediateWithoutStartingAnotherWorker",
+      "outcome": "Passed",
+      "duration": "00:00:00.0038840"
+    },
+    {
+      "testName": "RejectsInvalidMapBeforeRendering(2L,1L,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002070"
+    },
+    {
+      "testName": "DisposeDuringNativeWriteWaitsForTheWriteBeforeFinishing",
+      "outcome": "Passed",
+      "duration": "00:00:00.0067420"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Utf16Be)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024930"
+    },
+    {
+      "testName": "ExclusionsAreCopiedAndCaseRulesAreExplicit",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012340"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(8192)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009820"
+    },
+    {
+      "testName": "SameNameTabsShowParentPathsAndFolderSwitchKeepsEveryTab",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031950"
+    },
+    {
+      "testName": "LongMatchOnlyChecksShortPrefixAndDoesNotClaimFullSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007580"
+    },
+    {
+      "testName": "BoundaryNormalizationMatchesSourceWithAndWithoutCachedDisplayText",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010950"
+    },
+    {
+      "testName": "WorkerCompletionDoesNotMeanQueuedEventsWereDrained",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015880"
+    },
+    {
+      "testName": "EmptyDocumentAndEmptySelectionHaveValidEofAndCopyNoCharacters",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007739"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.xml\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0079980"
+    },
+    {
+      "testName": "RejectsInvalidMapBeforeRendering(1L,1L,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "LineLimitNeverSearchesOnlyThePrefix(4,1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001640"
+    },
+    {
+      "testName": "ExplicitEmptyNamesAndExactDuplicatesArePreservedCorrectly",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001970"
+    },
+    {
+      "testName": "InvalidOriginalLineRangeDoesNotChangeSelection(1,3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.props\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0074790"
+    },
+    {
+      "testName": "HorizontalWithoutShiftCollapsesSelectionToRequestedEdge(2,8,-1,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001510"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\" 1024\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000100"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"schemaVersion\\\":2}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000170"
+    },
+    {
+      "testName": "AnchorsLookbehindAndBackreferencesUseTheWholeOriginalLine",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010160"
+    },
+    {
+      "testName": "UnknownPathsRemainPlainAndDoNotInitializeAssets(\"file.unknown\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001060"
+    },
+    {
+      "testName": "ChangedStampOrActualTextSuppressesSelection(False,\"foo\",Stale)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008800"
+    },
+    {
+      "testName": "WordAtTailWaitsForContextAndAbortDoesNotTreatAnIoFailureAsEof",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004630"
+    },
+    {
+      "testName": "GeneratedLimitStopsWithoutCommittingEvenAtExactTotal(9999,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0289880"
+    },
+    {
+      "testName": "CancelAndConsumerFailureDoNotCorruptReusedBuffers",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020240"
+    },
+    {
+      "testName": "ConcurrentReadsOnSameReaderKeepDecoderAndBuffersIsolated",
+      "outcome": "Passed",
+      "duration": "00:00:00.0148140"
+    },
+    {
+      "testName": "ClosingTargetDuringInitialLoadCannotRestoreIt",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028880"
+    },
+    {
+      "testName": "SurrogatePairsAndOutputBufferBoundaryArePreserved(5)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0032900"
+    },
+    {
+      "testName": "EmptySelectionDoesNotReplaceOrClearExistingCopy",
+      "outcome": "Passed",
+      "duration": "00:00:00.0076360"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\" a  a \",\" \",[0L, 2L, 3L, 5L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000820"
+    },
+    {
+      "testName": "DefaultCacheLimitHandlesWideDirectoryBoundary(10000)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0148820"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"x\\r\\nx\\rx\\nx\",\"x\",[0L, 3L, 5L, 7L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "ShutdownWaitsForManualRefreshAndCannotRestoreWorkspace",
+      "outcome": "Passed",
+      "duration": "00:00:00.0022490"
+    },
+    {
+      "testName": "SurrogatePairsAndOutputBufferBoundaryArePreserved(4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0018350"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Down,Shift, Meta,True,DocumentEnd,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000080"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Home,None,False,LineStart,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "MeasurementWindowSizeIsExplicitAndBounded(\"4\",4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000940"
+    },
+    {
+      "testName": "ShortDocumentsAndTrailingEmptyLineRetainAllText(\"\\ud83d\\ude00\\r\\n短\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000420"
+    },
+    {
+      "testName": "MaximumQueryAndCompactionKeepAllMatchesAndSmallStorage(256)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024570"
+    },
+    {
+      "testName": "BothClippedEdgesAvoidHalfSurrogates",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007790"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Utf32Le)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012240"
+    },
+    {
+      "testName": "RootDrainAllowsChildExpansionWithoutReordering",
+      "outcome": "Passed",
+      "duration": "00:00:00.0022269"
+    },
+    {
+      "testName": "ReservedPathsCoalesceAndDifferentTabsLoadFifoWithoutStealingSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0035790"
+    },
+    {
+      "testName": "RegexSkippedLinesAndScalarMatchesRemainPartialAfterFileCommit",
+      "outcome": "Passed",
+      "duration": "00:00:00.0355030"
+    },
+    {
+      "testName": "RootSwitchOrCloseRejectsLateEventsAndCompletion(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024020"
+    },
+    {
+      "testName": "NormalLinesFillRequestedRowsAndKeepOriginalCoordinates(\"\\r\\n\",999)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009360"
+    },
+    {
+      "testName": "RootSwitchWaitsForChildEnumerationAndTracksItsRetiredTree",
+      "outcome": "Passed",
+      "duration": "00:00:00.0044070"
+    },
+    {
+      "testName": "TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007940"
+    },
+    {
+      "testName": "WholeWordSurrogateContextSurvivesCompaction",
+      "outcome": "Passed",
+      "duration": "00:00:00.0088240"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(100L,3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(128)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011670"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(uint.MinValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010390"
+    },
+    {
+      "testName": "SurrogatePairsAndOutputBufferBoundaryArePreserved(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011830"
+    },
+    {
+      "testName": "EmptyDocumentAndRangeBoundariesAreSupported",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010100"
+    },
+    {
+      "testName": "InvalidRegexDoesNotStartTraversal",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010390"
+    },
+    {
+      "testName": "CompletedOwnerDoesNotRetainPreparedClipboardString",
+      "outcome": "Passed",
+      "duration": "00:00:00.0348990"
+    },
+    {
+      "testName": "HorizontalWithoutShiftCollapsesSelectionToRequestedEdge(8,2,1,8)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "Utf8BomIsAcceptedAndInvalidUtf8IsRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002350"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.config\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0059520"
+    },
+    {
+      "testName": "SnapshotDoesNotShareMutableInput",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000860"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"aaaaa\",\"aa\",[0L, 2L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003480"
+    },
+    {
+      "testName": "UnsupportedOrInvalidPathRejectsWholeDrop(\"content://provider/source.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000950"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(16385)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004620"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(8188)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009560"
+    },
+    {
+      "testName": "ActualOneMiLimitIsBoundedAndNextLinePositionsStayCorrect(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0359020"
+    },
+    {
+      "testName": "OffsetIsConstrainedToCurrentDocument(0,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009310"
+    },
+    {
+      "testName": "CursorAndEdgesDoNotSplitSurrogatesOrCrLf(\"a\\r\\nbcdef\",2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003450"
+    },
+    {
+      "testName": "InvalidPlanInputsFail(0,0,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000230"
+    },
+    {
+      "testName": "EveryTargetAndWindowBoundaryKeepsScalarAndCrLfTogether(\"\\r\\n\\ud83d\\ude00\\r\\n\",1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003540"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009320"
+    },
+    {
+      "testName": "EmptyRootCompletesWithoutInventingResults(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014630"
+    },
+    {
+      "testName": "PreCancelledWorkDoesNotReadDirectory",
+      "outcome": "Passed",
+      "duration": "00:00:00.0045649"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"日\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "ExplicitLifetimeFailureIsPreserved(42)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001140"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(End,Shift,True,LineEnd,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "UnknownWorkerFailureIsPropagatedAndProvisionalRowsAreRemoved",
+      "outcome": "Passed",
+      "duration": "00:00:00.0038720"
+    },
+    {
+      "testName": "RootSwitchOrCloseRejectsLateEventsAndCompletion(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024630"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"excludedDirectoryNames\\\":null}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000130"
+    },
+    {
+      "testName": "UnknownPathsRemainPlainAndDoNotInitializeAssets(\"file.hpp\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000030"
+    },
+    {
+      "testName": "InvalidPlanInputsFail(0,1,int.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000170"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(End,Control, Shift,True,DocumentEnd,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "CollapsedCacheHonorsBoundaryAndEvictsOldest(0,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016140"
+    },
+    {
+      "testName": "EdgeStepsStopAtDocumentBoundsWithoutClearingAnchor(\"a\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001190"
+    },
+    {
+      "testName": "TimeoutDrainsQueuedFilesAndLateSuccessCannotReplaceFixedDefaults",
+      "outcome": "Passed",
+      "duration": "00:00:00.0052620"
+    },
+    {
+      "testName": "PortableExecutableIsRejectedForEveryEncodingIncludingOutsideSample(8189)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008930"
+    },
+    {
+      "testName": "EmptyMissingAndFileRootsAreDistinct",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027320"
+    },
+    {
+      "testName": "MinimumAndMaximumRowRequestsRemainBounded(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007780"
+    },
+    {
+      "testName": "InvalidPatternFailsBeforeInputIsRead(null)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001160"
+    },
+    {
+      "testName": "FailedEncodingChangePreservesBodyPositionAndPreviousChoice",
+      "outcome": "Passed",
+      "duration": "00:00:00.0055649"
+    },
+    {
+      "testName": "SeededInputsAgreeWithIndependentWholeStringComparison",
+      "outcome": "Passed",
+      "duration": "00:00:00.0076070"
+    },
+    {
+      "testName": "GeneratedLimitStopsWithoutCommittingEvenAtExactTotal(10000,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0294030"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"excludedDirectoryNames\\\":[\\\"*.tmp\\\"]}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "LongLineKeepsOriginalCharacterBoundInsteadOfExpandingToFillRows(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003020"
+    },
+    {
+      "testName": "ReadIoFailureIsTypedAndOtherFilesStillDecodeCorrectly",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012640"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"ababa\",\"aba\",[0L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002100"
+    },
+    {
+      "testName": "SeveralFilesPublishOneRangeNotificationAndShareCommitState",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006849"
+    },
+    {
+      "testName": "KnownReadFailureUsesDefaultsAndKeepsNoticeAfterQueuedOpen",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027659"
+    },
+    {
+      "testName": "NewlinesAndUtf16PositionsAreIndependentOfChunkBoundaries(16)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000470"
+    },
+    {
+      "testName": "UnexpectedFailurePropagatesAndStopRejectsFutureWork",
+      "outcome": "Passed",
+      "duration": "00:00:00.0022810"
+    },
+    {
+      "testName": "WordSearchPositionsAreIndependentOfChunkBoundaries(7)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "InvalidRequestsLeaveSelectionAndCurrentSliceUnchanged",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008470"
+    },
+    {
+      "testName": "MeasurementWindowSizeIsExplicitAndBounded(\"1024\",1024)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000050"
+    },
+    {
+      "testName": "RejectsNonPositivePosition(1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003270"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(6)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005590"
+    },
+    {
+      "testName": "DifferentTabsKeepTheFirstLoadAndQueueTheNext",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025540"
+    },
+    {
+      "testName": "InvalidRequestsDoNotReserveBudget(\" \")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000960"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(0,16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007570"
+    },
+    {
+      "testName": "UnknownMetadataFailureStopsLatestWaiterAndIsObservedAtShutdown",
+      "outcome": "Passed",
+      "duration": "00:00:00.0030690"
+    },
+    {
+      "testName": "LongLineKeepsOriginalCharacterBoundInsteadOfExpandingToFillRows(4000)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003860"
+    },
+    {
+      "testName": "FinalStringPreservesOriginalSelectionAfterClosure(\"abc\\r\\n日本語\\ud83d\\ude00\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001360"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(0,4096)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019000"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Right,Alt, Shift,True,Unsupported,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "CursorPreservesOriginalUtf16Positions(\"x\\r\\n\",3,2,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006470"
+    },
+    {
+      "testName": "EmptyFailureAndQueueFullHaveDistinctPresentation",
+      "outcome": "Passed",
+      "duration": "00:00:00.0091000"
+    },
+    {
+      "testName": "MacFifoSettingsCannotBlockStartup",
+      "outcome": "Passed",
+      "duration": "00:00:00.0540060"
+    },
+    {
+      "testName": "ReadFailureInvalidatesOnlyThatFileAndReleasesItsStream",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033060"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(10L,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000060"
+    },
+    {
+      "testName": "RejectedOrForeignThreadStartLeavesSnapshotOwnershipWithCaller",
+      "outcome": "Passed",
+      "duration": "00:00:00.0064380"
+    },
+    {
+      "testName": "LineDragSelectsOriginalWholeLinesInBothDirections(\"\\r\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003690"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0034340"
+    },
+    {
+      "testName": "ZeroLengthProgressSkipsSurrogateInteriorAndPreservesEndMatch",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003140"
+    },
+    {
+      "testName": "StopDuringSettingsReadWaitsForActualWorkerAndNeverOpensFiles(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017810"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(0,1024,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "EmptyAndFinalEmptyLinesAreEvaluatedOnce(\"\\n\\r\",[0L, 1L, 2L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000250"
+    },
+    {
+      "testName": "LocalPathsKeepOrderUnicodeAndLiteralShellCharacters",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006980"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006170"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"a\\r\\nb\",\"ab\",[])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001440"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(-1,1024,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006050"
+    },
+    {
+      "testName": "EmptyRootIsReadyAndFileCannotBecomeRoot",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024300"
+    },
+    {
+      "testName": "PartialRootFailureRetainsEntriesButDisablesSearchAndRefreshCanRecover",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028260"
+    },
+    {
+      "testName": "CursorAndEdgesDoNotSplitSurrogatesOrCrLf(\"a\\ud83d\\ude00bcdef\",2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006230"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\" \",True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000140"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"excludedDirectoryNames\\\":[\\\"\\\"]}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000500"
+    },
+    {
+      "testName": "NewlinesAndUtf16PositionsAreIndependentOfChunkBoundaries(16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000390"
+    },
+    {
+      "testName": "MapsDisplayRowsWithoutOverflow(long.MaxValue,long.MaxValue,1,1,long.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "StructuredTextHasExpectedTokenCategories(\"file.md\",\"# Heading\",\"markup.heading\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.2289080"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(A,Meta,True,SelectAll,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(O,Meta,True,None,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000110"
+    },
+    {
+      "testName": "PreviewOnlyOffersCopyAndDoesNotReadFileValues(Link,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000250"
+    },
+    {
+      "testName": "ShortDocumentsAndTrailingEmptyLineRetainAllText(\"a\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001120"
+    },
+    {
+      "testName": "ConditionsReachWorkerAndCompletionFollowsFullDrain(False,True,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011090"
+    },
+    {
+      "testName": "WorkerFailureCanBeObservedByExitResolution",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011920"
+    },
+    {
+      "testName": "LineDragSelectsOriginalWholeLinesInBothDirections(\"\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007760"
+    },
+    {
+      "testName": "RecordedFailureSurvivesLaterSuccessfulLifetimeShutdown",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000670"
+    },
+    {
+      "testName": "BuilderCannotChangeItsOwningThread",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027600"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(100000,16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004390"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(16383)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002050"
+    },
+    {
+      "testName": "FileLinkCanBeOpenedExplicitly",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008900"
+    },
+    {
+      "testName": "PathInspectionClassifiesWithoutOpeningBodyAndHonorsCancellation",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028730"
+    },
+    {
+      "testName": "CancellationRemovesAllUnadoptedCommitsEvenWhenWorkerHasNoUncommittedId",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003579"
+    },
+    {
+      "testName": "SameStampDifferentTextDoesNotSelectAnUnverifiedMatch",
+      "outcome": "Passed",
+      "duration": "00:00:00.0030829"
+    },
+    {
+      "testName": "EdgeStepsStopAtDocumentBoundsWithoutClearingAnchor(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004360"
+    },
+    {
+      "testName": "NonScalarResultsAreReportedAndNeverExpandedIntoValidSelections",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004140"
+    },
+    {
+      "testName": "RegexCanCaptureEarlyMatchesWhenWholeLineIsAvailable",
+      "outcome": "Passed",
+      "duration": "00:00:00.0353480"
+    },
+    {
+      "testName": "CancellationDuringWriteStopsBeforeNextChunk",
+      "outcome": "Passed",
+      "duration": "00:00:00.0023010"
+    },
+    {
+      "testName": "SnapshotCanBeReadOnWorkerAndOutliveClosedDocument",
+      "outcome": "Passed",
+      "duration": "00:00:00.0018820"
+    },
+    {
+      "testName": "MapsDisplayRowsWithoutOverflow(123L,1000L,5,5,127L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000080"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"[]\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "SelectionChangesAndSourceClosureDoNotAlterCapturedText",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019400"
+    },
+    {
+      "testName": "CollapsedCacheHonorsBoundaryAndEvictsOldest(2,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000820"
+    },
+    {
+      "testName": "InlineCaseAndInvariantCultureAreRetainedWithoutUnicodeNormalization",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002420"
+    },
+    {
+      "testName": "NonOverlappingAndWhitespaceQueriesMatchExpectedOffsets(\"\",\"x\",[])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000470"
+    },
+    {
+      "testName": "FinalStringPreservesOriginalSelectionAfterClosure(\"éé\\t\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000430"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(16,16,8,0,8,False,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000170"
+    },
+    {
+      "testName": "UnexpectedLoadFaultIsObservedByRequestAndEarlierShutdownWait",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015980"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Right,Shift, Meta,True,LineEnd,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Home,Control,False,DocumentStart,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(6)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009190"
+    },
+    {
+      "testName": "UnavailableOrInvalidMeasurementFails(-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001240"
+    },
+    {
+      "testName": "CharacterBudgetHasExactBoundary",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001990"
+    },
+    {
+      "testName": "ManualUtf16CanRetryBinaryHeuristicAndBomMismatchIsRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012510"
+    },
+    {
+      "testName": "InvalidCancelledAndFaultedWritesPropagateWithoutLosingLease",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012770"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"switch\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0059439"
+    },
+    {
+      "testName": "BranchFailureIsReportedAndOtherBranchesContinue",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015150"
+    },
+    {
+      "testName": "MissingNamesUseDefaults(\"{}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001850"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(C,Control,False,Copy,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "ChangedFileInvalidatesEarlierHitsAndNextFileStillCommits",
+      "outcome": "Passed",
+      "duration": "00:00:00.0043620"
+    },
+    {
+      "testName": "ShorterDocumentAndUnmeasuredExtentReturnOrigin",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001630"
+    },
+    {
+      "testName": "NativeUnavailableIsTypedAndLaterCopyCanRetry",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025190"
+    },
+    {
+      "testName": "WordSearchPositionsAreIndependentOfChunkBoundaries(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000349"
+    },
+    {
+      "testName": "ClearedAndForeignRowsCannotActivateEvenWithSameFileId",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003830"
+    },
+    {
+      "testName": "RetainingDisposedDisplayDoesNotRetainItsOriginalHandle",
+      "outcome": "Passed",
+      "duration": "00:00:00.0116760"
+    },
+    {
+      "testName": "LongMatchesCopyOnlyBoundedActualSourcePrefix(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007090"
+    },
+    {
+      "testName": "TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(59)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003610"
+    },
+    {
+      "testName": "FinalEmptyLineCanBeSelectedWithoutCreatingText(\"a\\r\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004950"
+    },
+    {
+      "testName": "UnrelatedCancellationIsNotHiddenByConcurrentRequestCancellation",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017160"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(65539)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0018020"
+    },
+    {
+      "testName": "RealReadFailureKeepsVersionEncodingAndLeaseAndRetryCanRecover",
+      "outcome": "Passed",
+      "duration": "00:00:00.0056880"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.json\",\"source.json\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0072070"
+    },
+    {
+      "testName": "MultipleFilesReturnOriginalPositionsAndOrderedCommit(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0048930"
+    },
+    {
+      "testName": "StopCancellationAndConsumerFaultAreTerminalAndResetClearsAllPositionState",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008550"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"c-header.h\",\"source.cpp\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0194429"
+    },
+    {
+      "testName": "ShortDocumentsAndTrailingEmptyLineRetainAllText(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001910"
+    },
+    {
+      "testName": "OriginalPositionRestoreClampsAndKeepsScalarBoundary(2L,4L,8L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008740"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(20,0,0,8,null,True,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009670"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(9L,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000820"
+    },
+    {
+      "testName": "PreviewOnlyOffersCopyAndDoesNotReadFileValues(Copy, Move,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000360"
+    },
+    {
+      "testName": "InvalidPatternFailsBeforeInputIsRead(\"(?<bad\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000800"
+    },
+    {
+      "testName": "PathCharacterBudgetIsAppliedAtomically(-1,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012669"
+    },
+    {
+      "testName": "ShiftPressPreservesExistingAnchorAndAllowsReversedSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002450"
+    },
+    {
+      "testName": "InvalidOriginalLineRangeDoesNotChangeSelection(1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001830"
+    },
+    {
+      "testName": "ExplicitCancelRetainsCurrentIdentityButDropsQueuedEvents",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027960"
+    },
+    {
+      "testName": "InvalidRangeIsRejected(2,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000900"
+    },
+    {
+      "testName": "WordSearchPositionsAreIndependentOfChunkBoundaries(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004090"
+    },
+    {
+      "testName": "EarlyStopAndRepeatedReadsStartAtBeginning",
+      "outcome": "Passed",
+      "duration": "00:00:00.0043110"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"9\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001530"
+    },
+    {
+      "testName": "MeasurementWindowSizeIsExplicitAndBounded(null,16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000610"
+    },
+    {
+      "testName": "HorizontalWithoutShiftCollapsesSelectionToRequestedEdge(2,8,1,8)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001950"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012750"
+    },
+    {
+      "testName": "WaitingLimitRejectsNewNodesButStillCoalescesAndCancelledWaiterDoesNotRead",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020030"
+    },
+    {
+      "testName": "WaitingLimitAndQueuedReplacementOrCloseAreAtomic",
+      "outcome": "Passed",
+      "duration": "00:00:00.0032090"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(100000,4096)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006500"
+    },
+    {
+      "testName": "UserCancelAfterWorkerEndDropsUndrainedEventsButKeepsStopCause",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021350"
+    },
+    {
+      "testName": "InvalidHitDoesNotAdmitOrMutateDrag(-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005280"
+    },
+    {
+      "testName": "ResolvesRelativeComponentsButPreservesUnicodeAndDisplayPath",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002200"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"‍\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000130"
+    },
+    {
+      "testName": "ExplicitLifetimeFailureIsPreserved(int.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "DefaultCacheLimitHandlesWideDirectoryBoundary(9999)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0206590"
+    },
+    {
+      "testName": "ReleasedHandleCannotStartDisplayOrNewCopy",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003810"
+    },
+    {
+      "testName": "FinalStringValidatesRangeAndCopiesMultipleChunks",
+      "outcome": "Passed",
+      "duration": "00:00:00.0068310"
+    },
+    {
+      "testName": "AbortResetStopAndConsumerFailureHaveDistinctOutcomes",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017820"
+    },
+    {
+      "testName": "InterleavedBranchesKeepOrderAndSiblingSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0042460"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(A,Control,False,SelectAll,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "WordSearchPositionsAreIndependentOfChunkBoundaries(16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001830"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(60)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003830"
+    },
+    {
+      "testName": "MultipleFilesReturnOriginalPositionsAndOrderedCommit(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0018350"
+    },
+    {
+      "testName": "MinimumAndMaximumRowRequestsRemainBounded(512)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007970"
+    },
+    {
+      "testName": "InvalidConditionsAndRegexPartialCoverageAreExplained(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012930"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"16385\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(63)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003990"
+    },
+    {
+      "testName": "InvalidOriginalLineRangeDoesNotChangeSelection(3,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000349"
+    },
+    {
+      "testName": "PreviewOnlyOffersCopyAndDoesNotReadFileValues(None,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "ConditionsReachWorkerAndCompletionFollowsFullDrain(False,False,3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031710"
+    },
+    {
+      "testName": "WalkIsLazyDepthFirstAndDisposesOnEarlyStop",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007220"
+    },
+    {
+      "testName": "OldEpochsAndClosedOwnersCannotAdoptResults",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002280"
+    },
+    {
+      "testName": "UnsupportedOrInvalidPathRejectsWholeDrop(\"https://example.com/source.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001330"
+    },
+    {
+      "testName": "ItemLimitIsCheckedBeforeReadingValues(257,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000840"
+    },
+    {
+      "testName": "InvalidQueryIsRejectedBeforeScanning(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000690"
+    },
+    {
+      "testName": "OutOfRangePositionClampsWithoutSelecting(1,100)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002760"
+    },
+    {
+      "testName": "NormalLinesFillRequestedRowsAndKeepOriginalCoordinates(\"\\r\",80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012680"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(9,12,1,3,4,False,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000280"
+    },
+    {
+      "testName": "UnavailableOrInvalidMeasurementFails(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001050"
+    },
+    {
+      "testName": "FailedTabCanRetryEncodingAndReloadClampsPositionWithoutLosingOtherTab",
+      "outcome": "Passed",
+      "duration": "00:00:00.0068450"
+    },
+    {
+      "testName": "CollapsedCacheHonorsBoundaryAndEvictsOldest(1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003350"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(65)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003740"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"́\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "ZeroLengthAtEndHasValidEmptyHighlight(\"\\ud83d\\ude00\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001100"
+    },
+    {
+      "testName": "TotalBudgetAndPerLineBudgetAreIndependent",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015730"
+    },
+    {
+      "testName": "SurrogatePairsAndOutputBufferBoundaryArePreserved(6)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0032590"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(PageUp,None,True,PageUp,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "BrokenFileLinkIsReportedAndTargetChangesAffectStamp",
+      "outcome": "Passed",
+      "duration": "00:00:00.0037420"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"_\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000320"
+    },
+    {
+      "testName": "ReadsOnlyDirectChildrenWithDirectoriesFirstAndSharedExclusions",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033890"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"schemaVersion\\\":\\\"1\\\"}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000100"
+    },
+    {
+      "testName": "OriginalPositionRestoreClampsAndKeepsScalarBoundary(2L,long.MaxValue,9L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002850"
+    },
+    {
+      "testName": "GeneratedLimitStopsWithoutCommittingEvenAtExactTotal(10001,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0277860"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"shutdown\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016740"
+    },
+    {
+      "testName": "MapsDisplayRowsWithoutOverflow(123L,1000L,5,1,123L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002000"
+    },
+    {
+      "testName": "StartedRequestsStillConsumeBudgetUntilCompletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003300"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"-\",True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000140"
+    },
+    {
+      "testName": "MissingGrammarReturnsNoGrammar",
+      "outcome": "Passed",
+      "duration": "00:00:00.0100010"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005970"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Escape,None,True,ClearSelection,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "RejectsInvalidMapBeforeRendering(0L,1L,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001390"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"schemaVersion\\\":1,\\\"schemaVersion\\\":1}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "UnknownFailureInRetiredWorkerStopsWaitingAndRemainsObservable",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031820"
+    },
+    {
+      "testName": "HalfSurrogateStartOrEndNeverCreatesSelection(1,1,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001990"
+    },
+    {
+      "testName": "ZeroLengthAtEndHasValidEmptyHighlight(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006980"
+    },
+    {
+      "testName": "InvalidRangeIsRejected(-1,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001820"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Up,Shift,False,Up,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000320"
+    },
+    {
+      "testName": "BoundsIncludeExactByteAndScalarLimits",
+      "outcome": "Passed",
+      "duration": "00:00:00.0023270"
+    },
+    {
+      "testName": "PortableFileHasPrecedenceAndInvalidPortableDoesNotFallBack",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029650"
+    },
+    {
+      "testName": "MaximumQueryAndCompactionKeepAllMatchesAndSmallStorage(16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007860"
+    },
+    {
+      "testName": "HitAndEdgeStepKeepSurrogatesCrLfAndOriginalAnchor",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005380"
+    },
+    {
+      "testName": "PartialFailureRetriesAndEmptyFolderIsLoaded",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017510"
+    },
+    {
+      "testName": "EmptyInvalidOldAndDisposedNavigationIsDefined",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024290"
+    },
+    {
+      "testName": "RejectsInvalidInput(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002970"
+    },
+    {
+      "testName": "ConsecutiveReloadsDiscardStaleDocumentAndKeepViewAndSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0019870"
+    },
+    {
+      "testName": "RejectsRelativeBaseDirectory",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001920"
+    },
+    {
+      "testName": "EmptyAndEndZeroLengthMatchesAreValid",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012990"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.c\",\"source.c\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0183300"
+    },
+    {
+      "testName": "FinalEmptyLineCanBeSelectedWithoutCreatingText(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007630"
+    },
+    {
+      "testName": "InvalidPathFails(null)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000890"
+    },
+    {
+      "testName": "UnknownOrUnrelatedCancellationFaultsStopWaiterAndRemainObservable(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031340"
+    },
+    {
+      "testName": "RangeRejectsOverflowAndDefaultPosition",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008280"
+    },
+    {
+      "testName": "MaximumQueryAndCompactionKeepAllMatchesAndSmallStorage(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0232969"
+    },
+    {
+      "testName": "LineAndDocumentBoundariesUseOriginalTextOutsideCurrentSlice",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003950"
+    },
+    {
+      "testName": "LatestWaitingMoveWinsWithoutParallelMetadataReads",
+      "outcome": "Passed",
+      "duration": "00:00:00.0045490"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005120"
+    },
+    {
+      "testName": "CallbackFailureRevokesBorrowedStorageAccess(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004050"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(100000,1024)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009060"
+    },
+    {
+      "testName": "UnpairedSurrogatesAreRejectedWithoutAttributeEncodingReplacement",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001110"
+    },
+    {
+      "testName": "HorizontalMovesKeepSurrogateAndCrLfPairsTogether",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004610"
+    },
+    {
+      "testName": "EverySliceRowMatchesOriginalDocumentLineIncludingTrailingEmptyLine(\"first\\r\\nsecond\\rthird\\nfourth\\r\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003550"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(5)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005170"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"²\",True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000140"
+    },
+    {
+      "testName": "NormalProductBuildDoesNotIncludeProbe",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002020"
+    },
+    {
+      "testName": "DefaultCacheLimitHandlesWideDirectoryBoundary(10001)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0166670"
+    },
+    {
+      "testName": "SupportedMappingsHaveOfflineGrammarAssets(\"file.xaml\",\"text.xml\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0071450"
+    },
+    {
+      "testName": "UnexpectedOrUnrelatedCancellationFaultCarriesUncommittedId(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017030"
+    },
+    {
+      "testName": "InvalidRangeIsRejected(1,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "InvalidPatternFailsBeforeInputIsRead(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000790"
+    },
+    {
+      "testName": "VerticalMovementRestoresPreferredColumnAcrossShortLinesAndClampsLineDelta",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003110"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"a\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002020"
+    },
+    {
+      "testName": "ProgressCanRefreshWithoutResultEventsAndTimerStopsOnCancellation",
+      "outcome": "Passed",
+      "duration": "00:00:00.1303510"
+    },
+    {
+      "testName": "OffsetIsConstrainedToCurrentDocument(20,20)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002860"
+    },
+    {
+      "testName": "InvalidQueryDoesNotEnumerateOrOpenSource(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004300"
+    },
+    {
+      "testName": "InProgressSnapshotScanSurvivesCloseOrReplacement(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014950"
+    },
+    {
+      "testName": "InvalidationRemovesPublishedAndStagedTailOnly(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002500"
+    },
+    {
+      "testName": "InvalidHitDoesNotAdmitOrMutateDrag(11)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002150"
+    },
+    {
+      "testName": "OriginalPositionRestoreClampsAndKeepsScalarBoundary(1L,3L,1L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000440"
+    },
+    {
+      "testName": "StructuredTextHasExpectedTokenCategories(\"file.xml\",\"<Item Value=\\\"text\\\"/>\",\"entity.name.tag\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0130240"
+    },
+    {
+      "testName": "MidEnumerationFailurePreservesPartialTreeAndRootFailureIsExplicit",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028620"
+    },
+    {
+      "testName": "WordSearchPositionsAreIndependentOfChunkBoundaries(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002020"
+    },
+    {
+      "testName": "LineShiftExtensionPreservesReversedWholeLineAnchor",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001979"
+    },
+    {
+      "testName": "ExplicitLifetimeFailureIsPreserved(-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000060"
+    },
+    {
+      "testName": "CursorPreservesOriginalUtf16Positions(\"a\\ud83d\\ude00b\\r\\nが\\nが\",10,3,3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000770"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(17,20,8,0,null,False,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000200"
+    },
+    {
+      "testName": "ShutdownCancelsActiveAndWaitingButWaitsForPhysicalWorker",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033430"
+    },
+    {
+      "testName": "EverySliceRowMatchesOriginalDocumentLineIncludingTrailingEmptyLine(\"\\ud83d\\ude00注文\\r\\n短\\n長い\\ud83d\\ude00line\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001930"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"@\",True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "FinalStringPreservesOriginalSelectionAfterClosure(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004360"
+    },
+    {
+      "testName": "ParentCollapseDiscardsHiddenDescendantsAndDetachedNodesCannotRead",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014410"
+    },
+    {
+      "testName": "ManualEncodingRetriesFailedOpenAndReloadPreservesChoice(Cp932)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021360"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"ः\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000140"
+    },
+    {
+      "testName": "FailedRootCannotStartSearchUsingPreviousRoot",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025320"
+    },
+    {
+      "testName": "ErrorSamplesAreBoundedWithoutLosingCounts",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012500"
+    },
+    {
+      "testName": "UnknownWriteFailureCancelsLatestWithoutStartingItsPreparation(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020940"
+    },
+    {
+      "testName": "ChangedAndCancelledReadsDoNotReturnSuccess",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033730"
+    },
+    {
+      "testName": "PathCharacterBudgetIsAppliedAtomically(0,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012810"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"1.5\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000550"
+    },
+    {
+      "testName": "UnexpectedOrUnrelatedCancellationFaultCarriesUncommittedId(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009010"
+    },
+    {
+      "testName": "PreCancelledScanDoesNotDeliverEvenForEmptyDocument(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003330"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(16384,16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005740"
+    },
+    {
+      "testName": "ActualOneMiLimitIsBoundedAndNextLinePositionsStayCorrect(-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0423479"
+    },
+    {
+      "testName": "MapsDisplayRowsWithoutOverflow(9223372036854775798L,long.MaxValue,10,10,long.MaxValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "WindowStaysBoundedAndMapsBackToSource(50000,1024)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010980"
+    },
+    {
+      "testName": "CancellationAndUnexpectedFailureDisposeAllActiveFrames",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007170"
+    },
+    {
+      "testName": "LineLimitNeverSearchesOnlyThePrefix(5,0,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000230"
+    },
+    {
+      "testName": "HalfSurrogateStartOrEndNeverCreatesSelection(2,1,3)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001880"
+    },
+    {
+      "testName": "NativeTokenizerDistinguishesCommentsStringsAndKeywords(\"code.cs\",\"class Widget { string value = \\\"text\\\"; } // comment\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0288410"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(0,20,0,8,null,False,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008090"
+    },
+    {
+      "testName": "ExpansionIsLazyCoalescedAndLoadedChildrenAreReused",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020170"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"null\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001030"
+    },
+    {
+      "testName": "ShortDocumentsAndTrailingEmptyLineRetainAllText(\"a\\r\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000200"
+    },
+    {
+      "testName": "LiteralSnippetRemainsAlignedAcrossChunksAndCompaction(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0118870"
+    },
+    {
+      "testName": "LiteralSnippetRemainsAlignedAcrossChunksAndCompaction(16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003100"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(1L,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001420"
+    },
+    {
+      "testName": "ExactPathLimitIsAcceptedAndReleasedOnlyWhenTheRequestFinishes",
+      "outcome": "Passed",
+      "duration": "00:00:00.0009900"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(C,Meta,True,Copy,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000060"
+    },
+    {
+      "testName": "InvalidPatternFailsBeforeInputIsRead(\"[\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000540"
+    },
+    {
+      "testName": "EmptyAndFinalEmptyLinesAreEvaluatedOnce(\"\\r\\r\\n\",[0L, 1L, 3L])",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000500"
+    },
+    {
+      "testName": "CurrentProcessReturnsPositiveMeasurement",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004940"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"999999999999999999\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "MaximumQueryAndCompactionKeepAllMatchesAndSmallStorage(16385)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003820"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(5,5,0,0,null,False,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "CursorPreservesOriginalUtf16Positions(\"\",0,1,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010900"
+    },
+    {
+      "testName": "InvalidSavedOffsetIsRejected(-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004520"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"-1\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000160"
+    },
+    {
+      "testName": "ClearAndReplacementCannotAdoptOldBatchOrCompletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033540"
+    },
+    {
+      "testName": "NativeTokenizerDistinguishesCommentsStringsAndKeywords(\"code.cpp\",\"template<class T> struct Box { const char* text = \\\"text\\\"; }; // comment\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.1253980"
+    },
+    {
+      "testName": "NativeTokenizerDistinguishesCommentsStringsAndKeywords(\"code.c\",\"int answer = 42; char* text = \\\"text\\\"; // comment\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0287930"
+    },
+    {
+      "testName": "QueryAndTimeoutConfigurationHaveFiniteBounds",
+      "outcome": "Passed",
+      "duration": "00:00:00.0028830"
+    },
+    {
+      "testName": "InvalidRequestsDoNotReserveBudget(\"\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001220"
+    },
+    {
+      "testName": "CollapseDuringDrainDoesNotResurrectRowsAndReloadRejectsOldRows",
+      "outcome": "Passed",
+      "duration": "00:00:00.0119010"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(5)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007610"
+    },
+    {
+      "testName": "StructuredTextHasExpectedTokenCategories(\"file.xaml\",\"<Window Title=\\\"text\\\"/>\",\"entity.name.tag\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0148060"
+    },
+    {
+      "testName": "CancellingWaitingRequestNeverStartsItAndDoesNotReleaseActiveWork",
+      "outcome": "Passed",
+      "duration": "00:00:00.0146230"
+    },
+    {
+      "testName": "PositiveBoundaryIsPreserved",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000520"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(W,Control,False,None,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "ReservesWidthForWholeSourceRatherThanCurrentSlice(999999L,6)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000050"
+    },
+    {
+      "testName": "InvalidPlanInputsFail(0,1,-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000200"
+    },
+    {
+      "testName": "InvalidConditionsAndRegexPartialCoverageAreExplained(False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0491620"
+    },
+    {
+      "testName": "NewlinesAndUtf16PositionsAreIndependentOfChunkBoundaries(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011480"
+    },
+    {
+      "testName": "OriginalPositionRestoreClampsAndKeepsScalarBoundary(long.MaxValue,1L,15L)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000649"
+    },
+    {
+      "testName": "MeasurementWindowSizeIsExplicitAndBounded(\"4096\",4096)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000580"
+    },
+    {
+      "testName": "MultibyteCharactersSurviveChunkBoundariesAndNoFinalNewline",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016920"
+    },
+    {
+      "testName": "LongLineKeepsOriginalCharacterBoundInsteadOfExpandingToFillRows(8000)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000690"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004290"
+    },
+    {
+      "testName": "ExplicitLifetimeFailureIsPreserved(int.MinValue)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000040"
+    },
+    {
+      "testName": "EmptyExclusionsIncludeHiddenFoldersWhileExplicitFileOpenBypassesExclusion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0126960"
+    },
+    {
+      "testName": "LateNonCancellableResolutionCannotRestoreClosedOrReplacedRoot(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020900"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(6)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004790"
+    },
+    {
+      "testName": "MultipleFilesKeepBodiesAndReopenSelectsWithoutRereading",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029680"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"close\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021370"
+    },
+    {
+      "testName": "TextAndEmptyInputNeverBecomeOpenRequests",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002820"
+    },
+    {
+      "testName": "MzPrefixAloneDoesNotRejectText",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008750"
+    },
+    {
+      "testName": "QueryLimitIsExactAndRegexIsNotSentToLiteralMatcher",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004510"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"Ⅳ\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000360"
+    },
+    {
+      "testName": "RejectsInvalidMapBeforeRendering(1L,1L,0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000180"
+    },
+    {
+      "testName": "CrLfCrAndLfKeepOriginalUtf16Coordinates",
+      "outcome": "Passed",
+      "duration": "00:00:00.0030750"
+    },
+    {
+      "testName": "RejectedDropDoesNotPartiallyOpenOrChangeExistingBody",
+      "outcome": "Passed",
+      "duration": "00:00:00.0041890"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008950"
+    },
+    {
+      "testName": "InvalidateOrShutdownCancelsPrepareAndWaitingAndWaitsForWorker(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003060"
+    },
+    {
+      "testName": "ReloadReplacesChildrenAndUnexpectedErrorsPropagate",
+      "outcome": "Passed",
+      "duration": "00:00:00.0022460"
+    },
+    {
+      "testName": "SelectionAndCopyUseOriginalCoordinatesAcrossDisplaySlices",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014730"
+    },
+    {
+      "testName": "OutOfRangePositionClampsWithoutSelecting(100,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003650"
+    },
+    {
+      "testName": "RejectsInvalidMapBeforeRendering(long.MaxValue,long.MaxValue,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000110"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0020990"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(0,1024,513)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000290"
+    },
+    {
+      "testName": "PathBudgetRejectsWholeRequestsAndInputIsCopied",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002760"
+    },
+    {
+      "testName": "UnknownPathsRemainPlainAndDoNotInitializeAssets(\"no-extension\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001430"
+    },
+    {
+      "testName": "SourceSelectionPlanIncludesReverseFullAndCrossWindowSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014499"
+    },
+    {
+      "testName": "IncompleteFinalSequenceIsRejectedAndNextFileHasFreshDecoder(4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006650"
+    },
+    {
+      "testName": "StructuredTextHasExpectedTokenCategories(\"data.json\",\"{\\\"value\\\": true}\",\"string.\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0146370"
+    },
+    {
+      "testName": "InvalidSettingsReturnDefaultsWithoutSavePermission(\"{\\\"excludedDirectoryNames\\\":[1]}\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000310"
+    },
+    {
+      "testName": "StopDropsWaitingRequestsAndIgnoresLateSettings",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001000"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"root\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015839"
+    },
+    {
+      "testName": "BrokenAndCyclicRootLinksFailWithoutWalking",
+      "outcome": "Passed",
+      "duration": "00:00:00.0049680"
+    },
+    {
+      "testName": "NativeTokenizerDistinguishesCommentsStringsAndKeywords(\"c-header.h\",\"int answer = 42; char* text = \\\"text\\\"; // comment\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.1160220"
+    },
+    {
+      "testName": "CancelRemovesUnadoptedFileButKeepsAdoptedCommittedRows",
+      "outcome": "Passed",
+      "duration": "00:00:00.0056060"
+    },
+    {
+      "testName": "Cp932IsValidatedThenDecodedWithoutChangingOriginalCoordinates",
+      "outcome": "Passed",
+      "duration": "00:00:00.0075340"
+    },
+    {
+      "testName": "InvalidRangeIsRejected(0,-1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001470"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Down,None,True,Down,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000160"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(0,3,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000450"
+    },
+    {
+      "testName": "CancellationAndConsumerFailuresDoNotPoisonLaterScans",
+      "outcome": "Passed",
+      "duration": "00:00:00.0014260"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(PageDown,Shift,False,PageDown,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000090"
+    },
+    {
+      "testName": "VisibleSelectionIsClippedWhileOriginalSelectionRemainsUnchanged(0,10,0,2,2,False,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001090"
+    },
+    {
+      "testName": "LinksAreVisibleButNotWalkedAndExplicitRootLinkCanBeResolved",
+      "outcome": "Passed",
+      "duration": "00:00:00.0041160"
+    },
+    {
+      "testName": "QueuedFolderWaitsForSettingsAndMixedInputUsesFirstFolder",
+      "outcome": "Passed",
+      "duration": "00:00:00.0129269"
+    },
+    {
+      "testName": "ProvisionalResultCannotStartAFileLoad",
+      "outcome": "Passed",
+      "duration": "00:00:00.0037920"
+    },
+    {
+      "testName": "VerticalStepTakesPriorityAndRetainsPreferredColumn",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003610"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Up,Meta,True,DocumentStart,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000080"
+    },
+    {
+      "testName": "ExcludedDirectoriesLinksAndSpecialEntriesAreNeverEntered",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016520"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"reload\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0041380"
+    },
+    {
+      "testName": "ConditionsReachWorkerAndCompletionFollowsFullDrain(True,False,2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011540"
+    },
+    {
+      "testName": "InvalidationRemovesPublishedAndStagedTailOnly(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000330"
+    },
+    {
+      "testName": "TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007649"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005960"
+    },
+    {
+      "testName": "ClearInvalidatesAnAlreadyCompletedButUndrainedSearch",
+      "outcome": "Passed",
+      "duration": "00:00:00.0037680"
+    },
+    {
+      "testName": "EmptyClosedAndInvalidRequestsAreHandled",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006070"
+    },
+    {
+      "testName": "MetadataFailureDoesNotNavigateAndIsRetryable",
+      "outcome": "Passed",
+      "duration": "00:00:00.0027000"
+    },
+    {
+      "testName": "LateMetadataCannotApplyAfterOwnerOrTabChanges(\"clear\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0015030"
+    },
+    {
+      "testName": "InvalidRequestsDoNotInvalidateCurrentSlice(4,1024,80)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002660"
+    },
+    {
+      "testName": "OversizedFilesAreRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016030"
+    },
+    {
+      "testName": "StaleSliceCannotStartOrMoveDragAndCancelPreservesSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003940"
+    },
+    {
+      "testName": "OtherPointerCannotReplaceMoveOrReleaseActiveDrag",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001850"
+    },
+    {
+      "testName": "CancelledBeforeStartStillCompletesWriter",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026130"
+    },
+    {
+      "testName": "DeferredSelectionMustStillOwnSourceTabAndUserInteraction",
+      "outcome": "Passed",
+      "duration": "00:00:00.0089660"
+    },
+    {
+      "testName": "CommentStateContinuesAcrossLines",
+      "outcome": "Passed",
+      "duration": "00:00:00.1760680"
+    },
+    {
+      "testName": "InFlightClipboardWriteKeepsSlotUntilRealCompletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025100"
+    },
+    {
+      "testName": "RejectsNonPositivePosition(-1,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000580"
+    },
+    {
+      "testName": "UnknownPropertiesCanBeReadButNotResaved",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001110"
+    },
+    {
+      "testName": "SuccessfulLifetimeAndNoFailureReturnZero",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000370"
+    },
+    {
+      "testName": "ReadsSupportedEncodingsWithoutChangingSource(5)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007429"
+    },
+    {
+      "testName": "InvalidQueryDoesNotEnumerateOrOpenSource(\"foo\\n\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002610"
+    },
+    {
+      "testName": "MacPermissionFailureIsReportedAndSiblingFilesRemainWalkable",
+      "outcome": "Passed",
+      "duration": "00:00:00.0025610"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Up,Meta,False,Unsupported,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000250"
+    },
+    {
+      "testName": "ResultLimitIsEnforcedAndEmptyFileCommitRetainsNoRows",
+      "outcome": "Passed",
+      "duration": "00:00:00.0197590"
+    },
+    {
+      "testName": "TruncatedMzHeaderDoesNotClassifyOrdinaryTextAsPe(2)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007080"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(C,Alt, Control,False,Unsupported,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "CollapsedCacheHonorsBoundaryAndEvictsOldest(4,4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001140"
+    },
+    {
+      "testName": "CancelAfterWorkerCommitDropsCommitStillWaitingForUiAdoption",
+      "outcome": "Passed",
+      "duration": "00:00:00.0095570"
+    },
+    {
+      "testName": "InvalidMeasurementWindowSizeFailsInsteadOfSilentlyChangingWorkload(\"+1024\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000120"
+    },
+    {
+      "testName": "InvalidationRemovesPublishedAndStagedTailOnly(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0002720"
+    },
+    {
+      "testName": "RejectsInvalidInput(\"   \")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001190"
+    },
+    {
+      "testName": "TimeoutStopsTheSessionAndCannotBeResetToContinueOtherFiles",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016030"
+    },
+    {
+      "testName": "InvalidPathFails(\" \")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004240"
+    },
+    {
+      "testName": "ChangedStampOrActualTextSuppressesSelection(True,\"FOO\",ContentMismatch)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0005250"
+    },
+    {
+      "testName": "InvalidSavedOffsetIsRejected(double.PositiveInfinity)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000160"
+    },
+    {
+      "testName": "ItemLimitIsCheckedBeforeReadingValues(256,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006179"
+    },
+    {
+      "testName": "NonPeMzTextOutsideSampleIsRewoundBeforeValidationAndRead",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013400"
+    },
+    {
+      "testName": "DisposedLeaseRejectsNewScansAndNullConsumerFails",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003070"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(Left,Control,False,Unsupported,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000070"
+    },
+    {
+      "testName": "DirectoryAndMissingFileAreTypedFailures",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007820"
+    },
+    {
+      "testName": "ReadsEntireSnapshotWithBoundedChunks(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006600"
+    },
+    {
+      "testName": "MeasurementWindowSizeIsExplicitAndBounded(\"16384\",16384)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000440"
+    },
+    {
+      "testName": "UnsupportedOrInvalidPathRejectsWholeDrop(\"file:///tmp/invalid%00name.cs\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000749"
+    },
+    {
+      "testName": "OneByteReadsPreserveDecoderStateAndExcludeBom(4)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004490"
+    },
+    {
+      "testName": "ExclusionsLinksBinaryAndInvalidEncodingAreDistinguished",
+      "outcome": "Passed",
+      "duration": "00:00:00.0029640"
+    },
+    {
+      "testName": "RegexTimeoutStopsSessionAndLeavesEarlierMatchesUncommitted",
+      "outcome": "Passed",
+      "duration": "00:00:00.1036720"
+    },
+    {
+      "testName": "NoFileUsesDefaultsAndDoesNotCreateSettings",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007090"
+    },
+    {
+      "testName": "NormalPlanIncludesContinuousScrollAndEndOfFile",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001590"
+    },
+    {
+      "testName": "EmptyRootCompletesWithoutInventingResults(True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012870"
+    },
+    {
+      "testName": "WrongPreparedLengthNeverTouchesClipboard",
+      "outcome": "Passed",
+      "duration": "00:00:00.0010839"
+    },
+    {
+      "testName": "EveryTargetAndWindowBoundaryKeepsScalarAndCrLfTogether(\"a\\ud83d\\ude00bcdef\\r\\nlast\",2,1)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0016740"
+    },
+    {
+      "testName": "InvalidQueryIsRejectedBeforeScanning(\"x\\ny\")",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000050"
+    },
+    {
+      "testName": "WholeWordUsesTheSpecifiedUnicodeScalarCategories(\"\\ud801\\udc00\",False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000150"
+    },
+    {
+      "testName": "InvalidOrMissingPeSignatureDoesNotBecomeAnExecutable(64)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003650"
+    },
+    {
+      "testName": "DisplayIsOwnedByCreatingThreadWhileCopyCanRunOnWorker",
+      "outcome": "Passed",
+      "duration": "00:00:00.0011970"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(C,Shift, Meta,True,Unsupported,False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000160"
+    },
+    {
+      "testName": "RequestedTargetDoesNotSplitCrLfOrSurrogateAndClosedSessionRejectsRequests",
+      "outcome": "Passed",
+      "duration": "00:00:00.0003990"
+    },
+    {
+      "testName": "ActualOneMiLimitIsBoundedAndNextLinePositionsStayCorrect(0)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0405940"
+    },
+    {
+      "testName": "InvalidQueryDoesNotEnumerateOrOpenSource(null)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012940"
+    },
+    {
+      "testName": "MapsCandidateBindingsWithoutFallingBackToLocalDocument(End,2147483647,False,Unsupported,True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0000060"
+    }
+  ]
+}

@@ -1,0 +1,311 @@
+2026-11-06T04:27:58.6393123Z Current runner version: '2.338.2'
+2026-11-06T04:27:58.6430332Z ##[group]Runner Image Provisioner
+2026-11-06T04:27:58.6431539Z Hosted Compute Agent
+2026-11-06T04:27:58.6432387Z Version: 20261103.629
+2026-11-06T04:27:58.6433439Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-06T04:27:58.6434697Z Build Date: 2026-11-03T17:26:59Z
+2026-11-06T04:27:58.6435835Z Worker ID: {97bebf2e-aa36-4d70-aa3e-d2b3d640618b}
+2026-11-06T04:27:58.6436998Z Region: eastus
+2026-11-06T04:27:58.6437778Z Cloud: Azure
+2026-11-06T04:27:58.6438923Z ##[endgroup]
+2026-11-06T04:27:58.6441101Z ##[group]Operating System
+2026-11-06T04:27:58.6442523Z Microsoft Windows Server 2025
+2026-11-06T04:27:58.6443588Z 10.0.26100
+2026-11-06T04:27:58.6444384Z Datacenter
+2026-11-06T04:27:58.6445145Z ##[endgroup]
+2026-11-06T04:27:58.6446003Z ##[group]Runner Image
+2026-11-06T04:27:58.6446936Z Image: windows-2025-vs2026
+2026-11-06T04:27:58.6447884Z Version: 20261103.298.1
+2026-11-06T04:27:58.6450575Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md
+2026-11-06T04:27:58.6453744Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20261103.298
+2026-11-06T04:27:58.6455476Z ##[endgroup]
+2026-11-06T04:27:58.6457346Z ##[group]GITHUB_TOKEN Permissions
+2026-11-06T04:27:58.6459830Z Contents: read
+2026-11-06T04:27:58.6460490Z Metadata: read
+2026-11-06T04:27:58.6461039Z ##[endgroup]
+2026-11-06T04:27:58.6463074Z Secret source: Actions
+2026-11-06T04:27:58.6463996Z Cache mode: write
+2026-11-06T04:27:58.6464619Z Prepare workflow directory
+2026-11-06T04:27:58.6839867Z Prepare all required actions
+2026-11-06T04:27:58.6887646Z Getting action download info
+2026-11-06T04:27:58.8817695Z Download action repository 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-11-06T04:27:59.0192201Z Download action repository 'actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1' (SHA:26b0ec14cb23fa6904739307f278c14f94c95bf1)
+2026-11-06T04:27:59.2620576Z Download action repository 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1' (SHA:ece7cb06caefa5fff74198d8649806c4678c61a1)
+2026-11-06T04:27:59.4123269Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-06T04:27:59.7679256Z Complete job name: Test (windows-2025)
+2026-11-06T04:27:59.9266756Z ##[group]Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+2026-11-06T04:27:59.9268137Z with:
+2026-11-06T04:27:59.9268617Z   persist-credentials: false
+2026-11-06T04:27:59.9269202Z   repository: m-hiroaki/codeView
+2026-11-06T04:27:59.9274574Z   token: ***
+2026-11-06T04:27:59.9275051Z   ssh-strict: true
+2026-11-06T04:27:59.9275526Z   ssh-user: git
+2026-11-06T04:27:59.9275982Z   clean: true
+2026-11-06T04:27:59.9276476Z   sparse-checkout-cone-mode: true
+2026-11-06T04:27:59.9277058Z   fetch-depth: 1
+2026-11-06T04:27:59.9277563Z   fetch-tags: false
+2026-11-06T04:27:59.9278042Z   show-progress: true
+2026-11-06T04:27:59.9278535Z   lfs: false
+2026-11-06T04:27:59.9278982Z   submodules: false
+2026-11-06T04:27:59.9279470Z   set-safe-directory: true
+2026-11-06T04:27:59.9280037Z   allow-unsafe-pr-checkout: false
+2026-11-06T04:27:59.9280879Z env:
+2026-11-06T04:27:59.9281338Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:27:59.9281916Z   DOTNET_NOLOGO: true
+2026-11-06T04:27:59.9282374Z ##[endgroup]
+2026-11-06T04:28:00.0822497Z Syncing repository: m-hiroaki/codeView
+2026-11-06T04:28:00.0824778Z ##[group]Getting Git version info
+2026-11-06T04:28:00.0825420Z Working directory is 'D:\a\codeView\codeView'
+2026-11-06T04:28:00.1863043Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-11-06T04:28:00.5237054Z git version 2.56.0.windows.4
+2026-11-06T04:28:00.5292783Z ##[endgroup]
+2026-11-06T04:28:00.5315384Z Temporarily overriding HOME='D:\a\_temp\64ad0fe2-3e6d-46e9-830d-3a09708d3e69' before making global git config changes
+2026-11-06T04:28:00.5319404Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T04:28:00.5326102Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\codeView\codeView
+2026-11-06T04:28:00.6115010Z Deleting the contents of 'D:\a\codeView\codeView'
+2026-11-06T04:28:00.6121029Z ##[group]Determining repository object format
+2026-11-06T04:28:00.6123490Z ##[endgroup]
+2026-11-06T04:28:00.6124244Z ##[group]Initializing the repository
+2026-11-06T04:28:00.6132606Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\codeView\codeView
+2026-11-06T04:28:00.7081954Z Initialized empty Git repository in D:/a/codeView/codeView/.git/
+2026-11-06T04:28:00.7134722Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/m-hiroaki/codeView
+2026-11-06T04:28:00.7884145Z ##[endgroup]
+2026-11-06T04:28:00.7885345Z ##[group]Disabling automatic garbage collection
+2026-11-06T04:28:00.7894286Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-11-06T04:28:00.8283566Z ##[endgroup]
+2026-11-06T04:28:00.8284306Z ##[group]Setting up auth
+2026-11-06T04:28:00.8285173Z Removing SSH command configuration
+2026-11-06T04:28:00.8296896Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:28:00.8692318Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-11-06T04:28:02.3935301Z Removing HTTP extra header
+2026-11-06T04:28:02.3944663Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:28:02.4329775Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-11-06T04:28:02.9918688Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:28:02.9931529Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:28:03.0346177Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-11-06T04:28:03.6032517Z [command]"C:\Program Files\Git\bin\git.exe" config --file D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-11-06T04:28:03.6431111Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/codeView/codeView/.git.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:03.6878800Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:03.7263785Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:03.7656460Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:03.8044346Z ##[endgroup]
+2026-11-06T04:28:03.8045243Z ##[group]Fetching the repository
+2026-11-06T04:28:03.8058103Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96:refs/remotes/origin/main
+2026-11-06T04:28:04.8148543Z From https://github.com/m-hiroaki/codeView
+2026-11-06T04:28:04.8149467Z  * [new ref]         8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96 -> origin/main
+2026-11-06T04:28:04.8205128Z [command]"C:\Program Files\Git\bin\git.exe" branch --list --remote origin/main
+2026-11-06T04:28:04.8679815Z   origin/main
+2026-11-06T04:28:04.8723973Z [command]"C:\Program Files\Git\bin\git.exe" rev-parse refs/remotes/origin/main
+2026-11-06T04:28:04.9155471Z 8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96
+2026-11-06T04:28:04.9188260Z ##[endgroup]
+2026-11-06T04:28:04.9188981Z ##[group]Determining the checkout info
+2026-11-06T04:28:04.9190473Z ##[endgroup]
+2026-11-06T04:28:04.9199773Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-11-06T04:28:04.9681828Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-11-06T04:28:05.0043405Z ##[group]Checking out the ref
+2026-11-06T04:28:05.0052841Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B main refs/remotes/origin/main
+2026-11-06T04:28:05.1824328Z Switched to a new branch 'main'
+2026-11-06T04:28:05.1922091Z branch 'main' set up to track 'origin/main'.
+2026-11-06T04:28:05.1969891Z ##[endgroup]
+2026-11-06T04:28:05.2570498Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-11-06T04:28:05.2928648Z 8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96
+2026-11-06T04:28:05.2968403Z ##[group]Removing auth
+2026-11-06T04:28:05.2968684Z Removing SSH command configuration
+2026-11-06T04:28:05.2977235Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:28:05.3377589Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-11-06T04:28:05.9272326Z Removing HTTP extra header
+2026-11-06T04:28:05.9281026Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:28:05.9672581Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-11-06T04:28:06.5697541Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:28:06.5705555Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:28:06.6064983Z includeif.gitdir:D:/a/codeView/codeView/.git.path
+2026-11-06T04:28:06.6065905Z includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:28:06.6066961Z includeif.gitdir:/github/workspace/.git.path
+2026-11-06T04:28:06.6067456Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-06T04:28:06.6112913Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/codeView/codeView/.git.path
+2026-11-06T04:28:06.6465049Z D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.6511739Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/codeView/codeView/.git.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.6912339Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:28:06.7287791Z D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.7346587Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.7747989Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-06T04:28:06.8113990Z /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.8161067Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.8558486Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-06T04:28:06.8906930Z /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.8958126Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:28:06.9366556Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-11-06T04:28:07.5467039Z Removing credentials config 'D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config'
+2026-11-06T04:28:07.5480252Z ##[endgroup]
+2026-11-06T04:28:07.5900875Z ##[group]Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+2026-11-06T04:28:07.5901414Z with:
+2026-11-06T04:28:07.5901749Z   global-json-file: global.json
+2026-11-06T04:28:07.5901991Z   cache: false
+2026-11-06T04:28:07.5902155Z env:
+2026-11-06T04:28:07.5902335Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:07.5902565Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:07.5902748Z ##[endgroup]
+2026-11-06T04:28:07.8940363Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\26b0ec14cb23fa6904739307f278c14f94c95bf1\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Runtime dotnet -Channel LTS
+2026-11-06T04:28:09.1868991Z dotnet-install: .NET Core Runtime with version '10.0.14' is already installed.
+2026-11-06T04:28:09.3374407Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\26b0ec14cb23fa6904739307f278c14f94c95bf1\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Channel 10.0.4xx
+2026-11-06T04:28:10.1207437Z dotnet-install: .NET Core SDK with version '10.0.403' is already installed.
+2026-11-06T04:28:10.2305398Z ##[group]Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+2026-11-06T04:28:10.2305852Z with:
+2026-11-06T04:28:10.2306035Z   python-version: 3.12
+2026-11-06T04:28:10.2306238Z   check-latest: false
+2026-11-06T04:28:10.2308610Z   token: ***
+2026-11-06T04:28:10.2308800Z   update-environment: true
+2026-11-06T04:28:10.2309022Z   allow-prereleases: false
+2026-11-06T04:28:10.2309233Z   freethreaded: false
+2026-11-06T04:28:10.2309419Z env:
+2026-11-06T04:28:10.2309590Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:10.2310066Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:10.2310272Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-11-06T04:28:10.2310506Z ##[endgroup]
+2026-11-06T04:28:10.4014770Z ##[group]Installed versions
+2026-11-06T04:28:10.4236980Z Successfully set up CPython (3.12.10)
+2026-11-06T04:28:10.4238099Z ##[endgroup]
+2026-11-06T04:28:10.4528685Z ##[group]Run New-Item -ItemType Directory -Force artifacts/test-results | Out-Null
+2026-11-06T04:28:10.4529791Z [36;1mNew-Item -ItemType Directory -Force artifacts/test-results | Out-Null[0m
+2026-11-06T04:28:10.4530416Z [36;1m"Commit: $(git rev-parse HEAD)" | Out-File artifacts/test-results/environment.txt[0m
+2026-11-06T04:28:10.4531082Z [36;1m"Runner: $env:RUNNER_OS / $env:RUNNER_ARCH" | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:10.4531712Z [36;1mdotnet --info | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:10.4532189Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:10.4532647Z [36;1mpython --version | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:10.4533114Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:10.4533682Z [36;1mif ($env:RUNNER_OS -eq 'Windows') {[0m
+2026-11-06T04:28:10.4534149Z [36;1m  py -3 --version | Out-File artifacts/test-results/environment.txt -Append[0m
+2026-11-06T04:28:10.4534600Z [36;1m  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-11-06T04:28:10.4534893Z [36;1m}[0m
+2026-11-06T04:28:10.5199668Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-11-06T04:28:10.5200215Z env:
+2026-11-06T04:28:10.5200503Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:10.5200861Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:10.5201193Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-11-06T04:28:10.5201712Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:10.5202439Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+2026-11-06T04:28:10.5203509Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:10.5204093Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:10.5204676Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:10.5205126Z ##[endgroup]
+2026-11-06T04:28:21.4305915Z ##[group]Run test-windows.bat
+2026-11-06T04:28:21.4306288Z [36;1mtest-windows.bat[0m
+2026-11-06T04:28:21.4343546Z shell: C:\Windows\system32\cmd.EXE /D /E:ON /V:OFF /S /C "CALL "{0}""
+2026-11-06T04:28:21.4344065Z env:
+2026-11-06T04:28:21.4344372Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:28:21.4344743Z   DOTNET_NOLOGO: true
+2026-11-06T04:28:21.4345044Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-11-06T04:28:21.4345503Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:21.4367902Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+2026-11-06T04:28:21.4368717Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:21.4369434Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:21.4370124Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:28:21.4370676Z ##[endgroup]
+2026-11-06T04:28:26.1092742Z   Determining projects to restore...
+2026-11-06T04:28:52.3489961Z   Restored D:\a\codeView\codeView\src\codeView\codeView.csproj (in 25.2 sec).
+2026-11-06T04:28:55.8002102Z   Restored D:\a\codeView\codeView\tests\codeView.Tests\codeView.Tests.csproj (in 3.44 sec).
+2026-11-06T04:29:10.0765413Z   codeView -> D:\a\codeView\codeView\src\codeView\bin\Release\net10.0\codeView.dll
+2026-11-06T04:29:13.8649353Z   codeView.Tests -> D:\a\codeView\codeView\tests\codeView.Tests\bin\Release\net10.0\codeView.Tests.dll
+2026-11-06T04:29:13.8755255Z Test run for D:\a\codeView\codeView\tests\codeView.Tests\bin\Release\net10.0\codeView.Tests.dll (.NETCoreApp,Version=v10.0)
+2026-11-06T04:29:14.6522558Z A total of 1 test files matched the specified pattern.
+2026-11-06T04:29:17.9245975Z   Skipped MacPermissionFailureIsReportedAndSiblingFilesRemainWalkable [22 ms]
+2026-11-06T04:29:17.9704474Z   Skipped MacFifoIsRejectedWithoutWaitingForAWriter [2 ms]
+2026-11-06T04:29:27.3925623Z   Skipped MacFifoSettingsCannotBlockStartup [1 ms]
+2026-11-06T04:29:27.6221955Z Results File: D:\a\codeView\codeView\artifacts\test-results\windows\unit.trx
+2026-11-06T04:29:27.6226101Z
+2026-11-06T04:29:27.6276180Z Passed!  - Failed:     0, Passed:   627, Skipped:     3, Total:   630, Duration: 11 s - codeView.Tests.dll (net10.0)
+2026-11-06T04:29:29.7263994Z test_default_arm64_packages_self_contained_app_and_keeps_source_lock (test_build_scripts.MacBuildTests.test_default_arm64_packages_self_contained_app_and_keeps_source_lock) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7267429Z test_default_intel_and_explicit_cross_architecture (test_build_scripts.MacBuildTests.test_default_intel_and_explicit_cross_architecture) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7269552Z test_failed_publish_preserves_previous_app_and_cleans_staging (test_build_scripts.MacBuildTests.test_failed_publish_preserves_previous_app_and_cleans_staging) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7272311Z test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk (test_build_scripts.MacBuildTests.test_rejects_invalid_rid_extra_arguments_and_unknown_host_before_sdk) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7273643Z test_rejects_non_mac_host (test_build_scripts.MacBuildTests.test_rejects_non_mac_host) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7274969Z test_restore_failure_stops_before_publish_and_preserves_exit_code (test_build_scripts.MacBuildTests.test_restore_failure_stops_before_publish_and_preserves_exit_code) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.7276396Z test_success_without_executable_is_failure (test_build_scripts.MacBuildTests.test_success_without_executable_is_failure) ... skipped 'macOS shell packaging tests require POSIX'
+2026-11-06T04:29:29.8011239Z test_cp932_and_single_line_are_valid_at_exact_byte_boundaries (test_generate_fixture.FixtureTests.test_cp932_and_single_line_are_valid_at_exact_byte_boundaries) ... ok
+2026-11-06T04:29:30.3239161Z test_deterministic_digest_and_mixed_distribution (test_generate_fixture.FixtureTests.test_deterministic_digest_and_mixed_distribution) ... ok
+2026-11-06T04:29:30.3377810Z test_exact_counts_sizes_and_known_matches (test_generate_fixture.FixtureTests.test_exact_counts_sizes_and_known_matches) ... ok
+2026-11-06T04:29:30.3386796Z test_invalid_arguments_do_not_create_output (test_generate_fixture.FixtureTests.test_invalid_arguments_do_not_create_output) ... ok
+2026-11-06T04:29:30.3429110Z test_output_is_not_overwritten (test_generate_fixture.FixtureTests.test_output_is_not_overwritten) ... ok
+2026-11-06T04:29:30.3431141Z test_coverage_clears_current_results_and_html_but_keeps_other_runs (test_test_scripts.TestRunnerTests.test_coverage_clears_current_results_and_html_but_keeps_other_runs) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3433577Z test_coverage_failure_preserves_exit_and_stops_python (test_test_scripts.TestRunnerTests.test_coverage_failure_preserves_exit_and_stops_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3435706Z test_coverage_mode_instruments_units_and_keeps_results_separate (test_test_scripts.TestRunnerTests.test_coverage_mode_instruments_units_and_keeps_results_separate) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3437309Z test_dotnet_failure_preserves_exit_and_does_not_run_python (test_test_scripts.TestRunnerTests.test_dotnet_failure_preserves_exit_and_does_not_run_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3438731Z test_invalid_and_extra_arguments_stop_before_tools (test_test_scripts.TestRunnerTests.test_invalid_and_extra_arguments_stop_before_tools) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3440165Z test_missing_html_is_failure_even_when_generator_returns_success (test_test_scripts.TestRunnerTests.test_missing_html_is_failure_even_when_generator_returns_success) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3441480Z test_non_mac_host_stops_before_tools (test_test_scripts.TestRunnerTests.test_non_mac_host_stops_before_tools) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3442755Z test_normal_mode_restores_runs_units_then_python_from_repo (test_test_scripts.TestRunnerTests.test_normal_mode_restores_runs_units_then_python_from_repo) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3444370Z test_performance_mode_runs_only_performance_and_no_python (test_test_scripts.TestRunnerTests.test_performance_mode_runs_only_performance_and_no_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3445630Z test_python_failure_preserves_exit (test_test_scripts.TestRunnerTests.test_python_failure_preserves_exit) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3446861Z test_report_failure_stops_python_and_preserves_exit (test_test_scripts.TestRunnerTests.test_report_failure_stops_python_and_preserves_exit) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3448525Z test_report_restore_failure_stops_generation_and_python (test_test_scripts.TestRunnerTests.test_report_restore_failure_stops_generation_and_python) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3450150Z test_restore_failure_preserves_exit_and_does_not_run_tests (test_test_scripts.TestRunnerTests.test_restore_failure_preserves_exit_and_does_not_run_tests) ... skipped 'POSIX shell runner tests'
+2026-11-06T04:29:30.3450870Z
+2026-11-06T04:29:30.3451061Z ----------------------------------------------------------------------
+2026-11-06T04:29:30.3451437Z Ran 25 tests in 0.617s
+2026-11-06T04:29:30.3451577Z
+2026-11-06T04:29:30.3451651Z OK (skipped=20)
+2026-11-06T04:29:30.3704601Z Results: "D:\a\codeView\codeView\artifacts\test-results\windows\unit.trx"
+2026-11-06T04:29:30.3961299Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-11-06T04:29:30.3962042Z with:
+2026-11-06T04:29:30.3962353Z   name: test-results-windows-2025
+2026-11-06T04:29:30.3962771Z   path: artifacts/test-results/
+2026-11-06T04:29:30.3963152Z   retention-days: 14
+2026-11-06T04:29:30.3963486Z   if-no-files-found: warn
+2026-11-06T04:29:30.3963838Z   compression-level: 6
+2026-11-06T04:29:30.3964161Z   overwrite: false
+2026-11-06T04:29:30.3964476Z   include-hidden-files: false
+2026-11-06T04:29:30.3964826Z env:
+2026-11-06T04:29:30.3965107Z   DOTNET_CLI_TELEMETRY_OPTOUT: 1
+2026-11-06T04:29:30.3965479Z   DOTNET_NOLOGO: true
+2026-11-06T04:29:30.3965945Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-11-06T04:29:30.3966528Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:29:30.3967293Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+2026-11-06T04:29:30.3968068Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:29:30.3968751Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:29:30.3969431Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+2026-11-06T04:29:30.3969957Z ##[endgroup]
+2026-11-06T04:29:30.6019584Z (node:3716) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T04:29:30.6020548Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T04:29:30.6113609Z With the provided path, there will be 2 files uploaded
+2026-11-06T04:29:30.6119709Z Artifact name is valid!
+2026-11-06T04:29:30.6122064Z Root directory input is valid!
+2026-11-06T04:29:30.8462009Z Beginning upload of artifact content to blob storage
+2026-11-06T04:29:30.8930942Z (node:3716) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-06T04:29:30.9531793Z Uploaded bytes 146637
+2026-11-06T04:29:30.9720062Z Finished uploading artifact content to blob storage!
+2026-11-06T04:29:30.9721209Z SHA256 digest of uploaded artifact zip is 0dce5a2c10d22980999674136d0f403b79080c45ea38ef090f8c48f3bd14ecc4
+2026-11-06T04:29:30.9723007Z Finalizing artifact upload
+2026-11-06T04:29:31.3873137Z Artifact test-results-windows-2025.zip successfully finalized. Artifact ID 13477592312
+2026-11-06T04:29:31.3875296Z Artifact test-results-windows-2025 has been successfully uploaded! Final size is 146637 bytes. Artifact ID is 13477592312
+2026-11-06T04:29:31.3885822Z Artifact download URL: https://github.com/m-hiroaki/codeView/actions/runs/42162663862/artifacts/13477592312
+2026-11-06T04:29:31.4275753Z Post job cleanup.
+2026-11-06T04:29:31.6434491Z Post job cleanup.
+2026-11-06T04:29:31.8476667Z Post job cleanup.
+2026-11-06T04:29:32.0846204Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-11-06T04:29:32.1251800Z git version 2.56.0.windows.4
+2026-11-06T04:29:32.1338434Z Temporarily overriding HOME='D:\a\_temp\7e42ecac-b0f8-4c40-b6f0-15505b078cbd' before making global git config changes
+2026-11-06T04:29:32.1340126Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T04:29:32.1351246Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\codeView\codeView
+2026-11-06T04:29:32.1822855Z Removing SSH command configuration
+2026-11-06T04:29:32.1840128Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T04:29:32.2369676Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-11-06T04:29:32.9103240Z Removing HTTP extra header
+2026-11-06T04:29:32.9115448Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T04:29:32.9572696Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-11-06T04:29:33.5696781Z Removing includeIf entries pointing to credentials config files
+2026-11-06T04:29:33.5714044Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T04:29:33.6066944Z includeif.gitdir:D:/a/codeView/codeView/.git.path
+2026-11-06T04:29:33.6067767Z includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:29:33.6116494Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/codeView/codeView/.git.path
+2026-11-06T04:29:33.6458107Z D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:29:33.6509464Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/codeView/codeView/.git.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:29:33.6910212Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path
+2026-11-06T04:29:33.7354602Z D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:29:33.7404814Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/codeView/codeView/.git/worktrees/*.path D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config
+2026-11-06T04:29:33.7810856Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-11-06T04:29:34.3572158Z Removing credentials config 'D:\a\_temp\git-credentials-a8fa7d95-7663-484e-94f9-7ee818e8d614.config'
+2026-11-06T04:29:34.3778270Z Cleaning up orphan processes
+2026-11-06T04:29:34.4288465Z Terminate orphan process: pid (5964) (dotnet)
+2026-11-06T04:29:34.4429256Z Terminate orphan process: pid (8044) (VBCSCompiler)
+2026-11-06T04:29:34.4488328Z Terminate orphan process: pid (1240) (conhost)
+2026-11-06T04:29:34.4666529Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

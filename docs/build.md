@@ -99,7 +99,9 @@ Macではtest-mac.shを通じて.NET590件・Python19件合格、終了0を確�
 
 Actionは確認したリリースのコミットSHAへ固定し、リポジトリの権限はcontents:read、checkoutの資格情報永続化は無効にする。片方のOSが失敗しても他方の試験は実行する。復元・ビルド・単体試験の失敗はジョブ失敗とし、失敗時も環境情報と生成済みTRXをtest-results-<OS>のArtifactへ14日間保存する。スキップ件数もTRXで確認する。後続pushで同じブランチの古い実行は取り消す。
 
-対象は通常のReleaseビルド・.NET単体/I/O結合・Python補助ツール試験。カバレッジ/性能データ生成/GUI操作/Native AOT発行/別PC/署名/完全オフライン/長時間受入は含めない。CI成功をG0〜G6全体の完了や両OSの実機受入へ読み替えない。初回実行の成否と証跡は実装記録へ追記する。
+対象は通常のReleaseビルド・.NET単体/I/O結合・Python補助ツール試験。カバレッジ/性能データ生成/GUI操作/Native AOT発行/別PC/署名/完全オフライン/長時間受入は含めない。CI成功をG0〜G6全体の完了や両OSの実機受入へ読み替えない。
+
+[初回結果と証跡](validation-results/2026-11-06-ci-build/README.md)：Windowsは.NET627合格/3スキップ・Python5合格/20スキップ、macOSは.NET630/Python25合格。SDKは許容パッチの10.0.403を選択した。Windowsのpy -3はPATHのPython 3.12とは別に3.15.2を選ぶため、Pythonマイナー版を共通固定した試験とはしない。
 
 ## コードカバレッジ
 

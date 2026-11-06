@@ -1,0 +1,169 @@
+{
+  "run": {
+    "id": 42162663862,
+    "head_sha": "8efffa1b5ebfd7ce46219aa3f4e00bfcbceb2c96",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/m-hiroaki/codeView/actions/runs/42162663862",
+    "created_at": "2026-11-06T04:27:55Z",
+    "updated_at": "2026-11-06T04:29:36Z"
+  },
+  "jobs": [
+    {
+      "id": 127711763663,
+      "name": "Test (macos-15)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/m-hiroaki/codeView/actions/runs/42162663862/job/127711763663",
+      "started_at": "2026-11-06T04:27:58Z",
+      "completed_at": "2026-11-06T04:28:36Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up .NET SDK",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Record environment",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test on macOS",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test on Windows",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Upload test evidence",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up .NET SDK",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 127711763806,
+      "name": "Test (windows-2025)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/m-hiroaki/codeView/actions/runs/42162663862/job/127711763806",
+      "started_at": "2026-11-06T04:27:57Z",
+      "completed_at": "2026-11-06T04:29:35Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up .NET SDK",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Record environment",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test on macOS",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Test on Windows",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload test evidence",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up .NET SDK",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13477592312,
+      "name": "test-results-windows-2025",
+      "size_in_bytes": 146637,
+      "digest": "sha256:0dce5a2c10d22980999674136d0f403b79080c45ea38ef090f8c48f3bd14ecc4"
+    },
+    {
+      "id": 13477298218,
+      "name": "test-results-macos-15",
+      "size_in_bytes": 144655,
+      "digest": "sha256:9e267afdca0c7eb3364988bacf127d752f93bb9ac80e1dc4cbf2e487821e42db"
+    }
+  ]
+}

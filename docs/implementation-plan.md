@@ -97,9 +97,9 @@ flowchart LR
 
 このPhaseの本文表示は第一候補の最小構成を利用する。スレッド制約・大容量性能・最終採否はPhase 2へ残し、仮採用であることを記録する。
 
-- [ ] **P1-01：製品1・試験1プロジェクトとビルド基盤を作る**
+- [x] **P1-01：製品1・試験1プロジェクトとビルド基盤を作る**
   依存：G0。完了条件：`src/codeView`、`tests/codeView.Tests`、SDK固定・依存固定・ビルド/テスト手順があり、両OSで骨格をビルドできる。
-  進捗：2026-11-06。[両OSの通常試験ワークフロー](../.github/workflows/test.yml)を追加。Windows/macOSの固定SDK復元・Releaseビルド・通常単体・Python試験とTRX/環境情報保存を既存スクリプトから実行する。初回CIの成否は未確認のためチェックは保留。実機/性能/Native AOTの受入は別タスクへ維持する。
+  完了：2026-11-06。[両OSの通常試験ワークフロー](../.github/workflows/test.yml)を8efffa1で実行し、製品1/試験1のlocked-mode復元・Releaseビルドと通常試験が成功。Windowsは.NET627合格/3スキップ・Python5合格/20スキップ、macOSは.NET630/Python25合格。SDKはglobal.jsonの許容パッチ10.0.403。スキップはDarwin/POSIX専用で、実機/性能/Native AOTの受入は別タスクへ維持。[実行・環境・全結果](validation-results/2026-11-06-ci-build/README.md)。G0/G1等のゲートは未完了。
 
 - [x] **P1-02：共通値・エラー・位置・操作識別を実装する**
   依存：P1-01、P0-05。完了条件：UI非依存の型、UTF-16位置、改行、Epoch採用条件、結果区分をCT-01〜CT-04で確認する。
