@@ -46,9 +46,9 @@ CIは環境、生成入力、20試行のJSON/ログ、SHA-256一覧をartifact�
 
 macOSジョブも同じ収集器/通常UsePlatformDetect/全文表示候補を使い、明示診断ビルドのapphostを直接起動する。.app配布物の受入ではない。OS/CPU/メモリ/表示情報を保存し、MacのレポートをWindowsと誤認しないことも単体で検証する。ネイティブウィンドウを作成できない場合はそのジョブを失敗させ、別方式のレポートへ置き換えない。ローカルのログイン/ロック/権限を変更する処理はない。
 
-Mac側は起動/本文接続/64スクロール通知/終了だけを測定し、Windows専用のClipboard操作試験は実行しない。GUIコールバックは実OS上での結合試験、収集器の正常/異常/境界は既存8件の単体試験で検証する。
+Mac側も起動/本文接続/64スクロール通知/終了に加え、後述の読み取り専用コントロール/Clipboard結合試験を実行する。GUIコールバックは実OS上での結合試験、起動収集器の正常/異常/境界は既存8件の単体試験で検証する。
 
-[macOSの初回取得結果](validation-results/2026-11-06-macos-startup/README.md)では全20試行の本文/通知/正常終了を確認した。Main→Openedは全20回1秒以内だが、2通知に1秒超があり、物理描画/操作の受入ではない。後続のMacコントロール操作検証は未実施である。
+[macOSの初回取得結果](validation-results/2026-11-06-macos-startup/README.md)では全20試行の本文/通知/正常終了を確認した。Main→Openedは全20回1秒以内だが、2通知に1秒超があり、物理描画/操作の受入ではない。後続のMacコントロール操作検証はP1-07-02へ記録する。
 
 ```sh
 dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
@@ -65,6 +65,8 @@ python3 tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView
 先に別の編集可能なネイティブWindow/TextEditorで、同じRouted入力/Drop、ネイティブClipboard貼付、Delete、Undo/Redoによって本文が実際に変わることを確認する。PasteはTextPasted完了通知、CopyはClipboardの実値を期限付きで待ち、Main側へ戻ってフォーカスも確認する。対照が機能しない・行列欠落・不整合・期限切れは非0終了し、途中までのJSON/ログを残す。入力ファイルのバイトSHAも前後で一致する必要がある。
 
 この試験はネイティブUI/Clipboardを使うコントロール結合試験であり、OSのキー/マウスやIME、Explorer/Finderのドラッグ操作を注入したものではない。物理操作・メニューショートカット、macOS、ロード/失敗状態の包括受入、実配布物とP1-07全体は別途確認する。通常製品へ試験コード/タイマー/書込経路を追加しない。UI依存処理はこの実機構成で結合検証し、通常単体ではレポートの正常/異常/空/境界・欠落・対照の無効・期限と非CI拒否を検証する。
+
+macOS CIも同じ3入力/各3プロセス/216操作を、`--os macos`で実行する。収集器は期待OSを記録し、Windows/Macの取り違えを拒否する。OS省略時は既存Windows手順と互換のためwindowsを使う。Macも破棄されるCIのClipboardだけを書き換え、finallyで生成データを消去する。通常製品や利用者のローカル環境では自動実行しない。既存試験とMacのUnicode/空・OS拒否/取得を合わせた収集器単体9ケースを用意する。
 
 CanDeleteの値だけで削除可能と判断しない。固定版AvaloniaEditは文書があればCanDelete=trueとし、実行時の読取専用範囲で保護する。試験では値を保存して実際にDeleteを呼び、その後の原文ハッシュ/履歴を判定する。初回のCIはfalseを要求した試験側の仮定で停止したため、製品を変えずこの判定を是正した。
 

@@ -52,6 +52,7 @@ jobs:
           system_profiler SPDisplaysDataType >> artifacts/gui-validation/environment.txt
           printf 'Hosted runner; physical paint/input, Retina and reference-PC acceptance not verified.\n' >> artifacts/gui-validation/environment.txt
           python -c "from pathlib import Path; Path('artifacts/gui-validation/起動確認.cs').write_bytes('// GUI_STARTUP 日本語 😀\r\nclass StartupFixture\r\n{\r\n    // original content\r\n}\r\n'.encode('utf-8'))"
+          python -c "from pathlib import Path; Path('artifacts/gui-validation/empty.cs').write_bytes(b''); Path('artifacts/gui-validation/boundary.cs').write_bytes((('日本語😀\tValue ' * 12) + '\r\n').encode('utf-8'))"
       - name: Build explicit GUI probe
         run: |
           dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
@@ -60,6 +61,10 @@ jobs:
         run: |
           python -m unittest discover -s tools -p test_measure_gui_startup.py -v
           python tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView --input artifacts/gui-validation/起動確認.cs --output artifacts/gui-validation/startup --rounds 10 --commit "$GITHUB_SHA" --os macos
+      - name: Verify native read-only control operations
+        run: |
+          python -m unittest discover -s tools -p test_native_readonly.py -v
+          python tools/check_native_readonly.py --app artifacts/gui-validation/app/codeView --inputs artifacts/gui-validation/起動確認.cs artifacts/gui-validation/empty.cs artifacts/gui-validation/boundary.cs --output artifacts/gui-validation/readonly --rounds 3 --commit "$GITHUB_SHA" --os macos
       - name: Upload native GUI evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -70,7 +75,10 @@ jobs:
           path: |
             artifacts/gui-validation/environment.txt
             artifacts/gui-validation/起動確認.cs
+            artifacts/gui-validation/empty.cs
+            artifacts/gui-validation/boundary.cs
             artifacts/gui-validation/startup/
+            artifacts/gui-validation/readonly/
   windows:
     name: Native window (Windows)
     runs-on: windows-2025

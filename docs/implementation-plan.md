@@ -130,6 +130,7 @@ flowchart LR
 
 - [ ] **P1-07：最小DocumentAdapterと単体ファイル表示を接続する**
   依存：P1-03、P1-05、P1-06。完了条件：読込中・表示・失敗を区別し、小ファイルを表示する。DT-01の基礎ケース、入力・貼付・Undo・ドロップ挿入による本文不変を確認。
+  - [ ] **P1-07-02：macOSの実コントロールで読取専用の操作経路を検証する**。既存Windows試験と同じ通常/空/Unicode境界を各3回、計9プロセス/216操作・有効な編集対照・非空Copy往復・入力SHA不変/終了0をmacOS CIで照合する。[手順](native-gui-validation.md#読み取り専用のコントロール結合試験)。実CI成功まで未完了。物理キー/IME/Finderドロップ・ロード/失敗画面の包括受入とは区別する。
   - [x] **P1-07-01：Windowsの実コントロールで読取専用の操作経路を検証する**（2026-11-06）。`2749c1d`の[ネイティブCI](https://github.com/m-hiroaki/codeView/actions/runs/42189237117)で通常/空/Unicode境界を各3回、9プロセス/216操作すべての全文ハッシュ・文書/タブ/履歴不変を確認。9回の編集可能な対照で同じ入力/Native Clipboard貼付/削除/Undo/Redo/Dropが機能し、非空6回のCopy往復も一致。初回のCanDelete=falseを求めた試験側の仮定を是正し、実削除後の不変で判定した。起動20プロセスの回帰と通常[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42189237167)も成功（macOS .NET689/Python73、Windows .NET686+既存3スキップ/Python53+既存20スキップ）。[原記録・失敗/是正・範囲](validation-results/2026-11-06-readonly-ui/README.md)、[手順](native-gui-validation.md#読み取り専用のコントロール結合試験)。通常製品/アーキテクチャは変更せず、実キー/IME/OSドラッグ・macOS・包括受入とP1-07/G1全体は未完了。
 
 - [ ] **P1-08：セッション・処理枠・Task観測・例外・終了境界を作る**

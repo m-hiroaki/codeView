@@ -33,8 +33,13 @@ class NativeReadOnlyTests(unittest.TestCase):
                                for selection in SELECTIONS for action in ACTIONS]}}
 
     def test_unicode_and_empty_reports_require_full_attempt_matrix(self):
-        for length in (0, 5):
-            validate_report(self.report(length), length, "b" * 64, "a" * 40)
+        for platform, description in (("windows", "Microsoft Windows test"), ("macos", "macOS test")):
+            for length in (0, 5):
+                report = self.report(length); report["Os"] = description
+                validate_report(report, length, "b" * 64, "a" * 40, platform)
+                with self.assertRaises(ValueError):
+                    validate_report(report, length, "b" * 64, "a" * 40,
+                                    "macos" if platform == "windows" else "windows")
         # CanDelete is true in the adopted library; immutable content/history is the criterion.
         self.assertTrue(next(x for x in self.report()["ReadOnlyChecks"]["Checks"] if x["Action"] == "delete")["CommandAvailable"])
 
@@ -104,10 +109,35 @@ class NativeReadOnlyTests(unittest.TestCase):
                     collect(root / "app", [], root / "out", 1, "a" * 40)
                 run.assert_not_called()
             with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}):
+                with self.assertRaises(ValueError), patch("check_native_readonly.subprocess.run") as run:
+                    collect(root / "app", [], root / "out", 1, "a" * 40, "linux")
+                run.assert_not_called()
                 for rounds in (0, 11):
                     with self.assertRaises(ValueError):
                         collect(root / "app", [root / "input"], root / "out", rounds, "a" * 40)
             self.assertFalse((root / "out").exists())
+
+    def test_macos_collector_records_os_and_verifies_unicode_and_empty(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); app = root / "codeView"; app.write_bytes(b"host")
+            (root / "codeView.dll").write_bytes(b"product")
+            inputs = [root / "日本語.cs", root / "empty.cs"]
+            inputs[0].write_bytes("a😀\r\nb".encode()); inputs[1].write_bytes(b"")
+            def execute(command, **kwargs):
+                body = Path(command[1]).read_bytes().decode('utf-8').encode('utf-16-le')
+                report = self.report(len(body) // 2, hashlib.sha256(body).hexdigest())
+                report["Os"] = "macOS test"
+                Path(kwargs["env"]["CODEVIEW_GUI_PERF_REPORT"]).write_text(json.dumps(report))
+                return SimpleNamespace(returncode=0)
+            with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}), \
+                    patch("check_native_readonly.subprocess.run", side_effect=execute) as run, \
+                    contextlib.redirect_stdout(io.StringIO()):
+                collect(app, inputs, root / "out", 2, "a" * 40, "macos")
+                self.assertEqual(run.call_count, 4)
+            record = json.loads((root / "out/runs.json").read_text())
+            self.assertEqual(record["expectedOs"], "macos")
+            self.assertTrue(record["validated"])
+            self.assertTrue(all(row["validated"] for row in record["runs"]))
 
     def test_child_failure_and_timeout_stop_after_one_attempt_and_preserve_evidence(self):
         for failure in (False, True):

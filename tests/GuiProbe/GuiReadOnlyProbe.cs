@@ -156,7 +156,7 @@ internal static class GuiReadOnlyProbe
                     UndoChanged = true, RedoChanged = true, TextDropChanged = true },
                 Checks = checks, NativeCopyRoundTrip = copyVerified, CopySkippedForEmpty = original.Length == 0, ProductDocumentPreserved = true,
                 ProductTabsPreserved = true, ProductFocused = editor.TextArea.IsFocused,
-                Scope = "Native CI windows and native clipboard; routed TextInput/Drop and control commands. No OS key/mouse/IME injection."
+                Scope = "Native CI UI and clipboard; routed TextInput/Drop and control commands. No OS key/mouse/IME injection."
             };
         }
         finally
