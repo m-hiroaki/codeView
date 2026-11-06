@@ -6,54 +6,6 @@
         x:DataType="vm:MainWindowViewModel"
         Title="codeView" Width="1180" Height="800" MinWidth="680" MinHeight="460"
         Background="#14181F">
-    <Window.Resources>
-        <DataTemplate x:Key="SearchPanelTemplate" x:DataType="vm:MainWindowViewModel">
-            <Border Height="280" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,1,0,0"
-                    Padding="10,8">
-                <Grid RowDefinitions="Auto,Auto,Auto,*">
-                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
-                        <TextBlock Text="フォルダ検索" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#94D4C3" />
-                        <TextBox x:Name="SearchQuery" Grid.Column="1" Text="{Binding SearchPanel.Query, Mode=TwoWay}" PlaceholderText="検索語（前後の空白も検索）"
-                                 AutomationProperties.Name="フォルダ検索の検索語" MinWidth="120" />
-                        <Button Grid.Column="2" Content="検索" Click="StartSearchClicked" IsEnabled="{Binding SearchPanel.CanStart}" Margin="6,0,0,0" />
-                        <Button Grid.Column="3" Content="取消" Click="CancelSearchClicked" IsEnabled="{Binding SearchPanel.IsRunning}" Margin="6,0,0,0" />
-                        <Button Grid.Column="4" Content="クリア" Click="ClearSearchClicked" Margin="6,0,0,0" />
-                        <Button Grid.Column="5" Content="×" Click="HideSearchClicked" Margin="6,0,0,0" ToolTip.Tip="パネルを隠す（検索は継続）" AutomationProperties.Name="検索パネルを隠す" />
-                    </Grid>
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="14" Margin="0,4,0,0">
-                        <CheckBox Content="大小文字を区別" IsChecked="{Binding SearchPanel.MatchCase, Mode=TwoWay}" />
-                        <CheckBox Content="単語単位" IsChecked="{Binding SearchPanel.WholeWord, Mode=TwoWay}" />
-                        <CheckBox Content="正規表現" IsChecked="{Binding SearchPanel.UseRegex, Mode=TwoWay}" />
-                        <TextBlock Text="正規化なし" VerticalAlignment="Center" FontSize="10" Foreground="#A9B9CD" ToolTip.Tip="Unicode結合文字の正規化や幅の同一視は行いません。" />
-                    </StackPanel>
-                    <StackPanel Grid.Row="2" Spacing="2" Margin="0,3,0,5">
-                        <TextBlock Text="行単位・1行1,048,576 UTF-16単位まで。超過行は未評価。1行の照合が100ms超で検索中断。" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="#CBD3DF" FontSize="11" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="#A9B9CD" FontSize="10" />
-                    </StackPanel>
-                    <ListBox x:Name="SearchResultsList" Grid.Row="3" ItemsSource="{Binding SearchPanel.Rows}" SelectedItem="{Binding SearchPanel.SelectedRow, Mode=TwoWay}"
-                             DoubleTapped="SearchResultDoubleTapped"
-                             Background="#14181F" BorderThickness="0" Padding="0" SelectionMode="Single"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             AutomationProperties.Name="フォルダ検索結果">
-                        <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
-                        <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="8,3" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style></ListBox.Styles>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:SearchResultRow">
-                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Height="42" ToolTip.Tip="{Binding FullPath}" AutomationProperties.Name="{Binding Location}">
-                                    <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" Foreground="#A9B9CD" FontSize="11" />
-                                    <TextBlock Grid.Column="1" Text="{Binding File.Status}" Foreground="#E6C88C" FontSize="10" Margin="10,0,0,0" />
-                                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextTrimming="CharacterEllipsis" FontFamily="Menlo,Consolas,monospace" FontSize="12" Foreground="#CBD3DF">
-                                        <Run Text="{Binding Before}" /><Run Text="{Binding Match}" Foreground="#94D4C3" FontWeight="Bold" /><Run Text="{Binding After}" />
-                                    </TextBlock>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
-            </Border>
-        </DataTemplate>
-    </Window.Resources>
     <Grid RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
         <Menu Background="#191E26">
             <MenuItem Header="ファイル">
@@ -166,7 +118,50 @@
         </StackPanel>
             </Grid>
         </Grid>
-        <ContentControl x:Name="SearchPanelHost" Grid.Row="3" IsVisible="{Binding SearchPanel.IsVisible}" />
+        <Border Grid.Row="3" Height="280" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,1,0,0"
+                IsVisible="{Binding SearchPanel.IsVisible}" Padding="10,8">
+            <Grid RowDefinitions="Auto,Auto,Auto,*">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+                    <TextBlock Text="フォルダ検索" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#94D4C3" />
+                    <TextBox x:Name="SearchQuery" Grid.Column="1" Text="{Binding SearchPanel.Query, Mode=TwoWay}" PlaceholderText="検索語（前後の空白も検索）"
+                             AutomationProperties.Name="フォルダ検索の検索語" MinWidth="120" />
+                    <Button Grid.Column="2" Content="検索" Click="StartSearchClicked" IsEnabled="{Binding SearchPanel.CanStart}" Margin="6,0,0,0" />
+                    <Button Grid.Column="3" Content="取消" Click="CancelSearchClicked" IsEnabled="{Binding SearchPanel.IsRunning}" Margin="6,0,0,0" />
+                    <Button Grid.Column="4" Content="クリア" Click="ClearSearchClicked" Margin="6,0,0,0" />
+                    <Button Grid.Column="5" Content="×" Click="HideSearchClicked" Margin="6,0,0,0" ToolTip.Tip="パネルを隠す（検索は継続）" AutomationProperties.Name="検索パネルを隠す" />
+                </Grid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="14" Margin="0,4,0,0">
+                    <CheckBox Content="大小文字を区別" IsChecked="{Binding SearchPanel.MatchCase, Mode=TwoWay}" />
+                    <CheckBox Content="単語単位" IsChecked="{Binding SearchPanel.WholeWord, Mode=TwoWay}" />
+                    <CheckBox Content="正規表現" IsChecked="{Binding SearchPanel.UseRegex, Mode=TwoWay}" />
+                    <TextBlock Text="正規化なし" VerticalAlignment="Center" FontSize="10" Foreground="#A9B9CD" ToolTip.Tip="Unicode結合文字の正規化や幅の同一視は行いません。" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Spacing="2" Margin="0,3,0,5">
+                    <TextBlock Text="行単位・1行1,048,576 UTF-16単位まで。超過行は未評価。1行の照合が100ms超で検索中断。" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="#CBD3DF" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="#A9B9CD" FontSize="10" />
+                </StackPanel>
+                <ListBox x:Name="SearchResultsList" Grid.Row="3" ItemsSource="{Binding SearchPanel.Rows}" SelectedItem="{Binding SearchPanel.SelectedRow, Mode=TwoWay}"
+                         DoubleTapped="SearchResultDoubleTapped"
+                         Background="#14181F" BorderThickness="0" Padding="0" SelectionMode="Single"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         AutomationProperties.Name="フォルダ検索結果">
+                    <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                    <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="8,3" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style></ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SearchResultRow">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Height="42" ToolTip.Tip="{Binding FullPath}" AutomationProperties.Name="{Binding Location}">
+                                <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" Foreground="#A9B9CD" FontSize="11" />
+                                <TextBlock Grid.Column="1" Text="{Binding File.Status}" Foreground="#E6C88C" FontSize="10" Margin="10,0,0,0" />
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextTrimming="CharacterEllipsis" FontFamily="Menlo,Consolas,monospace" FontSize="12" Foreground="#CBD3DF">
+                                    <Run Text="{Binding Before}" /><Run Text="{Binding Match}" Foreground="#94D4C3" FontWeight="Bold" /><Run Text="{Binding After}" />
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
         <Border Grid.Row="4" Background="#191E26" Padding="12,5">
             <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
         </Border>

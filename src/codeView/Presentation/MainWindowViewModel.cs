@@ -82,7 +82,6 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public event Action<long, int>? SelectSearchRange;
     public event Action? ClearSearchSelection;
     public void RecordUserInteraction() => _interactionEpoch = checked(_interactionEpoch + 1);
-    internal long InteractionEpoch => _interactionEpoch;
     public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
         && _interactionEpoch == _selectionInteractionEpoch && _selectionRow is { } row && SearchPanel.CanActivate(row)
         && _selectionRequest is { } request && _selectionMove is { } move && operations.ResultNavigator.CanAdopt(request, move);
