@@ -210,6 +210,8 @@ internal sealed partial class GuiPerformanceProbe
     internal static TextDocument SelectDisplayDocument(DocumentHandle handle, TextDocument document, TextPosition position)
     {
         if (_instance is not { _windowed: true } probe) return document;
+        if (probe._rowChecks) (probe._rowSeenHandles ??= []).Add(new(handle));
+        probe.RememberRowView();
         probe._sourceDocument = document;
         probe.InvalidateCopies();
         probe.DetachInteractive();
@@ -221,7 +223,7 @@ internal sealed partial class GuiPerformanceProbe
         if (probe._interactive)
         {
             probe._displaySession.MoveToPosition(position);
-            if (probe._rowsEnabled) return probe.BuildRowDocument(reveal: true);
+            if (probe._rowsEnabled) return probe.BuildRowDocument(reveal: !probe.RestoreRowView(handle));
             probe._interactiveSlice = probe.CreateSourceSlice(probe._displaySession.Caret);
             var display = CreateDisplayDocument(probe._interactiveSlice.Text);
             probe.ApplyLineNumbers(display, probe._interactiveSlice);
@@ -247,6 +249,8 @@ internal sealed partial class GuiPerformanceProbe
     internal static bool TryRestoreOriginal(int line, int column)
     {
         if (_instance is not { _interactive: true, _displaySession: { } session } probe) return false;
+        if (probe._rowsEnabled && probe.PreserveRestoredRowAttachment(line, column))
+        { probe.RenderInteractive(); return true; }
         session.MoveToPosition(new(line, column));
         probe._interactiveSlice = null;
         probe.ClearRowProjection();
@@ -268,6 +272,7 @@ internal sealed partial class GuiPerformanceProbe
     internal static void ClearDocument()
     {
         if (_instance is not { _interactive: true } probe) return;
+        probe.RememberRowView();
         probe.InvalidateCopies();
         probe.DetachInteractive();
         probe._displaySession?.Dispose();
@@ -686,6 +691,10 @@ internal sealed partial class GuiPerformanceProbe
     {
         if (_instance is not { } probe) return;
         probe._attachmentMilliseconds = Stopwatch.GetElapsedTime(probe._attachmentStart).TotalMilliseconds;
+        if (probe._rowChecks && probe._rowAttachmentSamples.Count < 64)
+            probe._rowAttachmentSamples.Add(new { Generation = probe._documentGeneration,
+                SourceChars = probe._sourceDocument?.TextLength, SourceLines = probe._sourceDocument?.LineCount,
+                Milliseconds = probe._attachmentMilliseconds });
         Phase("attachment-end");
         var generation = probe._documentGeneration;
         probe._window.RequestAnimationFrame(_ => probe._window.RequestAnimationFrame(_ =>
@@ -703,7 +712,8 @@ internal sealed partial class GuiPerformanceProbe
                 probe.RenderInteractive();
                 probe._editor.TextArea.Focus();
                 Phase("interactive-ready");
-                if (probe._rowChecks) probe._readOnlyWork = probe.RunRowChecksAsync();
+                if (probe._rowChecks && probe._rowWorkStarts == 0)
+                { probe._rowWorkStarts++; probe._readOnlyWork = probe.RunRowChecksAsync(); }
                 return;
             }
             probe._previousTick = Stopwatch.GetTimestamp();
@@ -822,6 +832,7 @@ internal sealed partial class GuiPerformanceProbe
             SearchPanelChecks = _searchPanelResults,
             RowProjectionEnabled = _rowsEnabled, RowProjectionChecks = _rowResults,
             RowProjectionSamples = _rowSamples,
+            RowAttachmentSamples = _rowAttachmentSamples,
             Architecture = RuntimeInformation.ProcessArchitecture.ToString(), Runtime = Environment.Version.ToString(),
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
@@ -871,10 +882,12 @@ internal sealed partial class GuiPerformanceProbe
         Phase("complete");
         _displaySession?.Dispose();
         _displaySession = null;
+        ClearRowHistory();
         _interactiveSlice = null;
         ClearRowProjection();
         _sourceDocument = null;
         _instance = null;
+        PrepareRowShutdown();
         _memory.Dispose();
         _sampling.Dispose();
         if (failure is not null) Program.MarkFailed();

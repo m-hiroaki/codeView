@@ -20,5 +20,6 @@
         <Compile Include="../GuiProbe/BoundedPointerSelection.cs" Link="Performance/BoundedPointerSelection.cs" />
         <Compile Include="../GuiProbe/BoundedKeyMap.cs" Link="Performance/BoundedKeyMap.cs" />
         <Compile Include="../GuiProbe/RowWheelAccumulator.cs" Link="Performance/RowWheelAccumulator.cs" />
+        <Compile Include="../GuiProbe/RowViewHistory.cs" Link="Performance/RowViewHistory.cs" />
     </ItemGroup>
 </Project>

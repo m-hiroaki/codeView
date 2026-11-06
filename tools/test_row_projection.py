@@ -3,8 +3,12 @@ import hashlib
 from pathlib import Path
 import tempfile
 import unittest
+import json
+import subprocess
+from types import SimpleNamespace
+from unittest import mock
 
-from check_row_projection import SCROLL_CHECKS, fixture, validate_report
+from check_row_projection import SCROLL_CHECKS, LIFECYCLE_CHECKS, collect, fixture, validate_report, validate_shutdown
 
 
 class RowProjectionEvidenceTests(unittest.TestCase):
@@ -28,6 +32,11 @@ class RowProjectionEvidenceTests(unittest.TestCase):
                        'UndoCanUndo': False, 'ClipboardVerificationChecks': 1, 'ClipboardVerificationFailures': 0,
                        'ScrollSynchronousMilliseconds': [1.] * 64, 'AnimationTickIntervalsMilliseconds': [16.] * 64,
                        'RowProjectionSamples': [{'DisplayChars': 4, 'DisplayRows': 2}] * 64, 'PhysicalPaint': 'not-measured'}
+        self.report['RowProjectionChecks']['Lifecycle'] = {'Checks': sorted(LIFECYCLE_CHECKS | {
+            'real-search-committed-primary-hit', 'real-search-enter-selects-original'}), 'SearchOutcome': 'hit', 'WorkloadStarts': 1}
+        self.shutdown = {'Passed': True, 'HistoryCleared': True, 'ViewHasDocument': False, 'Tabs': 0,
+                         'PendingViewCompleted': True, 'PendingCopyCompleted': True, 'SurvivingWeakHandles': 3,
+                         'UnreleasedHandles': 0, 'ActiveLeases': 0}
 
     def validate(self, report=None):
         validate_report(self.report if report is None else report, self.expected, self.commit, 'macos')
@@ -74,6 +83,7 @@ class RowProjectionEvidenceTests(unittest.TestCase):
         result = self.report['RowProjectionChecks']
         result.update(Utf16Characters=0, SourceLineCount=1, MaximumLineLength=0)
         result['Checks'].remove('native-clipboard-original-count')
+        result['Lifecycle'] = {'Checks': sorted(LIFECYCLE_CHECKS | {'empty-search-has-no-fabricated-hit'}), 'SearchOutcome': 'empty', 'WorkloadStarts': 1}
         self.validate()
 
     def test_fixture_uses_raw_utf16_and_crlf_is_one_delimiter(self):
@@ -98,6 +108,83 @@ class RowProjectionEvidenceTests(unittest.TestCase):
             report['RowProjectionChecks'][field] = value
             with self.assertRaises(ValueError):
                 self.validate(report)
+
+    def test_requires_real_tab_reload_search_close_checks(self):
+        for key, value in [('Checks', sorted(LIFECYCLE_CHECKS)), ('SearchOutcome', 'empty'), ('WorkloadStarts', 2)]:
+            report = copy.deepcopy(self.report)
+            report['RowProjectionChecks']['Lifecycle'][key] = value
+            with self.assertRaises(ValueError):
+                self.validate(report)
+
+    def test_shutdown_requires_finished_work_and_released_sources(self):
+        validate_shutdown(self.shutdown)
+        for key, value in [('Passed', False), ('HistoryCleared', False), ('ViewHasDocument', True), ('Tabs', 1),
+                           ('PendingViewCompleted', False), ('PendingCopyCompleted', False), ('UnreleasedHandles', 1),
+                           ('ActiveLeases', 1), ('SurvivingWeakHandles', -1)]:
+            report = dict(self.shutdown, **{key: value})
+            with self.assertRaises(ValueError):
+                validate_shutdown(report)
+        with self.assertRaises(ValueError):
+            validate_shutdown({})
+
+    def test_collector_checks_shutdown_and_both_fixtures_without_overwriting_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            app = root / 'codeView'
+            app.write_bytes(b'app'); (root / 'codeView.dll').write_bytes(b'product')
+            inputs = [root / 'a.cs', root / 'b.cs']
+            for path in inputs: path.write_bytes(b'abc\n')
+            environments = []
+
+            def run(command, **kwargs):
+                env = kwargs['env']; environments.append(env)
+                report = copy.deepcopy(self.report)
+                report['RowProjectionChecks']['SourceSha256'] = fixture(Path(command[1]))['bodySha256']
+                target = Path(env['CODEVIEW_GUI_PERF_REPORT'])
+                target.write_text(json.dumps(report))
+                Path(str(target) + '.shutdown.json').write_text(json.dumps(self.shutdown))
+                return SimpleNamespace(returncode=0)
+
+            with mock.patch('check_row_projection.subprocess.run', side_effect=run):
+                collect(app, inputs, root / 'out', 1, self.commit, 'macos')
+            record = json.loads((root / 'out/runs.json').read_text())
+            self.assertTrue(record['validated'])
+            self.assertEqual(len(record['runs']), 2)
+            self.assertTrue(all(r['shutdown']['Passed'] for r in record['runs']))
+            self.assertEqual([x['CODEVIEW_GUI_ROW_SECONDARY'] for x in environments], [str(inputs[1]), str(inputs[0])])
+            self.assertTrue(all(p.read_bytes() == b'abc\n' for p in inputs))
+
+    def test_collector_failure_timeout_and_missing_shutdown_stop_without_success(self):
+        for failure in ['exit', 'timeout', 'shutdown']:
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory); app = root / 'codeView'; app.write_bytes(b'app')
+                (root / 'codeView.dll').write_bytes(b'product')
+                inputs = [root / 'a.cs', root / 'b.cs']
+                for path in inputs: path.write_bytes(b'abc\n')
+
+                def run(command, **kwargs):
+                    if failure == 'timeout': raise subprocess.TimeoutExpired(command, 90)
+                    target = Path(kwargs['env']['CODEVIEW_GUI_PERF_REPORT'])
+                    report = copy.deepcopy(self.report)
+                    report['RowProjectionChecks']['SourceSha256'] = fixture(inputs[0])['bodySha256']
+                    target.write_text(json.dumps(report))
+                    return SimpleNamespace(returncode=1 if failure == 'exit' else 0)
+
+                with mock.patch('check_row_projection.subprocess.run', side_effect=run) as launch:
+                    with self.assertRaises((RuntimeError, subprocess.TimeoutExpired, FileNotFoundError)):
+                        collect(app, inputs, root / 'out', 1, self.commit, 'macos')
+                record = json.loads((root / 'out/runs.json').read_text())
+                self.assertNotIn('validated', record)
+                self.assertEqual(launch.call_count, 1)
+                self.assertIn('error', record['runs'][0])
+
+    def test_collector_requires_two_distinct_fixtures_before_creating_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); path = root / 'same.cs'
+            for paths in [[path], [path, path]]:
+                with self.assertRaises(ValueError):
+                    collect(root / 'app', paths, root / 'out', 1, self.commit, 'macos')
+                self.assertFalse((root / 'out').exists())
 
 
 if __name__ == '__main__':

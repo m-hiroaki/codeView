@@ -12,6 +12,9 @@ on:
       - src/codeView/Documents/DocumentRowProjection.cs
       - src/codeView/Documents/DocumentDisplaySession.cs
       - src/codeView/Documents/DocumentAdapter.cs
+      - src/codeView/Presentation/MainWindow.axaml.cs
+      - src/codeView/Presentation/MainWindowViewModel.cs
+      - src/codeView/Operations/TabManager.cs
 
 permissions:
   contents: read
@@ -46,7 +49,7 @@ jobs:
           New-Item -ItemType Directory -Force artifacts/row-gui-validation | Out-Null
           "Commit: $env:GITHUB_SHA; native control integration, physical paint/input not measured." | Out-File artifacts/row-gui-validation/environment.txt
           dotnet --info | Out-File artifacts/row-gui-validation/environment.txt -Append
-          python -c "from pathlib import Path; p=Path('artifacts/row-gui-validation'); (p/'mixed.cs').write_bytes(('before\r\n'+'x'*(1024*1024)+'\r\n'+''.join('line'+str(i)+' 日本語😀\r\n' for i in range(100))).encode('utf-8')); (p/'empty.cs').write_bytes(b''); (p/'unicode.cs').write_bytes(('日本語😀\tValue\r\nempty\rplain\n'*50).encode('utf-8'))"
+          python -c "from pathlib import Path; p=Path('artifacts/row-gui-validation/inputs'); p.mkdir(); (p/'mixed.cs').write_bytes(('before\r\n'+'x'*(1024*1024)+'\r\n'+''.join('line'+str(i)+' 日本語😀\r\n' for i in range(100))).encode('utf-8')); (p/'empty.cs').write_bytes(b''); (p/'unicode.cs').write_bytes(('日本語😀\tValue\r\nempty\rplain\n'*50).encode('utf-8'))"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build dedicated row prototype
         run: |
@@ -60,7 +63,7 @@ jobs:
           $platform = if ($IsWindows) { 'windows' } else { 'macos' }
           python -m unittest discover -s tools -p test_row_projection.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/mixed.cs artifacts/row-gui-validation/empty.cs artifacts/row-gui-validation/unicode.cs --output artifacts/row-gui-validation/results --rounds 3 --commit $env:GITHUB_SHA --os $platform
+          python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/inputs/mixed.cs artifacts/row-gui-validation/inputs/empty.cs artifacts/row-gui-validation/inputs/unicode.cs --output artifacts/row-gui-validation/results --rounds 3 --commit $env:GITHUB_SHA --os $platform
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload row integration evidence
         if: always()
@@ -71,5 +74,5 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/row-gui-validation/environment.txt
-            artifacts/row-gui-validation/*.cs
+            artifacts/row-gui-validation/inputs/
             artifacts/row-gui-validation/results/

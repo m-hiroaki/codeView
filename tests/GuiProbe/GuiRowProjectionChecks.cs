@@ -96,14 +96,18 @@ internal sealed partial class GuiPerformanceProbe
             Check("source-labels-rendered", _sourceLineNumbers.RenderedLabels > 0);
             Check("source-unchanged", original.Text == body && !original.UndoStack.CanUndo && !original.UndoStack.CanRedo);
             Check("read-only-native-display", _editor.IsReadOnly && !_editor.Document.UndoStack.CanUndo);
+            var sourceLength = source.Length;
+            var maximumLineLength = source.MaximumLineLength;
+            var lifecycle = await CheckRowLifecycleAsync(body, ct);
             _rowResults = new
             {
                 Checks = checks, SourceSha256 = Convert.ToHexString(SHA256.HashData(Encoding.Unicode.GetBytes(body))).ToLowerInvariant(),
-                Utf16Characters = source.Length, SourceLineCount = original.LineCount,
+                Utf16Characters = sourceLength, SourceLineCount = original.LineCount,
                 ScrollSteps = _scrollTimes.Count, DrawnSelectionSpans = _rowRenderer.DrawnSpans,
                 DrawnClippingMarks = _rowMargin!.DrawnMarks, SawClippedRow = _sawClippedRow,
                 OriginalClipboardChecks = _clipboardVerificationChecks,
-                ScrollChecks = scrollChecks, SourceBarChanges = _sourceBarChanges, MaximumLineLength = source.MaximumLineLength,
+                ScrollChecks = scrollChecks, SourceBarChanges = _sourceBarChanges, MaximumLineLength = maximumLineLength,
+                Lifecycle = lifecycle,
                 Limit = "Native control integration including source scrollbars/routed wheel/pointer capture; no physical input/paint. Logical UTF-16 axis; visual-column alignment pending."
             };
             Finish();

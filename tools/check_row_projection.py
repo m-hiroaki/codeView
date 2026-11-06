@@ -17,6 +17,14 @@ SCROLL_CHECKS = {"source-scrollbar-extents", "source-scrollbar-last-position", "
                  "routed-capture-loss", "replacement-detaches-capture", "reattach-single-owner", "source-caret-rectangle-visible",
                  "stale-scrollbar-gesture-rejected", "stale-scrollbar-release-rejected", "current-scrollbar-release-retires"}
 
+LIFECYCLE_CHECKS = {"real-tab-opens-secondary", "inactive-tab-keeps-no-view-lease", "real-tab-restores-selection-and-view",
+                    "tab-restore-keeps-offscreen-caret", "secondary-tab-restores-independent-state", "real-reload-replaces-body-identity",
+                    "reload-does-not-restore-old-selection-or-view", "reload-rejects-old-projection", "reload-copy-lease-keeps-original",
+                    "retired-copy-lease-released", "tab-switch-starts-with-capture", "real-tab-switch-releases-capture",
+                    "close-starts-with-edge-timer", "real-close-releases-capture-and-body", "reopen-uses-fresh-view",
+                    "real-search-workspace-ready", "closed-search-cannot-adopt-stale-result", "lifecycle-body-unchanged",
+                    "lifecycle-workload-started-once"}
+
 
 def fixture(path):
     data = path.read_bytes()
@@ -38,6 +46,12 @@ def validate_report(report, expected, commit, expected_os):
             or not report.get("Os", "").startswith({"windows": "Microsoft Windows", "macos": "macOS"}[expected_os])):
         raise ValueError("Wrong build/OS/mode or interrupted/failed native run")
     checks = report.get("RowProjectionChecks") or {}
+    lifecycle = checks.get("Lifecycle") or {}
+    required_lifecycle = LIFECYCLE_CHECKS | ({"real-search-committed-primary-hit", "real-search-enter-selects-original"}
+                                          if expected["characters"] else {"empty-search-has-no-fabricated-hit"})
+    if (set(lifecycle.get("Checks", [])) != required_lifecycle or len(lifecycle.get("Checks", [])) != len(required_lifecycle)
+            or lifecycle.get("SearchOutcome") != ("hit" if expected["characters"] else "empty") or lifecycle.get("WorkloadStarts") != 1):
+        raise ValueError("Real tab/reload/search/close lifecycle evidence incomplete")
     scroll_checks = checks.get("ScrollChecks", [])
     if (set(scroll_checks) != SCROLL_CHECKS or len(scroll_checks) != len(SCROLL_CHECKS)
             or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
@@ -72,14 +86,23 @@ def validate_report(report, expected, commit, expected_os):
         raise ValueError("Unexpected physical paint claim")
 
 
+def validate_shutdown(report):
+    if (report.get("Passed") is not True or report.get("HistoryCleared") is not True
+            or report.get("ViewHasDocument") is not False or report.get("Tabs") != 0
+            or report.get("PendingViewCompleted") is not True or report.get("PendingCopyCompleted") is not True
+            or report.get("UnreleasedHandles") != 0 or report.get("ActiveLeases") != 0
+            or type(report.get("SurvivingWeakHandles")) is not int or report["SurvivingWeakHandles"] < 0):
+        raise ValueError("Real shutdown has pending work, retained source ownership, or missing evidence")
+
+
 def collect(app, inputs, output, rounds, commit, expected_os):
-    if not 1 <= rounds <= 10 or not 1 <= len(inputs) <= 10:
-        raise ValueError("Use 1..10 rounds and fixtures")
+    if not 1 <= rounds <= 10 or not 2 <= len(inputs) <= 10 or len(set(inputs)) != len(inputs):
+        raise ValueError("Use 1..10 rounds and 2..10 distinct fixtures")
     fixtures = [fixture(path) for path in inputs]
     output.mkdir(parents=True, exist_ok=False)
     record = {"commit": commit, "fixtures": fixtures, "productSha256": sha256(app.parent / "codeView.dll"),
               "appHostSha256": sha256(app), "rounds": rounds, "runs": [],
-              "limit": "Native functional integration, logical UTF-16 columns; full scrollbars, physical paint/input and performance acceptance pending."}
+              "limit": "Native functional lifecycle/scroll integration, logical UTF-16 columns; physical paint/input and performance acceptance pending."}
     try:
         for number in range(rounds):
             for index, expected in enumerate(fixtures):
@@ -87,7 +110,8 @@ def collect(app, inputs, output, rounds, commit, expected_os):
                 report_path = output / (label + ".json")
                 env = {k: v for k, v in os.environ.items() if not k.startswith("CODEVIEW_GUI_")}
                 env.update(CODEVIEW_GUI_PERF_REPORT=str(report_path), CODEVIEW_GUI_WINDOWED="1", CODEVIEW_GUI_INTERACTIVE="1",
-                           CODEVIEW_GUI_ROWS="1", CODEVIEW_GUI_ROW_CHECKS="1", CODEVIEW_GUI_VERIFY_CLIPBOARD="1")
+                           CODEVIEW_GUI_ROWS="1", CODEVIEW_GUI_ROW_CHECKS="1", CODEVIEW_GUI_VERIFY_CLIPBOARD="1",
+                           CODEVIEW_GUI_ROW_SECONDARY=str(inputs[(index + 1) % len(inputs)]))
                 row = {"fixture": index, "round": number + 1}
                 record["runs"].append(row)
                 if sha256(inputs[index]) != expected["inputSha256"]:
@@ -100,11 +124,17 @@ def collect(app, inputs, output, rounds, commit, expected_os):
                 if child.returncode != 0:
                     raise RuntimeError("Native row test failed: " + label)
                 validate_report(row["report"], expected, commit, expected_os)
-                if sha256(inputs[index]) != expected["inputSha256"]:
+                row["shutdown"] = json.loads(Path(str(report_path) + ".shutdown.json").read_text(encoding="utf-8-sig"))
+                validate_shutdown(row["shutdown"])
+                if any(sha256(path) != f["inputSha256"] for path, f in zip(inputs, fixtures)):
                     raise ValueError("Fixture changed during run")
                 row["validated"] = True
                 print(label + ": verified", flush=True)
         record["validated"] = True
+    except Exception as error:
+        if record["runs"]:
+            record["runs"][-1]["error"] = str(error)
+        raise
     finally:
         (output / "runs.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
 

@@ -146,6 +146,9 @@ internal sealed partial class MainWindow : Window
 #endif
                 return pending;
             }, Program.MarkFailed);
+#if CODEVIEW_PERFORMANCE_PROBE
+            GuiPerformanceProbe.ConfirmRowShutdown(viewModel);
+#endif
             _allowClose = true;
             Dispatcher.UIThread.Post(Close);
         };
