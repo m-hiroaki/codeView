@@ -134,12 +134,19 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var settingsTask = Task.Run(() => settingsStore.LoadAsync(_lifetime.Token), _lifetime.Token);
         _lateSettings = ObserveLateSettingsAsync(settingsTask);
         SettingsLoadResult settings;
-        try { settings = await settingsTask.WaitAsync(TimeSpan.FromSeconds(2), timeProvider ?? TimeProvider.System, _lifetime.Token); }
-        catch (TimeoutException)
+        using (var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider ?? TimeProvider.System))
+        using (var wait = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, deadline.Token))
         {
-            settings = new(SettingsSnapshot.Default, null, new(ErrorCode.IoFailure), false);
+            try { settings = await settingsTask.WaitAsync(wait.Token); }
+            catch (OperationCanceledException error) when (_lifetime.IsCancellationRequested
+                && (error.CancellationToken == wait.Token || error.CancellationToken == _lifetime.Token)) { return; }
+            catch (OperationCanceledException error) when (deadline.IsCancellationRequested && error.CancellationToken == wait.Token)
+            {
+                // A worker TimeoutException is a fault, not the startup wait deadline.
+                settings = settingsTask.IsCompleted ? await settingsTask
+                    : new(SettingsSnapshot.Default, null, new(ErrorCode.IoFailure), false);
+            }
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return; }
         if (_stopping) return;
         operations.Startup.CompleteSettings(settings);
         await EnsurePumpAsync();

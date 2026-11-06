@@ -175,6 +175,30 @@ internal sealed class StartupSettingsIntegrationTests
         finally { fixture.View.PropertyChanged -= failedNotification; }
     });
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void WorkerTimeoutOrUnrelatedCancellationCannotFixDefaults(bool cancellation) => SingleThreadTestContext.Run(async () =>
+    {
+        await using var fixture = new Fixture();
+        var fatal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        fixture.View.FatalFailure += () => fatal.TrySetResult();
+        var startup = fixture.View.InitializeAsync([fixture.Cli]);
+        await fixture.Access.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Exception error = cancellation ? new OperationCanceledException(new CancellationToken(true)) : new TimeoutException("worker timeout");
+        fixture.Access.Failure = error;
+        fixture.Access.Release.Set();
+        Exception? observed = null;
+        try { await startup.WaitAsync(TimeSpan.FromSeconds(5)); }
+        catch (Exception failure) { observed = failure; }
+        Assert.That(observed, Is.SameAs(error));
+        await fatal.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await fixture.View.PendingWork;
+        Assert.That(fixture.Operations.Startup.State, Is.EqualTo(StartupState.WaitingSettings));
+        Assert.That(fixture.Operations.Startup.Settings, Is.Null);
+        Assert.That(fixture.View.Tabs, Is.Empty);
+        Assert.That(fixture.Clock.Timer!.Disposed, Is.True);
+    });
+
     private sealed class Fixture : IAsyncDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "codeview-startup-" + Guid.NewGuid().ToString("N"));
