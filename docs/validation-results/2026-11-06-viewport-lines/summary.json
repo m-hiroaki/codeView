@@ -1,0 +1,80 @@
+[
+  {
+    "Label": "normal-fixed",
+    "MeasuredAtUtc": "2026-11-06T04:06:24.937617+00:00",
+    "AttachmentMs": 7.446,
+    "MaxSynchronousMs": 7.2582,
+    "MaxTickMs": 17.7367,
+    "MemoryIncreaseMiB": 351.87518310546875,
+    "CpuMs": 1996.928,
+    "AllocatedBytes": 339782904,
+    "GcPauseMs": 102.87,
+    "LastDisplayLines": 40,
+    "LargestDisplayChars": 1024
+  },
+  {
+    "Label": "normal-viewport",
+    "MeasuredAtUtc": "2026-11-06T04:06:27.454834+00:00",
+    "AttachmentMs": 7.9951,
+    "MaxSynchronousMs": 11.2887,
+    "MaxTickMs": 17.351,
+    "MemoryIncreaseMiB": 330.15645599365234,
+    "CpuMs": 1997.06,
+    "AllocatedBytes": 338775568,
+    "GcPauseMs": 123.43,
+    "LastDisplayLines": 36,
+    "LargestDisplayChars": 939
+  },
+  {
+    "Label": "long-fixed",
+    "MeasuredAtUtc": "2026-11-06T04:07:06.253879+00:00",
+    "AttachmentMs": 11.3537,
+    "MaxSynchronousMs": 11.2762,
+    "MaxTickMs": 17.6572,
+    "MemoryIncreaseMiB": 279.37516021728516,
+    "CpuMs": 1173.929,
+    "AllocatedBytes": 286425000,
+    "GcPauseMs": 73.736,
+    "LastDisplayLines": 1,
+    "LargestDisplayChars": 1024
+  },
+  {
+    "Label": "long-viewport",
+    "MeasuredAtUtc": "2026-11-06T04:07:08.05393+00:00",
+    "AttachmentMs": 11.5276,
+    "MaxSynchronousMs": 10.4884,
+    "MaxTickMs": 17.7433,
+    "MemoryIncreaseMiB": 293.78138732910156,
+    "CpuMs": 1164.522,
+    "AllocatedBytes": 286405272,
+    "GcPauseMs": 75.576,
+    "LastDisplayLines": 1,
+    "LargestDisplayChars": 1024
+  },
+  {
+    "Label": "short-fixed",
+    "MeasuredAtUtc": "2026-11-06T04:07:09.78744+00:00",
+    "AttachmentMs": 15.5372,
+    "MaxSynchronousMs": 11.6567,
+    "MaxTickMs": 28.575,
+    "MemoryIncreaseMiB": 210.35953521728516,
+    "CpuMs": 991.674,
+    "AllocatedBytes": 45267032,
+    "GcPauseMs": 21.332,
+    "LastDisplayLines": 15,
+    "LargestDisplayChars": 1024
+  },
+  {
+    "Label": "short-viewport",
+    "MeasuredAtUtc": "2026-11-06T04:07:11.470765+00:00",
+    "AttachmentMs": 16.2625,
+    "MaxSynchronousMs": 13.1753,
+    "MaxTickMs": 29.58,
+    "MemoryIncreaseMiB": 215.81256866455078,
+    "CpuMs": 1306.43,
+    "AllocatedBytes": 95000992,
+    "GcPauseMs": 46.461,
+    "LastDisplayLines": 36,
+    "LargestDisplayChars": 2772
+  }
+]

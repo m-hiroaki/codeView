@@ -1,0 +1,8 @@
+{
+  "Milliseconds": 20.9595,
+  "CpuMilliseconds": 21.17,
+  "AllocatedBytes": 2664280,
+  "GcPauseMilliseconds": 3.148,
+  "LargestSliceChars": 1200,
+  "ActiveReadLeases": 1
+}

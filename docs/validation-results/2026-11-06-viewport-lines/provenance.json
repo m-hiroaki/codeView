@@ -1,0 +1,9 @@
+{
+  "src/codeView/Documents/DocumentDisplaySession.cs": "a46297b1fa653fd764319984c632d47969d32548a675ddf0cdc145c15ad92a09",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "5cd2e0fbd315cd2501ff7f20b2ca97ac0472c6bd287455021a4d8b4e53caaa04",
+  "tests/codeView.Tests/Documents/DocumentViewportSliceTests.cs": "89c9ca2f3ce005db9138887b89bfcb11dc780e5304089b086fdd54f47910ddf8",
+  "artifacts/viewport-20261106/Viewport.app/Contents/MacOS/codeView.dll": "bed78fea845ea1f27e5ca53e90267105a9a7b62e993fc93b2e667974d874ed35",
+  "artifacts/viewport-20261106/normal.cs": "3f22d0f0fb02ec79d276b91c1766789827a5d0ec6171137e1a7a608c1ac9a50c",
+  "artifacts/fixtures/text50/group-00000/source-0000000.cs": "af249ffbdafe02ad97c30b78d3bbd47669c74cf254d425a6d732fbba4d319da0",
+  "artifacts/fixtures/long50/source-0000000.cs": "09b6c4758efe0a06a8f2c99c57a32ba31d84b80a377e9c277b6629446cc8da5c"
+}

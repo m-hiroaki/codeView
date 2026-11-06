@@ -68,6 +68,9 @@ internal sealed class GuiPerformanceProbe
     private long _lastCopiedCharacters;
     private readonly bool _verifyClipboard = Environment.GetEnvironmentVariable("CODEVIEW_GUI_VERIFY_CLIPBOARD") == "1";
     private readonly int _windowChars = TextWindow.ParseWindowChars(Environment.GetEnvironmentVariable("CODEVIEW_GUI_WINDOW_CHARS"));
+    private readonly bool _viewportWindow = Environment.GetEnvironmentVariable("CODEVIEW_GUI_VIEWPORT") == "1";
+    private int _sliceViewportLines;
+    private readonly List<object> _viewportSamples = [];
     private readonly SourceLineNumberMargin? _sourceLineNumbers;
     private TextDocument? _sourceDocument;
     private DocumentDisplaySession? _displaySession;
@@ -184,7 +187,7 @@ internal sealed class GuiPerformanceProbe
         if (probe._interactive)
         {
             probe._displaySession.MoveToPosition(position);
-            probe._interactiveSlice = probe._displaySession.CreateSlice(probe._displaySession.Caret, probe._windowChars);
+            probe._interactiveSlice = probe.CreateSourceSlice(probe._displaySession.Caret);
             var display = CreateDisplayDocument(probe._interactiveSlice.Text);
             probe.ApplyLineNumbers(display, probe._interactiveSlice);
             return display;
@@ -237,8 +240,14 @@ internal sealed class GuiPerformanceProbe
         probe._documentGeneration++;
     }
 
-    private void ApplyLineNumbers(TextDocument display, DocumentDisplaySlice slice) =>
+    private void ApplyLineNumbers(TextDocument display, DocumentDisplaySlice slice)
+    {
         _sourceLineNumbers!.Apply(display, new SourceLineNumbers(slice.SourceStart.Line, _sourceDocument!.LineCount, display.LineCount));
+        if (_viewportWindow && _viewportSamples.Count < 256)
+            _viewportSamples.Add(new { RequestedLines = _sliceViewportLines, DisplayLines = display.LineCount,
+                SourceFirstLine = slice.SourceStart.Line, SourceLines = _sourceDocument.LineCount,
+                SliceChars = slice.Text.Length, slice.SourceOffset, slice.TargetOffset });
+    }
 
     private static TextDocument CreateDisplayDocument(string text)
     {
@@ -246,6 +255,23 @@ internal sealed class GuiPerformanceProbe
         document.UndoStack.SizeLimit = 0;
         return document;
     }
+
+    private int RequestedViewportLines()
+    {
+        var view = _editor.TextArea.TextView;
+        var rows = Math.Ceiling(view.Bounds.Height / view.DefaultLineHeight) + 2;
+        return double.IsFinite(rows) ? (int)Math.Clamp(rows, 1, 512) : 1;
+    }
+
+    private DocumentDisplaySlice CreateSourceSlice(long offset)
+    {
+        _sliceViewportLines = _viewportWindow ? RequestedViewportLines() : 0;
+        return _viewportWindow
+            ? _displaySession!.CreateViewportSlice(offset, _windowChars, _sliceViewportLines)
+            : _displaySession!.CreateSlice(offset, _windowChars);
+    }
+
+    private void InteractiveSizeChanged(object? sender, SizeChangedEventArgs args) => RenderInteractive();
 
     private void RenderInteractive()
     {
@@ -256,11 +282,12 @@ internal sealed class GuiPerformanceProbe
             var source = _displaySession;
             var slice = _interactiveSlice;
             var margin = _windowChars / 4;
-            if (slice is null || source.Caret < slice.SourceOffset || source.Caret > slice.SourceOffset + slice.Text.Length ||
+            if (slice is null || (_viewportWindow && RequestedViewportLines() != _sliceViewportLines) ||
+                source.Caret < slice.SourceOffset || source.Caret > slice.SourceOffset + slice.Text.Length ||
                 (!_pointerSelection.IsActive && slice.SourceOffset > 0 && source.Caret < slice.SourceOffset + margin) ||
                 (!_pointerSelection.IsActive && slice.SourceOffset + slice.Text.Length < source.Length && source.Caret > slice.SourceOffset + slice.Text.Length - margin))
             {
-                slice = _interactiveSlice = source.CreateSlice(source.Caret, _windowChars);
+                slice = _interactiveSlice = CreateSourceSlice(source.Caret);
                 var display = CreateDisplayDocument(slice.Text);
                 ApplyLineNumbers(display, slice);
                 _editor.Document = display;
@@ -318,6 +345,7 @@ internal sealed class GuiPerformanceProbe
         _editor.AddHandler(InputElement.PointerMovedEvent, InteractivePointerMoved, RoutingStrategies.Tunnel);
         _editor.AddHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased, RoutingStrategies.Tunnel);
         _editor.PointerCaptureLost += InteractivePointerCaptureLost;
+        if (_viewportWindow) _editor.SizeChanged += InteractiveSizeChanged;
     }
 
     private void DetachInteractive()
@@ -330,6 +358,7 @@ internal sealed class GuiPerformanceProbe
         _editor.RemoveHandler(InputElement.PointerMovedEvent, InteractivePointerMoved);
         _editor.RemoveHandler(InputElement.PointerReleasedEvent, InteractivePointerReleased);
         _editor.PointerCaptureLost -= InteractivePointerCaptureLost;
+        if (_viewportWindow) _editor.SizeChanged -= InteractiveSizeChanged;
     }
 
     private void RecordPointer(string phase, PointerEventArgs? args = null)
@@ -594,8 +623,8 @@ internal sealed class GuiPerformanceProbe
 
     private (TextDocument Document, TextLocation Target) BuildDisplayWindow(long offset)
     {
-        var window = _displaySession!.CreateSlice(offset, _windowChars);
-        _displaySession.MoveCaret(window.TargetOffset, extendSelection: _sourceOffsets.Count > 0);
+        var window = CreateSourceSlice(offset);
+        _displaySession!.MoveCaret(window.TargetOffset, extendSelection: _sourceOffsets.Count > 0);
         var document = new TextDocument(window.Text);
         document.UndoStack.SizeLimit = 0;
         ApplyLineNumbers(document, window);
@@ -661,7 +690,7 @@ internal sealed class GuiPerformanceProbe
     private void ApplyNavigationSelection(int step)
     {
         GuiNavigationPlan.Apply(_displaySession!, step);
-        var slice = _displaySession!.CreateSlice(_displaySession.Caret, _windowChars);
+        var slice = CreateSourceSlice(_displaySession!.Caret);
         if (!_displaySession.TryGetDisplaySelection(slice, out var visible) || visible.CaretOffset is not { } caret)
             throw new InvalidOperationException("原文選択を表示範囲へ変換できません。");
         var document = new TextDocument(slice.Text);
@@ -712,6 +741,9 @@ internal sealed class GuiPerformanceProbe
             Failure = failure, CacheCondition = Environment.GetEnvironmentVariable("CODEVIEW_PERF_CACHE") ?? "unknown",
             DisplayMode = _windowed ? "bounded-window-prototype" : "full-document-candidate",
             ConfiguredWindowChars = _windowed ? (int?)_windowChars : null,
+            ViewportWindowEnabled = _viewportWindow, RequestedViewportLines = _sliceViewportLines,
+            SourceLineCount = _sourceDocument?.LineCount, DisplayLineCount = _editor.Document?.LineCount,
+            ViewportSamples = _viewportSamples,
             OpenedMilliseconds = _openedMilliseconds, WindowTwoTicksMilliseconds = _emptyWindowTwoTicksMilliseconds,
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,

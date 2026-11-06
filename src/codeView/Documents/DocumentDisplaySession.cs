@@ -135,6 +135,31 @@ internal sealed class DocumentDisplaySession : IDisposable
         return _slice = new DocumentDisplaySlice(start, PositionAt(start), target, text);
     }
 
+    public DocumentDisplaySlice CreateViewportSlice(long targetOffset, int maxLineChars, int visibleLines)
+    {
+        VerifyAccess();
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxLineChars, 4);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(maxLineChars, MaximumSliceChars);
+        ArgumentOutOfRangeException.ThrowIfLessThan(visibleLines, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(visibleLines, 512);
+        var target = Normalize(targetOffset);
+        var targetLine = _source!.GetLineByOffset(checked((int)target)).LineNumber;
+        var first = Math.Max(1, targetLine - visibleLines / 4);
+        var last = (int)Math.Min(_source.LineCount, (long)first + visibleLines - 1);
+        first = Math.Max(1, last - visibleLines + 1);
+        var start = _source.GetLineByNumber(first).Offset;
+        var final = _source.GetLineByNumber(last);
+        var end = final.Offset + final.TotalLength;
+        // Keep a contiguous source projection. Do not force a long line or an
+        // unbounded viewport through the renderer just to satisfy a row count.
+        if (end - start > MaximumSliceChars) return CreateSlice(target, maxLineChars);
+        for (var delta = 0; delta <= last - first; delta++)
+            if (_source.GetLineByNumber(first + delta).Length > maxLineChars)
+                return CreateSlice(target, maxLineChars);
+        var text = _lease!.ReadRange(start, end - start);
+        return _slice = new(start, PositionAt(start), target, text);
+    }
+
     public bool TryMoveFromDisplay(DocumentDisplaySlice slice, int offset, bool extendSelection = false)
     {
         VerifyAccess();

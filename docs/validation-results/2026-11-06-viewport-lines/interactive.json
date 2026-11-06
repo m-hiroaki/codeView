@@ -1,0 +1,440 @@
+{
+  "FormatVersion": 2,
+  "MeasuredAtUtc": "2026-11-06T04:05:48.55896+00:00",
+  "Scenario": "native-interactive-bounded-candidate",
+  "Os": "macOS 27.0.1",
+  "Architecture": "Arm64",
+  "Runtime": "10.0.12",
+  "Failure": null,
+  "CacheCondition": "unknown",
+  "DisplayMode": "bounded-window-prototype",
+  "ConfiguredWindowChars": 1024,
+  "ViewportWindowEnabled": true,
+  "RequestedViewportLines": 36,
+  "SourceLineCount": 1001,
+  "DisplayLineCount": 37,
+  "ViewportSamples": [
+    {
+      "RequestedLines": 36,
+      "DisplayLines": 37,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2772,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 36,
+      "DisplayLines": 37,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2772,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 37,
+      "DisplayLines": 38,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2849,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 38,
+      "DisplayLines": 39,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2926,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 39,
+      "DisplayLines": 40,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 3003,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 40,
+      "DisplayLines": 41,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 3080,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 41,
+      "DisplayLines": 42,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 3157,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 40,
+      "DisplayLines": 41,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 3080,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 39,
+      "DisplayLines": 40,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 3003,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 38,
+      "DisplayLines": 39,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2926,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 37,
+      "DisplayLines": 38,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2849,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    },
+    {
+      "RequestedLines": 36,
+      "DisplayLines": 37,
+      "SourceFirstLine": 1,
+      "SourceLines": 1001,
+      "SliceChars": 2772,
+      "SourceOffset": 0,
+      "TargetOffset": 0
+    }
+  ],
+  "OpenedMilliseconds": 421.9458,
+  "WindowTwoTicksMilliseconds": 514.9961,
+  "DocumentAttachmentMilliseconds": 3.9905,
+  "DocumentTwoTicksMilliseconds": 671.5778,
+  "ScrollSynchronousMilliseconds": [],
+  "AnimationTickIntervalsMilliseconds": [],
+  "DocumentChars": 2772,
+  "DocumentLines": 37,
+  "SourceChars": 77000,
+  "SourceLines": 1001,
+  "LargestDisplayChars": 3157,
+  "VisitedSourceOffsets": [],
+  "SourceCaretOffset": 1925,
+  "SourceCaretPosition": {
+    "Line": 26,
+    "Column": 1
+  },
+  "SourceSelectionStart": 1925,
+  "SourceSelectionLength": 0,
+  "SourceLineNumberMap": {
+    "FirstSourceLine": 1,
+    "SourceLineCount": 1001,
+    "DisplayLineCount": 37,
+    "IsValid": true,
+    "WidthInDigits": 4
+  },
+  "SourceLineNumberLabelsRendered": 1075,
+  "LastFirstSourceLineLabel": 2,
+  "LastLastSourceLineLabel": 26,
+  "SourceSelectionUi": "source keyboard/mouse drag selection and clipboard; probe only",
+  "SelectionSamples": [
+    {
+      "DocumentGeneration": 2,
+      "Command": "PageDown",
+      "Extend": false,
+      "RawKey": "PageDown",
+      "PhysicalKey": "PageDown",
+      "Modifiers": "None",
+      "HasKeySymbol": false,
+      "SourceAnchor": 1925,
+      "SourceCaret": 1925,
+      "SourcePosition": {
+        "Line": 26,
+        "Column": 1
+      },
+      "SourceSelectionLength": 0,
+      "SliceOffset": 0,
+      "SliceChars": 2772,
+      "NativeCaret": 1925,
+      "NativeSelectionStart": 1925,
+      "NativeSelectionLength": 0,
+      "StatusPosition": "\u884C 26, \u5217 1",
+      "SynchronousMilliseconds": 0.6733
+    }
+  ],
+  "InteractiveCommands": 1,
+  "StatusPosition": "\u884C 26, \u5217 1",
+  "InteractivePostedScrolls": 4,
+  "InteractivePostedScrollMaxMilliseconds": 2.6041,
+  "LastInteractiveHorizontal": 0,
+  "LastInteractiveVertical": 31.25,
+  "InteractiveScrollSamples": [
+    {
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceCaret": 0,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.817024661893397,
+        "Width": 1142,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0.5,
+        "Height": 25.375,
+        "Position": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536946,
+          "Width": 0.5,
+          "Height": 25.375
+        },
+        "Right": 0.5,
+        "Bottom": 25.375,
+        "Left": 0,
+        "Top": 0,
+        "TopLeft": {
+          "X": 0,
+          "Y": 0
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 12.6875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceCaret": 0,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.9792674498963372,
+        "Width": 1432,
+        "Height": 723.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0.5,
+        "Height": 25.375,
+        "Position": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536946,
+          "Width": 0.5,
+          "Height": 25.375
+        },
+        "Right": 0.5,
+        "Bottom": 25.375,
+        "Left": 0,
+        "Top": 0,
+        "TopLeft": {
+          "X": 0,
+          "Y": 0
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 12.6875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 1,
+        "Column": 1
+      },
+      "SourceCaret": 0,
+      "Horizontal": 0,
+      "Vertical": 0,
+      "Viewport": {
+        "AspectRatio": 1.817024661893397,
+        "Width": 1142,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0.5,
+        "Height": 25.375,
+        "Position": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536946,
+          "Width": 0.5,
+          "Height": 25.375
+        },
+        "Right": 0.5,
+        "Bottom": 25.375,
+        "Left": 0,
+        "Top": 0,
+        "TopLeft": {
+          "X": 0,
+          "Y": 0
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 25.375
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 25.375
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 12.6875
+        }
+      },
+      "CaretVisible": true
+    },
+    {
+      "SourcePosition": {
+        "Line": 26,
+        "Column": 1
+      },
+      "SourceCaret": 1925,
+      "Horizontal": 0,
+      "Vertical": 31.25,
+      "Viewport": {
+        "AspectRatio": 1.817024661893397,
+        "Width": 1142,
+        "Height": 628.5
+      },
+      "CaretRectangle": {
+        "X": 0,
+        "Y": 634.375,
+        "Width": 0.5,
+        "Height": 25.375,
+        "Position": {
+          "X": 0,
+          "Y": 634.375
+        },
+        "Size": {
+          "AspectRatio": 0.019704433497536946,
+          "Width": 0.5,
+          "Height": 25.375
+        },
+        "Right": 0.5,
+        "Bottom": 659.75,
+        "Left": 0,
+        "Top": 634.375,
+        "TopLeft": {
+          "X": 0,
+          "Y": 634.375
+        },
+        "TopRight": {
+          "X": 0.5,
+          "Y": 634.375
+        },
+        "BottomLeft": {
+          "X": 0,
+          "Y": 659.75
+        },
+        "BottomRight": {
+          "X": 0.5,
+          "Y": 659.75
+        },
+        "Center": {
+          "X": 0.25,
+          "Y": 647.0625
+        }
+      },
+      "CaretVisible": true
+    }
+  ],
+  "PointerSamples": [],
+  "PointerUpdates": 0,
+  "PointerEdgeSteps": 0,
+  "PointerActive": false,
+  "ClipboardCopiesCompleted": 0,
+  "LastCopiedCharacters": 0,
+  "ClipboardVerificationEnabled": false,
+  "ClipboardVerificationChecks": 0,
+  "ClipboardVerificationFailures": 0,
+  "HeldAfterReport": false,
+  "MemoryMetric": "macOS.phys_footprint",
+  "MemoryBefore": 68633632,
+  "SampledPeakMemory": 331596952,
+  "MemoryIncrease": 262963320,
+  "SamplingIntervalMilliseconds": 10,
+  "MemorySamples": 316596,
+  "ClientWidth": 1180,
+  "ClientHeight": 800,
+  "RenderScaling": 2,
+  "PhysicalPaint": "not-measured",
+  "PhysicalInput": "interactive keyboard mode; end-to-end latency not measured",
+  "InputInterrupted": false,
+  "CpuMilliseconds": 63691.657,
+  "AllocatedBytes": 94892592,
+  "GcCollections": [
+    11,
+    1,
+    0
+  ],
+  "GcPauseTotalMilliseconds": 35.688,
+  "GcMeasurementScope": "probe-construction-to-finish-before-report-serialization",
+  "LastGcLohBytes": 1249464,
+  "LastGcIndex": 11,
+  "IndividualGcPauses": "not-traced",
+  "LohAllocatedBytes": "not-traced"
+}
