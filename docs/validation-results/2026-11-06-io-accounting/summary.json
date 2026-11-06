@@ -127,7 +127,12 @@
   },
   "unitTrxSha256": "4289b3ac772986ec988f0700005b65f85a7dff860614595f7ea3007dea3d0a66",
   "pythonPassed": 47,
-  "ci": "pending",
+  "ci": {
+    "runId": 42176021163,
+    "conclusion": "success",
+    "details": "ci.json",
+    "commit": "0c0d200804ca8569e875791ff10766692b19143e"
+  },
   "limits": [
     "macOS kernel disk accounting is process-wide; Windows transfer counters have different meaning",
     "Both wrapper modes query native I/O; read/build timings exclude the sampler calls",

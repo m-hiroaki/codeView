@@ -1,6 +1,8 @@
 # I/O取得可否と計測負荷（2026-11-06）
 
-P0-04の一部。基点`5f46423`にsummary.json記載のテストソースを追加し、製品ソース・API・依存・構成を変更せず実施した。[再現手順と指標定義](../../io-measurements.md)。ローカルmacOS 27.0.1 / Apple M4 / RAM 32 GiB、SDK 10.0.401・runtime 10.0.12。通常テストは.NET 677件・Python 47件成功。両OS CIの確認は後記へ追記する。
+P0-04の一部。基点`5f46423`にsummary.json記載のテストソースを追加し、製品ソース・API・依存・構成を変更せず実施した。[再現手順と指標定義](../../io-measurements.md)。ローカルmacOS 27.0.1 / Apple M4 / RAM 32 GiB、SDK 10.0.401・runtime 10.0.12。通常テストは.NET 677件・Python 47件成功。
+
+`0c0d200`の[両OS CI](https://github.com/m-hiroaki/codeView/actions/runs/42176021163)も成功した。macOS .NET 677件/Python 47件、Windows .NET 674件成功+既存macOS専用3件スキップ/Python 27件成功+既存POSIX専用20件スキップ。今回追加したProcessIoTests/ReadAccountingTestsの21ケースは両OSですべて成功し、自プロセスのネイティブI/O取得・単調差分・解放を確認した。`ci.json`にケース別結果、環境、TRX/取得ZIPのハッシュを保存した。CIのSDK 10.0.403・runtime 10.0.14はローカルと区別する。CIでは性能カテゴリの120読取比較は実行していない。
 
 ## Warm読取
 

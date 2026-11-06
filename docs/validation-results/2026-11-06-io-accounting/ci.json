@@ -1,0 +1,297 @@
+{
+  "runId": 42176021163,
+  "url": "https://github.com/m-hiroaki/codeView/actions/runs/42176021163",
+  "commit": "0c0d200804ca8569e875791ff10766692b19143e",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "os": "macos",
+      "artifactId": 13483462885,
+      "zipSha256": "906c169fda19417dd3273a15f1ee02cdf0dc28735429d9f4d9e3b6ed1c1cae0d",
+      "trxSha256": "c75afc59b2776ab3adab01913c861b0866bc638b7e2d2cabc2d0d8eea94fe923",
+      "environmentSha256": "4f1906e56c9a6cbbe06de6f87aad72a5405af7154af20abb848076aee7f4f4c9",
+      "counters": {
+        "total": "677",
+        "executed": "677",
+        "passed": "677",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "ioTests": [
+        {
+          "testName": "BothAsyncOverloadsAndZeroLengthReadAreCountedOnce",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(65537)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8193)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(1)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(161)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(9000)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "CounterResetOrMetricChangeCannotBecomeUnsignedOverflow",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(1)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "ArraySpanByteAndSeekCountActualReturnedBytesOnce",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "AutomaticCp932AlsoCountsTheFailedUtf8ValidationRead",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "DisposingWrapperClosesTheOriginalHandleAndDoesNotCountFailedReads",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "OwnProcessCountersAreAvailableMonotonicAndMayRemainZero",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "AccessFailureIsForwardedWithoutWrappingOrOpeningAnotherFile",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BenchmarkReferenceEncodingIsExplicitAndStrict",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(0)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(0)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(159)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8192)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8191)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "MacFieldsUseVerifiedV2OffsetsAndUnsignedLimits",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(0)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        }
+      ],
+      "otherOutcomes": [],
+      "pythonSummary": [
+        "2026-11-06T06:42:13.6269660Z Ran 47 tests in 9.653s"
+      ]
+    },
+    {
+      "os": "windows",
+      "artifactId": 13482819123,
+      "zipSha256": "8b61d2ccdf762049c0ce56e66d2794b483faa26cbedba16f2b77a888d3aac5e7",
+      "trxSha256": "8fc97f491fd808072df02e975178a59ab19dfb400681306e305ad35bcc4fdc4a",
+      "environmentSha256": "9a5a51be3082fac037e5a00e633ca21bc599dde3b2ed81c682c5b48dcc1e0e53",
+      "counters": {
+        "total": "677",
+        "executed": "674",
+        "passed": "674",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "ioTests": [
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(1)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "CounterResetOrMetricChangeCannotBecomeUnsignedOverflow",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "MacFieldsUseVerifiedV2OffsetsAndUnsignedLimits",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(1)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(0)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "OwnProcessCountersAreAvailableMonotonicAndMayRemainZero",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BenchmarkReferenceEncodingIsExplicitAndStrict",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(9000)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(65537)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BomIsIncludedInSampleButNotCountedAsDecodedPayload(0)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "AccessFailureIsForwardedWithoutWrappingOrOpeningAnotherFile",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "BothAsyncOverloadsAndZeroLengthReadAreCountedOnce",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "ArraySpanByteAndSeekCountActualReturnedBytesOnce",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8191)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(159)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8192)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "DisposingWrapperClosesTheOriginalHandleAndDoesNotCountFailedReads",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(0)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Utf8ReaderCountsSampleValidationAndConsumptionAndPreservesBytes(8193)",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "InvalidNativeBufferLengthIsRejected(161)",
+          "className": "CodeView.Tests.Performance.ProcessIoTests",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "AutomaticCp932AlsoCountsTheFailedUtf8ValidationRead",
+          "className": "CodeView.Tests.Performance.ReadAccountingTests",
+          "outcome": "Passed"
+        }
+      ],
+      "otherOutcomes": [
+        {
+          "testName": "MacFifoSettingsCannotBlockStartup",
+          "className": "CodeView.Tests.Settings.SettingsStoreTests",
+          "outcome": "NotExecuted"
+        },
+        {
+          "testName": "MacFifoIsRejectedWithoutWaitingForAWriter",
+          "className": "CodeView.Tests.Files.FileReaderTests",
+          "outcome": "NotExecuted"
+        },
+        {
+          "testName": "MacPermissionFailureIsReportedAndSiblingFilesRemainWalkable",
+          "className": "CodeView.Tests.Files.DirectoryReaderTests",
+          "outcome": "NotExecuted"
+        }
+      ],
+      "pythonSummary": [
+        "2026-11-06T06:43:05.5275440Z Ran 47 tests in 15.931s",
+        "2026-11-06T06:43:05.5275658Z OK (skipped=20)"
+      ]
+    }
+  ]
+}
