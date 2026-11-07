@@ -356,8 +356,8 @@ internal sealed partial class GuiPerformanceProbe
         await PressAsync(Key.Right);
         tree.SelectedItem = rows.Single(row => row.Name == "nested.txt");
         await PressAsync(Key.Enter);
-        require(_viewModel.FilePath == path && _editor.Document.Text == "tree body" && _editor.TextArea.IsFocused,
-            "tree-enter-opens-source-and-focuses-editor");
+        require(_viewModel.FilePath == path && _editor.Document.Text == "tree body", "tree-enter-opens-source");
+        require(_editor.TextArea.IsFocused, "tree-enter-focuses-editor");
 
         const int extraFiles = 300;
         for (var number = 0; number < extraFiles; number++)

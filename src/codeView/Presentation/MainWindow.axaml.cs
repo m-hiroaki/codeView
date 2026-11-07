@@ -526,7 +526,7 @@ internal sealed partial class MainWindow : Window
     {
         await _viewModel.ActivateTreeRowAsync(row);
         if (row.IsFile && _viewModel.HasDocument && _viewModel.FilePath == row.Node.Entry.Path.FullPath)
-            this.FindControl<TextEditor>("Editor")!.Focus();
+            this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
     }
 
     private async void TreeDisclosureClicked(object? sender, RoutedEventArgs args)
