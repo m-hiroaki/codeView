@@ -21,7 +21,10 @@ CHECKS = [
     'folder-enter-retries-committed-query',
     'folder-drag-resizes-results', 'folder-hide-releases-row', 'folder-show-restores-height',
     'tree-drag-resizes-width', 'tree-hide-releases-column', 'tree-show-restores-width', 'missing-workspace-guidance',
-    'syntax-long-line-stays-plain', 'syntax-closed-tab-result-discarded', 'all-input-sha256-unchanged',
+    'syntax-long-line-stays-plain', 'syntax-closed-tab-result-discarded',
+    'reload-external-update-keeps-open-snapshot', 'reload-wrong-encoding-keeps-document',
+    'reload-cp932-replaces-document', 'reload-deleted-file-keeps-document-and-caret',
+    'reload-shorter-document-clamps-caret', 'all-input-sha256-unchanged',
 ]
 
 

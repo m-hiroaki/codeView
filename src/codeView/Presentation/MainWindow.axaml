@@ -14,11 +14,11 @@
                 <MenuItem Header="フォルダを再読み込み" IsEnabled="{Binding HasWorkspace}" Click="RefreshWorkspaceClicked" />
                 <MenuItem Header="フォルダを閉じる" IsEnabled="{Binding HasWorkspace}" Click="CloseWorkspaceClicked" />
                 <Separator />
-                <MenuItem Header="再読み込み" IsEnabled="{Binding CanReload}" Click="ReloadClicked" />
+                <MenuItem x:Name="ReloadMenu" Header="再読み込み" IsEnabled="{Binding CanReload}" Click="ReloadClicked" />
                 <MenuItem Header="文字コードを指定して開き直す" IsEnabled="{Binding CanReopenEncoding}">
                     <MenuItem Header="自動判定" Tag="Auto" Click="EncodingClicked" />
-                    <MenuItem Header="UTF-8" Tag="Utf8" Click="EncodingClicked" />
-                    <MenuItem Header="Shift_JIS（CP932）" Tag="Cp932" Click="EncodingClicked" />
+                    <MenuItem x:Name="ReopenUtf8Menu" Header="UTF-8" Tag="Utf8" Click="EncodingClicked" />
+                    <MenuItem x:Name="ReopenCp932Menu" Header="Shift_JIS（CP932）" Tag="Cp932" Click="EncodingClicked" />
                     <MenuItem Header="UTF-16 LE" Tag="Utf16Le" Click="EncodingClicked" />
                     <MenuItem Header="UTF-16 BE" Tag="Utf16Be" Click="EncodingClicked" />
                     <MenuItem Header="UTF-32 LE" Tag="Utf32Le" Click="EncodingClicked" />

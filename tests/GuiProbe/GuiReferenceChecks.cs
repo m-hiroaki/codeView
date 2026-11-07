@@ -223,6 +223,7 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             Require(!_viewModel.HasDocument && !textView.LineTransformers.OfType<SyntaxColorizer>().Any(),
                 "syntax-closed-tab-result-discarded");
+            await CheckReloadAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -233,6 +234,61 @@ internal sealed partial class GuiPerformanceProbe
             Console.Error.WriteLine(error);
             Finish("reference-check-failed: " + error.Message);
         }
+    }
+
+    private async Task CheckReloadAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var path = Path.Combine(root, "reload.txt");
+        const string initial = "最初の本文";
+        const string replacement = "日本語の本文";
+        var cp932 = Encoding.GetEncoding(932);
+        await File.WriteAllTextAsync(path, initial, ct);
+        await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu);
+        await Frame(ct);
+        var first = _editor.Document;
+        var tab = _viewModel.SelectedTab!.State;
+        var version = tab.DocumentVersion;
+        var epoch = tab.LoadEpoch;
+        var reload = _window.FindControl<MenuItem>("ReloadMenu")!;
+
+        async Task ClickAsync(MenuItem menu)
+        {
+            menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+        }
+
+        await File.WriteAllBytesAsync(path, cp932.GetBytes(replacement), ct);
+        require(first.Text == initial && ReferenceEquals(_editor.Document, first), "reload-external-update-keeps-open-snapshot");
+        await ClickAsync(_window.FindControl<MenuItem>("ReopenUtf8Menu")!);
+        require(ReferenceEquals(_editor.Document, first) && tab.DocumentVersion == version && tab.LoadEpoch > epoch
+            && tab.Error is not null && _viewModel.EncodingName == "UTF-8", "reload-wrong-encoding-keeps-document");
+        epoch = tab.LoadEpoch;
+        await ClickAsync(_window.FindControl<MenuItem>("ReopenCp932Menu")!);
+        var second = _editor.Document;
+        require(!ReferenceEquals(second, first) && second.Text == replacement && tab.DocumentVersion > version
+            && tab.LoadEpoch > epoch && tab.Error is null && _viewModel.EncodingName.Contains("CP932"),
+            "reload-cp932-replaces-document");
+        version = tab.DocumentVersion;
+        epoch = tab.LoadEpoch;
+        _editor.TextArea.Caret.Offset = replacement.Length;
+        await Frame(ct);
+
+        File.Delete(path);
+        await ClickAsync(reload);
+        require(ReferenceEquals(_editor.Document, second) && tab.DocumentVersion == version && tab.LoadEpoch > epoch
+            && tab.Error?.Code == CodeView.Contracts.ErrorCode.NotFound
+            && _editor.TextArea.Caret.Offset == replacement.Length, "reload-deleted-file-keeps-document-and-caret");
+
+        const string shorter = "短";
+        epoch = tab.LoadEpoch;
+        await File.WriteAllBytesAsync(path, cp932.GetBytes(shorter), ct);
+        inputs.Add(path, hash(path));
+        await ClickAsync(reload);
+        require(_editor.Document.Text == shorter && _editor.TextArea.Caret.Offset == shorter.Length
+            && _viewModel.Position == "行 1, 列 2" && tab.DocumentVersion > version && tab.LoadEpoch > epoch
+            && tab.Error is null && _viewModel.EncodingName.Contains("CP932"), "reload-shorter-document-clamps-caret");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)
