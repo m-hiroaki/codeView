@@ -232,6 +232,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckWorkspaceSwitchAsync(root, before, Hash, Require, ct);
             await CheckTreeLinksAsync(root, before, Hash, Require, ct);
             await CheckFileDropAsync(root, before, Hash, Require, ct);
+            await CheckSingleFileDisplayAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -645,6 +646,48 @@ internal sealed partial class GuiPerformanceProbe
         require(accepted.Handled && accepted.DragEffects == DragDropEffects.Copy && _viewModel.WorkspacePath == firstRoot
             && _viewModel.FilePath == path && _editor.Document.Text == content && _editor.IsReadOnly
             && _viewModel.Status.Contains("後続のフォルダ1件"), "drop-file-and-first-folder-open-read-only");
+    }
+
+    private async Task CheckSingleFileDisplayAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        while (_viewModel.HasTabs) _viewModel.CloseFile();
+        _viewModel.CloseWorkspace();
+        var empty = Path.Combine(root, "empty.txt");
+        var binary = Path.Combine(root, "binary.dat");
+        var text = Path.Combine(root, "small.txt");
+        const string content = "先頭\r\n最終行";
+        await File.WriteAllTextAsync(empty, "", ct);
+        await File.WriteAllBytesAsync(binary, [0, 1, 2, 0, 3], ct);
+        await File.WriteAllTextAsync(text, content, ct);
+        foreach (var path in new[] { empty, binary, text }) inputs.Add(path, hash(path));
+        var status = _window.FindControl<TextBlock>("DocumentStatus")!;
+        var sawLoading = false;
+        void ObserveLoading(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == nameof(MainWindowViewModel.Status)
+                && _viewModel.SelectedTab?.State.Status == TabStatus.Loading
+                && status.Text?.StartsWith("読み込み中…", StringComparison.Ordinal) == true)
+                sawLoading = true;
+        }
+
+        _viewModel.PropertyChanged += ObserveLoading;
+        try { await _viewModel.OpenFilesAsync([empty], OpenOrigin.Menu); }
+        finally { _viewModel.PropertyChanged -= ObserveLoading; }
+        await Frame(ct);
+        require(sawLoading, "single-file-loading-status-is-bound");
+        require(_viewModel.HasDocument && _editor.Document.TextLength == 0 && _editor.IsReadOnly
+            && status.Text == "読み取り専用", "single-file-empty-is-readable");
+
+        await _viewModel.OpenFilesAsync([binary], OpenOrigin.Menu);
+        await Frame(ct);
+        require(!_viewModel.HasDocument && _viewModel.SelectedTab?.State.Status == TabStatus.Failed
+            && status.Text?.Contains("バイナリのため表示できません") == true, "single-file-binary-is-rejected-with-status");
+
+        await _viewModel.OpenFilesAsync([text], OpenOrigin.Menu);
+        await Frame(ct);
+        require(!_viewModel.HasWorkspace && _viewModel.FilePath == text && _editor.Document.Text == content
+            && _editor.IsReadOnly && status.Text == "読み取り専用", "single-file-valid-open-recovers-after-failure");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)

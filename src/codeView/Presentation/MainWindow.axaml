@@ -190,7 +190,7 @@
                       ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent" Focusable="True" Background="#303A48"
                       IsVisible="{Binding SearchPanel.IsVisible}" AutomationProperties.Name="検索結果パネルの高さを調整" />
         <Border Grid.Row="4" Background="#191E26" Padding="12,5">
-            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
+            <TextBlock x:Name="DocumentStatus" Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
         </Border>
         <Border Grid.Row="5" Background="#202A31" Padding="12,6">
             <Grid ColumnDefinitions="*,Auto,Auto">
