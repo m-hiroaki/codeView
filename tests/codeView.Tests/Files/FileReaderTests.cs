@@ -203,6 +203,73 @@ public sealed class FileReaderTests
         Assert.Throws<OperationCanceledException>(() => reader.ReadChunks(prepared, _ => { }, cancelled.Token));
     }
 
+    [TestCase((int)EncodingChoice.Auto, 65001, "é")]
+    [TestCase((int)EncodingChoice.Cp932, 932, "ﾃｩ")]
+    public void AmbiguousBytesPreferUtf8UnlessCp932IsExplicit(int choice, int codePage, string expected)
+    {
+        var reader = new FileReader(_access);
+        using var prepared = reader.Prepare(Put([0xc3, 0xa9]), (EncodingChoice)choice, default).Value;
+        var actual = new StringBuilder();
+        Assert.That(reader.ReadChunks(prepared, chunk => actual.Append(chunk.Span), default).Status, Is.EqualTo(OperationStatus.Success));
+        Assert.That(prepared.Encoding.CodePage, Is.EqualTo(codePage));
+        Assert.That(actual.ToString(), Is.EqualTo(expected));
+    }
+
+    [TestCase(65001)]
+    [TestCase(932)]
+    [TestCase(1200)]
+    [TestCase(12001)]
+    public void OneByteReadsPreserveMultibyteTextAndFinalCr(int codePage)
+    {
+        var encoding = Encoding.GetEncoding(codePage);
+        var text = codePage == 932 ? "日本語\r\n終\r" : "日本語😀\r\n終\r";
+        var path = Put(encoding.GetPreamble().Concat(encoding.GetBytes(text)).ToArray());
+        var reader = new FileReader(new OneByteSource());
+        using var prepared = reader.Prepare(path, EncodingChoice.Auto, default).Value;
+        var actual = new StringBuilder();
+        var read = reader.ReadChunks(prepared, chunk => actual.Append(chunk.Span), default);
+        Assert.That(read.Value, Is.EqualTo(text.Length));
+        Assert.That(actual.ToString(), Is.EqualTo(text));
+    }
+
+    [TestCase((int)EncodingChoice.Cp932, new byte[] { 0x82 })]
+    [TestCase((int)EncodingChoice.Utf16Le, new byte[] { 0xff, 0xfe, 0x00, 0xd8 })]
+    [TestCase((int)EncodingChoice.Utf32Be, new byte[] { 0x00, 0x00, 0xfe, 0xff, 0x00, 0x00, 0x01 })]
+    public void StrictDecodersRejectIncompleteFinalCharacter(int choice, byte[] bytes)
+    {
+        var reader = new FileReader(new OneByteSource());
+        var result = reader.Prepare(Put(bytes), (EncodingChoice)choice, default);
+        Assert.That(result.Error!.Code, Is.EqualTo(ErrorCode.DecodeFailed));
+    }
+
+    [Test]
+    public void DeletedAfterPreparationIsAChangedSource()
+    {
+        var path = Put("text"u8.ToArray());
+        var reader = new FileReader(_access);
+        using var prepared = reader.Prepare(path, EncodingChoice.Auto, default).Value;
+        File.Delete(path.FullPath);
+        Assert.That(reader.ReadChunks(prepared, _ => { }, default).Error!.Code, Is.EqualTo(ErrorCode.ChangedDuringRead));
+        Assert.That(reader.Prepare(path, EncodingChoice.Auto, default).Error!.Code, Is.EqualTo(ErrorCode.NotFound));
+    }
+
+    private sealed class OneByteSource : ISourceAccess
+    {
+        private readonly SourceAccess _source = new();
+        public OperationResult<FileStream> OpenRead(SourcePath path, CancellationToken ct) =>
+            OperationResult<FileStream>.Success(new OneByteStream(path.FullPath));
+        public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
+        public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct) => throw new NotSupportedException();
+        public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => throw new NotSupportedException();
+        public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => throw new NotSupportedException();
+    }
+
+    private sealed class OneByteStream(string path) : FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
+    {
+        public override int Read(byte[] buffer, int offset, int count) => base.Read(buffer, offset, Math.Min(1, count));
+        public override int Read(Span<byte> buffer) => base.Read(buffer[..Math.Min(1, buffer.Length)]);
+    }
+
     [Test]
     public void DirectoryAndMissingFileAreTypedFailures()
     {

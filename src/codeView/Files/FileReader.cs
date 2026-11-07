@@ -83,6 +83,8 @@ internal sealed class FileReader(ISourceAccess access)
             transferred = true;
             return OperationResult<PreparedText>.Success(prepared);
         }
+        catch (FileNotFoundException) { return Fail(ErrorCode.ChangedDuringRead); }
+        catch (DirectoryNotFoundException) { return Fail(ErrorCode.ChangedDuringRead); }
         catch (UnauthorizedAccessException) { return Fail(ErrorCode.AccessDenied); }
         catch (IOException) { return Fail(ErrorCode.IoFailure); }
         finally
@@ -109,6 +111,10 @@ internal sealed class FileReader(ISourceAccess access)
         catch (DecoderFallbackException)
         {
             return OperationResult<long>.Failure(new(ErrorCode.DecodeFailed, prepared.Path.DisplayPath));
+        }
+        catch (IOException error) when (error is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return OperationResult<long>.Failure(new(ErrorCode.ChangedDuringRead, prepared.Path.DisplayPath));
         }
         catch (UnauthorizedAccessException)
         {

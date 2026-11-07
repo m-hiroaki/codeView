@@ -66,6 +66,8 @@ Decoderはパス/検証ごとに新しく作り、UTF-8からCP932への再試�
 
 この変更は割当対策であり、事前検証・巻戻し・SourceStamp再確認を省略せず、追加I/Oが必要な方式自体の採否も変えない。FileStreamの既存バッファ設定は維持する。参照：[Decoder.Convert](https://learn.microsoft.com/en-us/dotnet/api/system.text.decoder.convert?view=net-10.0)、[ArrayPool.Return](https://learn.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1.return?view=net-10.0)。
 
+本文を開いた後、検証・消費の終了までに対象パスが消失した場合は読取中の変更として扱い、結果を確定しない。Open時点で対象が存在しなければ未検出として通知する。
+
 ## 5. デコード・行情報
 
 - バイトチャンク間でDecoderの未完文字を持ち越し、各チャンクを別々の文字列として解釈しない。
