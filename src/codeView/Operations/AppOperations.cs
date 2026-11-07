@@ -32,13 +32,18 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
     public SearchCoordinator Searches => !_stopping ? _searches ??= new(StartSearch,
-        () => Workspace, _workspaceSearchEpoch, _requestIds) : throw new ObjectDisposedException(nameof(AppOperations));
+        () => Workspace, _workspaceSearchEpoch, _requestIds, StartReferences) : throw new ObjectDisposedException(nameof(AppOperations));
     private WorkspaceSearchSession StartSearch(WorkspaceSearchRequest request, CancellationToken ct)
     {
         var search = new TextSearch(directories, reader);
-        return request.Definitions ? new SimpleSymbolNavigator(search, reader).FindDefinitions(request, ct)
+        return request.Definitions ? CreateNavigator(search).FindDefinitions(request, ct)
             : search.StartWorkspace(request, ct);
     }
+
+    private WorkspaceSearchSession StartReferences(WorkspaceSearchRequest request, CancellationToken ct) =>
+        CreateNavigator(new TextSearch(directories, reader)).FindReferences(request, ct);
+
+    private ISymbolNavigator CreateNavigator(TextSearch search) => new SimpleSymbolNavigator(search, reader);
 
     internal async Task<T> RunInFileSearchAsync<T>(DocumentHandle document, Func<DocumentReadLease, T> scan, CancellationToken ct)
     {

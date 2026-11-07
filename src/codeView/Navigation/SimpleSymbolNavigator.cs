@@ -4,8 +4,17 @@ using CodeView.Search;
 
 namespace CodeView.Navigation;
 
-internal sealed class SimpleSymbolNavigator(TextSearch search, FileReader files)
+internal interface ISymbolNavigator
 {
+    WorkspaceSearchSession FindDefinitions(WorkspaceSearchRequest request, CancellationToken ct);
+    WorkspaceSearchSession FindReferences(WorkspaceSearchRequest request, CancellationToken ct);
+}
+
+internal sealed class SimpleSymbolNavigator(TextSearch search, FileReader files) : ISymbolNavigator
+{
+    public WorkspaceSearchSession FindReferences(WorkspaceSearchRequest request, CancellationToken ct) =>
+        search.StartWorkspace(request with { Options = new(MatchCase: true, WholeWord: true, UseRegex: false) }, ct);
+
     public WorkspaceSearchSession FindDefinitions(WorkspaceSearchRequest request, CancellationToken ct)
     {
         var name = request.Query ?? throw new ArgumentException("識別子が必要です。", nameof(request));

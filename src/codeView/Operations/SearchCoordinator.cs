@@ -15,14 +15,16 @@ internal sealed class WorkspaceSearchOperation
     internal CancellationToken Token { get; }
     internal WorkspaceSearchSession? Session { get; set; }
     public WorkspaceSearchRequest Request { get; }
+    internal Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> StartWorker { get; }
     public SearchCancellationCause CancellationCause { get; internal set; }
     public Task<bool> Started => _started.Task;
     public Task<OperationResult<SearchCompletion>> Completion => _completion.Task;
     public SearchProgress? LatestProgress => Session?.LatestProgress;
 
-    internal WorkspaceSearchOperation(WorkspaceState workspace, WorkspaceSearchRequest request)
+    internal WorkspaceSearchOperation(WorkspaceState workspace, WorkspaceSearchRequest request,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker)
     {
-        (Workspace, Request) = (workspace, request);
+        (Workspace, Request, StartWorker) = (workspace, request, startWorker);
         Lifetime = CancellationTokenSource.CreateLinkedTokenSource(workspace.Token);
         Token = Lifetime.Token;
     }
@@ -41,7 +43,8 @@ internal sealed class WorkspaceSearchOperation
 
 /// <summary>All entry points and continuations are owned by the serialized operation context.</summary>
 internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> start,
-    Func<WorkspaceState?> workspace, OperationIdentity epoch, OperationIdentity requestIds) : IDisposable
+    Func<WorkspaceState?> workspace, OperationIdentity epoch, OperationIdentity requestIds,
+    Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? findReferences = null) : IDisposable
 {
     private WorkspaceSearchOperation? _waiting;
     private WorkspaceSearchOperation? _active;
@@ -54,7 +57,16 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
     public Task PendingWork => ObservePendingAsync();
 
     public OperationResult<WorkspaceSearchOperation> Start(string? query, SearchOptions options = default,
-        EncodingChoice encoding = EncodingChoice.Auto, bool definitions = false)
+        EncodingChoice encoding = EncodingChoice.Auto, bool definitions = false) =>
+        StartCore(query, options, encoding, definitions, start);
+
+    public OperationResult<WorkspaceSearchOperation> StartReferences(string name) =>
+        StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
+            definitions: false, findReferences ?? start);
+
+    private OperationResult<WorkspaceSearchOperation> StartCore(string? query, SearchOptions options,
+        EncodingChoice encoding, bool definitions,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker)
     {
         if (!CanStart) return OperationResult<WorkspaceSearchOperation>.Cancelled();
         if (!Enum.IsDefined(encoding)) throw new ArgumentOutOfRangeException(nameof(encoding));
@@ -62,7 +74,7 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
         var request = new WorkspaceSearchRequest(owner.ResolvedPath!, owner.Policy, encoding, query, options,
             requestIds.Advance(), owner.Epoch, epoch.Advance(), definitions);
         if (Current is { } previous) Stop(previous, SearchCancellationCause.Replaced);
-        var operation = new WorkspaceSearchOperation(owner, request);
+        var operation = new WorkspaceSearchOperation(owner, request, startWorker);
         Current = _waiting = operation;
         if (!_pumping) _pump = PumpAsync();
         return OperationResult<WorkspaceSearchOperation>.Success(operation);
@@ -151,7 +163,7 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
                 try
                 {
                     operation.Token.ThrowIfCancellationRequested();
-                    var session = start(operation.Request, operation.Token);
+                    var session = operation.StartWorker(operation.Request, operation.Token);
                     operation.Start(session);
                     var end = await session.Completion;
                     operation.Complete(OperationResult<SearchCompletion>.Success(end));

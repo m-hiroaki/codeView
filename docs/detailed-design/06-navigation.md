@@ -8,13 +8,12 @@
 
 | 操作・型 | 入出力 |
 | --- | --- |
-| `FindDefinitionsAsync(request, writer, ct)` | 固定ルート・除外・文字コード、識別子、操作識別を受け、宣言候補と終了情報を返す |
-| `FindReferencesAsync(request, writer, ct)` | 同じ情報を受け、参照一致を返す |
-| `IdentifierQuery` | 元の選択範囲、比較用の名前、元の言語。元本文の参照を残さない |
-| `DefinitionCandidate` | SearchHit相当の位置・抜粋、`Type / Delegate / Method / Property / Field`、簡易判定の情報 |
-| `SymbolSearchRequest` | IdentifierQuery、ワークスペース条件、RequestId・WorkspaceEpoch・SearchEpoch |
+| `FindDefinitions(request, ct)` | 固定ルート・除外・文字コード、識別子、操作識別を受け、宣言候補と終了情報を配信する |
+| `FindReferences(request, ct)` | 同じ情報を受け、大小区別の単語一致で参照箇所を配信する |
+| `WorkspaceSearchRequest` | 比較用の名前、ワークスペース条件、RequestId・WorkspaceEpoch・SearchEpoch。識別子の抽出元となる本文は保持しない |
+| `WorkspaceSearchSession` | 有界の `SearchEvent<SearchHit>`、進捗、終了情報。定義は候補の種別名を抜粋に含める |
 
-定義の返却には`SearchEvent<DefinitionCandidate>`、参照には`SearchEvent<SearchHit>`を使い、05と同じ有界バッチ・ファイル確定・無効化・終了規則を適用する。候補に本文や全文トークン列を付けない。Operationsが候補数と全件評価の状態を見て自動移動を判断し、SimpleSymbolNavigator自身はタブを開かない。
+`SimpleSymbolNavigator` は既存の検索イベントを共用し、候補の原文位置・抜粋を返す。ファイル確定・無効化・終了は05の規則に従う。Operationsは検索枠を得た時点で対応する入口を呼び、候補数と全件評価の状態を見て自動移動を判断する。本文を開く責務は移動処理が持つ。
 
 ## 2. 識別子の抽出
 
@@ -125,7 +124,7 @@ UTF-8/CP932・日本語/補助平面/結合文字、条件の上書き、予約�
 
 [両OSの実GUI検証](../validation-results/2026-11-07-reference-search/README.md)は各3プロセス・39検証すべて成功。対象単体/結合49件と両OS通常試験も成功した。
 
-これは設計済みの参照機能の接続で、新しい層/プロジェクト・外部公開API・本文/タブ/ファイル形式を導入しない。定義解析用のISymbolNavigatorとSimpleSymbolNavigatorは未実装。索引/AST/ファイル一覧の常駐を追加せず、参照検索要求時以外は抽出を行わない。ワーカー性能は既存通常検索と同じ評価対象で、正式な大規模性能測定はP4/P5-07へ残す。有界表示の専用試作では表示位置を原文と誤認しないよう入口を拒否し、通常UIだけに接続している。
+これは設計済みの参照機能の接続で、新しい層/プロジェクト・外部公開API・本文/タブ/ファイル形式を導入しない。定義と参照は内部のISymbolNavigatorに接続済み。索引/AST/ファイル一覧の常駐を追加せず、参照検索要求時以外は抽出を行わない。ワーカー性能は既存通常検索と同じ評価対象で、正式な大規模性能測定はP4/P5-07へ残す。有界表示の専用試作では表示位置を原文と誤認しないよう入口を拒否し、通常UIだけに接続している。
 
 ## 7. テスト
 

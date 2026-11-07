@@ -71,7 +71,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         UseRegex = false;
         var description = definitions ? "定義へジャンプ（簡易・名前一致）"
             : "参照検索（名前一致）：宣言・コメント・文字列も含みます。意味解析は行いません。";
-        return StartCoreAsync(description, definitions);
+        return StartCoreAsync(description, definitions, references: !definitions);
     }
 
     public Task StartAsync() => StartCoreAsync("フォルダ内のテキスト検索", definitions: false);
@@ -87,11 +87,12 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         return CanActivate(row) ? row : null;
     }
 
-    private Task StartCoreAsync(string description, bool definitions)
+    private Task StartCoreAsync(string description, bool definitions, bool references = false)
     {
         if (!CanStart) return Task.CompletedTask;
         _coordinator ??= coordinator();
-        var accepted = _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
+        var accepted = references ? _coordinator.StartReferences(Query)
+            : _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
         if (accepted.Status != OperationStatus.Success) return Task.CompletedTask;
         _operation = accepted.Value;
         Description = description;
