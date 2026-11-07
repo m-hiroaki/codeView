@@ -1,0 +1,67 @@
+name: Reference search GUI validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/reference-search-validation.yml
+      - global.json
+      - src/codeView/Navigation/**
+      - src/codeView/Presentation/MainWindow*
+      - src/codeView/Presentation/SearchPanelViewModel.cs
+      - tests/GuiProbe/**
+      - tools/check_reference_search.py
+      - tools/test_reference_search.py
+
+permissions:
+  contents: read
+
+jobs:
+  references:
+    name: Reference search (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Build explicit probe and record environment
+        run: |
+          New-Item -ItemType Directory -Force artifacts/reference-search | Out-Null
+          "Commit: $env:GITHUB_SHA; Native routed keys/menu/search integration, not physical input or performance acceptance." | Out-File artifacts/reference-search/environment.txt
+          dotnet --info | Out-File artifacts/reference-search/environment.txt -Append
+          dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/reference-search/app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run three independent native reference-search checks
+        run: |
+          $app = if ($IsWindows) { 'artifacts/reference-search/app/codeView.exe' } else { 'artifacts/reference-search/app/codeView' }
+          python -m unittest discover -s tools -p test_reference_search.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_reference_search.py --app $app --output artifacts/reference-search/results --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload native search evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reference-search-${{ matrix.os }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/reference-search/environment.txt
+            artifacts/reference-search/results/

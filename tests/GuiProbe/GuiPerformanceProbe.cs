@@ -160,6 +160,7 @@ internal sealed partial class GuiPerformanceProbe
             throw new ArgumentException("検索パネルの自動操作は入力あり/通常表示/専用CIで単独実行してください。");
         ValidateRowMode(hasInput);
         ValidateVisualMode(hasInput);
+        ValidateReferenceMode(hasInput);
         var probe = _instance = new(window, editor, viewModel, output, hasInput);
         // This workload injects no input. Abort rather than mixing an interactive
         // selection/scroll operation with automatic document replacement.
@@ -182,6 +183,7 @@ internal sealed partial class GuiPerformanceProbe
             Phase($"window-closing cancelled-at-probe-handler={args.Cancel}");
             if (probe._interactive && !probe._finished) probe.Finish();
             if (probe._searchPanelChecks && !probe._finished) probe.Finish("unexpected-close-during-search-checks");
+            if (probe._referenceChecks && !probe._finished) probe.Finish("unexpected-close-during-reference-checks");
             if (probe._visualChecks && !probe._finished) probe.Finish("unexpected-close-during-visual-checks");
         };
         window.Closed += (_, _) => Phase("window-closed");
@@ -193,13 +195,15 @@ internal sealed partial class GuiPerformanceProbe
             {
                 probe._emptyWindowTwoTicksMilliseconds = Startup.Elapsed.TotalMilliseconds;
                 if (probe._visualChecks) probe._readOnlyWork = probe.RunRowVisualChecksAsync();
-                else if (!hasInput) probe.Finish();
+                else if (!hasInput && !probe._referenceChecks) probe.Finish();
             }));
         };
     }
 
     internal static void InitializationFinished(bool hasDocument)
     {
+        if (_instance is { _referenceChecks: true, _finished: false } reference)
+            reference._readOnlyWork = reference.RunReferenceChecksAsync();
         if (_instance is { _hasInput: true } probe && !hasDocument) probe.Finish("open-failed");
     }
 
@@ -702,7 +706,7 @@ internal sealed partial class GuiPerformanceProbe
         var generation = probe._documentGeneration;
         probe._window.RequestAnimationFrame(_ => probe._window.RequestAnimationFrame(_ =>
         {
-            if (probe._finished || generation != probe._documentGeneration) return;
+            if (probe._finished || probe._referenceChecks || generation != probe._documentGeneration) return;
             probe._documentTwoTicksMilliseconds = Startup.Elapsed.TotalMilliseconds;
             if (probe._readOnlyChecks || probe._searchPanelChecks)
             {
@@ -774,7 +778,7 @@ internal sealed partial class GuiPerformanceProbe
     internal static void RaiseSearchKey(Control target, KeyEventArgs args)
     {
         var probe = _instance ?? throw new InvalidOperationException("No active GUI probe.");
-        if (!probe._searchPanelChecks) throw new InvalidOperationException("Not a search panel test.");
+        if (!probe._searchPanelChecks && !probe._referenceChecks) throw new InvalidOperationException("Not a search panel test.");
         probe._scriptedSearchKey = args;
         try { target.RaiseEvent(args); }
         finally { probe._scriptedSearchKey = null; }
@@ -830,7 +834,8 @@ internal sealed partial class GuiPerformanceProbe
         {
             FormatVersion = 2, MeasuredAtUtc = DateTimeOffset.UtcNow,
             ProductInformationalVersion = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
-            Scenario = _visualChecks ? "native-row-visual-comparison" : _searchPanelChecks ? "native-gui-search-panel-controls" : _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            Scenario = _referenceChecks ? "native-reference-search" : _visualChecks ? "native-row-visual-comparison" : _searchPanelChecks ? "native-gui-search-panel-controls" : _readOnlyChecks ? "native-gui-readonly-controls" : _interactive ? "native-interactive-bounded-candidate" : _selectionProbe ? "native-gui-source-selection-projection" : "native-gui-scroll-proxy", Os = RuntimeInformation.OSDescription,
+            ReferenceChecks = _referenceResults,
             RowVisualComparison = _rowVisualResults,
             ReadOnlyChecks = _readOnlyResults,
             SearchPanelChecks = _searchPanelResults,

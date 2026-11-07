@@ -32,6 +32,7 @@ internal sealed partial class MainWindow : Window
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
+        this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F12, KeyModifiers.Shift);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -40,6 +41,8 @@ internal sealed partial class MainWindow : Window
         AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += async (_, key) =>
         {
+            if (key.Key == Key.F12 && key.KeyModifiers == KeyModifiers.Shift)
+            { key.Handled = true; await RunAsync(FindReferencesAsync); return; }
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
             { key.Handled = true; Run(ShowSearch); return; }
             if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
@@ -197,6 +200,19 @@ internal sealed partial class MainWindow : Window
         _viewModel.SearchPanel.IsVisible = true;
         this.FindControl<TextBox>("SearchQuery")!.Focus();
     }
+
+    private Task FindReferencesAsync()
+    {
+        var editor = this.FindControl<TextEditor>("Editor")!;
+        if (!ReferenceEquals(editor.Document, _viewModel.Document))
+        {
+            _viewModel.SetStatus("参照検索は通常の本文表示で利用してください。表示投影の専用試作では未接続です。");
+            return Task.CompletedTask;
+        }
+        return _viewModel.FindReferencesAsync(editor.CaretOffset, editor.SelectionStart, editor.SelectionLength);
+    }
+
+    private async void FindReferencesClicked(object? sender, RoutedEventArgs args) => await RunAsync(FindReferencesAsync);
 
     private void ShowSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowSearch);
     private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);

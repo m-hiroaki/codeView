@@ -32,6 +32,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     public bool CanStart => !_stopping && workspace()?.CanSearch == true && (_coordinator?.CanStart ?? true) && !string.IsNullOrEmpty(Query);
     public string Summary => $"{_notice} 確定 {_results.CommittedCount:N0}件 / 未確定 {_results.Count - _results.CommittedCount:N0}件";
     public string Progress => _progress;
+    public string Description { get; private set; } = "フォルダ内のテキスト検索";
     public Task PendingWork => _pump;
     internal WorkspaceSearchOperation? CurrentOperation => _operation;
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -50,19 +51,35 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
             _running = false;
             _progress = "";
             _lastProgress = null;
+            Description = "フォルダ内のテキスト検索";
+            Changed(nameof(Description));
             _notice = current is null ? "フォルダを開いて検索してください。" : "検索語を入力してください。";
             Changed(nameof(Summary), nameof(Progress), nameof(IsRunning), nameof(SelectedRow));
         }
         Changed(nameof(CanStart));
     }
 
-    public Task StartAsync()
+    public Task StartReferencesAsync(string name)
+    {
+        if (_stopping) return Task.CompletedTask;
+        Query = name;
+        MatchCase = true;
+        WholeWord = true;
+        UseRegex = false;
+        return StartCoreAsync(references: true);
+    }
+
+    public Task StartAsync() => StartCoreAsync(references: false);
+
+    private Task StartCoreAsync(bool references)
     {
         if (!CanStart) return Task.CompletedTask;
         _coordinator ??= coordinator();
         var accepted = _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex));
         if (accepted.Status != OperationStatus.Success) return Task.CompletedTask;
         _operation = accepted.Value;
+        Description = references ? "参照検索（名前一致）：宣言・コメント・文字列も含みます。意味解析は行いません。" : "フォルダ内のテキスト検索";
+        Changed(nameof(Description));
         _results.Clear();
         SelectedRow = null;
         _running = true;

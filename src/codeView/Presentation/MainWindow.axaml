@@ -34,6 +34,7 @@
             </MenuItem>
             <MenuItem Header="検索">
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
+                <MenuItem x:Name="FindReferencesMenu" Header="参照を検索（名前一致）" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
             </MenuItem>
         </Menu>
@@ -138,6 +139,7 @@
                 </StackPanel>
                 <StackPanel Grid.Row="2" Spacing="2" Margin="0,3,0,5">
                     <TextBlock Text="行単位・1行1,048,576 UTF-16単位まで。超過行は未評価。1行の照合が100ms超で検索中断。" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
+                    <TextBlock x:Name="SearchDescription" Text="{Binding SearchPanel.Description}" Foreground="#94D4C3" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="#CBD3DF" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="#A9B9CD" FontSize="10" />
                 </StackPanel>

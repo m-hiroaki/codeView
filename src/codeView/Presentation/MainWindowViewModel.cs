@@ -7,6 +7,7 @@ using CodeView.Contracts;
 using CodeView.Files;
 using CodeView.Operations;
 using CodeView.Settings;
+using CodeView.Navigation;
 
 namespace CodeView.Presentation;
 
@@ -85,6 +86,32 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
         && _interactionEpoch == _selectionInteractionEpoch && _selectionRow is { } row && SearchPanel.CanActivate(row)
         && _selectionRequest is { } request && _selectionMove is { } move && operations.ResultNavigator.CanAdopt(request, move);
+
+    public Task FindReferencesAsync(int caret, int selectionStart, int selectionLength)
+        => TrackManualAsync(FindReferencesCore(caret, selectionStart, selectionLength));
+
+    private Task FindReferencesCore(int caret, int selectionStart, int selectionLength)
+    {
+        if (_stopping) return Task.CompletedTask;
+        if (_document is not { } document) { SetStatus("参照を検索するファイルを開いてください。"); return Task.CompletedTask; }
+        if (!CanSearchWorkspace) { SetStatus("参照を検索するフォルダを開いてください。"); return Task.CompletedTask; }
+        if ((uint)caret > document.TextLength || (uint)selectionStart > document.TextLength || selectionLength < 0
+            || selectionLength > document.TextLength - selectionStart || selectionLength > IdentifierExtractor.MaximumChars + 1)
+        { SetStatus("4,096文字以内の識別子を1つ選択してください。"); return Task.CompletedTask; }
+        var center = selectionLength > 0 ? selectionStart : caret;
+        var origin = Math.Max(0, center - IdentifierExtractor.MaximumChars - 2);
+        var end = (int)Math.Min(document.TextLength, (long)center + IdentifierExtractor.MaximumChars + 2);
+        var context = document.GetText(origin, end - origin);
+        var isCSharp = string.Equals(Path.GetExtension(FilePath), ".cs", StringComparison.OrdinalIgnoreCase);
+        // Selection is authoritative even if the native caret is at its other end.
+        var localCaret = selectionLength > 0 ? selectionStart - origin : caret - origin;
+        if (!IdentifierExtractor.TryExtract(context, localCaret, selectionLength > 0 ? selectionStart - origin : localCaret,
+                selectionLength, isCSharp, out var name, out var start, out var length)
+            || (start == 0 && origin > 0) || (start + length == context.Length && end < document.TextLength))
+        { SetStatus("有効な識別子を1つ選択するか、その語にカーソルを置いてください。Unicodeエスケープ表記は対象外です。"); return Task.CompletedTask; }
+        SetStatus("参照検索（名前一致）：宣言・コメント・文字列を含む全テキストが対象です。");
+        return SearchPanel.StartReferencesAsync(name);
+    }
 
     public Task ActivateSearchResultAsync(SearchResultRow row) => TrackManualAsync(ActivateSearchResultCoreAsync(row));
 

@@ -48,6 +48,14 @@ public sealed class IdentifierExtractorTests
         Assert.That(name, Is.Empty);
     }
 
+    [TestCase("\\u0061bc", 5)]
+    [TestCase("abc\\u0061", 1)]
+    [TestCase("@@name", 4)]
+    public void CaretDoesNotTurnAnEscapedOrInvalidTokenIntoAPartialIdentifier(string text, int caret)
+    {
+        Assert.That(IdentifierExtractor.TryExtract(text, caret, caret, 0, true, out _, out _, out _), Is.False);
+    }
+
     [Test]
     public void SelectionWinsOverCaretAndEscapedNameKeepsSourceRange()
     {

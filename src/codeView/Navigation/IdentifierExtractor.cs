@@ -51,6 +51,8 @@ internal static class IdentifierExtractor
                 if (right - left > MaximumChars) return false;
             }
             if (isCSharp && left > 0 && text[left - 1] == '@') left--;
+            if (isCSharp && ((left > 0 && text[left - 1] is '\\' or '@')
+                || (right < text.Length && text[right] == '\\'))) return false;
         }
         var spelling = text[left..right];
         var escaped = isCSharp && !spelling.IsEmpty && spelling[0] == '@';
