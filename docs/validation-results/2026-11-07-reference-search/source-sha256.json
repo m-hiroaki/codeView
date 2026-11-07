@@ -1,0 +1,14 @@
+{
+  "src/codeView/Navigation/IdentifierExtractor.cs": "a68d7fba99e83d2c04b6a92e9c947d9d10201953b46ce715b5fade7649800378",
+  "src/codeView/Presentation/MainWindow.axaml": "8915ce1053eae1d8bf18b19d38d879311d464be57812cf833291c440f21408b1",
+  "src/codeView/Presentation/MainWindow.axaml.cs": "3a1be452161b4f8f33a12c907dc4c06e2b024dcc60a6d9f5f47548aeda9928f4",
+  "src/codeView/Presentation/MainWindowViewModel.cs": "1d5ee0579941c1aea9d352ef1278d8b94ef3385c59c61b05c0fbe0fcc380ae60",
+  "src/codeView/Presentation/SearchPanelViewModel.cs": "0dcad3a9bff0bef84cd3467c1d6d65d16b992e5cfee053f572be74595f3e599b",
+  "tests/GuiProbe/GuiReferenceChecks.cs": "b3fc8e483e35a138d0073744a36252e30a9215d3e4e11ab4c1994da32a684c64",
+  "tests/GuiProbe/GuiPerformanceProbe.cs": "5bb1eefdf21aaead3a7cfcf02e92e7ac75b12621591cce73515ec8969890157d",
+  "tests/codeView.Tests/Navigation/IdentifierExtractorTests.cs": "095bb8edfac03e5d2174bb70692bb5e2ba6d7817ef3b250b0594a611a5685afb",
+  "tests/codeView.Tests/Presentation/ReferenceSearchTests.cs": "6c1cb220f26dde47cd0ba2807bdd1a316fac5b2b4e23b9019feedbef80f2a891",
+  "tools/check_reference_search.py": "36ba4b5f57e0f9cccca740cb0a221e6f508f6c96bd067e20d01b104e827c51aa",
+  "tools/test_reference_search.py": "5d86a5efd032e25735d95c47f5b35c5c5661a98c83422e66f9cde45f065ff015",
+  ".github/workflows/reference-search-validation.yml": "ef9026d203ccc2752657842aebdbea5477758b99b9cbf46139054a02d9172e28"
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "artifact": "reference-search-macos-15.zip",
+    "commit": "1b6416fe83f6d26fbe40fedfad2122646e3d7250",
+    "processes": 3,
+    "nativeChecks": 39,
+    "exitCodes": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "artifact": "reference-search-windows-2025.zip",
+    "commit": "1b6416fe83f6d26fbe40fedfad2122646e3d7250",
+    "processes": 3,
+    "nativeChecks": 39,
+    "exitCodes": [
+      0,
+      0,
+      0
+    ]
+  }
+]
