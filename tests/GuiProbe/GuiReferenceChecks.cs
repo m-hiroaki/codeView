@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using CodeView.Operations;
 
 namespace CodeView.Presentation;
@@ -224,6 +225,7 @@ internal sealed partial class GuiPerformanceProbe
             Require(!_viewModel.HasDocument && !textView.LineTransformers.OfType<SyntaxColorizer>().Any(),
                 "syntax-closed-tab-result-discarded");
             await CheckReloadAsync(root, before, Hash, Require, ct);
+            await CheckTreeAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -289,6 +291,90 @@ internal sealed partial class GuiPerformanceProbe
         require(_editor.Document.Text == shorter && _editor.TextArea.Caret.Offset == shorter.Length
             && _viewModel.Position == "行 1, 列 2" && tab.DocumentVersion > version && tab.LoadEpoch > epoch
             && tab.Error is null && _viewModel.EncodingName.Contains("CP932"), "reload-shorter-document-clamps-caret");
+    }
+
+    private async Task CheckTreeAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var workspace = Path.Combine(root, "tree");
+        var branch = Directory.CreateDirectory(Path.Combine(workspace, "branch"));
+        Directory.CreateDirectory(Path.Combine(workspace, "empty"));
+        Directory.CreateDirectory(Path.Combine(workspace, "node_modules"));
+        var path = Path.Combine(branch.FullName, "nested.txt");
+        await File.WriteAllTextAsync(path, "tree body", ct);
+        inputs.Add(path, hash(path));
+        var existing = _editor.Document;
+        await _viewModel.OpenFilesAsync([workspace], OpenOrigin.Menu);
+        await Frame(ct);
+        var tree = _window.FindControl<ListBox>("FileTreeList")!;
+        var rows = _viewModel.FileTree.Rows;
+        require(rows.Select(row => row.Name).SequenceEqual(["branch", "empty"]) && ReferenceEquals(existing, _editor.Document),
+            "tree-root-direct-filtered-and-tab-preserved");
+        var folder = rows[0];
+        tree.SelectedItem = folder;
+        tree.Focus();
+
+        async Task PressAsync(Key key)
+        {
+            RaiseSearchKey(tree, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+        }
+
+        await PressAsync(Key.Right);
+        var file = rows.Single(row => row.Name == "nested.txt");
+        require(ReferenceEquals(file.Parent, folder), "tree-right-expands-selected-folder");
+        tree.SelectedItem = file;
+        await PressAsync(Key.Left);
+        require(ReferenceEquals(tree.SelectedItem, folder), "tree-left-selects-parent");
+        await PressAsync(Key.Left);
+        require(rows.Count == 2 && !folder.Node.IsExpanded, "tree-left-collapses-folder");
+
+        async Task<TappedEventArgs> DoubleTapAsync(Control source)
+        {
+            using var pointer = new Pointer(1, PointerType.Mouse, true);
+            var args = new TappedEventArgs(InputElement.DoubleTappedEvent,
+                new PointerEventArgs(null, source, pointer, _window, default, 0, default!, KeyModifiers.None));
+            source.RaiseEvent(args);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            return args;
+        }
+
+        var empty = rows[1];
+        var container = (ListBoxItem)tree.ContainerFromItem(empty)!;
+        var disclosure = container.GetVisualDescendants().OfType<Button>().Single();
+        var emptyTap = await DoubleTapAsync(tree);
+        var disclosureTap = await DoubleTapAsync(disclosure);
+        require(!emptyTap.Handled && !disclosureTap.Handled && rows.Count == 2
+            && !folder.Node.IsExpanded && !empty.Node.IsExpanded, "tree-background-and-disclosure-double-tap-ignored");
+
+        await DoubleTapAsync(container);
+        require(ReferenceEquals(tree.SelectedItem, empty) && empty.Node.IsExpanded && empty.Detail == "空"
+            && !folder.Node.IsExpanded, "tree-double-tap-uses-hit-row-and-shows-empty");
+        tree.SelectedItem = folder;
+        await PressAsync(Key.Right);
+        tree.SelectedItem = rows.Single(row => row.Name == "nested.txt");
+        await PressAsync(Key.Enter);
+        require(_viewModel.FilePath == path && _editor.Document.Text == "tree body" && _editor.TextArea.IsFocused,
+            "tree-enter-opens-source-and-focuses-editor");
+
+        const int extraFiles = 300;
+        for (var number = 0; number < extraFiles; number++)
+            await File.WriteAllTextAsync(Path.Combine(branch.FullName, $"item-{number:D3}.txt"), "", ct);
+        tree.SelectedItem = folder;
+        tree.Focus();
+        await PressAsync(Key.F5);
+        require(rows.Count == extraFiles + 3 && rows[1].Name == "item-000.txt"
+            && _editor.Document.Text == "tree body", "tree-f5-refreshes-branch-and-keeps-document");
+        var lastFile = rows[^2];
+        var realized = tree.GetVisualDescendants().OfType<ListBoxItem>().Count();
+        require(realized > 0 && realized < rows.Count && tree.ContainerFromItem(lastFile) is null,
+            "tree-virtualizes-offscreen-items");
+        tree.ScrollIntoView(lastFile);
+        await Frame(ct);
+        await Frame(ct);
+        require(tree.ContainerFromItem(lastFile) is { IsVisible: true }, "tree-scroll-realizes-offscreen-file");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)

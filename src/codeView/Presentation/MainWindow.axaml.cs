@@ -523,7 +523,8 @@ internal sealed partial class MainWindow : Window
     private async Task ActivateTreeRowAsync(FileTreeRow row)
     {
         await _viewModel.ActivateTreeRowAsync(row);
-        if (row.IsFile && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+        if (row.IsFile && _viewModel.HasDocument && _viewModel.FilePath == row.Node.Entry.Path.FullPath)
+            this.FindControl<TextEditor>("Editor")!.Focus();
     }
 
     private async void TreeDisclosureClicked(object? sender, RoutedEventArgs args)
@@ -542,22 +543,17 @@ internal sealed partial class MainWindow : Window
 
     private async void TreeDoubleTapped(object? sender, TappedEventArgs args)
     {
-        if (args.Source is Control control && IsDisclosureButton(control)) return;
-        if (_viewModel.FileTree.SelectedRow is { } row)
+        for (var current = args.Source as Visual; current is not null && !ReferenceEquals(current, sender);
+            current = current.GetVisualParent())
         {
+            if (current is Button) return;
+            if (current is not ListBoxItem { Content: FileTreeRow row }) continue;
+            if (!_viewModel.FileTree.IsCurrentRow(row)) return;
             args.Handled = true;
+            _viewModel.FileTree.SelectedRow = row;
             await RunAsync(() => ActivateTreeRowAsync(row));
+            return;
         }
-    }
-
-    private static bool IsDisclosureButton(Control control)
-    {
-        for (var current = control; current is not null; current = current.Parent as Control)
-        {
-            if (current is Button) return true;
-            if (current is ListBoxItem) break;
-        }
-        return false;
     }
 
     private async Task RefreshTreeAsync()

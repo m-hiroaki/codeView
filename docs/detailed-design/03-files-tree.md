@@ -109,7 +109,7 @@ PresentationのFileTreeViewModelは展開中の論理ノードだけを、親行
 
 仮想化は平坦なListBoxと明示したVirtualizingStackPanelで行い、高さ制約のあるGrid内に置く。各行は28pxで、階層は余白で示す。展開された論理行の配列は保持するが、全行のUIコンテナを常時生成する構造にはしない。階層型コンテナを再帰生成しない利点がある一方、親移動/枝ごとの挿入位置/選択はPresentationで扱う必要がある。影響は表示行とUIだけで、Operationsの論理ツリー・Files・本文契約は変えない。論理投影の単体試験とXAMLコンパイル→実機のコンテナ実現数/スクロール/メモリ・アクセシビリティ確認の順で検証する。
 
-矢印クリックは展開/折りたたみ、行ダブルクリックまたはEnterはフォルダ切替状態の変更/ファイルOpen、右キーは展開、左キーは折りたたみまたは親行選択。F5/再読込ボタンは選択フォルダを再列挙し、通常フォルダ未選択ならルートを再読込する。ファイルOpen成功後は本文へフォーカスを移す。読込中・空・失敗・部分失敗・リンクは行に区別して示し、QueueFullはツリー上の通知で再試行を案内する。表示メニューでツリーを隠しても本文と論理状態は保持する。
+矢印クリックは展開/折りたたみ、行ダブルクリックまたはEnterはフォルダの展開状態を切り替えるか、ファイルを開く。ダブルクリックはポインター直下の行に適用し、一覧の余白や展開ボタンの上では行操作を実行しない。右キーは展開、左キーは折りたたみまたは親行選択。F5/再読込ボタンは選択フォルダを再列挙し、通常フォルダ未選択ならルートを再読込する。ファイルOpen成功後は本文へフォーカスを移す。読込中・空・失敗・部分失敗・リンクは行に区別して示し、QueueFullはツリー上の通知で再試行を案内する。表示メニューでツリーを隠しても本文と論理状態は保持する。
 
 参照：[ListBox](https://docs.avaloniaui.net/controls/data-display/collections/listbox)、[AvaloniaList](https://api-docs.avaloniaui.net/docs/T_Avalonia_Collections_AvaloniaList_1)、[UIスレッド](https://docs.avaloniaui.net/docs/app-development/threading)。採用版12.1.3のXML文書でもInsertRange/RemoveRange/Dispatcher.Yieldを確認する。実機での入力・コンテナ実現数・直下大量表示は未確認であり、単体投影試験だけでFT-04/P3-03を完了としない。
 

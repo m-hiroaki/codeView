@@ -24,7 +24,12 @@ CHECKS = [
     'syntax-long-line-stays-plain', 'syntax-closed-tab-result-discarded',
     'reload-external-update-keeps-open-snapshot', 'reload-wrong-encoding-keeps-document',
     'reload-cp932-replaces-document', 'reload-deleted-file-keeps-document-and-caret',
-    'reload-shorter-document-clamps-caret', 'all-input-sha256-unchanged',
+    'reload-shorter-document-clamps-caret',
+    'tree-root-direct-filtered-and-tab-preserved', 'tree-right-expands-selected-folder',
+    'tree-left-selects-parent', 'tree-left-collapses-folder',
+    'tree-background-and-disclosure-double-tap-ignored', 'tree-double-tap-uses-hit-row-and-shows-empty',
+    'tree-enter-opens-source-and-focuses-editor', 'tree-f5-refreshes-branch-and-keeps-document',
+    'tree-virtualizes-offscreen-items', 'tree-scroll-realizes-offscreen-file', 'all-input-sha256-unchanged',
 ]
 
 
