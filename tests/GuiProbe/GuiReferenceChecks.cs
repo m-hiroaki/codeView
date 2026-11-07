@@ -63,6 +63,12 @@ internal sealed partial class GuiPerformanceProbe
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct);
             var panel = _viewModel.SearchPanel;
+            var textView = _editor.TextArea.TextView;
+            textView.EnsureVisualLines();
+            Require(textView.LineTransformers.OfType<SyntaxColorizer>().Count() == 1
+                && textView.VisualLines.SelectMany(line => line.Elements)
+                    .Select(element => element.TextRunProperties.ForegroundBrush?.ToString()).Distinct().Count() > 1,
+                "syntax-colors-visible");
             Require(key.Handled && panel.Query == "Target", "shift-f12-source-identifier");
             Require(panel.MatchCase && panel.WholeWord && !panel.UseRegex, "fixed-reference-options");
             Require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate), "all-text-case-sensitive-word-results");
@@ -80,6 +86,8 @@ internal sealed partial class GuiPerformanceProbe
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct); await Frame(ct);
             Require(_viewModel.FilePath == cp932 && _editor.SelectedText == "Target" && _editor.SelectionStart == 7, "result-enter-original-cp932-selection");
+            Require(!textView.LineTransformers.OfType<SyntaxColorizer>().Any() && _viewModel.SyntaxStatus.Length == 0,
+                "syntax-detaches-for-unsupported-tab");
             Require(_editor.TextArea.IsFocused, "result-enter-editor-focus");
             var operation = panel.CurrentOperation;
             _editor.Select(0, 3);
@@ -200,6 +208,21 @@ internal sealed partial class GuiPerformanceProbe
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift });
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(_viewModel.Status.Contains("フォルダを開いて"), "missing-workspace-guidance");
+            var longLine = Path.Combine(root, "long-line.cs");
+            var longText = "class Target {}\n" + new string(' ', 8193);
+            await File.WriteAllTextAsync(longLine, longText, ct);
+            before.Add(longLine, Hash(longLine));
+            await _viewModel.OpenFilesAsync([longLine], OpenOrigin.Menu);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            Require(_viewModel.SyntaxStatus.Contains("長行") && _editor.Document.Text == longText
+                && !textView.LineTransformers.OfType<SyntaxColorizer>().Any(), "syntax-long-line-stays-plain");
+            await _viewModel.OpenFilesAsync([body], OpenOrigin.Menu);
+            while (_viewModel.HasTabs) _viewModel.CloseFile();
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            Require(!_viewModel.HasDocument && !textView.LineTransformers.OfType<SyntaxColorizer>().Any(),
+                "syntax-closed-tab-result-discarded");
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();

@@ -7,9 +7,10 @@ from pathlib import Path
 import subprocess
 
 CHECKS = [
-    'original-readonly-document', 'shift-f12-source-identifier', 'fixed-reference-options',
+    'original-readonly-document', 'syntax-colors-visible', 'shift-f12-source-identifier', 'fixed-reference-options',
     'all-text-case-sensitive-word-results', 'visible-name-match-disclaimer', 'search-preserves-source',
-    'menu-selection-reference-search', 'result-enter-original-cp932-selection', 'result-enter-editor-focus',
+    'menu-selection-reference-search', 'result-enter-original-cp932-selection',
+    'syntax-detaches-for-unsupported-tab', 'result-enter-editor-focus',
     'invalid-selection-keeps-results', 'unicode-selection-and-word-boundaries',
     'f12-single-definition-auto-selection', 'definition-menu-multiple-candidates',
     'definition-enter-original-selection', 'in-file-shortcut-focus', 'in-file-ime-client',
@@ -19,7 +20,8 @@ CHECKS = [
     'folder-enter-starts-search', 'folder-escape-cancels-with-panel-visible',
     'folder-enter-retries-committed-query',
     'folder-drag-resizes-results', 'folder-hide-releases-row', 'folder-show-restores-height',
-    'tree-drag-resizes-width', 'tree-hide-releases-column', 'tree-show-restores-width', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
+    'tree-drag-resizes-width', 'tree-hide-releases-column', 'tree-show-restores-width', 'missing-workspace-guidance',
+    'syntax-long-line-stays-plain', 'syntax-closed-tab-result-discarded', 'all-input-sha256-unchanged',
 ]
 
 

@@ -194,7 +194,10 @@
         </Border>
         <Border Grid.Row="5" Background="#202A31" Padding="12,6">
             <Grid ColumnDefinitions="*,Auto,Auto">
-                <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
+                    <TextBlock Text="{Binding SyntaxStatus}" FontSize="11" Foreground="#E6C88C" />
+                </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
                 <Button Grid.Column="2" Content="{Binding EncodingLabel}" FontSize="11" Padding="6,1"
                         IsEnabled="{Binding CanReopenEncoding}" ToolTip.Tip="文字コードを指定して開き直す">

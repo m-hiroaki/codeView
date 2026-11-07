@@ -86,6 +86,17 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        SyntaxColorizer? syntaxColorizer = null;
+        viewModel.SyntaxChanged += highlighting =>
+        {
+            var textView = editor.TextArea.TextView;
+            if (syntaxColorizer is null && highlighting is null) return;
+            if (syntaxColorizer is not null) textView.LineTransformers.Remove(syntaxColorizer);
+            syntaxColorizer = highlighting is not null && viewModel.Document is { } document
+                ? new(document, highlighting) : null;
+            if (syntaxColorizer is not null) textView.LineTransformers.Add(syntaxColorizer);
+            textView.Redraw();
+        };
         InFileMatchRenderer? searchRenderer = null;
         viewModel.InFileSearch.MatchesChanged += () =>
         {

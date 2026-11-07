@@ -25,7 +25,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private TabViewModel? _selectedTab;
     private TabState? _displayedTab;
     private DocumentHandle? _displayedHandle;
-    private bool _inFileSourceOffsetsAvailable = true;
+    private bool _originalSourceOffsetsAvailable = true;
+    private CancellationTokenSource? _syntaxRequest;
     private bool _syncingTabs;
     private bool _attaching;
     private int _line = 1;
@@ -77,6 +78,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
     };
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
+    public string SyntaxStatus { get; private set; } = "";
+    public event Action<SyntaxHighlighting?>? SyntaxChanged;
     public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
@@ -461,7 +464,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 {
                     var source = _document;
                     _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, source!, position);
-                    _inFileSourceOffsetsAvailable = ReferenceEquals(source, _document);
+                    _originalSourceOffsetsAvailable = ReferenceEquals(source, _document);
                 }
                 else GuiPerformanceProbe.ClearDocument();
 #endif
@@ -488,9 +491,10 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
         }
         finally { _attaching = false; }
-        InFileSearch.Attach(tab, _tabManager.Tabs, _inFileSourceOffsetsAvailable);
+        InFileSearch.Attach(tab, _tabManager.Tabs, _originalSourceOffsetsAvailable);
         if (changedDocument)
         {
+            RefreshSyntax(file);
             SetPosition((int)Math.Min(int.MaxValue, position.Line), (int)Math.Min(int.MaxValue, position.Column));
             if (_document is not null)
             {
@@ -557,6 +561,63 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_selectedTab is { } tab) CloseTab(tab);
     }
 
+    private void RefreshSyntax(LoadedFile? file)
+    {
+        CancelSyntax();
+        SetSyntax(null, "");
+        if (_stopping || !_originalSourceOffsetsAvailable || file is null
+            || SyntaxChanged is null || BundledGrammars.ScopeForPath(file.Path.FullPath) is not { } scope) return;
+        var request = new CancellationTokenSource();
+        _syntaxRequest = request;
+        _ = ObserveSyntaxAsync(file.Document, scope, request);
+    }
+
+    private async Task ObserveSyntaxAsync(DocumentHandle document, string scope, CancellationTokenSource request)
+    {
+        try { await TrackManualAsync(HighlightAsync(document, scope, request)); }
+        catch (Exception)
+        {
+            try { SetStatus("予期しない構文色分けエラーのため終了します。"); }
+            finally { FatalFailure?.Invoke(); }
+        }
+    }
+
+    private async Task HighlightAsync(DocumentHandle document, string scope, CancellationTokenSource request)
+    {
+        try
+        {
+            // Let the ordinary text attach and render before loading any grammar.
+            await Task.Delay(TimeSpan.FromMilliseconds(150), request.Token);
+            var result = await operations.HighlightAsync(document, scope, request.Token);
+            if (ReferenceEquals(_syntaxRequest, request) && !request.IsCancellationRequested)
+                SetSyntax(result.Highlighting, result.Status);
+        }
+        catch (OperationCanceledException) when (request.IsCancellationRequested) { }
+        finally
+        {
+            if (ReferenceEquals(_syntaxRequest, request)) _syntaxRequest = null;
+            request.Dispose();
+        }
+    }
+
+    private void CancelSyntax()
+    {
+        var request = _syntaxRequest;
+        _syntaxRequest = null;
+        request?.Cancel();
+    }
+
+    private void SetSyntax(SyntaxHighlighting? highlighting, string status)
+    {
+        if (SyntaxStatus != status)
+        {
+            SyntaxStatus = status;
+            Changed(nameof(SyntaxStatus));
+        }
+
+        SyntaxChanged?.Invoke(highlighting);
+    }
+
     public void Stop()
     {
         if (_stopping) return;
@@ -565,6 +626,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _selectionRequest = null;
         _selectionMove = null;
         List<Exception>? failures = null;
+        Attempt(CancelSyntax);
         Attempt(InFileSearch.Stop);
         Attempt(SearchPanel.Stop);
         Attempt(_lifetime.Cancel);

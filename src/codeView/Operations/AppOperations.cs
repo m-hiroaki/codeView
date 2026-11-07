@@ -15,6 +15,8 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private bool _stopping;
     private readonly SemaphoreSlim _treeSlot = new(1, 1);
     private SemaphoreSlim? _inFileSearchSlot;
+    private SemaphoreSlim? _syntaxSlot;
+    private BundledGrammars? _grammars;
     private readonly OperationIdentity _workspaceEpoch = new();
     private readonly OperationIdentity _requestIds = new();
     private readonly OperationIdentity _workspaceSearchEpoch = new();
@@ -47,6 +49,21 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
             ct.ThrowIfCancellationRequested();
             using var lease = document.AcquireReadView();
             return await Task.Run(() => scan(lease));
+        }
+        finally { slot.Release(); }
+    }
+
+    internal async Task<(SyntaxHighlighting? Highlighting, string Status)> HighlightAsync(
+        DocumentHandle document, string scope, CancellationToken ct)
+    {
+        var slot = _syntaxSlot ??= new(1, 1);
+        await slot.WaitAsync(ct);
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+            using var lease = document.AcquireReadView();
+            var grammars = _grammars ??= new();
+            return await Task.Run(() => SyntaxHighlighting.Read(lease, scope, grammars, ct));
         }
         finally { slot.Release(); }
     }
