@@ -118,6 +118,9 @@ internal sealed partial class GuiPerformanceProbe
             RaiseSearchKey(_editor.TextArea, findKey);
             await Frame(ct);
             var query = _window.FindControl<TextBox>("InFileQuery")!;
+            if (!findKey.Handled || !query.IsFocused || !query.IsEffectivelyVisible)
+                Console.Error.WriteLine($"In-file shortcut handled={findKey.Handled} open={_viewModel.InFileSearch.CanOpen} " +
+                    $"shown={_viewModel.InFileSearch.IsVisible} visible={query.IsEffectivelyVisible} focused={query.IsFocused}");
             Require(findKey.Handled && query.IsFocused && query.IsEffectivelyVisible, "in-file-shortcut-focus");
             var client = new TextInputMethodClientRequestedEventArgs { RoutedEvent = InputElement.TextInputMethodClientRequestedEvent };
             query.RaiseEvent(client);

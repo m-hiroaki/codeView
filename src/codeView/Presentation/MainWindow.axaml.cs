@@ -39,6 +39,13 @@ internal sealed partial class MainWindow : Window
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(KeyDownEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        // Take the shortcut before AvaloniaEdit's built-in search handler receives it.
+        AddHandler(KeyDownEvent, (_, key) =>
+        {
+            if (key.Key != Key.F || key.KeyModifiers != modifier) return;
+            key.Handled = true;
+            Run(ShowInFileSearch);
+        }, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += async (_, key) =>
@@ -49,8 +56,6 @@ internal sealed partial class MainWindow : Window
                 await RunAsync(() => FindSymbolAsync(definitions: key.KeyModifiers == KeyModifiers.None));
                 return;
             }
-            if (key.Key == Key.F && key.KeyModifiers == modifier)
-            { key.Handled = true; Run(ShowInFileSearch); return; }
             if (viewModel.InFileSearch.IsVisible && key.Key == Key.Escape && key.KeyModifiers == KeyModifiers.None)
             { key.Handled = true; Run(HideInFileSearch); return; }
             if (viewModel.InFileSearch.IsVisible && key.Key == Key.Enter && key.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift
@@ -244,8 +249,18 @@ internal sealed partial class MainWindow : Window
         if (!_viewModel.InFileSearch.CanOpen) return;
         _viewModel.InFileSearch.IsVisible = true;
         var input = this.FindControl<TextBox>("InFileQuery")!;
-        input.Focus();
-        input.SelectAll();
+        if (input.Focus())
+        {
+            input.SelectAll();
+            return;
+        }
+        var revision = _viewModel.InFileSearch.Revision;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!_closing && _viewModel.InFileSearch.IsVisible && _viewModel.InFileSearch.Revision == revision
+                && input.Focus())
+                input.SelectAll();
+        }, DispatcherPriority.Loaded);
     }
 
     private void HideInFileSearch()

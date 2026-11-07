@@ -127,6 +127,65 @@ internal sealed class InFileSearchTests
             Assert.That(search.Matches, Is.Empty);
         });
 
+    [TestCase("replace")]
+    [TestCase("switch")]
+    [TestCase("reload")]
+    [TestCase("close")]
+    public void AlreadyPublishingOldScanCannotAppendAfterStateChange(string change)
+    {
+        const string prefix = "middle final ";
+        WithView(prefix + string.Concat(Enumerable.Repeat("old ", SearchLimits.ResultLimit * 2)),
+            async (view, first, second) =>
+            {
+                var search = view.InFileSearch;
+                var firstTab = view.Tabs.Single(tab => tab.FullPath == first);
+                var secondTab = view.Tabs.Single(tab => tab.FullPath == second);
+                var handle = firstTab.State.File!.Document;
+                var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                Task reload = Task.CompletedTask;
+                var observedLeases = 0;
+                var changed = false;
+                search.MatchesChanged += () =>
+                {
+                    if (changed || search.Matches.Count == 0) return;
+                    changed = true;
+                    observedLeases = handle.ActiveReadLeases;
+                    switch (change)
+                    {
+                        case "replace":
+                            search.Query = "middle";
+                            search.Query = "final";
+                            break;
+                        case "switch":
+                            view.SelectedTab = secondTab;
+                            search.Query = "bar";
+                            break;
+                        case "reload":
+                            File.WriteAllText(first, "new old");
+                            reload = view.ReloadAsync();
+                            break;
+                        case "close":
+                            view.CloseTab(firstTab);
+                            search.Query = "bar";
+                            break;
+                    }
+                    entered.SetResult();
+                };
+
+                search.IsVisible = true;
+                search.Query = "old";
+                await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                await reload;
+                await search.PendingWork;
+
+                var expected = change switch { "replace" => 7, "reload" => 4, _ => 0 };
+                Assert.That(observedLeases, Is.EqualTo(1));
+                Assert.That(handle.ActiveReadLeases, Is.Zero);
+                Assert.That(search.Matches.Select(match => match.Offset), Is.EqualTo(new long[] { expected }));
+                Assert.That(view.FilePath, Is.EqualTo(change is "switch" or "close" ? second : first));
+            });
+    }
+
     [Test]
     public void RegexErrorsAndSkippedLongLinesAreReportedSeparately() =>
         WithView(new string('x', SearchLimits.RegexLineChars + 1) + "\nfoo", async (view, _, _) =>
