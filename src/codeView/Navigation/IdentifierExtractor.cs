@@ -21,6 +21,8 @@ internal static class IdentifierExtractor
         "ushort", "using", "virtual", "void", "volatile", "while"
     };
 
+    internal static bool IsReserved(string name) => Reserved.Contains(name);
+
     public static bool TryExtract(ReadOnlySpan<char> text, int caret, int selectionStart, int selectionLength,
         bool isCSharp, out string name, out int start, out int length)
     {
@@ -69,7 +71,7 @@ internal static class IdentifierExtractor
             index += size;
         }
         var candidate = identifier.ToString();
-        if (isCSharp && !escaped && Reserved.Contains(candidate)) return false;
+        if (isCSharp && !escaped && IsReserved(candidate)) return false;
         name = candidate; start = left; length = right - left;
         return true;
     }
