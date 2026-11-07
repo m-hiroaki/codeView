@@ -227,7 +227,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         await EnsurePumpAsync();
     }
 
-    public Task OpenDropAsync(IDataTransfer data)
+    public Task OpenDropAsync(IDataTransfer data, Action? accepted = null)
     {
         if (_stopping) return Task.CompletedTask;
         var extracted = FileDropInput.Read(data);
@@ -237,6 +237,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 : "ローカルのファイルまたはフォルダをドロップしてください。");
             return Task.CompletedTask;
         }
+        accepted?.Invoke();
         return OpenFilesAsync(extracted.Value, OpenOrigin.Drop);
     }
 

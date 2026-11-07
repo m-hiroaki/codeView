@@ -42,7 +42,8 @@ CHECKS = [
     'tree-links-visible-in-name-order', 'tree-folder-link-does-not-expand',
     'tree-links-not-followed-by-workspace-search', 'tree-file-link-explicitly-opens',
     'tree-folder-link-explicit-root-and-cycle-blocked', 'tree-search-resolves-explicit-root',
-    'all-input-sha256-unchanged',
+    'drop-move-only-rejected', 'drop-mixed-invalid-rejected-atomically',
+    'drop-file-and-first-folder-open-read-only', 'all-input-sha256-unchanged',
 ]
 
 

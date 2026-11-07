@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using CodeView.Operations;
 
@@ -230,6 +231,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckTabViewStateAsync(root, before, Hash, Require, ct);
             await CheckWorkspaceSwitchAsync(root, before, Hash, Require, ct);
             await CheckTreeLinksAsync(root, before, Hash, Require, ct);
+            await CheckFileDropAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -600,6 +602,49 @@ internal sealed partial class GuiPerformanceProbe
             && !rows[0].CanExpand && ReferenceEquals(_editor.Document, opened), "tree-folder-link-explicit-root-and-cycle-blocked");
         await panel.StartAsync().WaitAsync(ct);
         require(panel.Rows.Single().FullPath == target, "tree-search-resolves-explicit-root");
+    }
+
+    private async Task CheckFileDropAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var firstRoot = Directory.CreateDirectory(Path.Combine(root, "drop-first")).FullName;
+        var secondRoot = Directory.CreateDirectory(Path.Combine(root, "drop-second")).FullName;
+        var path = Path.Combine(firstRoot, "日本語 空白 #.txt");
+        const string content = "first line\r\n本文";
+        await File.WriteAllTextAsync(path, content, ct);
+        inputs.Add(path, hash(path));
+        var storage = _window.StorageProvider;
+        using var file = await storage.TryGetFileFromPathAsync(new Uri(path)) ?? throw new IOException(path);
+        using var first = await storage.TryGetFolderFromPathAsync(new Uri(firstRoot)) ?? throw new IOException(firstRoot);
+        using var second = await storage.TryGetFolderFromPathAsync(new Uri(secondRoot)) ?? throw new IOException(secondRoot);
+
+        async Task<DragEventArgs> DropAsync(DragDropEffects effects, params DataTransferItem[] items)
+        {
+            using var data = new DataTransfer();
+            foreach (var item in items) data.Add(item);
+            var area = _editor.TextArea;
+            var args = new DragEventArgs(DragDrop.DropEvent, data, area, new Point(12, 12), KeyModifiers.None)
+            { DragEffects = effects };
+            area.RaiseEvent(args);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            return args;
+        }
+
+        var existing = _editor.Document;
+        var workspace = _viewModel.WorkspacePath;
+        var move = await DropAsync(DragDropEffects.Move, DataTransferItem.CreateFile(file));
+        require(move.Handled && move.DragEffects == DragDropEffects.None && ReferenceEquals(existing, _editor.Document),
+            "drop-move-only-rejected");
+        var mixed = await DropAsync(DragDropEffects.Copy, DataTransferItem.CreateFile(first), DataTransferItem.CreateText("invalid"));
+        require(mixed.Handled && mixed.DragEffects == DragDropEffects.None && _viewModel.WorkspacePath == workspace
+            && ReferenceEquals(existing, _editor.Document), "drop-mixed-invalid-rejected-atomically");
+
+        var accepted = await DropAsync(DragDropEffects.Copy | DragDropEffects.Move,
+            DataTransferItem.CreateFile(first), DataTransferItem.CreateFile(file), DataTransferItem.CreateFile(second));
+        require(accepted.Handled && accepted.DragEffects == DragDropEffects.Copy && _viewModel.WorkspacePath == firstRoot
+            && _viewModel.FilePath == path && _editor.Document.Text == content && _editor.IsReadOnly
+            && _viewModel.Status.Contains("後続のフォルダ1件"), "drop-file-and-first-folder-open-read-only");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)

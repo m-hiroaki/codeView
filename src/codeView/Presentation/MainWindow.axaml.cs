@@ -514,10 +514,10 @@ internal sealed partial class MainWindow : Window
         args.Handled = true;
         await RunAsync(() =>
         {
-            if (_closing || !FileDropInput.CanOfferCopy(args.DataTransfer, args.DragEffects))
-            { args.DragEffects = DragDropEffects.None; return Task.CompletedTask; }
-            args.DragEffects = DragDropEffects.Copy;
-            return _viewModel.OpenDropAsync(args.DataTransfer);
+            var canCopy = !_closing && FileDropInput.CanOfferCopy(args.DataTransfer, args.DragEffects);
+            args.DragEffects = DragDropEffects.None;
+            return canCopy ? _viewModel.OpenDropAsync(args.DataTransfer, () => args.DragEffects = DragDropEffects.Copy)
+                : Task.CompletedTask;
         });
     }
 

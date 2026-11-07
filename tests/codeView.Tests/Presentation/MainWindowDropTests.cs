@@ -30,7 +30,9 @@ internal sealed class MainWindowDropTests
         try
         {
             var data = FileDropInputTests.Files(first, file1, second, file2);
-            await view.OpenDropAsync(data);
+            var accepted = 0;
+            await view.OpenDropAsync(data, () => accepted++);
+            Assert.That(accepted, Is.EqualTo(1));
             Assert.That(operations.Workspace, Is.Null);
             Assert.That(view.Document, Is.Null);
             Assert.That(operations.Startup.OutstandingCount, Is.EqualTo(1));
@@ -67,7 +69,9 @@ internal sealed class MainWindowDropTests
             var body = view.Document;
             var data = FileDropInputTests.Files(root);
             data.Add(DataTransferItem.CreateFile(FileDropInputTests.StorageItem(new Uri("https://example.com/source.cs"))));
-            await view.OpenDropAsync(data);
+            var accepted = false;
+            await view.OpenDropAsync(data, () => accepted = true);
+            Assert.That(accepted, Is.False);
             Assert.That(view.Document, Is.SameAs(body));
             Assert.That(view.HasWorkspace, Is.False);
             Assert.That(view.Status, Does.Contain("ローカル"));
