@@ -227,6 +227,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckReloadAsync(root, before, Hash, Require, ct);
             await CheckTreeAsync(root, before, Hash, Require, ct);
             await CheckTabsAsync(root, before, Hash, Require, ct);
+            await CheckTabViewStateAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -429,6 +430,74 @@ internal sealed partial class GuiPerformanceProbe
         await PressAsync(Key.W, closeModifier);
         require(!_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
             "tabs-close-shortcut-clears-last-tab");
+    }
+
+    private async Task CheckTabViewStateAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var firstPath = Path.Combine(root, "view-first.txt");
+        var secondPath = Path.Combine(root, "view-second.txt");
+        static string Body(string word) => word + "\n" + string.Concat(Enumerable.Repeat(new string('a', 600) + "\n", 160));
+        await File.WriteAllTextAsync(firstPath, Body("FirstToken"), ct);
+        await File.WriteAllTextAsync(secondPath, Body("SecondToken"), ct);
+        inputs.Add(firstPath, hash(firstPath));
+        inputs.Add(secondPath, hash(secondPath));
+        await _viewModel.OpenFilesAsync([firstPath, secondPath], OpenOrigin.Menu);
+        await Frame(ct);
+        var tabs = _window.FindControl<ListBox>("TabList")!;
+        var search = _viewModel.InFileSearch;
+        var query = _window.FindControl<TextBox>("InFileQuery")!;
+        var scrollable = (IScrollable)_editor.TextArea.TextView;
+        var first = _viewModel.Tabs[0];
+        var second = _viewModel.Tabs[1];
+
+        async Task SelectAsync(TabViewModel tab)
+        {
+            tabs.SelectedItem = tab;
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            await Frame(ct);
+        }
+
+        async Task<Vector> SetAsync(TabViewModel tab, string word, bool wholeWord, int line, int column, Vector offset)
+        {
+            await SelectAsync(tab);
+            search.IsVisible = true;
+            search.WholeWord = wholeWord;
+            query.Text = word;
+            await _viewModel.PendingWork.WaitAsync(ct);
+            _editor.TextArea.Caret.Line = line;
+            _editor.TextArea.Caret.Column = column;
+            await Frame(ct);
+            scrollable.Offset = offset;
+            await Frame(ct);
+            return scrollable.Offset;
+        }
+
+        var firstOffset = await SetAsync(first, "FirstToken", true, 55, 120, new(560, 720));
+        var secondOffset = await SetAsync(second, "SecondToken", false, 91, 200, new(920, 1220));
+        require(firstOffset.X > 0 && firstOffset.Y > 0 && secondOffset.X > firstOffset.X
+            && secondOffset.Y > firstOffset.Y, "tab-view-distinct-scroll-offsets");
+
+        static bool SameOffset(Vector left, Vector right) => Math.Abs(left.X - right.X) <= 1
+            && Math.Abs(left.Y - right.Y) <= 1;
+        await SelectAsync(first);
+        require(_editor.TextArea.Caret.Line == 55 && _editor.TextArea.Caret.Column == 120
+            && SameOffset(scrollable.Offset, firstOffset), "tab-view-restores-first-caret-and-scroll");
+        require(query.Text == "FirstToken" && search.WholeWord && search.Matches.Count == 1,
+            "tab-view-restores-first-search-conditions");
+
+        await SelectAsync(second);
+        require(_editor.TextArea.Caret.Line == 91 && _editor.TextArea.Caret.Column == 200
+            && SameOffset(scrollable.Offset, secondOffset), "tab-view-restores-second-caret-and-scroll");
+        require(query.Text == "SecondToken" && !search.WholeWord && search.Matches.Count == 1,
+            "tab-view-restores-second-search-conditions");
+        var handle = second.State.File!.Document;
+        _viewModel.CloseFile();
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        require(handle.IsReleased && handle.ActiveReadLeases == 0 && query.Text == "FirstToken"
+            && search.Matches.Count == 1, "tab-view-close-releases-source-and-restores-search");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)

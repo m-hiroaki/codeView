@@ -32,7 +32,11 @@ CHECKS = [
     'tree-virtualizes-offscreen-items', 'tree-scroll-realizes-offscreen-file',
     'tabs-same-name-distinct-labels', 'tabs-selection-attaches-document', 'tabs-repeat-open-reuses-document',
     'tabs-ctrl-tab-wraps-and-focuses-editor', 'tabs-ctrl-shift-tab-wraps-back',
-    'tabs-close-button-keeps-active-document', 'tabs-close-shortcut-clears-last-tab', 'all-input-sha256-unchanged',
+    'tabs-close-button-keeps-active-document', 'tabs-close-shortcut-clears-last-tab',
+    'tab-view-distinct-scroll-offsets', 'tab-view-restores-first-caret-and-scroll',
+    'tab-view-restores-first-search-conditions', 'tab-view-restores-second-caret-and-scroll',
+    'tab-view-restores-second-search-conditions', 'tab-view-close-releases-source-and-restores-search',
+    'all-input-sha256-unchanged',
 ]
 
 
