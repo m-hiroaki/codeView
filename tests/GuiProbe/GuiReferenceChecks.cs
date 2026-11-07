@@ -226,6 +226,7 @@ internal sealed partial class GuiPerformanceProbe
                 "syntax-closed-tab-result-discarded");
             await CheckReloadAsync(root, before, Hash, Require, ct);
             await CheckTreeAsync(root, before, Hash, Require, ct);
+            await CheckTabsAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -375,6 +376,59 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         require(tree.ContainerFromItem(lastFile) is { IsVisible: true }, "tree-scroll-realizes-offscreen-file");
+    }
+
+    private async Task CheckTabsAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        while (_viewModel.HasTabs) _viewModel.CloseFile();
+        var firstPath = Path.Combine(Directory.CreateDirectory(Path.Combine(root, "first")).FullName, "shared.txt");
+        var secondPath = Path.Combine(Directory.CreateDirectory(Path.Combine(root, "second")).FullName, "shared.txt");
+        await File.WriteAllTextAsync(firstPath, "first body", ct);
+        await File.WriteAllTextAsync(secondPath, "second body", ct);
+        inputs.Add(firstPath, hash(firstPath));
+        inputs.Add(secondPath, hash(secondPath));
+        await _viewModel.OpenFilesAsync([firstPath, secondPath], OpenOrigin.Menu);
+        await Frame(ct);
+        var list = _window.FindControl<ListBox>("TabList")!;
+        var first = _viewModel.Tabs[0];
+        var second = _viewModel.Tabs[1];
+        require(list.IsEffectivelyVisible && first.Label.Contains("first") && second.Label.Contains("second")
+            && _viewModel.Tabs.Count == 2 && _editor.Document.Text == "second body", "tabs-same-name-distinct-labels");
+        var secondDocument = _editor.Document;
+
+        list.SelectedItem = first;
+        await Frame(ct);
+        require(_viewModel.FilePath == firstPath && _editor.Document.Text == "first body", "tabs-selection-attaches-document");
+        await _viewModel.OpenFilesAsync([secondPath], OpenOrigin.Menu);
+        await Frame(ct);
+        require(_viewModel.Tabs.Count == 2 && ReferenceEquals(_editor.Document, secondDocument), "tabs-repeat-open-reuses-document");
+
+        async Task<KeyEventArgs> PressAsync(Key key, KeyModifiers modifiers)
+        {
+            var args = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers };
+            RaiseSearchKey(_editor.TextArea, args);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            return args;
+        }
+
+        var next = await PressAsync(Key.Tab, KeyModifiers.Control);
+        require(next.Handled && ReferenceEquals(list.SelectedItem, first) && _editor.TextArea.IsFocused,
+            "tabs-ctrl-tab-wraps-and-focuses-editor");
+        var previous = await PressAsync(Key.Tab, KeyModifiers.Control | KeyModifiers.Shift);
+        require(previous.Handled && ReferenceEquals(list.SelectedItem, second)
+            && ReferenceEquals(_editor.Document, secondDocument), "tabs-ctrl-shift-tab-wraps-back");
+
+        var container = (ListBoxItem)list.ContainerFromItem(first)!;
+        container.GetVisualDescendants().OfType<Button>().Single().RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        await Frame(ct);
+        require(_viewModel.Tabs.Count == 1 && ReferenceEquals(list.SelectedItem, second)
+            && ReferenceEquals(_editor.Document, secondDocument), "tabs-close-button-keeps-active-document");
+        var closeModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+        await PressAsync(Key.W, closeModifier);
+        require(!_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
+            "tabs-close-shortcut-clears-last-tab");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)

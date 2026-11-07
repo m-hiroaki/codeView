@@ -52,6 +52,18 @@ internal sealed partial class MainWindow : Window
             key.Handled = true;
             Run(ShowInFileSearch);
         }, RoutingStrategies.Tunnel);
+        // Ctrl+Tab belongs to the open files, even when the focused control handles Tab.
+        AddHandler(KeyDownEvent, (_, key) =>
+        {
+            if (key.Key != Key.Tab || key.KeyModifiers is not (KeyModifiers.Control or (KeyModifiers.Control | KeyModifiers.Shift))
+                || !viewModel.HasTabs) return;
+            key.Handled = true;
+            Run(() =>
+            {
+                viewModel.CycleTab(key.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                if (viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
+            });
+        }, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += async (_, key) =>
@@ -65,16 +77,6 @@ internal sealed partial class MainWindow : Window
             if (key.Key is Key.Enter or Key.Escape && await HandleSearchKeyAsync(key)) return;
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
             { key.Handled = true; Run(ShowSearch); return; }
-            if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
-            {
-                key.Handled = true;
-                Run(() =>
-                {
-                    viewModel.CycleTab(key.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
-                    if (viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
-                });
-                return;
-            }
             if (key.KeyModifiers != modifier) return;
             if (key.Key == Key.O)
             {
@@ -598,7 +600,7 @@ internal sealed partial class MainWindow : Window
     {
         Run(() =>
         {
-            if (ReferenceEquals(args.Source, sender) && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.Focus();
+            if (ReferenceEquals(args.Source, sender) && _viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
         });
     }
     private void CloseTabClicked(object? sender, RoutedEventArgs args)
