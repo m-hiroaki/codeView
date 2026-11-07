@@ -133,6 +133,27 @@ public sealed class WorkspaceTests
     }
 
     [Test]
+    public void ResolvedRootCannotStartSearchUntilItsListingIsAccepted() => SingleThreadTestContext.Run(async () =>
+    {
+        using var source = new ControlledSource { DelayListingName = "first" };
+        using var operations = Create(source);
+        var load = operations.OpenFolderAsync(PathOf("first"), SettingsSnapshot.Default);
+        var searches = operations.Searches;
+        try
+        {
+            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.That(operations.Workspace!.ResolvedPath, Is.Not.Null);
+            Assert.That(operations.Workspace.Status, Is.EqualTo(WorkspaceStatus.Loading));
+            Assert.That(searches.CanStart, Is.False);
+            Assert.That(searches.Start("Body").Status, Is.EqualTo(OperationStatus.Cancelled));
+            Assert.That(searches.Current, Is.Null);
+        }
+        finally { source.Release.Set(); }
+        Assert.That((await load.WaitAsync(TimeSpan.FromSeconds(5))).Status, Is.EqualTo(OperationStatus.Success));
+        Assert.That(searches.CanStart, Is.True);
+    });
+
+    [Test]
     public void RootSwitchWaitsForChildEnumerationAndTracksItsRetiredTree() => SingleThreadTestContext.Run(async () =>
     {
         using var source = new ControlledSource();
