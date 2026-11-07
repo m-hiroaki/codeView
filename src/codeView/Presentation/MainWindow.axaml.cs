@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Presenters;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -56,15 +58,7 @@ internal sealed partial class MainWindow : Window
                 await RunAsync(() => FindSymbolAsync(definitions: key.KeyModifiers == KeyModifiers.None));
                 return;
             }
-            if (viewModel.InFileSearch.IsVisible && key.Key == Key.Escape && key.KeyModifiers == KeyModifiers.None)
-            { key.Handled = true; Run(HideInFileSearch); return; }
-            if (viewModel.InFileSearch.IsVisible && key.Key == Key.Enter && key.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift
-                && this.FindControl<TextBox>("InFileQuery")!.IsFocused)
-            {
-                key.Handled = true;
-                await RunAsync(() => MoveInFileAsync(key.KeyModifiers == KeyModifiers.Shift));
-                return;
-            }
+            if (key.Key is Key.Enter or Key.Escape && await HandleSearchKeyAsync(key)) return;
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
             { key.Handled = true; Run(ShowSearch); return; }
             if (key.Key == Key.Tab && (key.KeyModifiers == KeyModifiers.Control || key.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
@@ -237,11 +231,66 @@ internal sealed partial class MainWindow : Window
         if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
     }
 
+    private async Task<bool> HandleSearchKeyAsync(KeyEventArgs key)
+    {
+        var inFileInput = this.FindControl<TextBox>("InFileQuery")!;
+        var folderInput = this.FindControl<TextBox>("SearchQuery")!;
+        if (key.Key == Key.Enter)
+        {
+            if (_viewModel.InFileSearch.IsVisible && inFileInput.IsFocused
+                && key.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift && !IsComposing(inFileInput))
+            {
+                key.Handled = true;
+                await RunAsync(() => MoveInFileAsync(key.KeyModifiers == KeyModifiers.Shift));
+                return true;
+            }
+
+            if (_viewModel.SearchPanel.IsVisible && folderInput.IsFocused
+                && key.KeyModifiers == KeyModifiers.None && !IsComposing(folderInput))
+            {
+                key.Handled = true;
+                await RunAsync(_viewModel.SearchPanel.StartAsync);
+                return true;
+            }
+            return false;
+        }
+
+        if (key.KeyModifiers != KeyModifiers.None) return false;
+        var results = this.FindControl<ListBox>("SearchResultsList")!;
+        if (_viewModel.SearchPanel.IsVisible && _viewModel.SearchPanel.IsRunning
+            && (folderInput.IsFocused || results.IsKeyboardFocusWithin)
+            && (!folderInput.IsFocused || !IsComposing(folderInput)))
+        {
+            key.Handled = true;
+            Run(_viewModel.SearchPanel.Cancel);
+            return true;
+        }
+
+        var bar = this.FindControl<Border>("InFileSearchBar")!;
+        var editor = this.FindControl<TextEditor>("Editor")!;
+        if (_viewModel.InFileSearch.IsVisible && (bar.IsKeyboardFocusWithin || editor.TextArea.IsKeyboardFocusWithin)
+            && !IsComposing(inFileInput))
+        {
+            key.Handled = true;
+            Run(HideInFileSearch);
+            return true;
+        }
+        return false;
+    }
+
+    private static bool IsComposing(TextBox input) =>
+        input.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault()?.PreeditText is { Length: > 0 };
+
     private void ShowSearch()
     {
         if (!_viewModel.CanSearchWorkspace) return;
         _viewModel.SearchPanel.IsVisible = true;
-        this.FindControl<TextBox>("SearchQuery")!.Focus();
+        var input = this.FindControl<TextBox>("SearchQuery")!;
+        if (!input.Focus())
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!_closing && _viewModel.SearchPanel.IsVisible && _viewModel.CanSearchWorkspace) input.Focus();
+            }, DispatcherPriority.Loaded);
     }
 
     private void ShowInFileSearch()

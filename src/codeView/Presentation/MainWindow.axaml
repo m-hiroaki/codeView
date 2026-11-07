@@ -105,7 +105,7 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <Border Grid.Row="1" Background="#202630" Padding="8,5" IsVisible="{Binding InFileSearch.IsVisible}">
+                <Border x:Name="InFileSearchBar" Grid.Row="1" Background="#202630" Padding="8,5" IsVisible="{Binding InFileSearch.IsVisible}">
                     <StackPanel Spacing="4">
                         <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                             <TextBox x:Name="InFileQuery" Text="{Binding InFileSearch.Query, Mode=TwoWay}"

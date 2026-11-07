@@ -13,8 +13,11 @@ CHECKS = [
     'invalid-selection-keeps-results', 'unicode-selection-and-word-boundaries',
     'f12-single-definition-auto-selection', 'definition-menu-multiple-candidates',
     'definition-enter-original-selection', 'in-file-shortcut-focus', 'in-file-ime-client',
-    'in-file-preedit-does-not-search', 'in-file-committed-input-matches',
-    'in-file-enter-selects-wrapped-match', 'in-file-escape-restores-editor', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
+    'in-file-preedit-escape-keeps-panel', 'in-file-preedit-does-not-search', 'in-file-committed-input-matches',
+    'in-file-enter-selects-wrapped-match', 'in-file-escape-restores-editor',
+    'folder-shortcut-focus', 'folder-ime-client', 'folder-preedit-enter-does-not-search',
+    'folder-enter-starts-search', 'folder-escape-cancels-with-panel-visible',
+    'folder-enter-retries-committed-query', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
 ]
 
 
