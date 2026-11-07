@@ -60,7 +60,8 @@ def collect(app, output, commit, rounds=3):
             if target.exists():
                 row['report'] = json.loads(target.read_text(encoding='utf-8-sig'))
             if child.returncode != 0:
-                raise RuntimeError('Native reference search failed')
+                failure = row.get('report', {}).get('Failure') or f'exit code {child.returncode}'
+                raise RuntimeError(f'Native reference search failed: {failure}')
             validate(row.get('report', {}), commit)
             row['validated'] = True
             print(f'reference-{number}: {len(CHECKS)} checks passed', flush=True)

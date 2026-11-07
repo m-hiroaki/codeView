@@ -61,7 +61,7 @@
                              SelectedItem="{Binding FileTree.SelectedRow, Mode=TwoWay}" SelectionMode="Single"
                              Background="Transparent" BorderThickness="0" Padding="0"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             DoubleTapped="TreeDoubleTapped" KeyDown="TreeKeyDown" AutomationProperties.Name="ファイルツリー">
+                             DoubleTapped="TreeDoubleTapped" AutomationProperties.Name="ファイルツリー">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
                         </ListBox.ItemsPanel>

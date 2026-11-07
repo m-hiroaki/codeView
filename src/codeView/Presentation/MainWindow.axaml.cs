@@ -42,6 +42,8 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
+        // The list's directional navigation may consume arrows before they bubble.
+        this.FindControl<ListBox>("FileTreeList")!.AddHandler(KeyDownEvent, TreeKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyDownEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         // Take the shortcut before AvaloniaEdit's built-in search handler receives it.
         AddHandler(KeyDownEvent, (_, key) =>
