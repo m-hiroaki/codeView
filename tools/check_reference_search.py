@@ -36,7 +36,9 @@ CHECKS = [
     'tab-view-distinct-scroll-offsets', 'tab-view-restores-first-caret-and-scroll',
     'tab-view-restores-first-search-conditions', 'tab-view-restores-second-caret-and-scroll',
     'tab-view-restores-second-search-conditions', 'tab-view-close-releases-source-and-restores-search',
-    'all-input-sha256-unchanged',
+    'workspace-first-root-search-results', 'workspace-switch-replaces-tree',
+    'workspace-switch-invalidates-previous-results', 'workspace-old-row-cannot-replace-current-view',
+    'workspace-search-uses-new-root', 'workspace-close-preserves-open-tabs', 'all-input-sha256-unchanged',
 ]
 
 

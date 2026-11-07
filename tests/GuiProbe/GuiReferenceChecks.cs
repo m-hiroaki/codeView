@@ -228,6 +228,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckTreeAsync(root, before, Hash, Require, ct);
             await CheckTabsAsync(root, before, Hash, Require, ct);
             await CheckTabViewStateAsync(root, before, Hash, Require, ct);
+            await CheckWorkspaceSwitchAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -498,6 +499,52 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(handle.IsReleased && handle.ActiveReadLeases == 0 && query.Text == "FirstToken"
             && search.Matches.Count == 1, "tab-view-close-releases-source-and-restores-search");
+    }
+
+    private async Task CheckWorkspaceSwitchAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var oldRoot = Directory.CreateDirectory(Path.Combine(root, "workspace-old")).FullName;
+        var newRoot = Directory.CreateDirectory(Path.Combine(root, "workspace-new")).FullName;
+        var oldPath = Path.Combine(oldRoot, "old.txt");
+        var newPath = Path.Combine(newRoot, "new.txt");
+        var branch = Directory.CreateDirectory(Path.Combine(oldRoot, "branch"));
+        await File.WriteAllTextAsync(oldPath, "WorkspaceMarker", ct);
+        await File.WriteAllTextAsync(newPath, "WorkspaceMarker", ct);
+        inputs.Add(oldPath, hash(oldPath));
+        inputs.Add(newPath, hash(newPath));
+        var tabs = _viewModel.Tabs.ToArray();
+        var document = _editor.Document;
+        var panel = _viewModel.SearchPanel;
+
+        await _viewModel.OpenFilesAsync([oldRoot], OpenOrigin.Menu);
+        var oldBranch = _viewModel.FileTree.Rows.Single(row => row.Node.Entry.Path.FullPath == branch.FullName);
+        panel.Query = "WorkspaceMarker";
+        panel.UseRegex = false;
+        await panel.StartAsync().WaitAsync(ct);
+        var oldResult = panel.Rows.Single();
+        require(_viewModel.WorkspacePath == oldRoot && oldResult.FullPath == oldPath && panel.CanActivate(oldResult),
+            "workspace-first-root-search-results");
+
+        await _viewModel.OpenFilesAsync([newRoot], OpenOrigin.Menu);
+        await Frame(ct);
+        require(_viewModel.WorkspacePath == newRoot && _viewModel.FileTree.Rows.Single().Path == newPath
+            && !_viewModel.FileTree.IsCurrentRow(oldBranch), "workspace-switch-replaces-tree");
+        require(panel.Rows.Count == 0 && !panel.CanActivate(oldResult) && _viewModel.CanSearchWorkspace,
+            "workspace-switch-invalidates-previous-results");
+        await _viewModel.ExpandTreeRowAsync(oldBranch);
+        await _viewModel.ActivateSearchResultAsync(oldResult);
+        require(_viewModel.Tabs.SequenceEqual(tabs) && ReferenceEquals(document, _editor.Document)
+            && _viewModel.FileTree.Rows.Count == 1, "workspace-old-row-cannot-replace-current-view");
+        await panel.StartAsync().WaitAsync(ct);
+        var currentResult = panel.Rows.Single();
+        require(currentResult.FullPath == newPath && panel.CanActivate(currentResult), "workspace-search-uses-new-root");
+
+        _viewModel.CloseWorkspace();
+        await Frame(ct);
+        require(!_viewModel.HasWorkspace && !_viewModel.CanSearchWorkspace && !panel.CanStart
+            && panel.Rows.Count == 0 && !_viewModel.FileTree.HasRows && _viewModel.Tabs.SequenceEqual(tabs)
+            && ReferenceEquals(document, _editor.Document), "workspace-close-preserves-open-tabs");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)
