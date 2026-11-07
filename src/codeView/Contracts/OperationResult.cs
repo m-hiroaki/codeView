@@ -4,7 +4,7 @@ internal enum ErrorCode
 {
     NotFound, InvalidPath, AccessDenied, NotRegularFile, BrokenLink, Binary, DecodeFailed,
     ChangedDuringRead, InvalidPattern, RegexTimedOut, UnsupportedSize, QueueFull,
-    InvalidSettings, IoFailure, Unexpected
+    InvalidSettings, IoFailure, Unexpected, UnsupportedDeclaration
 }
 
 internal sealed record OperationError(ErrorCode Code, string? Path = null, bool CanRetry = false);

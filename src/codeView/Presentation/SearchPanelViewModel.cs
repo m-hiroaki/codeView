@@ -59,26 +59,42 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         Changed(nameof(CanStart));
     }
 
-    public Task StartReferencesAsync(string name)
+    public Task StartReferencesAsync(string name) => StartSymbolSearchAsync(name, definitions: false);
+    public Task StartDefinitionsAsync(string name) => StartSymbolSearchAsync(name, definitions: true);
+
+    private Task StartSymbolSearchAsync(string name, bool definitions)
     {
         if (_stopping) return Task.CompletedTask;
         Query = name;
         MatchCase = true;
         WholeWord = true;
         UseRegex = false;
-        return StartCoreAsync(references: true);
+        var description = definitions ? "定義へジャンプ（簡易・名前一致）"
+            : "参照検索（名前一致）：宣言・コメント・文字列も含みます。意味解析は行いません。";
+        return StartCoreAsync(description, definitions);
     }
 
-    public Task StartAsync() => StartCoreAsync(references: false);
+    public Task StartAsync() => StartCoreAsync("フォルダ内のテキスト検索", definitions: false);
 
-    private Task StartCoreAsync(bool references)
+    internal SearchResultRow? SingleCompleteDefinition(WorkspaceSearchOperation? operation)
+    {
+        if (operation is null || !operation.Request.Definitions || !IsCurrent(operation)
+            || operation.CancellationCause != SearchCancellationCause.None || _results.Count != 1
+            || _coordinator?.TryFinalize(operation, out var result) != true
+            || result?.Status != OperationStatus.Success || result.Value.IsPartial)
+            return null;
+        var row = Rows[0];
+        return CanActivate(row) ? row : null;
+    }
+
+    private Task StartCoreAsync(string description, bool definitions)
     {
         if (!CanStart) return Task.CompletedTask;
         _coordinator ??= coordinator();
-        var accepted = _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex));
+        var accepted = _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
         if (accepted.Status != OperationStatus.Success) return Task.CompletedTask;
         _operation = accepted.Value;
-        Description = references ? "参照検索（名前一致）：宣言・コメント・文字列も含みます。意味解析は行いません。" : "フォルダ内のテキスト検索";
+        Description = description;
         Changed(nameof(Description));
         _results.Clear();
         SelectedRow = null;
@@ -175,7 +191,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
                     // A partially consumed UI batch is not part of the channel. Cancellation drops it as well.
                     if (operation.CancellationCause == SearchCancellationCause.User || result.Status == OperationStatus.Cancelled)
                     { _results.RemoveProvisional(); _notice = "検索を取り消しました。部分結果です。"; }
-                    else if (_coordinator.TryFinalize(operation, out _)) ApplyCompletion(result.Value);
+                    else if (_coordinator.TryFinalize(operation, out _)) ApplyCompletion(result.Value, operation.Request.Definitions);
                     else throw new InvalidOperationException("検索の排出が終端より先に中断されました。");
                     _running = false;
                     UpdateProgress(operation);
@@ -223,7 +239,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         }
     }
 
-    private void ApplyCompletion(SearchCompletion end)
+    private void ApplyCompletion(SearchCompletion end, bool definitions)
     {
         if (end.Reason == SearchEndReason.LimitReached) _results.MarkIncomplete();
         else if (end.IsPartial) _results.RemoveProvisional();
@@ -238,6 +254,10 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
                 ErrorCode.RegexTimedOut => "正規表現がタイムアウトしました。部分結果です。",
                 _ => "検索を完了できませんでした。部分結果です。"
             },
+            _ when definitions && _results.CommittedCount == 0 => end.IsPartial
+                ? "定義は見つかりませんでした。未評価あり。" : "定義が見つかりません。",
+            _ when definitions && end.IsPartial => "名前一致による宣言候補の部分結果です。",
+            _ when definitions => "名前一致による宣言候補です。",
             _ => end.IsPartial ? "検索終了・部分結果です。" : "検索完了。"
         };
         if (end.Progress.FailedEntries > 0 || end.Progress.SkippedLongLines > 0 || end.Progress.SkippedScalarMatches > 0)

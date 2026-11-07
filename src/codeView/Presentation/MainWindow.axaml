@@ -34,6 +34,7 @@
             </MenuItem>
             <MenuItem Header="検索">
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
+                <MenuItem x:Name="FindDefinitionsMenu" Header="定義へジャンプ（簡易）" IsEnabled="{Binding HasDocument}" Click="FindDefinitionsClicked" />
                 <MenuItem x:Name="FindReferencesMenu" Header="参照を検索（名前一致）" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
             </MenuItem>

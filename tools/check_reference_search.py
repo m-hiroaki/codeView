@@ -11,7 +11,8 @@ CHECKS = [
     'all-text-case-sensitive-word-results', 'visible-name-match-disclaimer', 'search-preserves-source',
     'menu-selection-reference-search', 'result-enter-original-cp932-selection', 'result-enter-editor-focus',
     'invalid-selection-keeps-results', 'unicode-selection-and-word-boundaries',
-    'missing-workspace-guidance', 'all-input-sha256-unchanged',
+    'f12-single-definition-auto-selection', 'definition-menu-multiple-candidates',
+    'definition-enter-original-selection', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
 ]
 
 

@@ -54,13 +54,13 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
     public Task PendingWork => ObservePendingAsync();
 
     public OperationResult<WorkspaceSearchOperation> Start(string? query, SearchOptions options = default,
-        EncodingChoice encoding = EncodingChoice.Auto)
+        EncodingChoice encoding = EncodingChoice.Auto, bool definitions = false)
     {
         if (!CanStart) return OperationResult<WorkspaceSearchOperation>.Cancelled();
         if (!Enum.IsDefined(encoding)) throw new ArgumentOutOfRangeException(nameof(encoding));
         var owner = workspace()!;
         var request = new WorkspaceSearchRequest(owner.ResolvedPath!, owner.Policy, encoding, query, options,
-            requestIds.Advance(), owner.Epoch, epoch.Advance());
+            requestIds.Advance(), owner.Epoch, epoch.Advance(), definitions);
         if (Current is { } previous) Stop(previous, SearchCancellationCause.Replaced);
         var operation = new WorkspaceSearchOperation(owner, request);
         Current = _waiting = operation;

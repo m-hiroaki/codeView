@@ -1,6 +1,7 @@
 using CodeView.Contracts;
 using CodeView.Documents;
 using CodeView.Files;
+using CodeView.Navigation;
 using CodeView.Search;
 using CodeView.Settings;
 
@@ -27,8 +28,15 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     public LoadedFile? CurrentFile => _tabs?.ActiveTab?.File;
     public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
-    public SearchCoordinator Searches => !_stopping ? _searches ??= new(new TextSearch(directories, reader).StartWorkspace,
+    public SearchCoordinator Searches => !_stopping ? _searches ??= new(StartSearch,
         () => Workspace, _workspaceSearchEpoch, _requestIds) : throw new ObjectDisposedException(nameof(AppOperations));
+    private WorkspaceSearchSession StartSearch(WorkspaceSearchRequest request, CancellationToken ct)
+    {
+        var search = new TextSearch(directories, reader);
+        return request.Definitions ? new SimpleSymbolNavigator(search, reader).FindDefinitions(request, ct)
+            : search.StartWorkspace(request, ct);
+    }
+
     public Task PendingSearchWork => _searches?.PendingWork ?? Task.CompletedTask;
     public SearchResultNavigator ResultNavigator => !_stopping ? _resultNavigator ??= new(Tabs, Searches, reader)
         : throw new ObjectDisposedException(nameof(AppOperations));

@@ -44,7 +44,7 @@ internal sealed partial class GuiPerformanceProbe
             var cp932 = Path.Combine(root, "日本語.txt");
             await File.WriteAllBytesAsync(cp932, Encoding.GetEncoding(932).GetBytes("// 日本語 Target"), ct);
             var unicode = Path.Combine(root, "unicode.cs");
-            await File.WriteAllTextAsync(unicode, "日本語 日本語列 日本語", ct);
+            await File.WriteAllTextAsync(unicode, "// 日本語 日本語列 日本語", ct);
             string Hash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
             var before = new[] { body, cp932, unicode }.ToDictionary(path => path, Hash);
             await _viewModel.OpenFilesAsync([root, body], OpenOrigin.Menu);
@@ -85,11 +85,33 @@ internal sealed partial class GuiPerformanceProbe
             Require(ReferenceEquals(operation, panel.CurrentOperation) && _viewModel.Status.Contains("識別子"), "invalid-selection-keeps-results");
             await _viewModel.OpenFilesAsync([unicode], OpenOrigin.Menu);
             await Frame(ct);
-            _editor.Select(0, 3);
+            _editor.Select(3, 3);
             _window.FindControl<MenuItem>("FindReferencesMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(panel.Query == "日本語" && panel.Rows.Count == 3 && panel.Rows.All(panel.CanActivate), "unicode-selection-and-word-boundaries");
             // Two matches in unicode.cs and one in the CP932 comment.
+            await _viewModel.OpenFilesAsync([body], OpenOrigin.Menu);
+            await Frame(ct);
+            _editor.Select(8, 0);
+            var definitionKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12 };
+            RaiseSearchKey(_editor.TextArea, definitionKey);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct); await Frame(ct);
+            Require(definitionKey.Handled && panel.Description.Contains("簡易") && panel.Rows.Count == 1
+                && _editor.SelectedText == "Target" && _editor.SelectionStart == 6, "f12-single-definition-auto-selection");
+
+            var duplicate = Path.Combine(root, "duplicate.cs");
+            await File.WriteAllTextAsync(duplicate, "namespace Other { class @Target {} }", ct);
+            before.Add(duplicate, Hash(duplicate));
+            _window.FindControl<MenuItem>("FindDefinitionsMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            await _viewModel.PendingWork.WaitAsync(ct);
+            Require(panel.Rows.Count == 2 && _viewModel.FilePath == body, "definition-menu-multiple-candidates");
+            results.SelectedItem = panel.Rows.Single(x => x.FullPath == duplicate);
+            RaiseSearchKey(results, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct); await Frame(ct);
+            Require(_viewModel.FilePath == duplicate && _editor.SelectedText == "@Target"
+                && _editor.TextArea.IsFocused, "definition-enter-original-selection");
             _viewModel.CloseWorkspace();
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift });
             await _viewModel.PendingWork.WaitAsync(ct);

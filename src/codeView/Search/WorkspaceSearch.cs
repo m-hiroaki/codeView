@@ -6,7 +6,7 @@ using CodeView.Files;
 namespace CodeView.Search;
 
 internal sealed record WorkspaceSearchRequest(SourcePath Root, ExclusionPolicy Exclusions, EncodingChoice Encoding,
-    string? Query, SearchOptions Options, long RequestId, long WorkspaceEpoch, long SearchEpoch);
+    string? Query, SearchOptions Options, long RequestId, long WorkspaceEpoch, long SearchEpoch, bool Definitions = false);
 
 internal sealed record SearchHit(long FileScanId, SourcePath Path, TextRange Range, SearchSnippet Snippet, SourceStamp Stamp);
 
@@ -58,18 +58,23 @@ internal sealed class WorkspaceSearchSession
     internal void Finish(SearchCompletion terminal) => Volatile.Write(ref _terminal, terminal);
 }
 
+internal delegate OperationError? DeclarationFileSearch(PreparedText source, Func<TextRange, SearchSnippet, bool> consume);
+
 internal sealed class TextSearch(DirectoryReader directories, FileReader files)
 {
     public WorkspaceSearchSession StartWorkspace(WorkspaceSearchRequest request, CancellationToken ct)
+        => StartWorkspace(request, ct, null);
+
+    internal WorkspaceSearchSession StartWorkspace(WorkspaceSearchRequest request, CancellationToken ct, DeclarationFileSearch? declarations)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Root);
         ArgumentNullException.ThrowIfNull(request.Exclusions);
-        return new(session => new WorkspaceWorker(directories, files, request, session, ct).Run());
+        return new(session => new WorkspaceWorker(directories, files, request, session, ct, declarations).Run());
     }
 
     private sealed class WorkspaceWorker(DirectoryReader directories, FileReader files, WorkspaceSearchRequest request,
-        WorkspaceSearchSession session, CancellationToken ct)
+        WorkspaceSearchSession session, CancellationToken ct, DeclarationFileSearch? declarations)
     {
         private readonly Dictionary<ErrorCode, long> _errors = new();
         private readonly List<OperationError> _samples = new(SearchLimits.ErrorSamples);
@@ -91,13 +96,13 @@ internal sealed class TextSearch(DirectoryReader directories, FileReader files)
             try
             {
                 ct.ThrowIfCancellationRequested();
-                if (request.Options.UseRegex)
+                if (declarations is null && request.Options.UseRegex)
                 {
                     var result = RegexLineMatcher.Create(request.Query, request.Options);
                     if (result.Status != OperationStatus.Success) throw new StopScan(SearchEndReason.Failed, result.Error);
                     _regex = result.Value;
                 }
-                else
+                else if (declarations is null)
                 {
                     var result = LiteralMatcher.Create(request.Query, request.Options);
                     if (result.Status != OperationStatus.Success) throw new StopScan(SearchEndReason.Failed, result.Error);
@@ -121,6 +126,8 @@ internal sealed class TextSearch(DirectoryReader directories, FileReader files)
                         if (entry.IsRoot) throw new StopScan(SearchEndReason.Failed, entry.Error);
                     }
                     else if (entry.Kind != DirectoryWalkKind.File)
+                        _progress = _progress with { ExcludedEntries = checked(_progress.ExcludedEntries + 1) };
+                    else if (declarations is not null && !string.Equals(Path.GetExtension(entry.Path.FullPath), ".cs", StringComparison.OrdinalIgnoreCase))
                         _progress = _progress with { ExcludedEntries = checked(_progress.ExcludedEntries + 1) };
                     else ScanFile(entry.Path, consume, read);
                     Publish();
@@ -173,20 +180,33 @@ internal sealed class TextSearch(DirectoryReader directories, FileReader files)
             if (_regex?.IsFinished == true) _regex.Reset();
             try
             {
-                var loaded = files.ReadChunks(prepared, read, ct);
-                if (loaded.Status != OperationStatus.Success)
+                OperationError? error;
+                if (declarations is not null)
+                {
+                    error = declarations(prepared, ConsumeDeclaration);
+                    if (error is null) CountReadBytes(prepared);
+                }
+                else
+                {
+                    var loaded = files.ReadChunks(prepared, read, ct);
+                    error = loaded.Status == OperationStatus.Success ? null
+                        : loaded.Error ?? new OperationError(ErrorCode.Unexpected, path.DisplayPath);
+                    if (error is null)
+                    {
+                        CountReadBytes(prepared);
+                        if (!(_literal?.Complete(consume, ct) ?? _regex!.Complete(consume, ct))) StopMatching();
+                    }
+                }
+                if (error is not null)
                 {
                     _literal?.Abort();
                     _regex?.Abort();
-                    var error = loaded.Error ?? new OperationError(ErrorCode.Unexpected, path.DisplayPath);
                     RecordFailure(error);
                     Flush();
                     Send(new SearchEvent<SearchHit>.FileInvalidated(id, error));
                 }
                 else
                 {
-                    _progress = _progress with { ReadSourceBytes = checked(_progress.ReadSourceBytes + prepared.Stamp.LengthBytes) };
-                    if (!(_literal?.Complete(consume, ct) ?? _regex!.Complete(consume, ct))) StopMatching();
                     Flush();
                     Send(new SearchEvent<SearchHit>.FileCommitted(id));
                     _committed = checked(_committed + _fileHits);
@@ -207,10 +227,21 @@ internal sealed class TextSearch(DirectoryReader directories, FileReader files)
             }
         }
 
+        private void CountReadBytes(PreparedText prepared) =>
+            _progress = _progress with { ReadSourceBytes = checked(_progress.ReadSourceBytes + prepared.Stamp.LengthBytes) };
+
         private bool Consume(TextRange range)
+            => Collect(range, _literal?.CaptureSnippet() ?? _regex!.CaptureSnippet());
+
+        private bool ConsumeDeclaration(TextRange range, SearchSnippet snippet)
+        {
+            if (!Collect(range, snippet)) StopMatching();
+            return true;
+        }
+
+        private bool Collect(TextRange range, SearchSnippet snippet)
         {
             ct.ThrowIfCancellationRequested();
-            var snippet = _literal?.CaptureSnippet() ?? _regex!.CaptureSnippet();
             _batch.Add(new(_uncommitted!.Value, _current!.Path, range, snippet, _current.Stamp));
             _generated = checked(_generated + 1);
             _fileHits = checked(_fileHits + 1);
