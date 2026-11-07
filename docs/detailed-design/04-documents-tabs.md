@@ -83,9 +83,9 @@ PresentationのTabViewModelはTabStateへの参照とラベル/読込状態を�
 
 MainWindowViewModelは表示中タブと表示ハンドルを参照し、選択タブ/文書が変わった時だけClaimForDisplayを行う。同じReadyタブの再Openや他タブの閉鎖では本文を再構築/再接続しない。本文Viewは共通の1個だけを使う。失敗パスと文字コードのグローバル状態は削除し、選択タブの状態を使う。位置・スクロールのイベントは表示中タブへ保存し、文書バインド中の初期化イベントは保存へ反映しない。
 
-文書接続後に保存位置を行数/行長へ補正し、カーソルを戻す。スクロールはLoaded優先度で保存値を戻し、表示世代ViewEpochが変わっていれば古い復元を破棄する。採用候補12.0.0のScrollToHorizontalOffset/ScrollToVerticalOffsetは処理が未実装のため使用せず、公開IScrollable.Offsetへ現在のExtent/Viewport内に収めた値を設定する。位置とスクロールの計算/世代/通知は単体検証し、実際のレイアウト・フォーカス・遅延復元の挙動は実機で別に確認する。参照：[TextEditor](https://github.com/AvaloniaUI/AvaloniaEdit/blob/12.0.0/src/AvaloniaEdit/TextEditor.cs)、[TextView](https://github.com/AvaloniaUI/AvaloniaEdit/blob/12.0.0/src/AvaloniaEdit/Rendering/TextView.cs)。
+文書接続後に保存位置を行数/行長へ補正し、カーソルを戻す。スクロールはLoaded優先度で保存値を戻し、表示世代ViewEpochが変わっていれば古い復元を破棄する。採用候補12.0.0のScrollToHorizontalOffset/ScrollToVerticalOffsetは処理が未実装のため使用せず、公開IScrollable.Offsetへ現在のExtent/Viewport内に収めた値を設定する。位置とスクロールの計算・世代・通知を単体検証した。両OSのGUIで、独立したカーソルと縦横スクロール、検索条件と一致表示、閉じた本文のハンドルとLease解放を確認した。参照：[TextEditor](https://github.com/AvaloniaUI/AvaloniaEdit/blob/12.0.0/src/AvaloniaEdit/TextEditor.cs)、[TextView](https://github.com/AvaloniaUI/AvaloniaEdit/blob/12.0.0/src/AvaloniaEdit/Rendering/TextView.cs)。
 
-この接続は既存の設計済みタブ所有へUIを移すもので、層・依存方向・本文ハンドル契約を変えない。利点はパス/文字コード/位置/本文寿命の二重管理を解消できること、不利点は単体表示より保持文書が増え、切替時の実機性能と購読/文法の解放検証が必要になること。影響はOperationsの入口、Presentation、旧単体操作の試験と利用手順に限定する。選択・閉鎖・重複防止は両OSのGUIと予約中の制御試験で確認済み。5本文保持・長時間試験と本文寿命の統合受け入れはP3-05/P3-07/G3で扱う。
+この接続は既存の設計済みタブ所有へUIを移すもので、層・依存方向・本文ハンドル契約を変えない。利点はパス/文字コード/位置/本文寿命の二重管理を解消できること、不利点は単体表示より保持文書が増え、切替時の実機性能と購読/文法の解放検証が必要になること。影響はOperationsの入口、Presentation、旧単体操作の試験と利用手順に限定する。選択・閉鎖・重複防止は両OSのGUIと予約中の制御試験で確認済み。本文寿命のGUI結合試験も両OSで確認済み。5本文保持と長時間試験はP3-07/G3で扱う。
 
 ## 4. 表示・読み取り専用
 
