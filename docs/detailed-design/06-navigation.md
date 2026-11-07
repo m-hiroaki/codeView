@@ -51,6 +51,18 @@ NV-01の正常/異常/Unicode/上限を35単体ケースで確認。実装は既
 
 保持は現在トークン、宣言用の有界な直前トークン列、括弧・型本体の文脈スタック、対象名と少量の抜粋に限定する。解析上限は[共通予算](01-contracts.md)のLexerTokenChars・DeclarationTokens・DeclarationChars・LexerDepthを参照する。超過は未評価として通知し、巨大な宣言を黙って欠落させない。Phase 5前に解析予算として固定する。
 
+### 3.1 逐次字句走査の実装（2026-11-07）
+
+Navigationの`CSharpLexer`は任意分割のUTF-16を受け、識別子/キーワードの原文、概略数値、単一記号、本文を保持しないリテラルトークンを返す。位置は共通TextCursorによる64bit原文Offsetと1始まり行/UTF-16列。CRLFとサロゲートをチャンク途中で切っても位置を保つ。C#のNEL/LS/PSは字句上の改行として扱い、位置表示は既存本文のCR/LF契約に従う。条件付きコンパイルの式は評価せず、指令行以外の両分岐を走査する。
+
+通常文字列/文字、逐語文字列、単行/複数行raw、通常/逐語/raw補間を処理する。補間の入れ子・式内の括弧/コメント/リテラルを追跡し、内容は宣言トークンへ出さない。rawは引用符数、複数行終端位置、`$`に応じた波括弧数を確認する。単純な書式部は除外し、書式部に引用符・開き波括弧・改行がある未対応形、Unicodeエスケープ識別子、未完了リテラル、不正UTF-16、上限超過は明示的なエラーとする。C#コンパイラー相当の数値/構文検証やrawインデント値の生成は行わない。
+
+先読み16 Ki + 4単位、語/数値4,096単位（`@`のみ1単位追加）、raw開始区切りの引用符/`$`各4,096、リテラルと補間内括弧の合計深さ1,024を上限とする。長いコメント/リテラル本体を保持しない。`Push`中のトークンは仮で、`Complete`成功時だけファイルを確定できる。取消/消費側停止/例外時は作業領域をクリアし、終了後だけ再利用できる。
+
+`CSharpFileLexer`は既存FileReaderから厳格復号済みチャンクを借り、`.cs`に限定する。Stamp確認後にEOFを確定し、読取/解析の失敗・停止時は`CanCommit=false`を返して当該ファイルの候補を無効化できる。借用したPreparedTextの所有は呼出元のまま。候補をSearchEventで配信する処理、宣言用256トークン/16 Ki/型文脈の予算、GUIは後続。通常UIから未接続なので、起動/描画/参照検索の経路に追加走査はない。
+
+[76件の単体・実ファイル検証と補助スモーク](../validation-results/2026-11-07-csharp-lexer/README.md)。境界の仕様参照：[C#字句構造](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure)、[raw文字列](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/raw-string-literal.md)、[補間文字列](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated)。
+
 ## 4. 宣言候補の検出
 
 | 種別 | 初期対応の形 | 判定に使う文脈 |

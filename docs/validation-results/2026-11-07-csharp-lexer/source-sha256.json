@@ -1,0 +1,6 @@
+{
+  "src/codeView/Navigation/CSharpLexer.cs": "d654538f62e27dc11a1a82de612dd15f8680bfdd818cb1efb60d98299eff815c",
+  "src/codeView/Navigation/CSharpFileLexer.cs": "f5dfbc8532bb9717f5daf5050f38e5bdf0e22bbc0ee9a94c83d72859bf68989b",
+  "tests/codeView.Tests/Navigation/CSharpLexerTests.cs": "e18fd662014a5523a721df7e2bec64b7de4328335bc0f59578c5138e376580b1",
+  "tests/codeView.Tests/Navigation/CSharpFileLexerTests.cs": "14dfba8d7a09e957b9bf19f85e9d95272573f42efc2a52a90b09edc317820992"
+}

@@ -1,0 +1,19 @@
+using CodeView.Navigation;
+var lexer = new CSharpLexer();
+int files = 0, failed = 0;
+long sourceChars = 0, tokens = 0;
+foreach (var path in args.Order(StringComparer.Ordinal))
+{
+    var text = File.ReadAllText(path);
+    if (lexer.IsFinished) lexer.Reset();
+    bool Consume(CSharpToken token) { tokens++; return true; }
+    for (var start = 0; start < text.Length && !lexer.IsFinished; start += 701)
+        lexer.Push(text.AsSpan(start, Math.Min(701, text.Length - start)), Consume);
+    if (!lexer.IsFinished) lexer.Complete(Consume);
+    files++; sourceChars += text.Length;
+    if (lexer.IsComplete) continue;
+    failed++;
+    Console.WriteLine($"{path}:{lexer.Position.Line}:{lexer.Position.Column}: {lexer.Error} offset={lexer.Offset}");
+}
+Console.WriteLine($"Files={files} Failed={failed} SourceChars={sourceChars} ProvisionalTokens={tokens}");
+return failed == 0 ? 0 : 1;
