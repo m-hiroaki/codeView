@@ -38,7 +38,11 @@ CHECKS = [
     'tab-view-restores-second-search-conditions', 'tab-view-close-releases-source-and-restores-search',
     'workspace-first-root-search-results', 'workspace-switch-replaces-tree',
     'workspace-switch-invalidates-previous-results', 'workspace-old-row-cannot-replace-current-view',
-    'workspace-search-uses-new-root', 'workspace-close-preserves-open-tabs', 'all-input-sha256-unchanged',
+    'workspace-search-uses-new-root', 'workspace-close-preserves-open-tabs',
+    'tree-links-visible-in-name-order', 'tree-folder-link-does-not-expand',
+    'tree-links-not-followed-by-workspace-search', 'tree-file-link-explicitly-opens',
+    'tree-folder-link-explicit-root-and-cycle-blocked', 'tree-search-resolves-explicit-root',
+    'all-input-sha256-unchanged',
 ]
 
 

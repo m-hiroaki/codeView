@@ -229,6 +229,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckTabsAsync(root, before, Hash, Require, ct);
             await CheckTabViewStateAsync(root, before, Hash, Require, ct);
             await CheckWorkspaceSwitchAsync(root, before, Hash, Require, ct);
+            await CheckTreeLinksAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -545,6 +546,60 @@ internal sealed partial class GuiPerformanceProbe
         require(!_viewModel.HasWorkspace && !_viewModel.CanSearchWorkspace && !panel.CanStart
             && panel.Rows.Count == 0 && !_viewModel.FileTree.HasRows && _viewModel.Tabs.SequenceEqual(tabs)
             && ReferenceEquals(document, _editor.Document), "workspace-close-preserves-open-tabs");
+    }
+
+    private async Task CheckTreeLinksAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,
+        Action<bool, string> require, CancellationToken ct)
+    {
+        var workspace = Directory.CreateDirectory(Path.Combine(root, "link-workspace")).FullName;
+        var external = Directory.CreateDirectory(Path.Combine(root, "link-target")).FullName;
+        var target = Path.Combine(external, "source.txt");
+        var fileLink = Path.Combine(workspace, "file-link.txt");
+        var folderLink = Path.Combine(workspace, "folder-link");
+        var regular = Path.Combine(workspace, "regular.txt");
+        const string body = "LinkedOnlyMarker";
+        await File.WriteAllTextAsync(target, body, ct);
+        await File.WriteAllTextAsync(regular, "plain text", ct);
+        File.CreateSymbolicLink(fileLink, target);
+        Directory.CreateSymbolicLink(folderLink, external);
+        Directory.CreateSymbolicLink(Path.Combine(external, "cycle"), workspace);
+        inputs.Add(target, hash(target));
+        inputs.Add(regular, hash(regular));
+
+        await _viewModel.OpenFilesAsync([workspace], OpenOrigin.Menu);
+        await Frame(ct);
+        var rows = _viewModel.FileTree.Rows;
+        require(rows.Select(row => row.Name).SequenceEqual(["folder-link", "file-link.txt", "regular.txt"])
+            && rows[0].Detail == "リンク" && rows[1].Detail == "リンク", "tree-links-visible-in-name-order");
+        var tree = _window.FindControl<ListBox>("FileTreeList")!;
+        var existing = _editor.Document;
+
+        async Task OpenSelectedAsync(FileTreeRow row)
+        {
+            tree.SelectedItem = row;
+            RaiseSearchKey(tree, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+        }
+
+        await OpenSelectedAsync(rows[0]);
+        require(rows.Count == 3 && !rows[0].CanExpand && _viewModel.WorkspacePath == workspace
+            && ReferenceEquals(_editor.Document, existing), "tree-folder-link-does-not-expand");
+        var panel = _viewModel.SearchPanel;
+        panel.Query = body;
+        await panel.StartAsync().WaitAsync(ct);
+        require(panel.Rows.Count == 0 && !panel.IsRunning, "tree-links-not-followed-by-workspace-search");
+
+        await OpenSelectedAsync(rows[1]);
+        require(_viewModel.FilePath == fileLink && _editor.Document.Text == body && _editor.TextArea.IsFocused,
+            "tree-file-link-explicitly-opens");
+        var opened = _editor.Document;
+        await _viewModel.OpenFilesAsync([folderLink], OpenOrigin.Menu);
+        await Frame(ct);
+        require(_viewModel.WorkspacePath == folderLink && rows.Select(row => row.Name).SequenceEqual(["cycle", "source.txt"])
+            && !rows[0].CanExpand && ReferenceEquals(_editor.Document, opened), "tree-folder-link-explicit-root-and-cycle-blocked");
+        await panel.StartAsync().WaitAsync(ct);
+        require(panel.Rows.Single().FullPath == target, "tree-search-resolves-explicit-root");
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)
