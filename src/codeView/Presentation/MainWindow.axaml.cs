@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Presenters;
@@ -31,6 +32,7 @@ internal sealed partial class MainWindow : Window
         GuiPerformanceProbe.Checkpoint("window-xaml-loaded");
 #endif
         DataContext = viewModel;
+        ConfigureResizablePanels(viewModel);
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
@@ -229,6 +231,65 @@ internal sealed partial class MainWindow : Window
         });
         var paths = selected.Select(file => file.TryGetLocalPath()).OfType<string>().ToArray();
         if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
+    }
+
+    private void ConfigureResizablePanels(MainWindowViewModel viewModel)
+    {
+        const double MinimumTreeWidth = 160;
+        const double MinimumResultsHeight = 155;
+        var tree = this.FindControl<Grid>("DocumentLayout")!.ColumnDefinitions[0];
+        var results = this.FindControl<Grid>("MainLayout")!.RowDefinitions[3];
+        var savedTreeWidth = 280d;
+        var savedResultsHeight = 280d;
+
+        void UpdateLimits()
+        {
+            tree.MaxWidth = Math.Max(MinimumTreeWidth, (Bounds.Width > 0 ? Bounds.Width : Width) * 0.48);
+            results.MaxHeight = Math.Max(MinimumResultsHeight, (Bounds.Height > 0 ? Bounds.Height : Height) * 0.55);
+        }
+
+        void UpdateTree()
+        {
+            if (viewModel.IsTreeVisible)
+            {
+                tree.MinWidth = MinimumTreeWidth;
+                if (tree.Width.Value == 0) tree.Width = new GridLength(savedTreeWidth);
+            }
+            else
+            {
+                if (tree.Width.Value > 0) savedTreeWidth = tree.Width.Value;
+                tree.MinWidth = 0;
+                tree.Width = new GridLength(0);
+            }
+        }
+
+        void UpdateResults()
+        {
+            if (viewModel.SearchPanel.IsVisible)
+            {
+                results.MinHeight = MinimumResultsHeight;
+                if (results.Height.Value == 0) results.Height = new GridLength(savedResultsHeight);
+            }
+            else
+            {
+                if (results.Height.Value > 0) savedResultsHeight = results.Height.Value;
+                results.MinHeight = 0;
+                results.Height = new GridLength(0);
+            }
+        }
+
+        SizeChanged += (_, _) => UpdateLimits();
+        viewModel.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(MainWindowViewModel.IsTreeVisible)) UpdateTree();
+        };
+        viewModel.SearchPanel.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(SearchPanelViewModel.IsVisible)) UpdateResults();
+        };
+        UpdateLimits();
+        UpdateTree();
+        UpdateResults();
     }
 
     private async Task<bool> HandleSearchKeyAsync(KeyEventArgs key)

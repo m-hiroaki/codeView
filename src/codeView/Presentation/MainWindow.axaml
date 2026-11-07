@@ -6,7 +6,7 @@
         x:DataType="vm:MainWindowViewModel"
         Title="codeView" Width="1180" Height="800" MinWidth="680" MinHeight="460"
         Background="#14181F">
-    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+    <Grid x:Name="MainLayout" RowDefinitions="Auto,Auto,*,0,Auto,Auto">
         <Menu Background="#191E26">
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
@@ -49,8 +49,8 @@
                 <TextBlock Text="{Binding FilePath}" TextTrimming="CharacterEllipsis" Foreground="#BDC8D7" />
             </StackPanel>
         </Border>
-        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
-            <Border Width="280" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,0,1,0" IsVisible="{Binding IsTreeVisible}">
+        <Grid x:Name="DocumentLayout" Grid.Row="2" ColumnDefinitions="0,*">
+            <Border x:Name="FileTreePane" Margin="0,0,6,0" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,0,1,0" IsVisible="{Binding IsTreeVisible}">
                 <Grid RowDefinitions="Auto,Auto,*">
                     <Grid Margin="12,8" ColumnDefinitions="*,Auto">
                         <TextBlock Text="ファイル" FontSize="12" Foreground="#A9B9CD" VerticalAlignment="Center" />
@@ -86,6 +86,9 @@
                     </ListBox>
                 </Grid>
             </Border>
+            <GridSplitter x:Name="FileTreeSplitter" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                          ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" Focusable="True" Background="#303A48"
+                          IsVisible="{Binding IsTreeVisible}" AutomationProperties.Name="ファイルツリーの幅を調整" />
             <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
                 <ListBox x:Name="TabList" Height="48" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
                          SelectedItem="{Binding SelectedTab, Mode=TwoWay}" SelectionMode="Single"
@@ -138,7 +141,7 @@
         </StackPanel>
             </Grid>
         </Grid>
-        <Border Grid.Row="3" Height="280" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,1,0,0"
+        <Border x:Name="SearchResultsPane" Grid.Row="3" Margin="0,6,0,0" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,1,0,0"
                 IsVisible="{Binding SearchPanel.IsVisible}" Padding="10,8">
             <Grid RowDefinitions="Auto,Auto,Auto,*">
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
@@ -183,6 +186,9 @@
                 </ListBox>
             </Grid>
         </Border>
+        <GridSplitter x:Name="SearchResultsSplitter" Grid.Row="3" Height="6" VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                      ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent" Focusable="True" Background="#303A48"
+                      IsVisible="{Binding SearchPanel.IsVisible}" AutomationProperties.Name="検索結果パネルの高さを調整" />
         <Border Grid.Row="4" Background="#191E26" Padding="12,5">
             <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
         </Border>

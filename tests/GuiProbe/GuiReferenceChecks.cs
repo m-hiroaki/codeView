@@ -1,6 +1,8 @@
+using Avalonia;
 using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
@@ -165,6 +167,35 @@ internal sealed partial class GuiPerformanceProbe
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(panel.Rows.Count == 3 && panel.Rows.All(panel.CanActivate), "folder-enter-retries-committed-query");
+            var resultsPane = _window.FindControl<Border>("SearchResultsPane")!;
+            var resultsSplitter = _window.FindControl<GridSplitter>("SearchResultsSplitter")!;
+            var initialHeight = resultsPane.Bounds.Height;
+            DragSplitter(resultsSplitter, new Vector(0, 24));
+            await Frame(ct);
+            var resizedHeight = resultsPane.Bounds.Height;
+            Require(resizedHeight < initialHeight - 8 && panel.Rows.Count == 3, "folder-drag-resizes-results");
+            panel.IsVisible = false;
+            await Frame(ct);
+            Require(!resultsSplitter.IsEffectivelyVisible && panel.Rows.Count == 3
+                && _window.FindControl<Grid>("MainLayout")!.RowDefinitions[3].ActualHeight == 0, "folder-hide-releases-row");
+            panel.IsVisible = true;
+            await Frame(ct);
+            Require(Math.Abs(resultsPane.Bounds.Height - resizedHeight) < 1, "folder-show-restores-height");
+
+            var treePane = _window.FindControl<Border>("FileTreePane")!;
+            var treeSplitter = _window.FindControl<GridSplitter>("FileTreeSplitter")!;
+            var initialWidth = treePane.Bounds.Width;
+            DragSplitter(treeSplitter, new Vector(24, 0));
+            await Frame(ct);
+            var resizedWidth = treePane.Bounds.Width;
+            Require(resizedWidth > initialWidth + 8, "tree-drag-resizes-width");
+            _viewModel.IsTreeVisible = false;
+            await Frame(ct);
+            Require(!treeSplitter.IsEffectivelyVisible
+                && _window.FindControl<Grid>("DocumentLayout")!.ColumnDefinitions[0].ActualWidth == 0, "tree-hide-releases-column");
+            _viewModel.IsTreeVisible = true;
+            await Frame(ct);
+            Require(Math.Abs(treePane.Bounds.Width - resizedWidth) < 1, "tree-show-restores-width");
             _viewModel.CloseWorkspace();
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift });
             await _viewModel.PendingWork.WaitAsync(ct);
@@ -179,6 +210,13 @@ internal sealed partial class GuiPerformanceProbe
             Console.Error.WriteLine(error);
             Finish("reference-check-failed: " + error.Message);
         }
+    }
+
+    private static void DragSplitter(GridSplitter splitter, Vector delta)
+    {
+        splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragStartedEvent });
+        splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragDeltaEvent, Vector = delta });
+        splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragCompletedEvent, Vector = delta });
     }
 
     private Task Frame(CancellationToken ct)

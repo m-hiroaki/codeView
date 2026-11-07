@@ -17,7 +17,9 @@ CHECKS = [
     'in-file-enter-selects-wrapped-match', 'in-file-escape-restores-editor',
     'folder-shortcut-focus', 'folder-ime-client', 'folder-preedit-enter-does-not-search',
     'folder-enter-starts-search', 'folder-escape-cancels-with-panel-visible',
-    'folder-enter-retries-committed-query', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
+    'folder-enter-retries-committed-query',
+    'folder-drag-resizes-results', 'folder-hide-releases-row', 'folder-show-restores-height',
+    'tree-drag-resizes-width', 'tree-hide-releases-column', 'tree-show-restores-width', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
 ]
 
 

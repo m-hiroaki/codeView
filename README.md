@@ -67,6 +67,10 @@ start "" "artifacts\test-results\windows\coverage\html\index.html"
 test-windows.bat --performance
 ```
 
+## パネルの表示とサイズ
+
+「表示」メニューでファイルツリーと検索結果を切り替えます。ツリーの右端と検索結果の上端をドラッグしてサイズを調整できます。パネルを再表示すると、調整したサイズに戻ります。
+
 ## ファイル内検索
 
 Ctrl+F（macOSはCmd+F）または「検索 → ファイル内を検索」で開きます。Enterで次へ、Shift+Enterで前へ移動し、Escapeで閉じます。検索語と条件はタブごとに保持します。通常の文字列検索、大小文字の区別、単語単位、正規表現に対応します。件数が「少なくとも」と表示されているときも、次・前で保持範囲の外へ移動できます。[検索仕様](docs/detailed-design/05-search.md#74-ファイル内検索の実装)
