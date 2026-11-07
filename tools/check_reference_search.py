@@ -12,7 +12,9 @@ CHECKS = [
     'menu-selection-reference-search', 'result-enter-original-cp932-selection', 'result-enter-editor-focus',
     'invalid-selection-keeps-results', 'unicode-selection-and-word-boundaries',
     'f12-single-definition-auto-selection', 'definition-menu-multiple-candidates',
-    'definition-enter-original-selection', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
+    'definition-enter-original-selection', 'in-file-shortcut-focus', 'in-file-ime-client',
+    'in-file-preedit-does-not-search', 'in-file-committed-input-matches',
+    'in-file-enter-selects-wrapped-match', 'in-file-escape-restores-editor', 'missing-workspace-guidance', 'all-input-sha256-unchanged',
 ]
 
 

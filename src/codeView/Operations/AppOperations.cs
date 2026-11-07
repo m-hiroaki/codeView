@@ -14,6 +14,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private readonly SemaphoreSlim _loadSlot = new(1, 1);
     private bool _stopping;
     private readonly SemaphoreSlim _treeSlot = new(1, 1);
+    private SemaphoreSlim? _inFileSearchSlot;
     private readonly OperationIdentity _workspaceEpoch = new();
     private readonly OperationIdentity _requestIds = new();
     private readonly OperationIdentity _workspaceSearchEpoch = new();
@@ -35,6 +36,19 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         var search = new TextSearch(directories, reader);
         return request.Definitions ? new SimpleSymbolNavigator(search, reader).FindDefinitions(request, ct)
             : search.StartWorkspace(request, ct);
+    }
+
+    internal async Task<T> RunInFileSearchAsync<T>(DocumentHandle document, Func<DocumentReadLease, T> scan, CancellationToken ct)
+    {
+        var slot = _inFileSearchSlot ??= new(1, 1);
+        await slot.WaitAsync(ct);
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+            using var lease = document.AcquireReadView();
+            return await Task.Run(() => scan(lease));
+        }
+        finally { slot.Release(); }
     }
 
     public Task PendingSearchWork => _searches?.PendingWork ?? Task.CompletedTask;

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using CodeView.Operations;
 
@@ -112,6 +113,30 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct); await Frame(ct);
             Require(_viewModel.FilePath == duplicate && _editor.SelectedText == "@Target"
                 && _editor.TextArea.IsFocused, "definition-enter-original-selection");
+            var findKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F,
+                KeyModifiers = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control };
+            RaiseSearchKey(_editor.TextArea, findKey);
+            await Frame(ct);
+            var query = _window.FindControl<TextBox>("InFileQuery")!;
+            Require(findKey.Handled && query.IsFocused && query.IsEffectivelyVisible, "in-file-shortcut-focus");
+            var client = new TextInputMethodClientRequestedEventArgs { RoutedEvent = InputElement.TextInputMethodClientRequestedEvent };
+            query.RaiseEvent(client);
+            Require(client.Client?.SupportsPreedit == true, "in-file-ime-client");
+            client.Client!.SetPreeditText("変換中");
+            await Frame(ct);
+            Require(string.IsNullOrEmpty(_viewModel.InFileSearch.Query), "in-file-preedit-does-not-search");
+            client.Client.SetPreeditText(null);
+            query.RaiseEvent(new TextInputEventArgs { RoutedEvent = InputElement.TextInputEvent, Text = "Target" });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            Require(_viewModel.InFileSearch.Query == "Target" && _viewModel.InFileSearch.Matches.Count == 1,
+                "in-file-committed-input-matches");
+            RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            Require(_editor.SelectedText == "Target" && _viewModel.InFileSearch.Summary.Contains("折り返し"),
+                "in-file-enter-selects-wrapped-match");
+            RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
+            Require(!_viewModel.InFileSearch.IsVisible && _editor.TextArea.IsFocused, "in-file-escape-restores-editor");
             _viewModel.CloseWorkspace();
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift });
             await _viewModel.PendingWork.WaitAsync(ct);

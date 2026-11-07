@@ -34,6 +34,7 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         this.FindControl<MenuItem>("FindDefinitionsMenu")!.InputGesture = new KeyGesture(Key.F12);
         this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F12, KeyModifiers.Shift);
+        this.FindControl<MenuItem>("InFileSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -46,6 +47,17 @@ internal sealed partial class MainWindow : Window
             {
                 key.Handled = true;
                 await RunAsync(() => FindSymbolAsync(definitions: key.KeyModifiers == KeyModifiers.None));
+                return;
+            }
+            if (key.Key == Key.F && key.KeyModifiers == modifier)
+            { key.Handled = true; Run(ShowInFileSearch); return; }
+            if (viewModel.InFileSearch.IsVisible && key.Key == Key.Escape && key.KeyModifiers == KeyModifiers.None)
+            { key.Handled = true; Run(HideInFileSearch); return; }
+            if (viewModel.InFileSearch.IsVisible && key.Key == Key.Enter && key.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift
+                && this.FindControl<TextBox>("InFileQuery")!.IsFocused)
+            {
+                key.Handled = true;
+                await RunAsync(() => MoveInFileAsync(key.KeyModifiers == KeyModifiers.Shift));
                 return;
             }
             if (key.Key == Key.F && key.KeyModifiers == (modifier | KeyModifiers.Shift))
@@ -73,6 +85,27 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        InFileMatchRenderer? searchRenderer = null;
+        viewModel.InFileSearch.MatchesChanged += () =>
+        {
+            var textView = editor.TextArea.TextView;
+            if (viewModel.InFileSearch.IsVisible)
+            {
+                if (searchRenderer is null)
+                {
+                    searchRenderer = new(viewModel.InFileSearch);
+                    textView.BackgroundRenderers.Add(searchRenderer);
+                }
+                textView.InvalidateLayer(searchRenderer.Layer);
+            }
+            else if (searchRenderer is { } existing)
+            {
+                textView.BackgroundRenderers.Remove(existing);
+                textView.InvalidateLayer(existing.Layer);
+                searchRenderer = null;
+            }
+        };
+        viewModel.InFileSearch.FatalFailure += FailAndClose;
         // Text drag/drop is disabled in editor options. Its detach handler sets a local false,
         // so explicitly allow file drops to bubble from the text area to this window.
         DragDrop.SetAllowDrop(this, true);
@@ -205,6 +238,51 @@ internal sealed partial class MainWindow : Window
         _viewModel.SearchPanel.IsVisible = true;
         this.FindControl<TextBox>("SearchQuery")!.Focus();
     }
+
+    private void ShowInFileSearch()
+    {
+        if (!_viewModel.InFileSearch.CanOpen) return;
+        _viewModel.InFileSearch.IsVisible = true;
+        var input = this.FindControl<TextBox>("InFileQuery")!;
+        input.Focus();
+        input.SelectAll();
+    }
+
+    private void HideInFileSearch()
+    {
+        _viewModel.InFileSearch.IsVisible = false;
+        this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
+    }
+
+    private async Task MoveInFileAsync(bool previous)
+    {
+        var editor = this.FindControl<TextEditor>("Editor")!;
+        var document = editor.Document;
+        var epoch = _viewModel.ViewEpoch;
+        var caret = editor.CaretOffset;
+        var start = editor.SelectionStart;
+        var length = editor.SelectionLength;
+        var search = _viewModel.InFileSearch;
+        var work = search.MoveAsync(caret, start, length, previous);
+        var revision = search.Revision;
+        var target = await work;
+        if (_closing || target is not { } match || _viewModel.ViewEpoch != epoch || search.Revision != revision
+            || !ReferenceEquals(document, editor.Document) || editor.CaretOffset != caret
+            || editor.SelectionStart != start || editor.SelectionLength != length) return;
+
+        var offset = checked((int)match.Offset);
+        editor.CaretOffset = offset;
+        editor.Select(offset, checked((int)match.Length));
+        var location = document.GetLocation(offset);
+        editor.ScrollTo(location.Line, location.Column);
+        editor.TextArea.TextView.EnsureVisualLines();
+        editor.TextArea.Caret.BringCaretToView(40);
+    }
+
+    private void ShowInFileSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowInFileSearch);
+    private void HideInFileSearchClicked(object? sender, RoutedEventArgs args) => Run(HideInFileSearch);
+    private async void InFilePreviousClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => MoveInFileAsync(true));
+    private async void InFileNextClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => MoveInFileAsync(false));
 
     private Task FindSymbolAsync(bool definitions)
     {

@@ -33,6 +33,7 @@
                 <MenuItem Header="検索結果パネル" ToggleType="CheckBox" IsChecked="{Binding SearchPanel.IsVisible, Mode=TwoWay}" />
             </MenuItem>
             <MenuItem Header="検索">
+                <MenuItem x:Name="InFileSearchMenu" Header="ファイル内を検索" IsEnabled="{Binding InFileSearch.CanOpen}" Click="ShowInFileSearchClicked" />
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
                 <MenuItem x:Name="FindDefinitionsMenu" Header="定義へジャンプ（簡易）" IsEnabled="{Binding HasDocument}" Click="FindDefinitionsClicked" />
                 <MenuItem x:Name="FindReferencesMenu" Header="参照を検索（名前一致）" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
@@ -85,7 +86,7 @@
                     </ListBox>
                 </Grid>
             </Border>
-            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
                 <ListBox x:Name="TabList" Height="48" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
                          SelectedItem="{Binding SelectedTab, Mode=TwoWay}" SelectionMode="Single"
                          SelectionChanged="TabSelectionChanged"
@@ -104,7 +105,24 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-        <editor:TextEditor Grid.Row="1" x:Name="Editor"
+                <Border Grid.Row="1" Background="#202630" Padding="8,5" IsVisible="{Binding InFileSearch.IsVisible}">
+                    <StackPanel Spacing="4">
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                            <TextBox x:Name="InFileQuery" Text="{Binding InFileSearch.Query, Mode=TwoWay}"
+                                     PlaceholderText="ファイル内を検索" AutomationProperties.Name="ファイル内検索語" />
+                            <Button Grid.Column="1" Content="前へ" Click="InFilePreviousClicked" Margin="6,0,0,0" />
+                            <Button Grid.Column="2" Content="次へ" Click="InFileNextClicked" Margin="6,0,0,0" />
+                            <Button Grid.Column="3" Content="閉じる" Click="HideInFileSearchClicked" Margin="6,0,0,0" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <CheckBox Content="大小文字を区別" IsChecked="{Binding InFileSearch.MatchCase, Mode=TwoWay}" />
+                            <CheckBox Content="単語単位" IsChecked="{Binding InFileSearch.WholeWord, Mode=TwoWay}" />
+                            <CheckBox Content="正規表現" IsChecked="{Binding InFileSearch.UseRegex, Mode=TwoWay}" />
+                            <TextBlock Text="{Binding InFileSearch.Summary}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+        <editor:TextEditor Grid.Row="2" x:Name="Editor"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
                            WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
                            Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
@@ -113,7 +131,7 @@
                 <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
             <Button Content="ファイルを開く" Click="OpenClicked" HorizontalAlignment="Center" />

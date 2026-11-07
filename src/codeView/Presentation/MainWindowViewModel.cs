@@ -25,6 +25,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private TabViewModel? _selectedTab;
     private TabState? _displayedTab;
     private DocumentHandle? _displayedHandle;
+    private bool _inFileSourceOffsetsAvailable = true;
     private bool _syncingTabs;
     private bool _attaching;
     private int _line = 1;
@@ -75,7 +76,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
         _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
     };
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork }.Concat(_manualWork));
+    public InFileSearchViewModel InFileSearch { get; } = new(operations);
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -455,7 +457,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 #endif
                 _document = file?.Document.ClaimForDisplay();
 #if CODEVIEW_PERFORMANCE_PROBE
-                if (file is not null) _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, _document!, position);
+                if (file is not null)
+                {
+                    var source = _document;
+                    _document = GuiPerformanceProbe.SelectDisplayDocument(file.Document, source!, position);
+                    _inFileSourceOffsetsAvailable = ReferenceEquals(source, _document);
+                }
                 else GuiPerformanceProbe.ClearDocument();
 #endif
                 _displayedTab = tab;
@@ -481,6 +488,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
         }
         finally { _attaching = false; }
+        InFileSearch.Attach(tab, _tabManager.Tabs, _inFileSourceOffsetsAvailable);
         if (changedDocument)
         {
             SetPosition((int)Math.Min(int.MaxValue, position.Line), (int)Math.Min(int.MaxValue, position.Column));
@@ -557,6 +565,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _selectionRequest = null;
         _selectionMove = null;
         List<Exception>? failures = null;
+        Attempt(InFileSearch.Stop);
         Attempt(SearchPanel.Stop);
         Attempt(_lifetime.Cancel);
         Attempt(operations.Dispose);
