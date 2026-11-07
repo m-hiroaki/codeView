@@ -12,7 +12,7 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
     internal const int MaximumChars = 2 * 1024 * 1024;
     internal const int MaximumLineChars = 8192;
     private const int MaximumSpans = 100_000;
-    private static readonly TimeSpan LineTimeout = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan LineTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan TotalTimeout = TimeSpan.FromSeconds(5);
 
     internal static (SyntaxHighlighting? Highlighting, string Status) Read(
