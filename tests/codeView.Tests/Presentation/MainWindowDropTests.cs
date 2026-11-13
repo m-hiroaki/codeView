@@ -90,5 +90,39 @@ internal sealed class MainWindowDropTests
         finally { view.Stop(); await view.PendingWork; Directory.Delete(root, true); }
     });
 
+    [Test]
+    public void DropReportsCopyOnlyAfterTheOpenQueueAdmitsIt() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-drop-queue-");
+        var path = Path.Combine(root.FullName, "body.txt");
+        await File.WriteAllTextAsync(path, "body");
+        var source = new SourceAccess();
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+        var view = new MainWindowViewModel(operations, new SettingsStore(new(
+            Path.Combine(root.FullName, "portable.json"), Path.Combine(root.FullName, "user.json"))), YieldAsync);
+        try
+        {
+            for (var index = 0; index < StartupOpenQueue.MaxRequests - 1; index++)
+                await view.OpenFilesAsync([path], OpenOrigin.Menu);
+            using var data = FileDropInputTests.Files(path);
+            var outstandingAtAcceptance = 0;
+            await view.OpenDropAsync(data, () => outstandingAtAcceptance = operations.Startup.OutstandingCount);
+            Assert.That(outstandingAtAcceptance, Is.EqualTo(StartupOpenQueue.MaxRequests));
+
+            var rejectedCallbackCalled = false;
+            await view.OpenDropAsync(data, () => rejectedCallbackCalled = true);
+            Assert.That(rejectedCallbackCalled, Is.False);
+            Assert.That(operations.Startup.OutstandingCount, Is.EqualTo(StartupOpenQueue.MaxRequests));
+            Assert.That(view.Status, Does.Contain("上限"));
+            Assert.That(view.HasDocument, Is.False);
+        }
+        finally
+        {
+            view.Stop();
+            await view.PendingWork;
+            root.Delete(recursive: true);
+        }
+    });
+
     private static async Task YieldAsync() => await Task.Yield();
 }

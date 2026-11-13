@@ -238,15 +238,17 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 : "ローカルのファイルまたはフォルダをドロップしてください。");
             return Task.CompletedTask;
         }
+        if (!Submit(extracted.Value, OpenOrigin.Drop)) return Task.CompletedTask;
         accepted?.Invoke();
-        return OpenFilesAsync(extracted.Value, OpenOrigin.Drop);
+        return EnsurePumpAsync();
     }
 
-    private void Submit(IReadOnlyList<string> paths, OpenOrigin origin)
+    private bool Submit(IReadOnlyList<string> paths, OpenOrigin origin)
     {
         var result = operations.Startup.Submit(paths, origin);
         if (result.Status == OperationStatus.Failure)
             SetStatus(result.Error!.Code == ErrorCode.QueueFull ? "開く要求が上限に達しました。" : "パスを確認してください。");
+        return result.Status == OperationStatus.Success;
     }
 
     private Task EnsurePumpAsync()
