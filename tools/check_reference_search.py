@@ -18,7 +18,7 @@ CHECKS = [
     'definition-enter-original-selection', 'in-file-deferred-focus-preserves-newer-input',
     'in-file-shortcut-focus', 'in-file-ime-client',
     'in-file-preedit-escape-keeps-panel', 'in-file-preedit-does-not-search', 'in-file-committed-input-matches',
-    'in-file-enter-selects-wrapped-match', 'in-file-escape-restores-editor',
+    'in-file-enter-selects-wrapped-match', 'in-file-late-move-preserves-newer-input', 'in-file-escape-restores-editor',
     'folder-deferred-focus-preserves-newer-input', 'folder-shortcut-focus', 'folder-ime-client',
     'folder-preedit-enter-does-not-search',
     'folder-edited-input-shows-applied-conditions', 'folder-enter-starts-search', 'folder-escape-cancels-with-panel-visible',

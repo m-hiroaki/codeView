@@ -171,6 +171,28 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             Require(_editor.SelectedText == "Target" && _viewModel.InFileSearch.Summary.Contains("折り返し"),
                 "in-file-enter-selects-wrapped-match");
+            _editor.Select(0, 0);
+            _editor.CaretOffset = 0;
+            query.Text = "arget";
+            var inFile = _viewModel.InFileSearch;
+            var laterInput = false;
+            void SendLaterInput()
+            {
+                if (laterInput) return;
+                laterInput = true;
+                RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftShift });
+            }
+            inFile.MatchesChanged += SendLaterInput;
+            try
+            {
+                RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+                await _viewModel.PendingWork.WaitAsync(ct);
+                await Frame(ct);
+            }
+            finally { inFile.MatchesChanged -= SendLaterInput; }
+            Require(laterInput && query.IsFocused && _editor.CaretOffset == 0 && _editor.SelectionLength == 0
+                && inFile.Matches.Count == 1, "in-file-late-move-preserves-newer-input");
+            query.Text = "Target";
             RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
             Require(!_viewModel.InFileSearch.IsVisible && _editor.TextArea.IsFocused, "in-file-escape-restores-editor");
             await CheckDeferredFocusAsync(folderQuery, findModifier | KeyModifiers.Shift, "folder-deferred-focus-preserves-newer-input");

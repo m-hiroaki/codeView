@@ -460,6 +460,7 @@ internal sealed partial class MainWindow : Window
         var editor = this.FindControl<TextEditor>("Editor")!;
         var document = editor.Document;
         var epoch = _viewModel.ViewEpoch;
+        var interaction = _viewModel.InteractionEpoch;
         var caret = editor.CaretOffset;
         var start = editor.SelectionStart;
         var length = editor.SelectionLength;
@@ -467,7 +468,8 @@ internal sealed partial class MainWindow : Window
         var work = search.MoveAsync(caret, start, length, previous);
         var revision = search.Revision;
         var target = await work;
-        if (_closing || target is not { } match || _viewModel.ViewEpoch != epoch || search.Revision != revision
+        if (_closing || target is not { } match || _viewModel.ViewEpoch != epoch
+            || _viewModel.InteractionEpoch != interaction || search.Revision != revision
             || !ReferenceEquals(document, editor.Document) || editor.CaretOffset != caret
             || editor.SelectionStart != start || editor.SelectionLength != length) return;
 
