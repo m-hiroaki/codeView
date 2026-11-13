@@ -53,7 +53,9 @@ CHECKS = [
     'workspace-large-regex-result-is-committed-at-original-tail',
     'workspace-large-result-reuses-tab-and-selects-original-tail', 'workspace-large-results-clear-keeps-document',
     'method-definition-partial-search-does-not-auto-jump', 'method-definition-excludes-comment-and-string',
-    'method-reference-includes-comment-and-string', 'all-input-sha256-unchanged',
+    'method-reference-includes-comment-and-string',
+    'original-copy-keeps-mixed-newlines-and-unicode', 'original-copy-empty-final-line-keeps-clipboard',
+    'all-input-sha256-unchanged',
 ]
 
 
