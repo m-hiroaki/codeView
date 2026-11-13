@@ -12,6 +12,7 @@ on:
       - tools/check_windows_publish.py
       - tools/test_windows_publish.py
       - tools/check_windows_launch.ps1
+      - tools/check_windows_picker.ps1
       - src/codeView/Presentation/MainWindow.axaml.cs
       - src/codeView/codeView.csproj
       - src/codeView/Program.cs
@@ -95,6 +96,10 @@ jobs:
             if ($source.Hash -ne $published.Hash) { throw "Notice content differs: $name" }
           }
           ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile artifacts/publish-validation/起動確認.cs -Output artifacts/publish-validation/launch.json
+      - name: Verify the native Windows file and folder pickers
+        shell: powershell
+        run: |
+          ./tools/check_windows_picker.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -Output artifacts/publish-validation/picker.json
       - name: Verify checked-in dependency locks unchanged
         if: always()
         run: |
