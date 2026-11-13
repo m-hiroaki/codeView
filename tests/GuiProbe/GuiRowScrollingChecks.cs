@@ -129,6 +129,15 @@ internal sealed partial class GuiPerformanceProbe
             Release(blank);
             Check("trailing-blank-click-updates-source-position",
                 _window.FindControl<TextBlock>("CaretPositionStatus")?.Text == "行 1, 列 7");
+            Press(new Point(1, view.DefaultLineHeight / 2));
+            var outsideRight = new Point(view.Bounds.Width + 5, view.DefaultLineHeight / 2);
+            Move(outsideRight);
+            RequireRows(pointer.Captured == _editor && _pointerTimer?.IsEnabled == true,
+                "Horizontal edge drag did not start.");
+            while (_pointerTimer?.IsEnabled == true) await Task.Delay(10, ct);
+            Check("horizontal-edge-drag-stops-at-line-end", source.Anchor == firstLine.Offset &&
+                source.Caret == firstLine.EndOffset && _pointerTimer?.IsEnabled == false);
+            Release(outsideRight);
         }
         source.Select(anchor, caret);
         source.SetViewport(1, 0);

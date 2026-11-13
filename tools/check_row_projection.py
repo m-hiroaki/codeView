@@ -63,7 +63,8 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
     scroll_checks = checks.get("ScrollChecks", [])
     required_scroll = SCROLL_CHECKS | ({"contextual-caret-rectangle-visible"} if contextual and expected["firstLineHasText"] else set())
     if expected["checksTrailingBlank"]:
-        required_scroll |= {"trailing-blank-click-selects-line-end", "trailing-blank-click-updates-source-position"}
+        required_scroll |= {"trailing-blank-click-selects-line-end", "trailing-blank-click-updates-source-position",
+                            "horizontal-edge-drag-stops-at-line-end"}
     if (set(scroll_checks) != required_scroll or len(scroll_checks) != len(required_scroll)
             or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
         raise ValueError("Source scrollbar, wheel/pointer or line extent evidence incomplete")

@@ -67,7 +67,8 @@ class RowProjectionEvidenceTests(unittest.TestCase):
 
     def test_short_ascii_fixture_requires_trailing_blank_click_and_position(self):
         self.expected['checksTrailingBlank'] = True
-        for check in ('trailing-blank-click-selects-line-end', 'trailing-blank-click-updates-source-position'):
+        for check in ('trailing-blank-click-selects-line-end', 'trailing-blank-click-updates-source-position',
+                      'horizontal-edge-drag-stops-at-line-end'):
             with self.assertRaisesRegex(ValueError, 'wheel/pointer'):
                 self.validate()
             self.report['RowProjectionChecks']['ScrollChecks'].append(check)

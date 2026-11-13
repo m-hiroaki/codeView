@@ -236,6 +236,22 @@ public sealed class BoundedPointerSelectionTests
         Assert.That(drag.IsActive, Is.True);
     }
 
+    [TestCase(-1, 5L)]
+    [TestCase(1, 8L)]
+    public void HorizontalRowEdgeStepsStopBeforeTheAdjacentLine(int direction, long expected)
+    {
+        using var handle = Create("one\r\na😀\r\nlast");
+        using var source = new DocumentDisplaySession(handle);
+        source.SetViewport(2, 0);
+        var rows = source.CreateRowProjection(1, 16);
+        var drag = new BoundedPointerSelection();
+        Assert.That(drag.BeginRows(source, rows, 1, 1, extend: false, wholeLine: false), Is.True);
+        Assert.That(drag.StepOutside(source, 1, direction, 0, stayOnRow: true), Is.True);
+        Assert.That((source.Anchor, source.Caret), Is.EqualTo((6L, expected)));
+        Assert.That(drag.StepOutside(source, 1, direction, 0, stayOnRow: true), Is.False);
+        Assert.That((source.Anchor, source.Caret), Is.EqualTo((6L, expected)));
+    }
+
     [Test]
     public void VerticalStepTakesPriorityAndRetainsPreferredColumn()
     {

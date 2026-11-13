@@ -536,7 +536,7 @@ internal sealed partial class GuiPerformanceProbe
             if (_finished || _displaySession is not { } source || _pointerSelection.PointerId is not { } id)
             { _pointerTimer?.Stop(); return; }
             var outside = PointerOutside();
-            if (!_pointerSelection.StepOutside(source, id, outside.Horizontal, outside.Vertical))
+            if (!_pointerSelection.StepOutside(source, id, outside.Horizontal, outside.Vertical, stayOnRow: _rowsEnabled))
             { _pointerTimer?.Stop(); return; }
             _pointerEdgeSteps++;
             if (_rowsEnabled) RevealRowCaret();

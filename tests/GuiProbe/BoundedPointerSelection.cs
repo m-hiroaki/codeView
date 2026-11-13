@@ -71,7 +71,8 @@ internal sealed class BoundedPointerSelection
         return true;
     }
 
-    public bool StepOutside(DocumentDisplaySession source, long pointerId, int horizontal, int vertical)
+    public bool StepOutside(DocumentDisplaySession source, long pointerId, int horizontal, int vertical,
+        bool stayOnRow = false)
     {
         if (horizontal is < -1 or > 1 || vertical is < -1 or > 1)
             throw new ArgumentOutOfRangeException(nameof(horizontal));
@@ -87,7 +88,18 @@ internal sealed class BoundedPointerSelection
         }
         else if (vertical != 0) source.MoveLines(vertical, extendSelection: true);
         else if (horizontal != 0)
-            for (var index = 0; index < 32; index++) source.MoveHorizontal(horizontal, extendSelection: true);
+        {
+            var line = stayOnRow ? source.Position.Line : 0;
+            for (var index = 0; index < 32; index++)
+            {
+                var previous = source.Caret;
+                source.MoveHorizontal(horizontal, extendSelection: true);
+                if (source.Caret == previous) break;
+                if (!stayOnRow || source.Position.Line == line) continue;
+                source.MoveCaret(previous, extendSelection: true);
+                break;
+            }
+        }
         return source.Caret != before || (_lineAnchor.HasValue && _lineTarget != beforeLine);
     }
 
