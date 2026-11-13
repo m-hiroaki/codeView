@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using Avalonia.Threading;
 using CodeView.Documents;
 
 namespace CodeView.Presentation;
@@ -16,12 +17,15 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private Rect[] _selection = [];
     private Point? _caret;
     private IPointer? _dragPointer;
+    private DispatcherTimer? _dragTimer;
+    private Point _dragPoint;
     private double _origin;
 
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
     internal Point? CaretPosition => _caret;
     internal event Func<Point, long, bool, bool>? SourceSelectionRequested;
     internal Func<Point, ContextualRowControl?>? FindDragRow { get; set; }
+    internal Func<Point, bool>? ScrollDragViewport { get; set; }
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground, double tabWidth)
     {
@@ -155,23 +159,48 @@ internal sealed class ContextualRowControl : Control, IDisposable
     {
         base.OnPointerReleased(e);
         if (!ReferenceEquals(_dragPointer, e.Pointer) || e.InitialPressMouseButton != MouseButton.Left) return;
-        try { if (!e.Handled) ExtendDrag(e); }
+        try { if (!e.Handled) ExtendDrag(e, allowScroll: false); }
         finally { EndDrag(); }
     }
 
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
-        if (ReferenceEquals(_dragPointer, e.Pointer)) _dragPointer = null;
+        if (ReferenceEquals(_dragPointer, e.Pointer)) EndDrag();
         base.OnPointerCaptureLost(e);
     }
 
-    private void ExtendDrag(PointerEventArgs e)
+    private void ExtendDrag(PointerEventArgs e, bool allowScroll = true)
     {
         var point = e.GetPosition(this);
         var row = FindDragRow is { } find ? find(point) : this;
-        if (row is not null && TryExtendTo(row, point) == false)
-            EndDrag();
+        if (row is not null)
+        {
+            _dragTimer?.Stop();
+            if (!TryExtendTo(row, point)) EndDrag();
+        }
+        else if (allowScroll && ScrollDragViewport is not null)
+        {
+            // Keep the pointer in root coordinates while scrolling moves this row.
+            if (VisualRoot is Visual root && this.TranslatePoint(point, root) is { } rootPoint)
+            {
+                _dragPoint = rootPoint;
+                if (_dragTimer is null)
+                {
+                    _dragTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+                    _dragTimer.Tick += (_, _) => ScrollDrag();
+                }
+                _dragTimer.Start();
+            }
+        }
         e.Handled = true;
+    }
+
+    private void ScrollDrag()
+    {
+        if (_dragPointer?.Captured != this || VisualRoot is not Visual root
+            || root.TranslatePoint(_dragPoint, this) is not { } point
+            || ScrollDragViewport?.Invoke(point) != true)
+            _dragTimer?.Stop();
     }
 
     private bool TryExtendTo(ContextualRowControl row, Point point)
@@ -181,10 +210,14 @@ internal sealed class ContextualRowControl : Control, IDisposable
             || row.SourceSelectionRequested?.Invoke(local, offset, true) == true;
     }
 
+    internal bool TryExtendAt(Point point) => TryHitSource(point, out var offset)
+        && SourceSelectionRequested?.Invoke(point, offset, true) == true;
+
     private void EndDrag()
     {
         var pointer = _dragPointer;
         _dragPointer = null;
+        _dragTimer?.Stop();
         if (pointer?.Captured == this) pointer.Capture(null);
     }
 
