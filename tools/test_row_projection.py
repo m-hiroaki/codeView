@@ -15,7 +15,7 @@ class RowProjectionEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.commit = 'a' * 40
         self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body', 'maximumLineLength': 3,
-                         'firstLineHasText': True, 'checksTrailingBlank': False}
+                         'firstLineHasText': True, 'checksTrailingBlank': False, 'checksInitialGrapheme': False}
         checks = ['routed-document-end', 'end-caret-projected', 'routed-document-start', 'routed-shift-selection',
                   'routed-select-all-original', 'native-selection-excludes-synthetic-lf', 'selection-spans-exclude-separators',
                   'offscreen-caret-stays-independent', 'selection-background-rendered', 'next-input-reveals-source-caret',
@@ -56,6 +56,11 @@ class RowProjectionEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'wheel/pointer'):
             validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         checks['ScrollChecks'].append('contextual-caret-rectangle-visible')
+        self.expected['checksInitialGrapheme'] = True
+        for check in ('routed-shift-selects-whole-grapheme', 'routed-shift-returns-to-grapheme-start'):
+            with self.assertRaisesRegex(ValueError, 'Source, checks'):
+                validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
+            checks['Checks'].append(check)
         validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         with self.assertRaisesRegex(ValueError, 'ContextualDrawnRows'):
             self.validate()

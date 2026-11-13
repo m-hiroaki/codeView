@@ -35,6 +35,7 @@ def fixture(path):
     return {"path": str(path), "inputSha256": sha256(path), "bodySha256": hashlib.sha256(raw).hexdigest(),
             "characters": len(raw) // 2, "lines": 1 + len(re.findall(r"\r\n|\r|\n", text)),
             "firstLineHasText": bool(text and text[0] not in "\r\n"),
+            "checksInitialGrapheme": text.startswith("a\u0301"),
             "checksTrailingBlank": re.split(r"\r\n|\r|\n", text, maxsplit=1)[0] == "before",
             "maximumLineLength": max(len(line.encode("utf-16-le")) // 2 for line in re.split(r"\r\n|\r|\n", text))}
 
@@ -76,6 +77,8 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
     required.update("bounded-rows-" + str(i) for i in range(64))
     if expected["characters"]:
         required.add("native-clipboard-original-count")
+    if contextual and expected["checksInitialGrapheme"]:
+        required.update(("routed-shift-selects-whole-grapheme", "routed-shift-returns-to-grapheme-start"))
     if (set(names) != required or len(names) != len(required)
             or checks.get("SourceSha256") != expected["bodySha256"]
             or checks.get("Utf16Characters") != expected["characters"] or checks.get("SourceLineCount") != expected["lines"]

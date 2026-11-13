@@ -184,10 +184,16 @@ internal sealed class DocumentDisplaySession : IDisposable
         if (direction is not (-1 or 1)) throw new ArgumentOutOfRangeException(nameof(direction));
         if (!extendSelection && _anchor != _caret)
         {
-            MoveCaret(direction < 0 ? SelectionStart : Math.Max(_anchor, _caret));
+            var edge = direction < 0 ? SelectionStart : Math.Max(_anchor, _caret);
+            MoveCaret(SnapNavigationOffset(edge, direction));
             return;
         }
         var next = direction < 0 ? Math.Max(0, _caret - 1) : Math.Min(Length, _caret + 1);
+        if (TryGetGraphemeBounds(next, out var before, out var after))
+        {
+            MoveCaret(direction < 0 ? before : after, extendSelection);
+            return;
+        }
         if (direction > 0 && SplitsBoundary(next)) next++;
         MoveCaret(next, extendSelection);
     }
@@ -199,9 +205,15 @@ internal sealed class DocumentDisplaySession : IDisposable
         var current = PositionAt(_caret);
         var column = _preferredColumn ?? current.Column;
         var line = _source!.GetLineByNumber(checked((int)Math.Clamp(current.Line + (long)lineDelta, 1, _source.LineCount)));
-        MoveCaret(line.Offset + Math.Min(column - 1, line.Length), extendSelection);
+        var offset = line.Offset + Math.Min(column - 1, line.Length);
+        MoveCaret(SnapNavigationOffset(offset, -1), extendSelection);
         _preferredColumn = column;
     }
+
+    private long SnapNavigationOffset(long offset, int direction) =>
+        TryGetGraphemeBounds(offset, out var before, out var after)
+            ? direction < 0 ? before : after
+            : offset;
 
     public void MoveToLineBoundary(bool end, bool extendSelection = false)
     {

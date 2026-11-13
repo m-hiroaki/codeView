@@ -53,6 +53,53 @@ public sealed class DocumentDisplayNavigationTests
         Assert.That(display.SelectionLength, Is.Zero);
     }
 
+    [TestCase("a\u0301")]
+    [TestCase("👩‍💻")]
+    [TestCase("🇯🇵")]
+    public void IndexedHorizontalNavigationSelectsAndCopiesWholeGraphemes(string cluster)
+    {
+        using var handle = Create(cluster + "\r\nend", collectGraphemeIndex: true);
+        using var display = new DocumentDisplaySession(handle);
+        display.MoveHorizontal(1, extendSelection: true);
+        Assert.That((display.Anchor, display.Caret), Is.EqualTo((0L, (long)cluster.Length)));
+        using (var copy = display.BeginCopy()) Assert.That(copy.ReadText(default), Is.EqualTo(cluster));
+        display.MoveHorizontal(1);
+        Assert.That(display.Caret, Is.EqualTo(cluster.Length));
+        display.MoveHorizontal(1);
+        Assert.That(display.Caret, Is.EqualTo(cluster.Length + 2));
+        display.MoveHorizontal(-1);
+        display.MoveHorizontal(-1);
+        Assert.That(display.Caret, Is.Zero);
+    }
+
+    [Test]
+    public void IndexedVerticalNavigationSnapsWithoutLosingPreferredColumn()
+    {
+        using var handle = Create("ab\r\na\u0301z\r\nabc", collectGraphemeIndex: true);
+        using var display = new DocumentDisplaySession(handle);
+        display.MoveCaret(1);
+        display.MoveLines(1, extendSelection: true);
+        Assert.That(display.Position, Is.EqualTo(new TextPosition(2, 1)));
+        display.MoveLines(1, extendSelection: true);
+        Assert.That(display.Position, Is.EqualTo(new TextPosition(3, 2)));
+        Assert.That(display.Anchor, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void UnindexedOrUnresolvedNavigationKeepsScalarMovementAvailable()
+    {
+        using var unindexed = Create("a\u0301");
+        using var unresolved = Create("a" + new string('\u0301', DocumentGraphemeIndex.WindowChars), collectGraphemeIndex: true);
+        foreach (var handle in new[] { unindexed, unresolved })
+        {
+            using var display = new DocumentDisplaySession(handle);
+            display.MoveHorizontal(1);
+            Assert.That(display.Caret, Is.EqualTo(1));
+            display.MoveHorizontal(-1);
+            Assert.That(display.Caret, Is.Zero);
+        }
+    }
+
     [Test]
     public void VerticalMovementRestoresPreferredColumnAcrossShortLinesAndClampsLineDelta()
     {
@@ -165,9 +212,9 @@ public sealed class DocumentDisplayNavigationTests
         Assert.Throws<ObjectDisposedException>(() => display.TryGetDisplaySelection(current, out _));
     }
 
-    private static DocumentHandle Create(string text)
+    private static DocumentHandle Create(string text, bool collectGraphemeIndex = false)
     {
-        using var builder = new AvaloniaEditDocumentAdapter().CreateBuilder();
+        using var builder = new AvaloniaEditDocumentAdapter(collectGraphemeIndex: collectGraphemeIndex).CreateBuilder();
         builder.Append(text.AsMemory());
         return builder.Complete();
     }

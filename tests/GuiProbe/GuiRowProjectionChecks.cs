@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Controls;
@@ -41,7 +42,15 @@ internal sealed partial class GuiPerformanceProbe
             Check("routed-document-start", source.Caret == 0);
             SendKey(Key.Right, KeyModifiers.Shift);
             var firstScalarLength = body.Length > 1 && char.IsHighSurrogate(body[0]) && char.IsLowSurrogate(body[1]) ? 2 : Math.Min(1, body.Length);
-            Check("routed-shift-selection", source.SelectionLength == firstScalarLength);
+            var firstElementLength = _contextualRows ? StringInfo.GetNextTextElementLength(body.AsSpan()) : firstScalarLength;
+            Check("routed-shift-selection", source.SelectionLength == firstElementLength);
+            if (_contextualRows && body.StartsWith("a\u0301", StringComparison.Ordinal))
+            {
+                using (var copy = source.BeginCopy())
+                    Check("routed-shift-selects-whole-grapheme", source.Caret == 2 && copy.ReadText(ct) == "a\u0301");
+                SendKey(Key.Left, KeyModifiers.Shift);
+                Check("routed-shift-returns-to-grapheme-start", source.Anchor == 0 && source.Caret == 0);
+            }
             SendKey(Key.A, primary);
             Check("routed-select-all-original", source.SelectionLength == source.Length);
             await RowFrame(ct);
