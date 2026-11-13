@@ -11,6 +11,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
 {
     private readonly Dictionary<TabState, State> _tabs = [];
     private readonly HashSet<Task> _work = [];
+    private Task _failure = Task.CompletedTask;
     private State? _active;
     private CancellationTokenSource? _request;
     private bool _visible, _stopped, _running, _navigating;
@@ -30,7 +31,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
     public event Action? MatchesChanged;
     public event Action? FatalFailure;
     internal long Revision { get; private set; }
-    public Task PendingWork => Task.WhenAll(_work);
+    public Task PendingWork => Task.WhenAll(_work.Append(_failure));
     public IReadOnlyList<TextRange> Matches => _active is { } active && IsVisible ? active.Matches : Array.Empty<TextRange>();
 
     public bool CanOpen => _active?.Document is not null;
@@ -152,7 +153,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         var query = state.Query;
         var options = state.Options;
         var retained = state.Matches.Count;
-        Track(ScanAsync());
+        Track(ScanAsync(), notifyFailure: true);
 
         async Task ScanAsync()
         {
@@ -177,8 +178,16 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
                 finally
                 {
                     if (!drained) request.Cancel();
-                    var result = await worker;
-                    if (IsCurrent(state, request)) state.Scan = result;
+                    try
+                    {
+                        var result = await worker;
+                        if (IsCurrent(state, request)) state.Scan = result;
+                    }
+                    catch (OperationCanceledException error) when (!drained && ct.IsCancellationRequested
+                        && error.CancellationToken == ct)
+                    {
+                        // Preserve an exception from the result consumer while stopping its producer.
+                    }
                 }
 
                 async Task<InFileScanResult> RunProducerAsync()
@@ -253,7 +262,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         var options = state.Options;
         _navigating = true;
         var work = FindAsync();
-        Track(work);
+        Track(work, notifyFailure: false);
         NotifyResults();
         return work;
 
@@ -309,14 +318,12 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
 
     private void Finish(CancellationTokenSource request)
     {
-        if (ReferenceEquals(_request, request))
-        {
-            _request = null;
-            _running = false;
-            _navigating = false;
-            NotifyResults();
-        }
         request.Dispose();
+        if (!ReferenceEquals(_request, request)) return;
+        _request = null;
+        _running = false;
+        _navigating = false;
+        NotifyResults();
     }
 
     private void Cancel()
@@ -339,11 +346,20 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         Notify();
     }
 
-    private async void Track(Task task)
+    private async void Track(Task task, bool notifyFailure)
     {
         _work.Add(task);
         try { await task; }
-        catch { FatalFailure?.Invoke(); }
+        catch (Exception error)
+        {
+            // Keep the first fault visible after the completed operation leaves the work set.
+            if (_failure.IsCompletedSuccessfully)
+            {
+                _failure = Task.FromException(error);
+                _ = _failure.Exception;
+            }
+            if (notifyFailure && !_stopped) FatalFailure?.Invoke();
+        }
         finally { _work.Remove(task); }
     }
 

@@ -220,7 +220,38 @@ internal sealed class InFileSearchTests
             Assert.That(search.Summary, Does.Contain("折り返しました").And.Contain("文字の途中での一致を除外 2件"));
         });
 
-    private static void WithView(string text, Func<MainWindowViewModel, string, string, Task> run)
+    [TestCase(1)]
+    [TestCase(4096)]
+    public void BackgroundNotificationFaultSurvivesTaskCleanupAndReleasesLease(int occurrences) =>
+        WithView(string.Concat(Enumerable.Repeat("needle ", occurrences)), async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            var handle = view.SelectedTab!.State.File!.Document;
+            var failure = new InvalidOperationException("search result notification failed");
+            var signalled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var notifications = 0;
+            search.FatalFailure += () =>
+            {
+                notifications++;
+                signalled.TrySetResult();
+            };
+            search.MatchesChanged += () =>
+            {
+                if (search.Matches.Count > 0 && notifications == 0) throw failure;
+            };
+            search.IsVisible = true;
+            search.Query = "needle";
+            await signalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.That(search.PendingWork.Exception!.Flatten().InnerExceptions, Does.Contain(failure));
+            var failures = 0;
+            await MainWindow.StopAndWaitAsync(view.Stop, () => view.PendingWork, () => failures++);
+            Assert.That(failures, Is.EqualTo(1));
+            Assert.That(notifications, Is.EqualTo(1));
+            Assert.That(handle.IsReleased, Is.True);
+            Assert.That(handle.ActiveReadLeases, Is.Zero);
+        }, expectPendingFailure: true);
+
+    private static void WithView(string text, Func<MainWindowViewModel, string, string, Task> run, bool expectPendingFailure = false)
         => SingleThreadTestContext.Run(async () =>
     {
         var root = Directory.CreateTempSubdirectory("codeview-in-file-");
@@ -241,8 +272,9 @@ internal sealed class InFileSearchTests
         finally
         {
             view.Stop();
-            await view.PendingWork;
-            root.Delete(true);
+            try { await view.PendingWork; }
+            catch (InvalidOperationException) when (expectPendingFailure) { }
+            finally { root.Delete(true); }
         }
     });
 }

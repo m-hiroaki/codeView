@@ -183,6 +183,7 @@ SearchResultsはスライス中の行をStageし、Publishで1回のAddRange通�
 Program.MarkFailedはプロセス内のProcessExitStatusへ失敗を保持し、Environment.ExitCodeも設定する。UIの致命的通知/後始末/未知のドロップ障害で使用する。UI終了処理が環境の終了コードを0へ戻しても、Mainは保持した失敗を1として返す。既存の明示的な非0終了コードを優先し、検出済みの失敗を正常終了へ戻さない。通常終了0と専用GUI計測失敗1は実機でも確認したが、全UI例外経路の注入試験の代用にはしない。
 
 構文ハイライトの予期しない障害は終了待機へ伝える。ステータスの通知も失敗した場合は、元の例外と通知例外をまとめて記録する。終了開始後に検出した障害は終了待機に渡す。
+ファイル内検索の結果通知に失敗した場合は、配信を取り消して読み取りビューの解放を待ち、通知の例外を終了待機へ伝える。
 
 UI操作の未知例外も失敗を記録したうえでCloseからClosingへ入る。Avalonia 12.1.3の[Shutdown実装](https://github.com/AvaloniaUI/Avalonia/blob/12.1.3/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs)は強制終了としてClosingのCancelを無視するため、非同期の終了待機の入口には使わない。状態通知が失敗してもfinallyでCloseを実行する。
 
