@@ -14,7 +14,7 @@ internal sealed class DocumentRowProjection
         (Text, _rows, EffectiveColumns) = (text, rows, columns);
 
     internal static DocumentRowProjection Create(TextDocument source, DocumentReadLease lease, long firstLine,
-        long horizontalOffset, int visibleLines, int columns, int maxChars)
+        long horizontalOffset, int visibleLines, int columns, int maxChars, DocumentGraphemeIndex? graphemes = null)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(lease);
@@ -37,11 +37,29 @@ internal sealed class DocumentRowProjection
         {
             var line = source.GetLineByNumber(checked((int)firstLine + index));
             var start = line.Offset + (int)Math.Min(horizontalOffset, line.Length);
-            if (SplitsScalar(source, start, line.Offset, line.EndOffset)) start--;
-            var end = (int)Math.Min(line.EndOffset, (long)start + effective);
-            if (SplitsScalar(source, end, line.Offset, line.EndOffset)) end--;
+            var end = start;
+            var unavailable = false;
+            if (graphemes is null)
+            {
+                if (SplitsScalar(source, start, line.Offset, line.EndOffset)) start--;
+                end = (int)Math.Min(line.EndOffset, (long)start + effective);
+                if (SplitsScalar(source, end, line.Offset, line.EndOffset)) end--;
+            }
+            else if (start < line.EndOffset)
+            {
+                if (graphemes.TryGetBounds(lease, start, out var before, out _))
+                {
+                    start = checked((int)before);
+                    var limit = Math.Min(line.EndOffset, (long)start + effective);
+                    if (graphemes.TryGetBounds(lease, limit, out var boundary, out _))
+                        end = checked((int)boundary);
+                    else end = start;
+                    unavailable = end == start;
+                }
+                else unavailable = true;
+            }
             rows[index] = new(line.LineNumber, start, end - start, start - line.Offset + 1,
-                total, start > line.Offset, end < line.EndOffset, horizontalOffset > line.Length);
+                total, start > line.Offset, end < line.EndOffset, horizontalOffset > line.Length, unavailable);
             total = checked(total + end - start + (index + 1 < count ? 1 : 0));
         }
         var text = string.Create(total, (Rows: rows, Lease: lease), static (target, state) =>
@@ -62,7 +80,7 @@ internal sealed class DocumentRowProjection
         if (displayOffset < 0 || displayOffset > Text.Length || SplitsDisplayedScalar(displayOffset)) return false;
         var index = FindDisplayRow(displayOffset);
         var row = _rows[index];
-        if (row.IsOutsideHorizontalRange) return false;
+        if (row.IsOutsideHorizontalRange || row.IsGraphemeRangeUnavailable) return false;
         var relative = displayOffset - row.DisplayOffset;
         if (relative > row.Length) return false;
         sourceOffset = row.SourceOffset + relative;
@@ -93,7 +111,7 @@ internal sealed class DocumentRowProjection
         }
         if (low == 0) return false;
         var row = _rows[low - 1];
-        if (row.IsOutsideHorizontalRange) return false;
+        if (row.IsOutsideHorizontalRange || row.IsGraphemeRangeUnavailable) return false;
         var relative = sourceOffset - row.SourceOffset;
         if (relative > row.Length) return false;
         displayOffset = row.DisplayOffset + (int)relative;
@@ -136,7 +154,7 @@ internal sealed class DocumentRowProjection
 }
 
 internal readonly record struct DocumentProjectionRow(long SourceLine, long SourceOffset, int Length, long SourceColumn,
-    int DisplayOffset, bool LeftClipped, bool RightClipped, bool IsOutsideHorizontalRange);
+    int DisplayOffset, bool LeftClipped, bool RightClipped, bool IsOutsideHorizontalRange, bool IsGraphemeRangeUnavailable = false);
 internal readonly record struct DocumentProjectionSelection(int Offset, int Length);
 internal sealed class DocumentRowSelection(DocumentProjectionSelection[] spans, int? caretOffset, bool reversed)
 {

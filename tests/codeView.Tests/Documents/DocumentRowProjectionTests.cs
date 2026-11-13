@@ -94,6 +94,42 @@ public sealed class DocumentRowProjectionTests
         Assert.That((view.Anchor, view.Caret), Is.EqualTo((8L, 3L)));
     }
 
+    [TestCase("e\u0301")]
+    [TestCase("👩‍💻")]
+    [TestCase("🇯🇵")]
+    [TestCase("각")]
+    public void IndexedProjectionClipsOnlyAtWholeGraphemes(string cluster)
+    {
+        var text = $"a{cluster}z\r\nlong";
+        using var handle = Create(text, collectGraphemeIndex: true);
+        using var view = new DocumentDisplaySession(handle);
+        view.Select(text.Length, 0);
+        Assert.That(view.CreateRowProjection(1, cluster.Length).Text, Is.EqualTo("a"));
+        view.SetViewport(1, 2);
+        var projection = view.CreateRowProjection(1, cluster.Length);
+        Assert.That(projection.Text, Is.EqualTo(cluster));
+        Assert.That(projection.Rows[0].SourceOffset, Is.EqualTo(1));
+        Assert.That(projection.TrySourcePosition(cluster.Length, out var source), Is.True);
+        Assert.That(source, Is.EqualTo(cluster.Length + 1));
+        using var copy = view.BeginCopy();
+        Assert.That(copy.ReadText(default), Is.EqualTo(text));
+    }
+
+    [TestCase(0, 0)]
+    [TestCase(DocumentGraphemeIndex.WindowChars, 1)]
+    public void UnavailableGraphemeRangeDoesNotProduceMappablePartialText(int extraMarks, int horizontal)
+    {
+        var text = "e\u0301\u0301" + new string('\u0301', extraMarks);
+        using var handle = Create(text, collectGraphemeIndex: true);
+        using var view = new DocumentDisplaySession(handle);
+        view.SetViewport(1, horizontal);
+        var projection = view.CreateRowProjection(1, 2);
+        Assert.That(projection.Text, Is.Empty);
+        Assert.That(projection.Rows[0].IsGraphemeRangeUnavailable, Is.True);
+        Assert.That(projection.TrySourcePosition(0, out _), Is.False);
+        Assert.That(projection.TryDisplayPosition(projection.Rows[0].SourceOffset, out _), Is.False);
+    }
+
     [Test]
     public void SelectionUsesSeparateTextSpansAndCopyRetainsOriginalDelimitersAfterClosure()
     {
@@ -278,9 +314,9 @@ public sealed class DocumentRowProjectionTests
         Task.Run(() => Assert.Throws<InvalidOperationException>(() => view.CreateRowProjection(1, 2))).GetAwaiter().GetResult();
     }
 
-    private static DocumentHandle Create(string text)
+    private static DocumentHandle Create(string text, bool collectGraphemeIndex = false)
     {
-        using var builder = new AvaloniaEditDocumentAdapter().CreateBuilder();
+        using var builder = new AvaloniaEditDocumentAdapter(collectGraphemeIndex: collectGraphemeIndex).CreateBuilder();
         builder.Append(text.AsMemory());
         return builder.Complete();
     }

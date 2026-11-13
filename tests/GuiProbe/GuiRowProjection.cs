@@ -189,6 +189,13 @@ internal sealed class RowClippingMargin : AbstractMargin
         {
             var row = _rows.Rows[line.FirstDocumentLine.LineNumber - 1];
             var y = line.VisualTop - view.VerticalOffset + view.DefaultLineHeight / 2;
+            if (row.IsGraphemeRangeUnavailable)
+            {
+                context.DrawLine(MarkPen, new Point(1, y - 3), new Point(7, y + 3));
+                context.DrawLine(MarkPen, new Point(1, y + 3), new Point(7, y - 3));
+                DrawnMarks++;
+                continue;
+            }
             if (row.LeftClipped)
             { context.DrawLine(MarkPen, new Point(1, y - 3), new Point(1, y + 3)); DrawnMarks++; }
             if (row.RightClipped)

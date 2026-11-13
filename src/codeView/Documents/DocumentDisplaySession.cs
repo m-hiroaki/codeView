@@ -90,7 +90,8 @@ internal sealed class DocumentDisplaySession : IDisposable
     public DocumentRowProjection CreateRowProjection(int visibleLines, int columns, int maxChars = MaximumSliceChars)
     {
         VerifyAccess();
-        var projection = DocumentRowProjection.Create(_source!, _lease!, _firstVisibleLine, _horizontalOffset, visibleLines, columns, maxChars);
+        var projection = DocumentRowProjection.Create(_source!, _lease!, _firstVisibleLine, _horizontalOffset,
+            visibleLines, columns, maxChars, _handle!.GraphemeIndex);
         _slice = null;
         return _rowProjection = projection;
     }
