@@ -42,6 +42,13 @@ internal sealed class DocumentDisplaySession : IDisposable
     public int MaximumLineLength { get { VerifyAccess(); return _handle!.MaximumLineLength ??
         throw new InvalidOperationException("行別スクロール用の最大行長が未取得です。"); } }
 
+    internal bool TryGetGraphemeBounds(long offset, out long before, out long after)
+    {
+        VerifyAccess();
+        before = after = 0;
+        return _handle!.GraphemeIndex is { } index && index.TryGetBounds(_lease!, offset, out before, out after);
+    }
+
     public void SetViewport(long firstLine, long horizontalOffset)
     {
         VerifyAccess();

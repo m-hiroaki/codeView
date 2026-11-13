@@ -1,25 +1,28 @@
 using System.Buffers;
 using System.Globalization;
+using AvaloniaEdit.Document;
 
 namespace CodeView.Documents;
 
 /// <summary>
 /// Opt-in experiment. Stores only proven restart boundaries, never source text or a lease.
-/// A query must use the same live snapshot lease that built the index.
+/// Queries use a live lease for the same immutable text version.
 /// </summary>
 internal sealed class DocumentGraphemeIndex
 {
     internal const int WindowChars = 64 * 1024;
     internal const int MaximumStorageBytes = 1024 * 1024;
     private const int MaximumCheckpoints = (MaximumStorageBytes - 256) / sizeof(long);
-    private readonly WeakReference<DocumentReadLease> _source;
+    private readonly WeakReference<ITextSourceVersion>? _version;
+    private readonly WeakReference<DocumentReadLease>? _unversionedSource;
     private readonly long[] _checkpoints;
     private readonly int _count;
 
     private DocumentGraphemeIndex(DocumentReadLease source, long[] checkpoints, int count,
         long indexedLength, long length)
     {
-        _source = new(source);
+        if (source.Version is { } version) _version = new(version);
+        else _unversionedSource = new(source);
         _checkpoints = checkpoints;
         _count = count;
         IndexedLength = indexedLength;
@@ -80,9 +83,12 @@ internal sealed class DocumentGraphemeIndex
     {
         ArgumentNullException.ThrowIfNull(source);
         ct.ThrowIfCancellationRequested();
-        if (!_source.TryGetTarget(out var original) || !ReferenceEquals(original, source))
-            throw new ArgumentException("索引の構築元と同じ読取Leaseが必要です。", nameof(source));
-        _ = source.Length; // Reject a disposed lease even for offset zero.
+        var version = source.Version; // Reject a disposed lease even for offset zero.
+        var sameVersion = _version is not null
+            ? _version.TryGetTarget(out var indexedVersion) && ReferenceEquals(indexedVersion, version)
+            : _unversionedSource!.TryGetTarget(out var original) && ReferenceEquals(original, source);
+        if (!sameVersion)
+            throw new ArgumentException("索引の構築元と同じ本文世代の読取Leaseが必要です。", nameof(source));
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(offset, Length);
         before = after = 0;

@@ -33,7 +33,9 @@ internal sealed partial class App : Application
             var source = new SourceAccess();
             var documents = new AvaloniaEditDocumentAdapter();
 #if CODEVIEW_PERFORMANCE_PROBE
-            documents = new AvaloniaEditDocumentAdapter(Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1");
+            var rows = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1";
+            documents = new AvaloniaEditDocumentAdapter(rows,
+                collectGraphemeIndex: rows && Environment.GetEnvironmentVariable("CODEVIEW_GUI_GRAPHEME_INDEX") == "1");
 #endif
             var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source));
             var settings = new SettingsStore(SettingsLocations.ForApplication(AppContext.BaseDirectory));

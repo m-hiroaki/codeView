@@ -192,7 +192,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (read.Status != OperationStatus.Success)
             return OperationResult<LoadedFile>.Failure(read.Error!);
         ct.ThrowIfCancellationRequested();
-        return OperationResult<LoadedFile>.Success(new(path, prepared.Stamp, prepared.Encoding.WebName, builder.Complete()));
+        return OperationResult<LoadedFile>.Success(new(path, prepared.Stamp, prepared.Encoding.WebName, builder.Complete(ct)));
     }
 
     public void CloseFile()

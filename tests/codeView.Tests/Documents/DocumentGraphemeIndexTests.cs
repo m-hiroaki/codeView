@@ -53,7 +53,9 @@ public sealed class DocumentGraphemeIndexTests
         using var source = handle.AcquireReadView();
         using var other = handle.AcquireReadView();
         var index = DocumentGraphemeIndex.Build(source, default);
-        Assert.Throws<ArgumentException>(() => index.TryGetBounds(other, 0, out _, out _));
+        Assert.That(index.TryGetBounds(other, 0, out _, out _), Is.True);
+        using var foreign = new DocumentReadLease(new AvaloniaEdit.Document.StringTextSource("text"), static () => { });
+        Assert.Throws<ArgumentException>(() => index.TryGetBounds(foreign, 0, out _, out _));
         Assert.Throws<ArgumentOutOfRangeException>(() => index.TryGetBounds(source, -1, out _, out _));
         Assert.Throws<ArgumentOutOfRangeException>(() => index.TryGetBounds(source, 5, out _, out _));
         using var cancellation = new CancellationTokenSource();
@@ -65,6 +67,65 @@ public sealed class DocumentGraphemeIndexTests
         source.Dispose();
         Assert.Throws<ObjectDisposedException>(() => index.TryGetBounds(source, 0, out _, out _));
         Assert.Throws<ObjectDisposedException>(() => DocumentGraphemeIndex.Build(source, default));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DisplaySessionQueriesTheIndexBuiltOnTheWorker(bool collect)
+    {
+        using var handle = await Task.Run(() =>
+        {
+            using var builder = new DocumentBuilder(collectGraphemeIndex: collect);
+            builder.Append("e\u0301x".AsMemory());
+            return builder.Complete();
+        });
+        using var session = new DocumentDisplaySession(handle);
+        Assert.That(session.TryGetGraphemeBounds(1, out var before, out var after), Is.EqualTo(collect));
+        if (collect) Assert.That((before, after), Is.EqualTo((0L, 2L)));
+        session.Dispose();
+        Assert.That(handle.ActiveReadLeases, Is.Zero);
+        Assert.Throws<ObjectDisposedException>(() => session.TryGetGraphemeBounds(1, out _, out _));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void BuilderCollectsOnlyWhenEnabledAndIndexRejectsNewVersions(bool collect)
+    {
+        using var builder = new AvaloniaEditDocumentAdapter(collectGraphemeIndex: collect).CreateBuilder();
+        builder.Append("e\u0301x".AsMemory());
+        using var handle = builder.Complete();
+        Assert.That(handle.ActiveReadLeases, Is.Zero);
+        if (!collect)
+        {
+            Assert.That(handle.GraphemeIndex, Is.Null);
+            return;
+        }
+
+        var index = handle.GraphemeIndex!;
+        using var original = handle.AcquireReadView();
+        using var otherBuilder = new DocumentBuilder();
+        otherBuilder.Append("e\u0301x".AsMemory());
+        using var otherHandle = otherBuilder.Complete();
+        using var other = otherHandle.AcquireReadView();
+        Assert.Throws<ArgumentException>(() => index.TryGetBounds(other, 1, out _, out _));
+        handle.ClaimForDisplay().Replace(0, 2, "ab");
+        using var newer = handle.AcquireReadView();
+        Assert.Throws<ArgumentException>(() => index.TryGetBounds(newer, 1, out _, out _));
+        handle.Dispose();
+        Assert.That(handle.GraphemeIndex, Is.Null);
+        Assert.That(index.TryGetBounds(original, 1, out var before, out var after), Is.True);
+        Assert.That((before, after), Is.EqualTo((0L, 2L)));
+    }
+
+    [Test]
+    public void CancelledBuildDoesNotPublishAndCanCompleteOnTheSameWorker()
+    {
+        using var builder = new DocumentBuilder(collectGraphemeIndex: true);
+        builder.Append("e\u0301x".AsMemory());
+        Assert.Throws<OperationCanceledException>(() => builder.Complete(new CancellationToken(true)));
+        using var handle = builder.Complete();
+        Assert.That(handle.GraphemeIndex?.IsComplete, Is.True);
+        Assert.That(handle.ActiveReadLeases, Is.Zero);
     }
 
     private static void Verify(string text, bool everyOffset)

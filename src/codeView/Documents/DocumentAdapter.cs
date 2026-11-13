@@ -10,9 +10,9 @@ internal interface IDocumentAdapter
 }
 
 /// <summary>Initial AvaloniaEdit candidate; production adoption still requires Phase 2 measurements.</summary>
-internal sealed class AvaloniaEditDocumentAdapter(bool collectLineExtent = false) : IDocumentAdapter
+internal sealed class AvaloniaEditDocumentAdapter(bool collectLineExtent = false, bool collectGraphemeIndex = false) : IDocumentAdapter
 {
-    public DocumentBuilder CreateBuilder() => new(collectLineExtent);
+    public DocumentBuilder CreateBuilder() => new(collectLineExtent, collectGraphemeIndex);
     public DocumentReadLease AcquireReadView(DocumentHandle document) => document.AcquireReadView();
 }
 
@@ -21,9 +21,14 @@ internal sealed class DocumentBuilder : IDisposable
     private TextDocument? _document = new();
     private readonly int _ownerThread = Environment.CurrentManagedThreadId;
     private readonly bool _collectLineExtent;
+    private readonly bool _collectGraphemeIndex;
 
-    internal DocumentBuilder(bool collectLineExtent = false)
-    { _collectLineExtent = collectLineExtent; _document!.UndoStack.SizeLimit = 0; }
+    internal DocumentBuilder(bool collectLineExtent = false, bool collectGraphemeIndex = false)
+    {
+        _collectLineExtent = collectLineExtent;
+        _collectGraphemeIndex = collectGraphemeIndex;
+        _document!.UndoStack.SizeLimit = 0;
+    }
 
     public void Append(ReadOnlyMemory<char> chunk)
     {
@@ -34,7 +39,7 @@ internal sealed class DocumentBuilder : IDisposable
         document.Insert(document.TextLength, chunk.ToString());
     }
 
-    public DocumentHandle Complete()
+    public DocumentHandle Complete(CancellationToken ct = default)
     {
         VerifyOwner();
         var document = _document ?? throw new ObjectDisposedException(nameof(DocumentBuilder));
@@ -48,9 +53,17 @@ internal sealed class DocumentBuilder : IDisposable
                 maximum = Math.Max(maximum, line.Length);
             maximumLineLength = maximum;
         }
+        DocumentGraphemeIndex? graphemes = null;
+        if (_collectGraphemeIndex)
+        {
+            using var source = new DocumentReadLease(document.CreateSnapshot(), static () => { });
+            graphemes = DocumentGraphemeIndex.Build(source, ct);
+        }
+        ct.ThrowIfCancellationRequested();
+        var handle = new DocumentHandle(document, maximumLineLength, graphemes);
         document.SetOwnerThread(null!);
         _document = null;
-        return new DocumentHandle(document, maximumLineLength);
+        return handle;
     }
 
     public void Dispose() => _document = null;
@@ -68,16 +81,18 @@ internal sealed class DocumentHandle : IDisposable
     private int _readLeases;
     private readonly object _gate = new();
 
-    internal DocumentHandle(TextDocument document, int? maximumLineLength)
+    internal DocumentHandle(TextDocument document, int? maximumLineLength, DocumentGraphemeIndex? graphemes = null)
     {
         _document = document;
         // CreateSnapshot is documented thread-safe even after ownership is released.
         Length = document.CreateSnapshot().TextLength;
         MaximumLineLength = maximumLineLength;
+        GraphemeIndex = graphemes;
     }
 
     public long Length { get; }
     public int? MaximumLineLength { get; }
+    internal DocumentGraphemeIndex? GraphemeIndex { get; private set; }
     public int ActiveReadLeases => Volatile.Read(ref _readLeases);
     public bool IsReleased { get { lock (_gate) return _document is null; } }
 
@@ -106,7 +121,11 @@ internal sealed class DocumentHandle : IDisposable
     public void Dispose()
     {
         // Existing leases retain only their immutable snapshot, not a live UI document.
-        lock (_gate) _document = null;
+        lock (_gate)
+        {
+            _document = null;
+            GraphemeIndex = null;
+        }
     }
 }
 
@@ -117,6 +136,7 @@ internal sealed class DocumentReadLease(ITextSource snapshot, Action release) : 
     private Action? _release = release;
 
     public long Length => (_snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease))).TextLength;
+    internal ITextSourceVersion? Version => (_snapshot ?? throw new ObjectDisposedException(nameof(DocumentReadLease))).Version;
 
     public string ReadRange(long offset, int length)
     {
