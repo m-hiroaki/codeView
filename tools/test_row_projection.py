@@ -14,7 +14,7 @@ from check_row_projection import SCROLL_CHECKS, LIFECYCLE_CHECKS, collect, fixtu
 class RowProjectionEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.commit = 'a' * 40
-        self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body', 'maximumLineLength': 3}
+        self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body', 'maximumLineLength': 3, 'firstLineHasText': True}
         checks = ['routed-document-end', 'end-caret-projected', 'routed-document-start', 'routed-shift-selection',
                   'routed-select-all-original', 'native-selection-excludes-synthetic-lf', 'selection-spans-exclude-separators',
                   'offscreen-caret-stays-independent', 'selection-background-rendered', 'next-input-reveals-source-caret',
@@ -52,6 +52,9 @@ class RowProjectionEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, field):
                 validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
             checks[field] = 1
+        with self.assertRaisesRegex(ValueError, 'wheel/pointer'):
+            validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
+        checks['ScrollChecks'].append('contextual-caret-rectangle-visible')
         validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         with self.assertRaisesRegex(ValueError, 'ContextualDrawnRows'):
             self.validate()

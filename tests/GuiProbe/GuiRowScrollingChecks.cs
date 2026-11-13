@@ -97,13 +97,23 @@ internal sealed partial class GuiPerformanceProbe
         Check("replacement-detaches-capture", !_pointerSelection.IsActive && pointer.Captured is null && _pointerTimer?.IsEnabled != true);
         AttachInteractive();
         Check("reattach-single-owner", _interactiveAttached && generation == _documentGeneration);
+        if (_contextualRows && _sourceDocument.GetLineByNumber(1).Length > 0)
+        {
+            TryRestoreOriginal(1, 1);
+            await RowFrame(ct);
+            Check("contextual-caret-rectangle-visible",
+                _interactiveRows!.TryDisplayPosition(source.Caret, out var display)
+                && _contextLayer!.TryGetCaretRectangle(display, source.Caret, out var contextual)
+                && contextual is { } placed && GetRowCaretRectangle(source.Caret) == placed
+                && placed.Left >= 0 && placed.Right <= view.Bounds.Width + 1);
+        }
         var targetLine = _sourceDocument.LineCount > 1 && _sourceDocument.GetLineByNumber(2).Length > _sourceDocument.GetLineByNumber(1).Length ? 2 : 1;
         TryRestoreOriginal(targetLine, _sourceDocument.GetLineByNumber(targetLine).Length + 1);
         await RowFrame(ct);
-        var caretRect = _editor.TextArea.Caret.CalculateCaretRectangle();
+        var caretRect = GetRowCaretRectangle(source.Caret);
         Check("source-caret-rectangle-visible", _interactiveRows!.TryDisplayPosition(source.Caret, out _) &&
-            caretRect.Left >= 0 && caretRect.Right <= view.Bounds.Width + 1 &&
-            caretRect.Top >= 0 && caretRect.Bottom <= view.Bounds.Height + 1);
+            caretRect is { } visible && visible.Left >= 0 && visible.Right <= view.Bounds.Width + 1 &&
+            visible.Top >= 0 && visible.Bottom <= view.Bounds.Height + 1);
         source.Select(anchor, caret);
         source.SetViewport(1, 0);
         RenderInteractive();

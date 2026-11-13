@@ -16,6 +16,16 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
     internal long DrawnRows { get; private set; }
     internal long ResolvedHits { get; private set; }
 
+    internal bool TryGetCaretRectangle(int displayOffset, long sourceOffset, out Rect? rectangle)
+    {
+        rectangle = null;
+        if (_display is null || !ReferenceEquals(editor.Document, _display)) return false;
+        var line = _display.GetLineByOffset(displayOffset);
+        if (!_rows.TryGetValue(line.LineNumber - 1, out var control)) return false;
+        rectangle = control.GetCaretRectangle(sourceOffset);
+        return true;
+    }
+
     internal void Apply(TextDocument display, DocumentDisplaySession source, DocumentRowProjection projection)
     {
         Clear();

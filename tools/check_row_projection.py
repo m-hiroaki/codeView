@@ -34,6 +34,7 @@ def fixture(path):
     raw = text.encode("utf-16-le")
     return {"path": str(path), "inputSha256": sha256(path), "bodySha256": hashlib.sha256(raw).hexdigest(),
             "characters": len(raw) // 2, "lines": 1 + len(re.findall(r"\r\n|\r|\n", text)),
+            "firstLineHasText": bool(text and text[0] not in "\r\n"),
             "maximumLineLength": max(len(line.encode("utf-16-le")) // 2 for line in re.split(r"\r\n|\r|\n", text))}
 
 
@@ -58,7 +59,8 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
             or lifecycle.get("SearchOutcome") != ("hit" if expected["characters"] else "empty") or lifecycle.get("WorkloadStarts") != 1):
         raise ValueError("Real tab/reload/search/close lifecycle evidence incomplete")
     scroll_checks = checks.get("ScrollChecks", [])
-    if (set(scroll_checks) != SCROLL_CHECKS or len(scroll_checks) != len(SCROLL_CHECKS)
+    required_scroll = SCROLL_CHECKS | ({"contextual-caret-rectangle-visible"} if contextual and expected["firstLineHasText"] else set())
+    if (set(scroll_checks) != required_scroll or len(scroll_checks) != len(required_scroll)
             or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
         raise ValueError("Source scrollbar, wheel/pointer or line extent evidence incomplete")
     names = checks.get("Checks", [])

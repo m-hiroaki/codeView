@@ -130,9 +130,9 @@ internal sealed partial class GuiPerformanceProbe
         ((IScrollable)view).Offset = default;
         if (!reveal || _rowRenderer is null || _displaySession is not { } source) return;
         view.EnsureVisualLines();
-        var rect = _editor.TextArea.Caret.CalculateCaretRectangle();
-        if (rect.Left >= 0 && rect.Right <= view.Bounds.Width) return;
-        // Bounded fallback for tabs/wide glyphs: put the source insertion position at the left edge.
+        var rect = GetRowCaretRectangle(source.Caret);
+        if (rect is { } visible && visible.Left >= 0 && visible.Right <= view.Bounds.Width) return;
+        // Start the new slice at the source insertion position.
         // Never scan the hidden prefix of a giant line to measure visual columns.
         source.SetViewport(source.FirstVisibleLine, source.Position.Column - 1);
         _editor.Document = BuildRowDocument(reveal: false);
@@ -142,5 +142,13 @@ internal sealed partial class GuiPerformanceProbe
         _editor.CaretOffset = caret;
         _rowRenderer.Apply(_editor.Document, _interactiveRows!, selection);
         ((IScrollable)view).Offset = default;
+    }
+
+    private Rect? GetRowCaretRectangle(long sourceOffset)
+    {
+        if (_contextLayer is { } layer && _interactiveRows!.TryDisplayPosition(sourceOffset, out var displayOffset)
+            && layer.TryGetCaretRectangle(displayOffset, sourceOffset, out var contextual))
+            return contextual;
+        return _editor.TextArea.Caret.CalculateCaretRectangle();
     }
 }

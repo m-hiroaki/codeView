@@ -76,12 +76,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
                     .Where(rect => rect.Width > 0 && rect.Height > 0)
                     .Select(rect => rect.Translate(shift)).ToArray();
             }
-            if (caret >= visibleStart && caret <= visibleEnd)
-            {
-                var position = layout.HitTestTextPosition((int)(caret - _range.SourceOffset)).Position;
-                if (_visible.Any(rect => position.X >= rect.Left && position.X <= rect.Right))
-                    _caret = position + shift;
-            }
+            _caret = GetCaretRectangle(caret)?.Position;
         }
         InvalidateVisual();
     }
@@ -133,6 +128,16 @@ internal sealed class ContextualRowControl : Control, IDisposable
         var local = offset - _range.SourceOffset;
         return _layout is { } layout && local >= _range.VisibleOffset && local <= _range.VisibleOffset + _range.VisibleLength
             ? layout.HitTestTextPosition((int)local).X - _origin : null;
+    }
+
+    internal Rect? GetCaretRectangle(long offset)
+    {
+        var local = offset - _range.SourceOffset;
+        if (_layout is not { } layout || local < _range.VisibleOffset || local > _range.VisibleOffset + _range.VisibleLength)
+            return null;
+        var position = layout.HitTestTextPosition((int)local).Position;
+        return _visible.Any(rect => position.X >= rect.Left && position.X <= rect.Right)
+            ? new Rect(position.X - _origin, position.Y, 1, layout.Height) : null;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
