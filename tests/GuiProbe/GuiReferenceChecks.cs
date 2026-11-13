@@ -21,11 +21,11 @@ internal sealed partial class GuiPerformanceProbe
     private static void ValidateReferenceMode(bool hasInput)
     {
         if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_REFERENCE_CHECKS") != "1") return;
-        if (hasInput || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
+        if (!hasInput || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
             new[] { "CODEVIEW_GUI_ROWS", "CODEVIEW_GUI_WINDOWED", "CODEVIEW_GUI_INTERACTIVE", "CODEVIEW_GUI_READONLY_CHECKS",
                 "CODEVIEW_GUI_SEARCH_PANEL_CHECKS", "CODEVIEW_GUI_ROW_VISUAL_CHECKS" }
                 .Any(name => Environment.GetEnvironmentVariable(name) == "1"))
-            throw new ArgumentException("参照検索の自動操作は入力なしの専用CIで単独実行してください。");
+            throw new ArgumentException("参照検索の自動操作は入力ありの専用CIで単独実行してください。");
     }
 
     private async Task RunReferenceChecksAsync()
@@ -41,6 +41,7 @@ internal sealed partial class GuiPerformanceProbe
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_sampling.Token);
             deadline.CancelAfter(TimeSpan.FromSeconds(45));
             var ct = deadline.Token;
+            await CheckStartupArgumentsAsync(Require, ct);
             var root = _output + ".inputs";
             Directory.CreateDirectory(root);
             var body = Path.Combine(root, "body.cs");
@@ -255,6 +256,30 @@ internal sealed partial class GuiPerformanceProbe
             Console.Error.WriteLine(error);
             Finish("reference-check-failed: " + error.Message);
         }
+    }
+
+    private async Task CheckStartupArgumentsAsync(Action<bool, string> require, CancellationToken ct)
+    {
+        var fixture = Path.ChangeExtension(_output, ".cli");
+        var firstRoot = Path.Combine(fixture, "first root");
+        var first = Path.Combine(firstRoot, "最初.txt");
+        var last = Path.Combine(fixture, "second root", "最後.txt");
+        await Frame(ct);
+        require(_viewModel.WorkspacePath == firstRoot
+            && _viewModel.Tabs.Select(tab => tab.FullPath).SequenceEqual([first, last])
+            && _editor.Document.Text == "日本語の本文" && _editor.IsReadOnly,
+            "cli-first-folder-and-both-files-open");
+        var status = _window.FindControl<TextBlock>("DocumentStatus")!;
+        require(status.Text?.Contains("パスが見つかりません") == true
+            && status.Text.Contains("後続のフォルダ1件"), "cli-status-reports-missing-and-skipped-folder");
+        _editor.CaretOffset = 3;
+        await Frame(ct);
+        require(_window.FindControl<TextBlock>("ActiveFilePath")!.Text == last
+            && _window.FindControl<TextBlock>("CaretPositionStatus")!.Text == "行 1, 列 4"
+            && _window.FindControl<Button>("ActiveEncoding")!.Content is string encoding && encoding.Contains("CP932"),
+            "cli-original-path-position-and-encoding-visible");
+        _viewModel.CloseWorkspace();
+        while (_viewModel.HasTabs) _viewModel.CloseFile();
     }
 
     private async Task CheckReloadAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,

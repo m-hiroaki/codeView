@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 
 CHECKS = [
+    'cli-first-folder-and-both-files-open', 'cli-status-reports-missing-and-skipped-folder',
+    'cli-original-path-position-and-encoding-visible',
     'original-readonly-document', 'syntax-colors-visible', 'shift-f12-source-identifier', 'fixed-reference-options',
     'all-text-case-sensitive-word-results', 'visible-name-match-disclaimer', 'search-preserves-source',
     'menu-selection-reference-search', 'result-enter-original-cp932-selection',
@@ -79,9 +81,21 @@ def collect(app, output, commit, rounds=3):
             target = output / f'reference-{number}.json'
             env = {k: v for k, v in os.environ.items() if not k.startswith('CODEVIEW_GUI_')}
             env.update(CODEVIEW_GUI_PERF_REPORT=str(target), CODEVIEW_GUI_REFERENCE_CHECKS='1')
+            fixture = output / f'reference-{number}.cli'
+            first = fixture / 'first root'
+            second = fixture / 'second root'
+            first.mkdir(parents=True)
+            second.mkdir()
+            first_file = first / '最初.txt'
+            last_file = second / '最後.txt'
+            first_file.write_bytes('最初の本文'.encode('utf-8'))
+            last_file.write_bytes('日本語の本文'.encode('cp932'))
+            inputs = [first_file, last_file]
+            original_hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs]
             row = {'round': number}; record['runs'].append(row)
             with target.with_suffix('.log').open('wb') as log:
-                child = subprocess.run([str(app)], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
+                child = subprocess.run([str(app), str(first), str(first_file), str(second), str(last_file),
+                                        str(fixture / 'missing.txt')], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
             row['exitCode'] = child.returncode
             if target.exists():
                 row['report'] = json.loads(target.read_text(encoding='utf-8-sig'))
@@ -89,6 +103,8 @@ def collect(app, output, commit, rounds=3):
                 failure = row.get('report', {}).get('Failure') or f'exit code {child.returncode}'
                 raise RuntimeError(f'Native reference search failed: {failure}')
             validate(row.get('report', {}), commit)
+            if [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs] != original_hashes:
+                raise ValueError('CLI source changed during native validation')
             row['validated'] = True
             print(f'reference-{number}: {len(CHECKS)} checks passed', flush=True)
         record['passed'] = True
