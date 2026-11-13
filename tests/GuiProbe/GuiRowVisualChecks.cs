@@ -46,6 +46,18 @@ internal sealed partial class GuiPerformanceProbe
             };
             var reference = Editor(); var projected = Editor();
             using var contextual = new ContextualRowControl { FlowDirection = _editor.FlowDirection };
+            DocumentDisplaySession? inputSource = null;
+            DocumentRowProjection? inputProjection = null;
+            contextual.SourcePressed += (offset, extend) =>
+            {
+                if (inputSource is not { } session || inputProjection is not { } projection
+                    || !projection.TryDisplayPosition(offset, out var displayOffset)
+                    || !session.TryGetGraphemeBounds(offset, out var boundary, out _)
+                    || boundary != offset || !session.TryMoveFromRows(projection, displayOffset, extend))
+                    return false;
+                contextual.SetSelection(session.Anchor, session.Caret);
+                return true;
+            };
             reference.Options.EnableTextDragDrop = projected.Options.EnableTextDragDrop = false;
             reference.Options.IndentationSize = projected.Options.IndentationSize = _editor.Options.IndentationSize;
             var referenceLabel = new TextBlock { Text = "全文の対照", Margin = new Thickness(8), Foreground = Brushes.Black };
@@ -63,7 +75,10 @@ internal sealed partial class GuiPerformanceProbe
             Grid.SetRow(contextHost, 4); Grid.SetColumnSpan(contextHost, 2); host.Children.Add(contextHost);
             owner = new Window { Title = "codeView CI Unicode context comparison", Width = 1120, Height = 300, Content = host };
             void Unexpected(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
-            { args.Handled = true; _inputInterrupted = true; Finish("physical-input-during-visual-comparison"); }
+            {
+                if (ReferenceEquals(args, _scriptedRowPointer)) return;
+                args.Handled = true; _inputInterrupted = true; Finish("physical-input-during-visual-comparison");
+            }
             owner.AddHandler(InputElement.PointerPressedEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             owner.AddHandler(InputElement.PointerWheelChangedEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             owner.AddHandler(InputElement.KeyDownEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
@@ -89,6 +104,8 @@ internal sealed partial class GuiPerformanceProbe
                 if (contextRange is { } range && indexedSource.ReadRowContext(indexedRows, 0) is { } contextText)
                 {
                     contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground);
+                    inputSource = indexedSource;
+                    inputProjection = indexedRows;
                     indexedSource.Select(indexedRows.Rows[0].SourceOffset + indexedRows.Rows[0].Length, indexedRows.Rows[0].SourceOffset);
                     contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
                 }
@@ -113,6 +130,8 @@ internal sealed partial class GuiPerformanceProbe
                     contextual.SetSelection(c.Text.Length, 0);
                     RequireRows(contextual.SelectionBounds.SequenceEqual(selection) && contextual.CaretPosition is null,
                         "Contextual row did not clip selection or hide the offscreen caret.");
+                    contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
+                    VerifyContextualPointer(contextual, owner, indexedSource, c, ct);
                     contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
                 }
                 if (c.Name == "arabic-joining")
@@ -173,6 +192,8 @@ internal sealed partial class GuiPerformanceProbe
                     Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds,
                     ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text,
                     ContextSelection = contextual.SelectionBounds.ToArray(), ContextCaret = contextual.CaretPosition });
+                inputProjection = null;
+                inputSource = null;
             }
             _rowVisualResults = new { Acquired = true, Accepted = accepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
                 FontSize = _editor.FontSize, FlowDirection = _editor.FlowDirection.ToString(), TabSize = _editor.Options.IndentationSize,
@@ -183,6 +204,38 @@ internal sealed partial class GuiPerformanceProbe
         }
         catch (Exception error) { Console.Error.WriteLine(error); Finish("row-visual-comparison-failed: " + error.Message); }
         finally { owner?.Close(); }
+    }
+
+    private void VerifyContextualPointer(ContextualRowControl control, Window owner, DocumentDisplaySession source,
+        RowVisualCase test, CancellationToken ct)
+    {
+        using var pointer = new Pointer(100003, PointerType.Mouse, true);
+        bool Press(double x, KeyModifiers modifiers, PointerUpdateKind button = PointerUpdateKind.LeftButtonPressed)
+        {
+            var point = control.TranslatePoint(new Point(x, control.Bounds.Height / 2), owner)
+                ?? throw new InvalidOperationException("No contextual pointer transform.");
+            var buttons = button == PointerUpdateKind.LeftButtonPressed ? RawInputModifiers.LeftMouseButton : RawInputModifiers.RightMouseButton;
+            var args = new PointerPressedEventArgs(control, pointer, owner, point, 0, new PointerPointProperties(buttons, button), modifiers);
+            _scriptedRowPointer = args;
+            try { control.RaiseEvent(args); }
+            finally { _scriptedRowPointer = null; }
+            return args.Handled;
+        }
+
+        var end = test.Start + test.Columns;
+        var nearRight = control.DesiredSize.Width - 1;
+        RequireRows(Press(nearRight, KeyModifiers.None) && source.Anchor == end && source.Caret == end,
+            "Contextual click did not collapse selection at its original offset.");
+        RequireRows(Press(1, KeyModifiers.Shift) && source.Anchor == end && source.Caret == test.Start,
+            "Contextual shift-click did not extend the original selection.");
+        using var copy = source.BeginCopy();
+        RequireRows(copy.ReadText(ct) == test.Text.Substring(test.Start, test.Columns),
+            "Contextual pointer selection changed the original copy range.");
+        RequireRows(!Press(-1, KeyModifiers.None) && !Press(1, KeyModifiers.None, PointerUpdateKind.RightButtonPressed)
+            && source.Anchor == end && source.Caret == test.Start, "Contextual pointer accepted an outside or right click.");
+        source.SetViewport(1, test.Start + 1);
+        RequireRows(!Press(1, KeyModifiers.None) && source.Anchor == end && source.Caret == test.Start,
+            "Contextual pointer accepted an old projection.");
     }
 
     private static async Task VisualFrame(Window window, CancellationToken ct)

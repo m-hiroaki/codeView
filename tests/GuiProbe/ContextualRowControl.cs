@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using CodeView.Documents;
@@ -18,6 +19,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
 
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
     internal Point? CaretPosition => _caret;
+    internal event Func<long, bool, bool>? SourcePressed;
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground)
     {
@@ -99,6 +101,16 @@ internal sealed class ContextualRowControl : Control, IDisposable
         if (position < _range.VisibleOffset || position > _range.VisibleOffset + _range.VisibleLength) return false;
         offset = _range.SourceOffset + position;
         return true;
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (e.Handled || e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+        if (TryHitSource(e.GetPosition(this), out var offset)
+            && SourcePressed?.Invoke(offset, e.KeyModifiers.HasFlag(KeyModifiers.Shift)) == true)
+            e.Handled = true;
     }
 
     public void Dispose()
