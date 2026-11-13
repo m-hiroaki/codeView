@@ -187,11 +187,17 @@ internal sealed partial class GuiPerformanceProbe
             {
                 RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
                 await _viewModel.PendingWork.WaitAsync(ct);
+                // The navigation can schedule a replacement scan after the first snapshot.
+                await inFile.PendingWork.WaitAsync(ct);
                 await Frame(ct);
             }
             finally { inFile.MatchesChanged -= SendLaterInput; }
-            Require(laterInput && query.IsFocused && _editor.CaretOffset == 0 && _editor.SelectionLength == 0
-                && inFile.Matches.Count == 1, "in-file-late-move-preserves-newer-input");
+            var preservedInput = laterInput && query.IsFocused && _editor.CaretOffset == 0 && _editor.SelectionLength == 0
+                && inFile.Matches.Count == 1;
+            if (!preservedInput)
+                Console.Error.WriteLine($"Late move sent={laterInput} focused={query.IsFocused} caret={_editor.CaretOffset} " +
+                    $"selection={_editor.SelectionLength} matches={inFile.Matches.Count}");
+            Require(preservedInput, "in-file-late-move-preserves-newer-input");
             query.Text = "Target";
             RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
             Require(!_viewModel.InFileSearch.IsVisible && _editor.TextArea.IsFocused, "in-file-escape-restores-editor");
