@@ -21,6 +21,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
     internal Point? CaretPosition => _caret;
     internal event Func<Point, long, bool, bool>? SourceSelectionRequested;
+    internal Func<Point, ContextualRowControl?>? FindDragRow { get; set; }
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground, double tabWidth)
     {
@@ -167,10 +168,17 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private void ExtendDrag(PointerEventArgs e)
     {
         var point = e.GetPosition(this);
-        if (TryHitSource(point, out var offset)
-            && SourceSelectionRequested?.Invoke(point, offset, true) != true)
+        var row = FindDragRow is { } find ? find(point) : this;
+        if (row is not null && TryExtendTo(row, point) == false)
             EndDrag();
         e.Handled = true;
+    }
+
+    private bool TryExtendTo(ContextualRowControl row, Point point)
+    {
+        var translated = ReferenceEquals(row, this) ? point : this.TranslatePoint(point, row);
+        return translated is not { } local || !row.TryHitSource(local, out var offset)
+            || row.SourceSelectionRequested?.Invoke(local, offset, true) == true;
     }
 
     private void EndDrag()

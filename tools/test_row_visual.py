@@ -40,7 +40,8 @@ def report(commit, prefix='visual-1.json'):
                       'ContextPoints': context_points, 'ContextMaximumRelativeXDifference': 0, 'ContextAccepted': True})
     return {'Failure': None, 'InputInterrupted': False, 'Scenario': 'native-row-visual-comparison',
             'ProductInformationalVersion': '1+' + commit, 'Os': 'macOS test', 'PhysicalPaint': 'not-measured',
-            'RowVisualComparison': {'Acquired': True, 'Accepted': False, 'ContextAccepted': True, 'Cases': cases, 'TabSize': 4, 'FontSize': 14,
+            'RowVisualComparison': {'Acquired': True, 'Accepted': False, 'ContextAccepted': True, 'ContextCrossRowDrag': True,
+                                    'Cases': cases, 'TabSize': 4, 'FontSize': 14,
                                     'FontFamily': 'Menlo,Consolas,monospace', 'FlowDirection': 'LeftToRight', 'CaptureDpi': 96,
                                     'NativeRenderScaling': 2}}
 
@@ -76,7 +77,7 @@ class RowVisualTests(unittest.TestCase):
 
     def test_missing_cases_altered_conditions_and_lost_rejection_fail(self):
         for key, value in [('Cases', report(self.commit)['RowVisualComparison']['Cases'][:-1]), ('TabSize', 8),
-                           ('FontSize', 15), ('NativeRenderScaling', float('nan')), ('Accepted', True)]:
+                           ('FontSize', 15), ('NativeRenderScaling', float('nan')), ('Accepted', True), ('ContextCrossRowDrag', False)]:
             r = report(self.commit); r['RowVisualComparison'][key] = value
             with self.assertRaises(ValueError): validate_report(r, self.commit, 'macos')
 

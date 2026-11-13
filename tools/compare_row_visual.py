@@ -85,7 +85,7 @@ def validate_report(report, commit, expected_os):
         raise ValueError('Wrong native build/mode/OS or failed/interrupted comparison')
     comparison = report.get('RowVisualComparison') or {}
     cases = comparison.get('Cases', [])
-    if (comparison.get('Acquired') is not True or len(cases) != len(CASES)
+    if (comparison.get('Acquired') is not True or comparison.get('ContextCrossRowDrag') is not True or len(cases) != len(CASES)
             or [c.get('Name') for c in cases] != list(CASES)
             or comparison.get('TabSize') != 4 or not comparison.get('FontFamily')
             or comparison.get('FontSize') != 14 or comparison.get('FlowDirection') != 'LeftToRight'

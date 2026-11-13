@@ -259,7 +259,8 @@ internal sealed partial class GuiPerformanceProbe
                 inputProjection = null;
                 inputSource = null;
             }
-            _rowVisualResults = new { Acquired = true, Accepted = accepted, ContextAccepted = contextualAccepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
+            await VerifyContextualCrossRowDrag(owner, contextHost, reference, ct);
+            _rowVisualResults = new { Acquired = true, Accepted = accepted, ContextAccepted = contextualAccepted, ContextCrossRowDrag = true, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
                 FontSize = _editor.FontSize, FlowDirection = _editor.FlowDirection.ToString(), TabSize = _editor.Options.IndentationSize,
                 CaptureDpi = 96, NativeRenderScaling = owner.RenderScaling,
                 Scope = "Small full-paragraph reference vs bounded row, same native controls/font; control render PNG, not physical paint/input. Comparison rejection is retained, not a workflow failure." };
@@ -322,6 +323,75 @@ internal sealed partial class GuiPerformanceProbe
         RequireRows(Move(nearRight) && pointer.Captured is null && !Press(1, KeyModifiers.None)
             && source.Anchor == end && source.Caret == test.Start,
             "Contextual pointer accepted an old projection.");
+    }
+
+    private async Task VerifyContextualCrossRowDrag(Window owner, Border host, TextEditor reference, CancellationToken ct)
+    {
+        const string text = "abc\r\ndef";
+        using var builder = new DocumentBuilder(collectGraphemeIndex: true);
+        builder.Append(text.AsMemory());
+        using var handle = builder.Complete();
+        using var source = new DocumentDisplaySession(handle);
+        var projection = source.CreateRowProjection(2, 8);
+        var panel = new StackPanel();
+        var rows = new ContextualRowControl[2];
+        var previous = host.Child;
+        try
+        {
+            for (var i = 0; i < rows.Length; i++)
+            {
+                var row = rows[i] = new ContextualRowControl { FlowDirection = reference.FlowDirection };
+                row.SetRow(source.ReadRowContext(projection, i)!, projection.GetContext(i)!.Value,
+                    new Typeface(reference.FontFamily), reference.FontSize, reference.Foreground,
+                    reference.Options.IndentationSize * reference.TextArea.TextView.WideSpaceWidth);
+                row.SourceSelectionRequested += (point, offset, extend) =>
+                {
+                    if (!source.TryGetGraphemeBounds(offset, out var before, out var after)) return false;
+                    var boundary = row.NearestBoundary(point, before, after);
+                    if (!projection.TryDisplayPosition(boundary, out var display)
+                        || !source.TryMoveFromRows(projection, display, extend)) return false;
+                    foreach (var current in rows) current.SetSelection(source.Anchor, source.Caret);
+                    return true;
+                };
+                row.FindDragRow = point => rows.FirstOrDefault(candidate =>
+                    row.TranslatePoint(point, candidate) is { } local && new Rect(candidate.Bounds.Size).Contains(local));
+                panel.Children.Add(row);
+            }
+            host.Child = panel;
+            await VisualFrame(owner, ct);
+            using var pointer = new Pointer(100005, PointerType.Mouse, true);
+            Point Root(ContextualRowControl row) => row.TranslatePoint(new Point(1, row.Bounds.Height / 2), owner)
+                ?? throw new InvalidOperationException("No cross-row pointer transform.");
+            bool Raise(ContextualRowControl row, PointerEventArgs args)
+            {
+                _scriptedRowPointer = args;
+                try { row.RaiseEvent(args); }
+                finally { _scriptedRowPointer = null; }
+                return args.Handled;
+            }
+            for (var start = 0; start < rows.Length; start++)
+            {
+                var from = rows[start];
+                var to = rows[1 - start];
+                RequireRows(Raise(from, new PointerPressedEventArgs(from, pointer, owner, Root(from), 0,
+                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None))
+                    && pointer.Captured == from, "Cross-row press did not capture its pointer.");
+                RequireRows(Raise(from, new PointerEventArgs(InputElement.PointerMovedEvent, from, pointer, owner, Root(to), 0,
+                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None))
+                    && source.Anchor == projection.Rows[start].SourceOffset && source.Caret == projection.Rows[1 - start].SourceOffset,
+                    "Cross-row drag did not use the target row's original position.");
+                using var copy = source.BeginCopy();
+                RequireRows(copy.ReadText(ct) == "abc\r\n", "Cross-row drag did not preserve CRLF in the original copy.");
+                RequireRows(Raise(from, new PointerReleasedEventArgs(from, pointer, owner, Root(to), 0,
+                    new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left))
+                    && pointer.Captured is null, "Cross-row release did not relinquish capture.");
+            }
+        }
+        finally
+        {
+            foreach (var row in rows) row?.Dispose();
+            host.Child = previous;
+        }
     }
 
     private static async Task VisualFrame(Window window, CancellationToken ct)
