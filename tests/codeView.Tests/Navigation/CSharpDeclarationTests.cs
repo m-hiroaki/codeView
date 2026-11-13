@@ -31,6 +31,7 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { void N() {} }")]
     [TestCase("interface C { void N(); }")]
     [TestCase("class C { public int N() => 42; }")]
+    [TestCase("unsafe class C { delegate* managed<ref readonly int> N() => null; }")]
     [TestCase("class C { [A(typeof(int[]))]\r\n public static\n (T Value, int Count) N<T>([B] T value) where T : class, new() => (value, 1); }")]
     [TestCase("class C { public T N<T,U>(T value) where T : class where U : new() { return value; } }")]
     [TestCase("struct C { public ref readonly global::System.Int32 N() => ref Value; }")]
@@ -62,6 +63,10 @@ internal sealed class CSharpDeclarationTests
     [TestCase("unsafe struct C { public fixed byte N[16]; }")]
     [TestCase("struct C { [A] private unsafe fixed int Other[1 + 2], @N[sizeof(int)]; }")]
     [TestCase("unsafe struct C { fixed int N[1], Other[2]; }")]
+    [TestCase("unsafe class C { delegate*<int, void> First, N; }")]
+    [TestCase("unsafe class C { delegate* unmanaged[Cdecl, SuppressGCTransition]<in int, out long, void> N; }")]
+    [TestCase("unsafe class C { delegate*<delegate*<void>, void> N; }")]
+    [TestCase("unsafe class C { object Other = Factory<delegate*<void>, int>(), N; }")]
     public void FindsFields(string source) => AssertMatches(source, DeclarationKind.Field);
 
     [TestCase("N(); class Other {}")]
@@ -74,6 +79,8 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { bool A = value is Pair<int, N, string> pair; }")]
     [TestCase("class C { bool A = Cache<int, N, string> == null; }")]
     [TestCase("class NN { int n; int Name; }")]
+    [TestCase("unsafe class C { delegate*<N, void> Other; void M() { delegate*<void> N = null; } }")]
+    [TestCase("unsafe class C { delegate*<> N; }")]
     [TestCase("unsafe struct C { fixed int Other[N]; void M() { fixed (int* N = Other) {} } }")]
     public void ExcludesNonDeclarationsAndUnsupportedMemberForms(string source)
     {

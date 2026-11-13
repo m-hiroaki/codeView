@@ -329,7 +329,11 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
         public bool ReadType(ref int i)
         {
             while (At(i) is "ref" or "readonly") i++;
-            if (At(i) == "(") i = SkipGroup(i); // Tuple type.
+            if (At(i) == "delegate" && At(i + 1) == "*")
+            {
+                if (!ReadFunctionPointer(ref i)) return false;
+            }
+            else if (At(i) == "(") i = SkipGroup(i); // Tuple type.
             else
             {
                 while (true)
@@ -346,6 +350,28 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             }
             while (At(i) is "?" or "*" or "[")
                 i = At(i) == "[" ? SkipGroup(i) : i + 1;
+            return true;
+        }
+
+        private bool ReadFunctionPointer(ref int i)
+        {
+            i += 2;
+            if (At(i) == "managed") i++;
+            else if (At(i) == "unmanaged")
+            {
+                i++;
+                if (At(i) == "[") i = SkipGroup(i);
+            }
+            if (At(i) != "<") return false;
+            do
+            {
+                i++;
+                if (At(i) is "in" or "out") i++;
+                if (!ReadType(ref i)) return false;
+            }
+            while (At(i) == ",");
+            if (At(i) != ">") return false;
+            i++;
             return true;
         }
 
