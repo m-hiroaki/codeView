@@ -72,6 +72,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool HasWorkspace => operations.Workspace is not null;
     public bool CanSearchWorkspace => operations.Workspace?.CanSearch == true;
     public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
+    internal long? WorkspaceEpoch => operations.Workspace?.Epoch;
     public string WorkspaceSummary => operations.Workspace is not { } workspace ? "" : workspace.Status switch
     {
         WorkspaceStatus.Loading => "フォルダを確認中…",
@@ -88,6 +89,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public event Action<double, double, long>? RestoreViewport;
     public event Action<long, int>? SelectSearchRange;
     public event Action? ClearSearchSelection;
+    internal long InteractionEpoch => _interactionEpoch;
     public void RecordUserInteraction() => _interactionEpoch = checked(_interactionEpoch + 1);
     public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
         && _interactionEpoch == _selectionInteractionEpoch && _selectionRow is { } row && SearchPanel.CanActivate(row)

@@ -415,18 +415,23 @@ internal sealed partial class MainWindow : Window
     private void ShowSearch()
     {
         if (!_viewModel.CanSearchWorkspace) return;
+        var interaction = _viewModel.InteractionEpoch;
+        var workspace = _viewModel.WorkspaceEpoch;
         _viewModel.SearchPanel.IsVisible = true;
         var input = this.FindControl<TextBox>("SearchQuery")!;
         if (!input.Focus())
             Dispatcher.UIThread.Post(() =>
             {
-                if (!_closing && _viewModel.SearchPanel.IsVisible && _viewModel.CanSearchWorkspace) input.Focus();
+                if (!_closing && _viewModel.InteractionEpoch == interaction && _viewModel.SearchPanel.IsVisible
+                    && _viewModel.CanSearchWorkspace && _viewModel.WorkspaceEpoch == workspace)
+                    input.Focus();
             }, DispatcherPriority.Loaded);
     }
 
     private void ShowInFileSearch()
     {
         if (!_viewModel.InFileSearch.CanOpen) return;
+        var interaction = _viewModel.InteractionEpoch;
         _viewModel.InFileSearch.IsVisible = true;
         var input = this.FindControl<TextBox>("InFileQuery")!;
         if (input.Focus())
@@ -437,7 +442,8 @@ internal sealed partial class MainWindow : Window
         var revision = _viewModel.InFileSearch.Revision;
         Dispatcher.UIThread.Post(() =>
         {
-            if (!_closing && _viewModel.InFileSearch.IsVisible && _viewModel.InFileSearch.Revision == revision
+            if (!_closing && _viewModel.InteractionEpoch == interaction
+                && _viewModel.InFileSearch.IsVisible && _viewModel.InFileSearch.Revision == revision
                 && input.Focus())
                 input.SelectAll();
         }, DispatcherPriority.Loaded);

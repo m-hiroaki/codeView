@@ -127,11 +127,28 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct); await Frame(ct);
             Require(_viewModel.FilePath == duplicate && _editor.SelectedText == "@Target"
                 && _editor.TextArea.IsFocused, "definition-enter-original-selection");
-            var findKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F,
-                KeyModifiers = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control };
+            var findModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+            var query = _window.FindControl<TextBox>("InFileQuery")!;
+            var folderQuery = _window.FindControl<TextBox>("SearchQuery")!;
+
+            async Task CheckDeferredFocusAsync(TextBox input, KeyModifiers modifiers, string check)
+            {
+                // Disable the input only for the synchronous focus attempt. A later key press
+                // on the editor must supersede the callback already queued at Loaded priority.
+                _editor.TextArea.Focus();
+                input.IsEnabled = false;
+                var shortcut = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = modifiers };
+                RaiseSearchKey(_editor.TextArea, shortcut);
+                RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftShift });
+                input.IsEnabled = true;
+                await Frame(ct);
+                Require(shortcut.Handled && _editor.TextArea.IsFocused && input.IsEffectivelyVisible, check);
+            }
+
+            await CheckDeferredFocusAsync(query, findModifier, "in-file-deferred-focus-preserves-newer-input");
+            var findKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = findModifier };
             RaiseSearchKey(_editor.TextArea, findKey);
             await Frame(ct);
-            var query = _window.FindControl<TextBox>("InFileQuery")!;
             if (!findKey.Handled || !query.IsFocused || !query.IsEffectivelyVisible)
                 Console.Error.WriteLine($"In-file shortcut handled={findKey.Handled} open={_viewModel.InFileSearch.CanOpen} " +
                     $"shown={_viewModel.InFileSearch.IsVisible} visible={query.IsEffectivelyVisible} focused={query.IsFocused}");
@@ -156,10 +173,10 @@ internal sealed partial class GuiPerformanceProbe
                 "in-file-enter-selects-wrapped-match");
             RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
             Require(!_viewModel.InFileSearch.IsVisible && _editor.TextArea.IsFocused, "in-file-escape-restores-editor");
+            await CheckDeferredFocusAsync(folderQuery, findModifier | KeyModifiers.Shift, "folder-deferred-focus-preserves-newer-input");
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F,
                 KeyModifiers = (OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control) | KeyModifiers.Shift });
             await Frame(ct);
-            var folderQuery = _window.FindControl<TextBox>("SearchQuery")!;
             Require(folderQuery.IsFocused, "folder-shortcut-focus");
             folderQuery.SelectAll();
             var folderClient = new TextInputMethodClientRequestedEventArgs { RoutedEvent = InputElement.TextInputMethodClientRequestedEvent };
