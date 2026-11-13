@@ -296,8 +296,28 @@ internal sealed class SearchPanelTests
         panel.RefreshWorkspace();
         await panel.StartAsync();
         await operations.PendingSearchWork;
-        Assert.That(panel.Summary, invalid ? Does.Contain("検索条件が不正") : Does.Contain("長行未評価 1行").And.Contain("部分結果"));
+        Assert.That(panel.Summary, invalid ? Does.Contain("正規表現の構文が不正") : Does.Contain("長行未評価 1行").And.Contain("部分結果"));
         Assert.That(panel.Rows.Count, Is.EqualTo(invalid ? 0 : 1));
+    });
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void QueryLengthLimitIsExplainedWithoutTruncatingTheInput(bool regex) => SingleThreadTestContext.Run(async () =>
+    {
+        using var operations = await Open(new SourceAccess());
+        var panel = new SearchPanelViewModel(() => operations.Searches, () => operations.Workspace, YieldAsync)
+        {
+            Query = new string('a', SearchLimits.QueryChars),
+            UseRegex = regex
+        };
+        panel.RefreshWorkspace();
+        await panel.StartAsync();
+        Assert.That(panel.Summary, Does.Contain("検索完了"));
+
+        panel.Query += "a";
+        await panel.StartAsync();
+        Assert.That(panel.Summary, Does.Contain("検索語が長すぎます").And.Contain($"{SearchLimits.QueryChars:N0} UTF-16単位"));
+        Assert.That(panel.Query, Has.Length.EqualTo(SearchLimits.QueryChars + 1));
     });
 
     [Test]

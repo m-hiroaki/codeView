@@ -195,7 +195,7 @@ internal sealed class InFileSearchTests
             search.UseRegex = true;
             search.Query = "[";
             await search.PendingWork;
-            Assert.That(search.Summary, Does.Contain("不正"));
+            Assert.That(search.Summary, Does.Contain("正規表現の構文が不正"));
             var revision = search.Revision;
             Assert.That(await search.MoveAsync(0, 0, 0, false), Is.Null);
             Assert.That(search.Revision, Is.EqualTo(revision));
@@ -203,6 +203,23 @@ internal sealed class InFileSearchTests
             await search.PendingWork;
             Assert.That(search.Matches.Single().Offset, Is.EqualTo(SearchLimits.RegexLineChars + 2));
             Assert.That(search.Summary, Does.Contain("長行未評価 1行"));
+        });
+
+    [TestCase(false, "通常の検索語に改行は指定できません")]
+    [TestCase(true, "不正なUnicode文字列")]
+    public void InvalidLiteralInputExplainsHowToCorrectIt(bool invalidUnicode, string message) =>
+        WithView("foo\nbar", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.Query = invalidUnicode ? new string((char)0xD800, 1) : "foo\nbar";
+            await search.PendingWork;
+            Assert.That(search.Summary, Does.Contain(message));
+            Assert.That(search.Matches, Is.Empty);
+
+            search.Query = "bar";
+            await search.PendingWork;
+            Assert.That(search.Matches.Single().Offset, Is.EqualTo(4));
         });
 
     [Test]

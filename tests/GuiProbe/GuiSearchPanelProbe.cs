@@ -54,7 +54,7 @@ internal static class GuiSearchPanelProbe
         Click(owner, "検索");
         await view.SearchPanel.PendingWork.WaitAsync(TimeSpan.FromSeconds(10), ct);
         await Frame(owner, ct);
-        Require(view.SearchPanel.Rows.Count == 0 && view.SearchPanel.Summary.Contains("検索条件が不正", StringComparison.Ordinal),
+        Require(view.SearchPanel.Rows.Count == 0 && view.SearchPanel.Summary.Contains("正規表現の構文が不正", StringComparison.Ordinal),
             "Invalid regex was not reported as a normal search failure.");
         regex.IsChecked = false;
         query.Text = Query;

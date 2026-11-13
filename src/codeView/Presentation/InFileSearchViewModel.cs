@@ -88,7 +88,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
             var count = state.Matches.Count;
             return state.Scan switch
             {
-                { Error.Code: ErrorCode.InvalidPattern } => "検索条件が不正です。",
+                { Error.Code: ErrorCode.InvalidPattern } => SearchMessages.InvalidQuery(state.Query, state.Options),
                 { Error.Code: ErrorCode.RegexTimedOut } timeout => $"正規表現がタイムアウトしました。少なくとも {count:N0} 件。" + SkippedDetails(timeout),
                 { IsPartial: true } partial => $"少なくとも {count:N0} 件。未評価あり。" + SkippedDetails(partial),
                 { ReachedEnd: true } => count == 0 ? "見つかりません。" : $"{count:N0} 件。",
@@ -285,7 +285,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         state.Current = match;
         _navigationNotice = (scan?.Error?.Code, match, wrapped) switch
         {
-            (ErrorCode.InvalidPattern, _, _) => "検索条件が不正です。",
+            (ErrorCode.InvalidPattern, _, _) => SearchMessages.InvalidQuery(state.Query, state.Options),
             (ErrorCode.RegexTimedOut, _, _) => "正規表現がタイムアウトしました。未評価あり。",
             (_, null, _) => scan?.IsPartial == true ? "見つかりませんでした。未評価あり。" : "見つかりません。",
             (_, _, true) => scan?.IsPartial == true ? "折り返しました。未評価あり。" : "折り返しました。",

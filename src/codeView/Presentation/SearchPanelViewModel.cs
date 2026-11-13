@@ -221,7 +221,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
                     // A partially consumed UI batch is not part of the channel. Cancellation drops it as well.
                     if (operation.CancellationCause == SearchCancellationCause.User || result.Status == OperationStatus.Cancelled)
                     { _results.RemoveProvisional(); _notice = "検索を取り消しました。部分結果です。"; }
-                    else if (_coordinator.TryFinalize(operation, out _)) ApplyCompletion(result.Value, operation.Request.Definitions);
+                    else if (_coordinator.TryFinalize(operation, out _)) ApplyCompletion(result.Value, operation.Request);
                     else throw new InvalidOperationException("検索の排出が終端より先に中断されました。");
                     _running = false;
                     UpdateProgress(operation);
@@ -269,7 +269,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         }
     }
 
-    private void ApplyCompletion(SearchCompletion end, bool definitions)
+    private void ApplyCompletion(SearchCompletion end, WorkspaceSearchRequest request)
     {
         if (end.Reason == SearchEndReason.LimitReached) _results.MarkIncomplete();
         else if (end.IsPartial) _results.RemoveProvisional();
@@ -280,14 +280,14 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
             SearchEndReason.Cancelled => "検索を取り消しました。部分結果です。",
             SearchEndReason.Failed => end.Error?.Code switch
             {
-                ErrorCode.InvalidPattern => "検索条件が不正です。語長・改行・正規表現を確認してください。",
+                ErrorCode.InvalidPattern => SearchMessages.InvalidQuery(request.Query, request.Options),
                 ErrorCode.RegexTimedOut => "正規表現がタイムアウトしました。部分結果です。",
                 _ => "検索を完了できませんでした。部分結果です。"
             },
-            _ when definitions && _results.CommittedCount == 0 => end.IsPartial
+            _ when request.Definitions && _results.CommittedCount == 0 => end.IsPartial
                 ? "定義は見つかりませんでした。未評価あり。" : "定義が見つかりません。",
-            _ when definitions && end.IsPartial => "名前一致による宣言候補の部分結果です。",
-            _ when definitions => "名前一致による宣言候補です。",
+            _ when request.Definitions && end.IsPartial => "名前一致による宣言候補の部分結果です。",
+            _ when request.Definitions => "名前一致による宣言候補です。",
             _ => end.IsPartial ? "検索終了・部分結果です。" : "検索完了。"
         };
         if (end.Progress.FailedEntries > 0 || end.Progress.SkippedLongLines > 0 || end.Progress.SkippedScalarMatches > 0)

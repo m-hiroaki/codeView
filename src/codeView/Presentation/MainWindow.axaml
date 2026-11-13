@@ -122,6 +122,8 @@
                             <CheckBox Content="単語単位" IsChecked="{Binding InFileSearch.WholeWord, Mode=TwoWay}" />
                             <CheckBox Content="正規表現" IsChecked="{Binding InFileSearch.UseRegex, Mode=TwoWay}" />
                         </StackPanel>
+                        <TextBlock Text="{x:Static vm:SearchMessages.RegexLimits}" IsVisible="{Binding InFileSearch.UseRegex}"
+                                   Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding InFileSearch.Summary}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -160,7 +162,7 @@
                     <TextBlock Text="正規化なし" VerticalAlignment="Center" FontSize="10" Foreground="#A9B9CD" ToolTip.Tip="Unicode結合文字の正規化や幅の同一視は行いません。" />
                 </StackPanel>
                 <StackPanel Grid.Row="2" Spacing="2" Margin="0,3,0,5">
-                    <TextBlock Text="行単位・1行1,048,576 UTF-16単位まで。超過行は未評価。1行の照合が100ms超で検索中断。" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
+                    <TextBlock Text="{x:Static vm:SearchMessages.RegexLimits}" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
                     <TextBlock x:Name="SearchDescription" Text="{Binding SearchPanel.Description}" Foreground="#94D4C3" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock x:Name="AppliedSearchConditions" Text="{Binding SearchPanel.AppliedConditions}" IsVisible="{Binding SearchPanel.HasAppliedConditions}"
                                TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SearchPanel.AppliedConditions}"
