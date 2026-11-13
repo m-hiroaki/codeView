@@ -424,7 +424,9 @@ internal sealed partial class GuiPerformanceProbe
             RequireRows(Raise(fromRow, new PointerEventArgs(InputElement.PointerMovedEvent, fromRow, pointer, owner, outside, 0,
                 new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None)),
                 "Autoscroll move was not handled.");
-            while (firstVisible < 2 && pointer.Captured == fromRow) await VisualFrame(owner, ct);
+            var timerDeadline = Stopwatch.StartNew();
+            while (firstVisible < 2 && pointer.Captured == fromRow && timerDeadline.Elapsed < TimeSpan.FromSeconds(2))
+                await VisualFrame(owner, ct);
             RequireRows(firstVisible == 2 && viewport.Offset.Y > rowHeight && source.Anchor == 0
                 && source.Caret == projection.Rows[3].SourceOffset, "Autoscroll did not extend through the newly visible rows.");
             using (var copy = source.BeginCopy())

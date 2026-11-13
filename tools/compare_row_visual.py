@@ -154,7 +154,9 @@ def collect(app, output, rounds, commit, expected_os):
                 child = subprocess.run([str(app)], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
             row['exitCode'] = child.returncode
             if target.exists(): row['report'] = json.loads(target.read_text(encoding='utf-8-sig'))
-            if child.returncode != 0: raise RuntimeError('Native visual acquisition failed')
+            if child.returncode != 0:
+                failure = row.get('report', {}).get('Failure') or f'exit code {child.returncode}'
+                raise RuntimeError(f'Native visual acquisition failed: {failure}')
             validate_report(row['report'], commit, expected_os)
             captures = {}
             for c in row['report']['RowVisualComparison']['Cases']:
