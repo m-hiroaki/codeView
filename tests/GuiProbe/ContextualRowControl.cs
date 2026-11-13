@@ -208,6 +208,6 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private sealed class RowTextSource(string text, TextRunProperties run) : ITextSource
     {
         public TextRun? GetTextRun(int textSourceIndex) =>
-            textSourceIndex < text.Length ? new TextCharacters(text.AsMemory(textSourceIndex), run) : null;
+            textSourceIndex < text.Length ? new TextCharacters(text.AsMemory(textSourceIndex), run) : new TextEndOfParagraph(1);
     }
 }
