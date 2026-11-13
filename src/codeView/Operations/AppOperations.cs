@@ -52,7 +52,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         try
         {
             ct.ThrowIfCancellationRequested();
-            using var lease = document.AcquireReadView();
+            using var lease = documents.AcquireReadView(document);
             return await Task.Run(() => scan(lease));
         }
         finally { slot.Release(); }
@@ -66,7 +66,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         try
         {
             ct.ThrowIfCancellationRequested();
-            using var lease = document.AcquireReadView();
+            using var lease = documents.AcquireReadView(document);
             var grammars = _grammars ??= new();
             return await Task.Run(() => SyntaxHighlighting.Read(lease, scope, grammars, ct));
         }

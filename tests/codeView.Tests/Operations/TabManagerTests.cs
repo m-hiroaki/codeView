@@ -221,6 +221,97 @@ internal sealed class TabManagerTests
         finally { operations.Dispose(); await operations.PendingTabWork; Directory.Delete(root, true); }
     });
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ClosingDuringRealDocumentConstructionCannotAttachRetiredText(bool reload) => SingleThreadTestContext.Run(async () =>
+    {
+        var directory = Directory.CreateTempSubdirectory("codeview-build-");
+        var path = SourcePath.Create("closing.txt", directory.FullName);
+        File.WriteAllText(path.FullPath, "original");
+        using var source = new HoldAfterReadSource(path);
+        using var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+        try
+        {
+            var tabs = operations.Tabs;
+            DocumentReadLease? existingLease = null;
+            DocumentHandle? existingDocument = null;
+            if (reload)
+            {
+                var original = (await tabs.OpenAsync(path)).Value.File!;
+                existingDocument = original.Document;
+                existingLease = existingDocument.AcquireReadView();
+            }
+
+            using var lease = existingLease;
+            File.WriteAllText(path.FullPath, "new document");
+            source.Hold = true;
+            var load = reload ? tabs.ReloadAsync(tabs.ActiveTab!) : tabs.OpenAsync(path);
+            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            var closing = tabs.ActiveTab!;
+            var version = closing.DocumentVersion;
+            Assert.That(tabs.Close(closing), Is.True);
+            Assert.That(tabs.ActiveTab, Is.Null);
+            Assert.That(tabs.PendingWork.IsCompleted, Is.False);
+            source.Release.Set();
+
+            Assert.That((await load.WaitAsync(TimeSpan.FromSeconds(5))).Status, Is.EqualTo(OperationStatus.Cancelled));
+            await tabs.PendingWork;
+            Assert.That(closing.DocumentVersion, Is.EqualTo(version));
+            Assert.That(closing.File, Is.Null);
+            if (existingDocument is not null)
+            {
+                Assert.That(existingDocument.IsReleased, Is.True);
+                Assert.That(lease!.ReadRange(0, 8), Is.EqualTo("original"));
+                lease.Dispose();
+                Assert.That(existingDocument.ActiveReadLeases, Is.Zero);
+            }
+
+            source.Hold = false;
+            var reopened = (await tabs.OpenAsync(path)).Value;
+            Assert.That(reopened.Id, Is.Not.EqualTo(closing.Id));
+            var document = reopened.File!.Document.ClaimForDisplay();
+            Assert.That(document.Text, Is.EqualTo("new document"));
+            Assert.That(document.UndoStack.CanUndo, Is.False);
+        }
+        finally
+        {
+            source.Release.Set();
+            operations.Dispose();
+            await operations.PendingTabWork;
+            directory.Delete(recursive: true);
+        }
+    });
+
+    private sealed class HoldAfterReadSource(SourcePath path) : ISourceAccess, IDisposable
+    {
+        private readonly SourceAccess _source = new();
+        private int _stampReads;
+        public bool Hold { get; set; }
+        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public ManualResetEventSlim Release { get; } = new();
+
+        public OperationResult<FileStream> OpenRead(SourcePath input, CancellationToken ct)
+        {
+            _stampReads = 0;
+            return _source.OpenRead(input, ct);
+        }
+
+        public SourceStamp GetStamp(SourcePath input)
+        {
+            if (input == path && Hold && ++_stampReads == 3)
+            {
+                Entered.TrySetResult();
+                if (!Release.Wait(TimeSpan.FromSeconds(10))) throw new TimeoutException();
+            }
+            return _source.GetStamp(input);
+        }
+
+        public OperationResult<SourceEntry> InspectPath(SourcePath input, CancellationToken ct) => _source.InspectPath(input, ct);
+        public OperationResult<SourcePath> ResolveDirectory(SourcePath input, CancellationToken ct) => _source.ResolveDirectory(input, ct);
+        public IEnumerable<SourceEntry> EnumerateChildren(SourcePath input, CancellationToken ct) => _source.EnumerateChildren(input, ct);
+        public void Dispose() => Release.Dispose();
+    }
+
     private sealed class Loader : IDisposable
     {
         public bool HoldFirst { get; set; }
