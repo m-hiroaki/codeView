@@ -20,7 +20,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
 
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
     internal Point? CaretPosition => _caret;
-    internal event Func<long, bool, bool>? SourceSelectionRequested;
+    internal event Func<Point, long, bool, bool>? SourceSelectionRequested;
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground)
     {
@@ -104,14 +104,24 @@ internal sealed class ContextualRowControl : Control, IDisposable
         return true;
     }
 
+    internal long NearestBoundary(Point point, long before, long after)
+    {
+        if (_layout is not { } layout || before == after) return before;
+        var x = point.X + _origin;
+        var leading = layout.HitTestTextPosition((int)(before - _range.SourceOffset)).X;
+        var trailing = layout.HitTestTextPosition((int)(after - _range.SourceOffset)).X;
+        return Math.Abs(x - leading) <= Math.Abs(x - trailing) ? before : after;
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
         if (e.Handled || _dragPointer is not null
             || e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
             return;
-        if (TryHitSource(e.GetPosition(this), out var offset)
-            && SourceSelectionRequested?.Invoke(offset, e.KeyModifiers.HasFlag(KeyModifiers.Shift)) == true)
+        var point = e.GetPosition(this);
+        if (TryHitSource(point, out var offset)
+            && SourceSelectionRequested?.Invoke(point, offset, e.KeyModifiers.HasFlag(KeyModifiers.Shift)) == true)
         {
             e.Pointer.Capture(this);
             if (e.Pointer.Captured == this) _dragPointer = e.Pointer;
@@ -147,8 +157,9 @@ internal sealed class ContextualRowControl : Control, IDisposable
 
     private void ExtendDrag(PointerEventArgs e)
     {
-        if (TryHitSource(e.GetPosition(this), out var offset)
-            && SourceSelectionRequested?.Invoke(offset, true) != true)
+        var point = e.GetPosition(this);
+        if (TryHitSource(point, out var offset)
+            && SourceSelectionRequested?.Invoke(point, offset, true) != true)
             EndDrag();
         e.Handled = true;
     }

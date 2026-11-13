@@ -48,12 +48,14 @@ internal sealed partial class GuiPerformanceProbe
             using var contextual = new ContextualRowControl { FlowDirection = _editor.FlowDirection };
             DocumentDisplaySession? inputSource = null;
             DocumentRowProjection? inputProjection = null;
-            contextual.SourceSelectionRequested += (offset, extend) =>
+            contextual.SourceSelectionRequested += (point, offset, extend) =>
             {
                 if (inputSource is not { } session || inputProjection is not { } projection
-                    || !projection.TryDisplayPosition(offset, out var displayOffset)
-                    || !session.TryGetGraphemeBounds(offset, out var boundary, out _)
-                    || boundary != offset || !session.TryMoveFromRows(projection, displayOffset, extend))
+                    || !session.TryGetGraphemeBounds(offset, out var before, out var after))
+                    return false;
+                var boundary = contextual.NearestBoundary(point, before, after);
+                if (!projection.TryDisplayPosition(boundary, out var displayOffset)
+                    || !session.TryMoveFromRows(projection, displayOffset, extend))
                     return false;
                 contextual.SetSelection(session.Anchor, session.Caret);
                 return true;
@@ -120,6 +122,33 @@ internal sealed partial class GuiPerformanceProbe
                 referenceLabel.Text = "全文の対照（小入力のみ）";
                 projectionLabel.Text = $"行別投影: 結合境界 左={startBoundary} / 右={endBoundary}";
                 await VisualFrame(owner, ct);
+                var contextualHits = 0;
+                if (contextRange is { VisibleLength: > 0 } visible)
+                {
+                    var anchor = indexedSource.Anchor;
+                    var caret = indexedSource.Caret;
+                    using var pointer = new Pointer(100004, PointerType.Mouse, true);
+                    var width = contextual.DesiredSize.Width;
+                    for (var sample = 0; sample < 32; sample++)
+                    {
+                        var point = new Point(width * (sample + .5) / 32, contextual.Bounds.Height / 2);
+                        if (!contextual.TryHitSource(point, out _)) continue;
+                        var root = contextual.TranslatePoint(point, owner) ?? throw new InvalidOperationException("No Unicode pointer transform.");
+                        var press = new PointerPressedEventArgs(contextual, pointer, owner, root, 0,
+                            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None);
+                        _scriptedRowPointer = press;
+                        try { contextual.RaiseEvent(press); }
+                        finally { _scriptedRowPointer = null; pointer.Capture(null); }
+                        var start = visible.SourceOffset + visible.VisibleOffset;
+                        RequireRows(press.Handled && indexedSource.Caret >= start && indexedSource.Caret <= start + visible.VisibleLength
+                            && boundaries.Contains((int)indexedSource.Caret) && indexedSource.Anchor == indexedSource.Caret,
+                            $"Contextual pointer did not select a visible grapheme boundary: {c.Name} sample {sample}.");
+                        contextualHits++;
+                    }
+                    RequireRows(contextualHits > 0, $"Contextual row exposed no pointer hits: {c.Name}.");
+                    indexedSource.Select(anchor, caret);
+                    contextual.SetSelection(anchor, caret);
+                }
                 if (c.Name == "ascii-control")
                 {
                     RequireRows(contextual.TryHitSource(new Point(1, contextual.Bounds.Height / 2), out var hit)
@@ -192,7 +221,8 @@ internal sealed partial class GuiPerformanceProbe
                     SourceMappingExact = exactMapping, OriginalCopyExact = copyExact, Accepted = caseAccepted,
                     Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds,
                     ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text,
-                    ContextSelection = contextual.SelectionBounds.ToArray(), ContextCaret = contextual.CaretPosition });
+                    ContextSelection = contextual.SelectionBounds.ToArray(), ContextCaret = contextual.CaretPosition,
+                    ContextualPointerHits = contextualHits });
                 inputProjection = null;
                 inputSource = null;
             }
