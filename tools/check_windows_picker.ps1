@@ -73,7 +73,18 @@ function Open-Picker([string]$Title) {
 }
 function Set-PickerPath($Dialog, [string]$Path) {
     $edit = Wait-For 'native filename edit' { Find-ById $Dialog '1148' }
-    $edit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($Path)
+    $pattern = $null
+    if (!$edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$pattern)) {
+        $condition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::Edit)
+        $edit = $edit.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+        if ($edit) {
+            $null = $edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$pattern)
+        }
+    }
+    if (!$pattern) { throw "The native filename control has no editable value for $($Dialog.Current.Name)" }
+    $pattern.SetValue($Path)
     Invoke-Control (Wait-For 'native confirmation button' { Find-ById $Dialog '1' })
 }
 function Get-Hashes($Files) {
@@ -100,9 +111,10 @@ try {
     }
     $dialog = Open-Picker 'ファイルを開く'
     Set-PickerPath $dialog ('"{0}" "{1}"' -f $files[0], $files[1])
+    $tabs = Wait-For 'tab list' { Find-Named $window '開いているファイル' }
     foreach ($file in $files) {
         $name = Split-Path $file -Leaf
-        $null = Wait-For "tab $name" { Find-Named $window $name }
+        $null = Wait-For "tab $name" { Find-Named $tabs $name }
     }
     $report.checks += 'native-file-picker-opens-both-tabs'
     $active = Wait-For 'active source path' {
