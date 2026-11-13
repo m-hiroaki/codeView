@@ -121,8 +121,8 @@
                             <CheckBox Content="大小文字を区別" IsChecked="{Binding InFileSearch.MatchCase, Mode=TwoWay}" />
                             <CheckBox Content="単語単位" IsChecked="{Binding InFileSearch.WholeWord, Mode=TwoWay}" />
                             <CheckBox Content="正規表現" IsChecked="{Binding InFileSearch.UseRegex, Mode=TwoWay}" />
-                            <TextBlock Text="{Binding InFileSearch.Summary}" VerticalAlignment="Center" />
                         </StackPanel>
+                        <TextBlock Text="{Binding InFileSearch.Summary}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
         <editor:TextEditor Grid.Row="2" x:Name="Editor"

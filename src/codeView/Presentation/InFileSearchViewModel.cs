@@ -88,8 +88,8 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
             return state.Scan switch
             {
                 { Error.Code: ErrorCode.InvalidPattern } => "検索条件が不正です。",
-                { Error.Code: ErrorCode.RegexTimedOut } => $"正規表現がタイムアウトしました。少なくとも {count:N0} 件。",
-                { IsPartial: true } => $"少なくとも {count:N0} 件。未評価あり。",
+                { Error.Code: ErrorCode.RegexTimedOut } timeout => $"正規表現がタイムアウトしました。少なくとも {count:N0} 件。" + SkippedDetails(timeout),
+                { IsPartial: true } partial => $"少なくとも {count:N0} 件。未評価あり。" + SkippedDetails(partial),
                 { ReachedEnd: true } => count == 0 ? "見つかりません。" : $"{count:N0} 件。",
                 _ when count == SearchLimits.ResultLimit => $"少なくとも {count:N0} 件。",
                 _ when _running => $"検索中… {count:N0} 件。",
@@ -227,6 +227,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         if (_stopped || !IsVisible || _active is not { Document: { } document, Query.Length: > 0 } state)
             return Task.FromResult<TextRange?>(null);
         if (_navigating) Cancel();
+        if (state.Scan is { Error.Code: ErrorCode.InvalidPattern }) return Task.FromResult<TextRange?>(null);
         var boundary = selectionLength > 0 ? selectionStart + (previous ? 0 : selectionLength) : caret;
         var excludeBoundary = selectionLength == 0 && state.Current is { Length: 0 } current && current.Offset == caret;
         var index = InFileSearch.LowerBound(state.Matches, boundary);
@@ -282,8 +283,18 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
             _ when scan?.IsPartial == true => "一致に移動しました。未評価あり。",
             _ => null
         };
+        if (_navigationNotice is not null && scan is { } result)
+            _navigationNotice += SkippedDetails(result);
         NotifyResults();
         return match;
+    }
+
+    private static string SkippedDetails(InFileScanResult scan)
+    {
+        var details = "";
+        if (scan.SkippedLongLines > 0) details += $" 長行未評価 {scan.SkippedLongLines:N0}行。";
+        if (scan.SkippedScalarMatches > 0) details += $" 文字の途中での一致を除外 {scan.SkippedScalarMatches:N0}件。";
+        return details;
     }
 
     private CancellationTokenSource BeginRequest()

@@ -196,10 +196,28 @@ internal sealed class InFileSearchTests
             search.Query = "[";
             await search.PendingWork;
             Assert.That(search.Summary, Does.Contain("不正"));
+            var revision = search.Revision;
+            Assert.That(await search.MoveAsync(0, 0, 0, false), Is.Null);
+            Assert.That(search.Revision, Is.EqualTo(revision));
             search.Query = "^foo$";
             await search.PendingWork;
             Assert.That(search.Matches.Single().Offset, Is.EqualTo(SearchLimits.RegexLineChars + 2));
-            Assert.That(search.Summary, Does.Contain("未評価"));
+            Assert.That(search.Summary, Does.Contain("長行未評価 1行"));
+        });
+
+    [Test]
+    public void RegexResultsDescribeSkippedSurrogatesBeforeAndAfterNavigation() =>
+        WithView("😀x", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.UseRegex = true;
+            search.Query = ".";
+            await search.PendingWork;
+            Assert.That(search.Matches.Single().Offset, Is.EqualTo(2));
+            Assert.That(search.Summary, Does.Contain("文字の途中での一致を除外 2件"));
+            Assert.That((await search.MoveAsync(3, 3, 0, false))?.Offset, Is.EqualTo(2));
+            Assert.That(search.Summary, Does.Contain("折り返しました").And.Contain("文字の途中での一致を除外 2件"));
         });
 
     private static void WithView(string text, Func<MainWindowViewModel, string, string, Task> run)
