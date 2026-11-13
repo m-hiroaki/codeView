@@ -113,6 +113,13 @@ internal sealed class ContextualRowControl : Control, IDisposable
         return Math.Abs(x - leading) <= Math.Abs(x - trailing) ? before : after;
     }
 
+    internal double? GetSourceX(long offset)
+    {
+        var local = offset - _range.SourceOffset;
+        return _layout is { } layout && local >= _range.VisibleOffset && local <= _range.VisibleOffset + _range.VisibleLength
+            ? layout.HitTestTextPosition((int)local).X - _origin : null;
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);

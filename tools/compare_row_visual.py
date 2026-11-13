@@ -36,6 +36,46 @@ def scalar_boundaries(raw):
     return [i for i in range(len(units) + 1) if not (0 < i < len(units) and 0xd800 <= units[i - 1] <= 0xdbff and 0xdc00 <= units[i] <= 0xdfff)]
 
 
+def validate_context(case, raw):
+    name = case['Name']
+    bounds = case.get('GraphemeBoundaries', [])
+    scalars = scalar_boundaries(raw)
+    if (not bounds or any(type(offset) is not int for offset in bounds)
+            or bounds != sorted(set(bounds)) or bounds[0] != 0 or bounds[-1] != scalars[-1]
+            or not set(bounds).issubset(scalars)):
+        raise ValueError('Missing or invalid contextual boundaries: ' + name)
+    context = case.get('ContextSourceRange')
+    points = case.get('ContextPoints')
+    maximum = None
+    if context is None:
+        if points != [] or case.get('ContextDisplayText') != '':
+            raise ValueError('Unexpected contextual geometry for unavailable row: ' + name)
+    else:
+        start = context.get('VisibleOffset')
+        length = context.get('VisibleLength')
+        if (context.get('SourceOffset') != 0 or context.get('Length') != scalars[-1]
+                or type(start) is not int or type(length) is not int or length <= 0
+                or start not in bounds or start + length not in bounds
+                or case.get('ContextDisplayText') != raw[2 * start:2 * (start + length)].decode('utf-16-le')):
+            raise ValueError('Wrong contextual source range: ' + name)
+        offsets = [offset for offset in bounds if start <= offset <= start + length]
+        if not isinstance(points, list) or [p.get('SourceOffset') for p in points] != offsets:
+            raise ValueError('Missing contextual geometry samples: ' + name)
+        if not all(finite(p.get(field)) for p in points for field in ('FullX', 'ContextX', 'RelativeXDifference')):
+            raise ValueError('Nonfinite contextual geometry: ' + name)
+        maximum = 0
+        for point in points:
+            delta = (point['ContextX'] - points[0]['ContextX']) - (point['FullX'] - points[0]['FullX'])
+            if abs(delta - point['RelativeXDifference']) > 1e-6:
+                raise ValueError('Incorrect contextual geometry difference: ' + name)
+            maximum = max(maximum, abs(delta))
+    reported = case.get('ContextMaximumRelativeXDifference')
+    if ((maximum is None and reported is not None)
+            or (maximum is not None and (not finite(reported) or abs(maximum - reported) > 1e-6))
+            or case.get('ContextAccepted') is not (maximum is not None and maximum <= .1)):
+        raise ValueError('Incorrect contextual comparison decision: ' + name)
+
+
 def validate_report(report, commit, expected_os):
     if (report.get('Failure') is not None or report.get('InputInterrupted') is not False
             or report.get('Scenario') != 'native-row-visual-comparison'
@@ -91,8 +131,11 @@ def validate_report(report, commit, expected_os):
             raise ValueError('Known split cluster was hidden')
         if name in {'combining-right', 'zwj-right'} and c['EndGraphemeBoundary']:
             raise ValueError('Known split right cluster was hidden')
+        validate_context(c, raw)
     if comparison.get('Accepted') is not all(c['Accepted'] for c in cases):
         raise ValueError('Overall rejection was lost')
+    if comparison.get('ContextAccepted') is not all(c['ContextAccepted'] for c in cases):
+        raise ValueError('Overall contextual comparison decision differs')
 
 
 def collect(app, output, rounds, commit, expected_os):
@@ -124,9 +167,12 @@ def collect(app, output, rounds, commit, expected_os):
                 if not 1 <= width <= 4096 or not 1 <= height <= 2048: raise ValueError('Invalid capture dimensions')
                 captures[name] = {'sha256': sha256(p), 'width': width, 'height': height}
             row.update(validated=True, captures=captures)
-            print(f"visual-{number}: acquired; accepted={row['report']['RowVisualComparison']['Accepted']}", flush=True)
+            comparison = row['report']['RowVisualComparison']
+            mismatches = [c['Name'] for c in comparison['Cases'] if not c['ContextAccepted']]
+            print(f"visual-{number}: acquired; accepted={comparison['Accepted']}; contextual differences={mismatches}", flush=True)
         record['acquired'] = True
         record['accepted'] = all(r['report']['RowVisualComparison']['Accepted'] for r in record['runs'])
+        record['contextAccepted'] = all(r['report']['RowVisualComparison']['ContextAccepted'] for r in record['runs'])
     except Exception as error:
         if record['runs']: record['runs'][-1]['error'] = str(error)
         raise

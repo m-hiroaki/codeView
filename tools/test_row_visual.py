@@ -27,21 +27,39 @@ def report(commit, prefix='visual-1.json'):
         left = name not in {'combining-left', 'zwj-left', 'regional-left', 'hangul-left', 'indic-left'}
         right = name not in {'combining-right', 'zwj-right'}
         equal = name != 'tab-phase'
+        bounds = scalar_boundaries(raw)
+        context_points = [{'SourceOffset': i, 'FullX': i * 10, 'ContextX': i * 10, 'RelativeXDifference': 0} for i in bounds]
         cases.append({'Name': name, 'OriginalText': text, 'DisplayText': displayed, 'SourceOffset': start, 'Length': end - start,
                       'RequestedColumns': columns, 'Control': control, 'SourceSha256': hashlib.sha256(raw).hexdigest(),
                       'SourceMappingExact': True, 'OriginalCopyExact': True, 'StartGraphemeBoundary': left,
                       'EndGraphemeBoundary': right, 'GeometryEqual': equal, 'MaximumRelativeDifference': 0 if equal else 8,
                       'Accepted': left and right and equal, 'Points': points,
-                      'Capture': prefix + '.' + name + '.png' if capture else None})
+                      'Capture': prefix + '.' + name + '.png' if capture else None,
+                      'GraphemeBoundaries': bounds, 'ContextDisplayText': text,
+                      'ContextSourceRange': {'SourceOffset': 0, 'Length': bounds[-1], 'VisibleOffset': 0, 'VisibleLength': bounds[-1]},
+                      'ContextPoints': context_points, 'ContextMaximumRelativeXDifference': 0, 'ContextAccepted': True})
     return {'Failure': None, 'InputInterrupted': False, 'Scenario': 'native-row-visual-comparison',
             'ProductInformationalVersion': '1+' + commit, 'Os': 'macOS test', 'PhysicalPaint': 'not-measured',
-            'RowVisualComparison': {'Acquired': True, 'Accepted': False, 'Cases': cases, 'TabSize': 4, 'FontSize': 14,
+            'RowVisualComparison': {'Acquired': True, 'Accepted': False, 'ContextAccepted': True, 'Cases': cases, 'TabSize': 4, 'FontSize': 14,
                                     'FontFamily': 'Menlo,Consolas,monospace', 'FlowDirection': 'LeftToRight', 'CaptureDpi': 96,
                                     'NativeRenderScaling': 2}}
 
 
 class RowVisualTests(unittest.TestCase):
     commit = 'a' * 40
+
+    def test_context_comparison_requires_raw_geometry_and_preserves_differences(self):
+        r = report(self.commit)
+        comparison = r['RowVisualComparison']
+        first = comparison['Cases'][0]
+        first['ContextPoints'][1].update(ContextX=11, RelativeXDifference=1)
+        first.update(ContextMaximumRelativeXDifference=1, ContextAccepted=False)
+        comparison['ContextAccepted'] = False
+        validate_report(r, self.commit, 'macos')
+        for field, value in [('ContextPoints', []), ('ContextMaximumRelativeXDifference', 0), ('ContextAccepted', True)]:
+            invalid = copy.deepcopy(r)
+            invalid['RowVisualComparison']['Cases'][0][field] = value
+            with self.assertRaises(ValueError): validate_report(invalid, self.commit, 'macos')
 
     def test_rejection_is_preserved_with_exact_source_and_both_os(self):
         r = report(self.commit)

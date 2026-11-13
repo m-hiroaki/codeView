@@ -88,6 +88,7 @@ internal sealed partial class GuiPerformanceProbe
             owner.Show(_window);
             var cases = new List<object>();
             var accepted = true;
+            var contextualAccepted = true;
             foreach (var c in RowVisualCases.All)
             {
                 using var builder = new DocumentBuilder();
@@ -183,6 +184,29 @@ internal sealed partial class GuiPerformanceProbe
                     new TextViewPosition(editor.Document.GetLocation(offset)), VisualYPosition.LineMiddle);
                 var referenceOrigin = At(reference, (int)row.SourceOffset);
                 var projectedOrigin = At(projected, 0);
+                var contextPoints = new List<object>();
+                double? contextDifference = null;
+                if (contextRange is { VisibleLength: > 0 } measured)
+                {
+                    var start = checked((int)(measured.SourceOffset + measured.VisibleOffset));
+                    var end = start + measured.VisibleLength;
+                    RequireRows(boundaries.Contains(start) && boundaries.Contains(end),
+                        $"Contextual visible range splits a grapheme: {c.Name}.");
+                    var fullStart = At(reference, start).X;
+                    var contextStart = contextual.GetSourceX(start)!.Value;
+                    contextDifference = 0;
+                    foreach (var offset in boundaries.Where(offset => offset >= start && offset <= end).Order())
+                    {
+                        var full = At(reference, offset).X;
+                        var placed = contextual.GetSourceX(offset)!.Value;
+                        var difference = (placed - contextStart) - (full - fullStart);
+                        RequireRows(double.IsFinite(difference), $"Nonfinite contextual glyph geometry: {c.Name}.");
+                        contextDifference = Math.Max(contextDifference.Value, Math.Abs(difference));
+                        contextPoints.Add(new { SourceOffset = offset, FullX = full, ContextX = placed, RelativeXDifference = difference });
+                    }
+                }
+                var contextAccepted = contextDifference is <= .1;
+                contextualAccepted &= contextAccepted;
                 var points = new List<object>();
                 var maxDelta = 0d;
                 var exactMapping = true;
@@ -228,11 +252,13 @@ internal sealed partial class GuiPerformanceProbe
                     Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds,
                     ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text,
                     ContextSelection = contextual.SelectionBounds.ToArray(), ContextCaret = contextual.CaretPosition,
-                    ContextualPointerHits = contextualHits });
+                    ContextualPointerHits = contextualHits, ContextPoints = contextPoints,
+                    ContextMaximumRelativeXDifference = contextDifference, ContextAccepted = contextAccepted,
+                    GraphemeBoundaries = boundaries.Order().ToArray() });
                 inputProjection = null;
                 inputSource = null;
             }
-            _rowVisualResults = new { Acquired = true, Accepted = accepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
+            _rowVisualResults = new { Acquired = true, Accepted = accepted, ContextAccepted = contextualAccepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
                 FontSize = _editor.FontSize, FlowDirection = _editor.FlowDirection.ToString(), TabSize = _editor.Options.IndentationSize,
                 CaptureDpi = 96, NativeRenderScaling = owner.RenderScaling,
                 Scope = "Small full-paragraph reference vs bounded row, same native controls/font; control render PNG, not physical paint/input. Comparison rejection is retained, not a workflow failure." };
