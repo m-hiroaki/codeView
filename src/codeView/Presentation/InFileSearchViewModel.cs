@@ -145,11 +145,11 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         Notify();
     }
 
-    private void Resume()
+    private void Resume(bool afterMove = false)
     {
         if (_stopped || !IsVisible || _active is not { Document: { } document, Query.Length: > 0, Scan: null } state
             || state.Matches.Count == SearchLimits.ResultLimit) return;
-        var request = BeginRequest();
+        var request = BeginRequest(preserveNavigation: afterMove);
         var query = state.Query;
         var options = state.Options;
         var retained = state.Matches.Count;
@@ -269,14 +269,23 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         async Task<TextRange?> FindAsync()
         {
             var ct = request.Token;
+            var resumeScan = false;
             try
             {
                 var result = await operations.RunInFileSearchAsync(document,
                     lease => InFileSearch.Find(lease, query, options, boundary, previous, excludeBoundary, ct), ct);
-                return IsCurrent(state, request) ? Apply(state, result.Match, result.Wrapped, result.Scan) : null;
+                if (!IsCurrent(state, request)) return null;
+                if (result.Scan.Error is not null) state.Scan ??= result.Scan;
+                var match = Apply(state, result.Match, result.Wrapped, result.Scan);
+                resumeScan = result.Scan.Error is null && IsCurrent(state, request);
+                return match;
             }
             catch (OperationCanceledException e) when (ct.IsCancellationRequested && e.CancellationToken == ct) { return null; }
-            finally { Finish(request); }
+            finally
+            {
+                Finish(request);
+                if (resumeScan && _request is null && ReferenceEquals(_active, state)) Resume(afterMove: true);
+            }
         }
     }
 
@@ -306,9 +315,10 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         return details;
     }
 
-    private CancellationTokenSource BeginRequest()
+    private CancellationTokenSource BeginRequest(bool preserveNavigation = false)
     {
-        Cancel();
+        // A scan resumed by navigation must preserve the move's revision and notice.
+        if (!preserveNavigation) Cancel();
         _running = true;
         return _request = new();
     }

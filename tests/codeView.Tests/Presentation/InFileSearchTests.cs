@@ -42,6 +42,52 @@ internal sealed class InFileSearchTests
         Assert.That(search.Summary, Does.Contain("折り返し"));
     });
 
+    [TestCase(false, 8)]
+    [TestCase(true, 0)]
+    public void ImmediateNavigationRestartsHighlightScan(bool previous, int expectedOffset) =>
+        WithView("foo foo foo", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.Query = "foo";
+            Assert.That(search.Matches, Is.Empty);
+            var move = search.MoveAsync(4, 4, 3, previous);
+            var revision = search.Revision;
+            Assert.That((await move)?.Offset, Is.EqualTo(expectedOffset));
+            Assert.That(search.Revision, Is.EqualTo(revision));
+            await search.PendingWork;
+            Assert.That(search.Matches.Select(match => match.Offset), Is.EqualTo(new long[] { 0, 4, 8 }));
+            Assert.That(search.Summary, Is.EqualTo("3 件。"));
+        });
+
+    [Test]
+    public void ImmediateNavigationRemembersInvalidPattern() => WithView("foo", async (view, _, _) =>
+    {
+        var search = view.InFileSearch;
+        search.IsVisible = true;
+        search.UseRegex = true;
+        search.Query = "[";
+        Assert.That(await search.MoveAsync(0, 0, 0, false), Is.Null);
+        Assert.That(search.Summary, Does.Contain("正規表現の構文が不正"));
+        var revision = search.Revision;
+        Assert.That(search.MoveAsync(0, 0, 0, true).IsCompletedSuccessfully, Is.True);
+        Assert.That(search.Revision, Is.EqualTo(revision));
+    });
+
+    [Test]
+    public void ReplacingQueryDuringImmediateMoveOnlyHighlightsTheNewQuery() =>
+        WithView("foo bar foo", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.Query = "foo";
+            var move = search.MoveAsync(0, 0, 0, false);
+            search.Query = "bar";
+            Assert.That(await move, Is.Null);
+            await search.PendingWork;
+            Assert.That(search.Matches.Select(match => match.Offset), Is.EqualTo(new long[] { 4 }));
+        });
+
     [Test]
     public void MovesBeyondStoredLimitInBothDirections() =>
         WithView(string.Concat(Enumerable.Repeat("x ", SearchLimits.ResultLimit + 2)), async (view, _, _) =>
