@@ -242,6 +242,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckFileDropAsync(root, before, Hash, Require, ct);
             await CheckSingleFileDisplayAsync(root, before, Hash, Require, ct);
             await CheckLargePlainDocumentAsync(root, before, Hash, Require, ct);
+            await CheckMethodNavigationAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -808,6 +809,58 @@ internal sealed partial class GuiPerformanceProbe
         _viewModel.CloseWorkspace();
         _viewModel.CloseFile();
         await _viewModel.PendingWork.WaitAsync(ct);
+    }
+
+    private async Task CheckMethodNavigationAsync(string root, Dictionary<string, string> inputs,
+        Func<string, string> hash, Action<bool, string> require, CancellationToken ct)
+    {
+        var workspace = Directory.CreateDirectory(Path.Combine(root, "methods")).FullName;
+        var caller = Path.Combine(workspace, "caller.cs");
+        var declaration = Path.Combine(workspace, "method.cs");
+        var incomplete = Path.Combine(workspace, "incomplete.cs");
+        const string call = "class Caller { void Call() { Compute(); } }";
+        const string method = """
+            class Worker {
+                // int Compute() => 0;
+                string description = "int Compute() => 0;";
+                public int Compute() => 42;
+            }
+            """;
+        await File.WriteAllTextAsync(caller, call, ct);
+        await File.WriteAllTextAsync(declaration, method, ct);
+        await File.WriteAllTextAsync(incomplete, "class Unfinished { int Compute;", ct);
+        inputs.Add(caller, hash(caller));
+        inputs.Add(declaration, hash(declaration));
+
+        await _viewModel.OpenFilesAsync([workspace, caller], OpenOrigin.Menu);
+        await Frame(ct);
+        var panel = _viewModel.SearchPanel;
+        var callOffset = call.IndexOf("Compute", StringComparison.Ordinal);
+        async Task PressAsync(KeyModifiers modifiers)
+        {
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers });
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            await Frame(ct);
+        }
+
+        _editor.Select(callOffset + 1, 0);
+        await PressAsync(KeyModifiers.None);
+        require(panel.Rows.Count == 1 && panel.Rows[0].FullPath == declaration && panel.CanActivate(panel.Rows[0])
+            && panel.Summary.Contains("部分結果") && _viewModel.FilePath == caller && _editor.SelectionLength == 0,
+            "method-definition-partial-search-does-not-auto-jump");
+        File.Delete(incomplete);
+        await PressAsync(KeyModifiers.None);
+        var expected = method.LastIndexOf("Compute", StringComparison.Ordinal);
+        require(panel.Rows.Count == 1 && panel.Rows[0].After.Contains("メソッド")
+            && _viewModel.FilePath == declaration && _editor.SelectionStart == expected && _editor.SelectedText == "Compute",
+            "method-definition-excludes-comment-and-string");
+
+        await PressAsync(KeyModifiers.Shift);
+        require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate)
+            && panel.Rows.Count(row => row.FullPath == declaration) == 3
+            && panel.Rows.Count(row => row.FullPath == caller) == 1, "method-reference-includes-comment-and-string");
     }
 
     private async Task<TappedEventArgs> DoubleTapAsync(Control source, CancellationToken ct)

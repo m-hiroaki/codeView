@@ -52,7 +52,8 @@ CHECKS = [
     'syntax-large-source-visible-without-color', 'syntax-large-source-search-selects-original-tail',
     'workspace-large-regex-result-is-committed-at-original-tail',
     'workspace-large-result-reuses-tab-and-selects-original-tail', 'workspace-large-results-clear-keeps-document',
-    'all-input-sha256-unchanged',
+    'method-definition-partial-search-does-not-auto-jump', 'method-definition-excludes-comment-and-string',
+    'method-reference-includes-comment-and-string', 'all-input-sha256-unchanged',
 ]
 
 
