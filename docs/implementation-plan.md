@@ -500,6 +500,7 @@ flowchart LR
       - [x] **A-04-03-04-05：原文の前後を含めて可視範囲を描くControlを試作する**（2026-11-13）。専用の視覚比較画面にAvalonia TextLayoutによる行配置・クリップと原文への位置変換を追加した。[Windows/macOSのGUI各3回](https://github.com/m-hiroaki/codeView/actions/runs/43436576822)で、固定12ケースの取得、ASCIIの位置変換と範囲外拒否、アラビア文字の可視範囲に対する行全体の入力を確認した。全文対照との配置精度と選択・Caret・実ポインター操作の統合は未完了。
       - [x] **A-04-03-04-06：文脈付き行描画に選択とCaretを表示する**（2026-11-13）。同じTextLayoutで可視範囲の選択矩形とCaret位置を取得して描く。[Windows/macOSのGUI各3回](https://github.com/m-hiroaki/codeView/actions/runs/43437104100)で、逆方向の原文選択、可視範囲へのクリップ、画面外のCaretの非表示、アラビア文字の選択矩形を確認した。実ポインター入力と全文対照での視覚精度は引き続き検証する。
       - [x] **A-04-03-04-07：文脈付き行のクリックを原文選択に接続する**（2026-11-13）。[Windows/macOSのGUI各3回](https://github.com/m-hiroaki/codeView/actions/runs/43437700978)で、比較画面のASCII行にポインターイベントを送り、クリックとShiftクリックによる原文選択、コピー用文字列の一致、右クリック・範囲外・旧投影の拒否を確認した。物理入力、ドラッグ、Unicode各ケースの位置判定は後続。
+      - [x] **A-04-03-04-08：文脈付き行のドラッグを原文選択に接続する**（2026-11-13）。[Windows/macOSのGUI各3回](https://github.com/m-hiroaki/codeView/actions/runs/43438255296)で、比較画面のASCII行の順方向・逆方向ドラッグ、範囲外での選択維持、ボタン解放・捕捉喪失・旧投影の入力拒否を確認した。行をまたぐドラッグ、自動スクロール、物理入力、Unicode各ケースの位置判定は後続。
     - [x] **A-04-03-05：検索ジャンプの同期Caret復元を是正する**（2026-11-06）。旧通知が確定移動先を上書きする不具合を単体3失敗と`d2c8cd8`の両OS実ウィンドウで再現。`f0546ed`で確定した原文移動先を直接RestoreCaretへ渡す最小修正を行い、検索移動23件と両OS各9プロセス/1,674検証（非空6回/OSの遅延選択前Caret照合）/終了後解放が成功。通常CIもmacOS .NET753/Python108、Windows .NET750+既存3スキップ/Python88+既存20スキップで成功。[修正前後の原記録と残る未達](validation-results/2026-11-06-search-caret/README.md)、[原因](search-caret-regression.md)。Unicode是正/接続性能とA-04-03/A-05全体は未完了。
 
 - [ ] **A-05：元の未達条件と影響範囲を再検証する**
