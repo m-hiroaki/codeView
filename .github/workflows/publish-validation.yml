@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/publish-validation.yml
       - build-windows.bat
+      - build/licenses/**
       - global.json
       - tools/check_windows_publish.py
       - tools/test_windows_publish.py
@@ -68,6 +69,13 @@ jobs:
           $notices = @(
             'dotnet/LICENSE.TXT',
             'dotnet/THIRD-PARTY-NOTICES.TXT',
+            'upstream/Avalonia.txt',
+            'upstream/AvaloniaEdit.txt',
+            'upstream/MicroCom.txt',
+            'upstream/Onigwrap.txt',
+            'upstream/SimpleJSON.txt',
+            'upstream/TextMateSharp.txt',
+            'upstream/README.md',
             'Avalonia.Angle.Windows.Natives/LICENSE',
             'HarfBuzzSharp.NativeAssets.Win32/LICENSE.txt',
             'HarfBuzzSharp.NativeAssets.Win32/THIRD-PARTY-NOTICES.txt',

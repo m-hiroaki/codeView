@@ -23,6 +23,11 @@
     <Target Name="IncludePublishNotices" AfterTargets="ComputeFilesToPublish"
             Condition="'$(PublishAot)' == 'true'">
         <ItemGroup>
+            <UpstreamNotice Include="$(MSBuildThisFileDirectory)../../build/licenses/*" />
+            <ResolvedFileToPublish Include="@(UpstreamNotice)">
+                <RelativePath>licenses/upstream/%(UpstreamNotice.Filename)%(UpstreamNotice.Extension)</RelativePath>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            </ResolvedFileToPublish>
             <CoreRuntimePack Include="@(ResolvedRuntimePack)"
                              Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'
                                  And '%(ResolvedRuntimePack.RuntimeIdentifier)' == '$(RuntimeIdentifier)'" />
