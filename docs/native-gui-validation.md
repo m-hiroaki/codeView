@@ -79,6 +79,15 @@ python3 tools/measure_gui_startup.py --app artifacts/gui-validation/app/codeView
 
 この試験はネイティブUI/Clipboardを使うコントロール結合試験であり、OSのキー/マウスやIME、Explorer/Finderのドラッグ操作を注入したものではない。物理操作・メニューショートカット、ロード/失敗状態の包括受入、実配布物とP1-07全体は別途確認する。通常製品へ試験コード/タイマー/書込経路を追加しない。UI依存処理はこの実機構成で結合検証し、通常単体ではレポートの正常/異常/空/境界・欠落・対照の無効・期限と非CI拒否を検証する。
 
+## Finder / Explorerから本文へドロップする受け入れ
+
+1. 日本語と空白を含むUTF-8テキスト、別の本文を含む子ファイル付きフォルダを用意する。両ファイルのSHA-256を記録する。
+2. 通常のNative AOT配布物で別のテキストを開く。FinderまたはExplorerを横に並べ、テスト用テキストを既存の本文領域にドラッグして放す。新しいタブがアクティブになり、パス・本文・読み取り専用の表示が一致することを確認する。
+3. フォルダを本文領域にドラッグして放す。ルートのパスと子ファイルがツリーに表示され、既存タブが維持されることを確認する。子ファイルをツリーから開き、別の本文が表示されることを確認する。
+4. ファイルとフォルダを同時に選んで本文領域へドロップし、両方が開くことを確認する。終了後に入力のパスとSHA-256を照合する。
+
+2026-11-13のmacOS 27.0.1 arm64では、`02ec655` のNative AOT配布物で、Finderのテストファイル行からアプリ外へのポインター操作を試みた。アクティブなパスと状態表示に変化はなかった。ドラッグが本文へ到達したことを確認できなかったため、製品側のドロップ可否は判定保留。入力2件のSHA-256は一致した。フォルダと混在入力の操作、Windows Explorerでの確認も残る。
+
 macOS CIも同じ3入力/各3プロセス/216操作を、`--os macos`で実行する。収集器は期待OSを記録し、Windows/Macの取り違えを拒否する。OS省略時は既存Windows手順と互換のためwindowsを使う。Macも破棄されるCIのClipboardだけを書き換え、finallyで生成データを消去する。通常製品や利用者のローカル環境では自動実行しない。既存試験とMacのUnicode/空・OS拒否/取得・改行だけの変換/原文差の保持を合わせた収集器単体10ケースを用意する。
 
 標準Copyの改行変換を原文不変と混同しない。[固定版のCopySelectedText](https://github.com/AvaloniaUI/AvaloniaEdit/blob/86fdebec4cff7affb0e14c7885df71d28edce777/src/AvaloniaEdit/Editing/EditingCommandHandler.cs#L390)はCRLF/CR/LFをEnvironment.NewLineへ変換してClipboardへ渡す。初回Mac試験はCRLF原文との一致を要求して停止したため、原文との一致`NativeCopyRoundTrip`を残し、OS形式との一致`NativeCopyOsRoundTrip`・実文字数・実UTF-16 SHAを別々に記録する。Pythonは入力から独立にOS形式の期待値を作り、文字/空白の欠落や原文一致の誤申告を拒否する。今回のCRLF入力はMacでLFへ変換される。元本文・元ファイルは変換されない。
