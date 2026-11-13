@@ -84,7 +84,7 @@ Pythonによるスクリプト試験（ビルド自体にPythonは不要）：
 python3 -m unittest discover -s tools -p 'test_build_scripts.py' -v
 ```
 
-Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。管理ライブラリ・文法・ランタイムの通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
+Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。`licenses/dotnet/` には、対象RIDの.NETランタイムのライセンスと、Native AOTで使用したランタイムパッケージの第三者通知を同梱する。管理ライブラリと文法の通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
 
 ## テスト実行
 
