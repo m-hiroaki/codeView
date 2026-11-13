@@ -390,10 +390,12 @@ flowchart LR
 - [ ] **P6-03：OS・CPU別の再現可能な発行手順を作る**
   依存：P6-01。完了条件：自己完結、文法・ネイティブ依存・ライセンス同梱、依存固定、成果物ハッシュと発行設定を記録。インストーラー・追加ランタイムを要求しない。
 
-  先行整備：[OS別発行スクリプト](build.md)を追加。Windowsはbuild-windows.batでwin-x64 Native AOT、Macもbuild-mac.shでNative AOTの自己完結.appを生成。Mac arm64のAOT実発行・小入力の本文表示/正常終了とスクリプト7件、Windowsの実発行/可視ウィンドウ/正常終了は確認済み。Intel Macの実ビルド・起動、ライセンス/署名/別PCを含むP6-03の完了条件は未達。
+  先行整備：[OS別発行スクリプト](build.md)を追加。Windowsはbuild-windows.batでwin-x64 Native AOT、Macもbuild-mac.shでNative AOTの自己完結.appを生成。Mac arm64のAOT実発行・小入力の本文表示/正常終了とスクリプト7件、Windowsの実発行/可視ウィンドウ/正常終了は確認済み。Intel向けの実発行はP6-03-02に記録。Intelでの起動、ライセンス同梱、署名、別PCでの検証は残る。
 
 - [x] **P6-03-01：Windowsの実バッチでAOT発行と通常ウィンドウ起動を検証する**
   完了：2026-11-06。0fb1b58のWindows 2025 CIでbuild-windows.batを変更せず実行し、警告エラー扱いのAOTリンク、AMD64/CLRヘッダー不在、全8成果物ハッシュ/発行ロック、元ロック不変、通常製品の可視ウィンドウと終了0・生成入力SHA不変を確認。新規検査6件と両OS通常試験も成功。[実行・原記録・範囲](validation-results/2026-11-06-windows-aot/README.md)。本文内容/全機能・別PC・署名・性能受入とP6-03全体は未完了。
+
+  - [x] **P6-03-02：macOSの両アーキテクチャでNative AOT成果物を発行する**（2026-11-13）。コミット `88637a8` をApple Silicon（macOS 27.0.1、Xcode 27.2、SDK 10.0.403）で発行。arm64とx86_64の実行ファイル、対応するスライスを含む4本のdylib、Info.plist、ILCompiler 10.0.14、既存30依存の版とハッシュの一致を確認した。実行ファイルSHA-256はarm64が `e2639b49651d3273487e21bf6ce910241ccd4f1ab686eb46c3fbc57c5cf0c08c`、x86_64が `008ba260ba58a0a530cc6a4f484035b53f2f20dfcab245d7caf67aaeaba16032`。検証ホストではx86_64プロセスを起動できなかったため、Intel向けは発行とバイナリ検査まで確認した。
 
 - [ ] **P6-04：発行形式と起動・資源使用量を比較し最適化する**
   依存：P6-03、P6-02。完了条件：単一ファイル/最小フォルダ・ReadyToRun有無の起動/容量/展開/メモリを比較。UI・メモリを悪化させず選定し、変更箇所の回帰試験を通す。
