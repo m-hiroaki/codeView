@@ -87,7 +87,11 @@ internal sealed partial class GuiPerformanceProbe
                 var indexedRows = indexedSource.CreateRowProjection(1, c.Columns);
                 var contextRange = indexedRows.GetContext(0);
                 if (contextRange is { } range && indexedSource.ReadRowContext(indexedRows, 0) is { } contextText)
+                {
                     contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground);
+                    indexedSource.Select(indexedRows.Rows[0].SourceOffset + indexedRows.Rows[0].Length, indexedRows.Rows[0].SourceOffset);
+                    contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
+                }
                 else contextual.Dispose();
                 var boundaries = StringInfo.ParseCombiningCharacters(c.Text).Append(c.Text.Length).ToHashSet();
                 var startBoundary = boundaries.Contains((int)row.SourceOffset);
@@ -103,12 +107,20 @@ internal sealed partial class GuiPerformanceProbe
                     RequireRows(contextual.TryHitSource(new Point(1, contextual.Bounds.Height / 2), out var hit)
                         && hit == c.Start, "Contextual row hit did not map to the original offset.");
                     RequireRows(!contextual.TryHitSource(new Point(-1, 0), out _), "Contextual row accepted a hit outside its clip.");
+                    var selection = contextual.SelectionBounds.ToArray();
+                    RequireRows(selection.Length > 0 && selection.All(rect => rect.Left >= 0 && rect.Right <= contextual.Bounds.Width)
+                        && contextual.CaretPosition is { X: 0 }, "Contextual row did not place reverse selection and caret in its clip.");
+                    contextual.SetSelection(c.Text.Length, 0);
+                    RequireRows(contextual.SelectionBounds.SequenceEqual(selection) && contextual.CaretPosition is null,
+                        "Contextual row did not clip selection or hide the offscreen caret.");
+                    contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
                 }
                 if (c.Name == "arabic-joining")
                 {
                     RequireRows(contextRange is { } arabic && arabic.Length == c.Text.Length
                         && arabic.VisibleLength > 0 && arabic.VisibleLength < arabic.Length,
                         "Arabic comparison did not format the complete source line with a partial visible range.");
+                    RequireRows(contextual.SelectionBounds.Length > 0, "Arabic selection had no visible layout bounds.");
                 }
                 reference.TextArea.TextView.EnsureVisualLines(); projected.TextArea.TextView.EnsureVisualLines();
                 var watch = Stopwatch.StartNew();
@@ -159,7 +171,8 @@ internal sealed partial class GuiPerformanceProbe
                     EndGraphemeBoundary = endBoundary, MaximumRelativeDifference = maxDelta, GeometryEqual = geometryEqual,
                     SourceMappingExact = exactMapping, OriginalCopyExact = copyExact, Accepted = caseAccepted,
                     Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds,
-                    ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text });
+                    ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text,
+                    ContextSelection = contextual.SelectionBounds.ToArray(), ContextCaret = contextual.CaretPosition });
             }
             _rowVisualResults = new { Acquired = true, Accepted = accepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
                 FontSize = _editor.FontSize, FlowDirection = _editor.FlowDirection.ToString(), TabSize = _editor.Options.IndentationSize,

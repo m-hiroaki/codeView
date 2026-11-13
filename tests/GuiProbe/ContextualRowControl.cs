@@ -12,7 +12,12 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private TextLayout? _layout;
     private DocumentRowContext _range;
     private Rect[] _visible = [];
+    private Rect[] _selection = [];
+    private Point? _caret;
     private double _origin;
+
+    internal ReadOnlySpan<Rect> SelectionBounds => _selection;
+    internal Point? CaretPosition => _caret;
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground)
     {
@@ -43,15 +48,46 @@ internal sealed class ContextualRowControl : Control, IDisposable
     protected override Size MeasureOverride(Size availableSize) =>
         new(_visible.Length == 0 ? 0 : _visible.Max(rect => rect.Right) - _origin, _layout?.Height ?? 0);
 
+    internal void SetSelection(long anchor, long caret)
+    {
+        _selection = [];
+        _caret = null;
+        if (_layout is { } layout && _visible.Length > 0)
+        {
+            var visibleStart = _range.SourceOffset + _range.VisibleOffset;
+            var visibleEnd = visibleStart + _range.VisibleLength;
+            var first = Math.Max(visibleStart, Math.Min(anchor, caret));
+            var last = Math.Min(visibleEnd, Math.Max(anchor, caret));
+            var shift = new Vector(-_origin, 0);
+            if (last > first)
+            {
+                _selection = layout.HitTestTextRange((int)(first - _range.SourceOffset), (int)(last - first))
+                    .SelectMany(rect => _visible.Select(clip => rect.Intersect(clip)))
+                    .Where(rect => rect.Width > 0 && rect.Height > 0)
+                    .Select(rect => rect.Translate(shift)).ToArray();
+            }
+            if (caret >= visibleStart && caret <= visibleEnd)
+            {
+                var position = layout.HitTestTextPosition((int)(caret - _range.SourceOffset)).Position;
+                if (_visible.Any(rect => position.X >= rect.Left && position.X <= rect.Right))
+                    _caret = position + shift;
+            }
+        }
+        InvalidateVisual();
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
         if (_layout is not { } layout) return;
+        foreach (var rect in _selection) context.FillRectangle(Brushes.DarkSlateBlue, rect);
         foreach (var rect in _visible)
         {
             using var clip = context.PushClip(rect.Translate(new Vector(-_origin, 0)));
             layout.Draw(context, new Point(-_origin, 0));
         }
+        if (_caret is { } caret)
+            context.DrawLine(new Pen(Brushes.Gold), caret, caret + new Vector(0, layout.Height));
     }
 
     internal bool TryHitSource(Point point, out long offset)
@@ -70,6 +106,8 @@ internal sealed class ContextualRowControl : Control, IDisposable
         _layout?.Dispose();
         _layout = null;
         _visible = [];
+        _selection = [];
+        _caret = null;
         _origin = 0;
         InvalidateMeasure();
         InvalidateVisual();
