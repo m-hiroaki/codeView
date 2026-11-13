@@ -169,6 +169,11 @@ internal sealed partial class GuiPerformanceProbe
             Require(ReferenceEquals(originalOperation, panel.CurrentOperation), "folder-preedit-enter-does-not-search");
             folderClient.Client.SetPreeditText(null);
             folderQuery.RaiseEvent(new TextInputEventArgs { RoutedEvent = InputElement.TextInputEvent, Text = "日本語" });
+            var applied = _window.FindControl<TextBlock>("AppliedSearchConditions")!;
+            var pending = _window.FindControl<TextBlock>("UnappliedSearchConditions")!;
+            await Frame(ct);
+            Require(pending.IsEffectivelyVisible && applied.Text?.Contains("「Target」") == true
+                && ReferenceEquals(originalOperation, panel.CurrentOperation), "folder-edited-input-shows-applied-conditions");
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             Require(panel.IsRunning && panel.Query == "日本語", "folder-enter-starts-search");
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
@@ -177,6 +182,9 @@ internal sealed partial class GuiPerformanceProbe
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(panel.Rows.Count == 3 && panel.Rows.All(panel.CanActivate), "folder-enter-retries-committed-query");
+            await Frame(ct);
+            Require(!pending.IsEffectivelyVisible && applied.Text?.Contains("「日本語」") == true,
+                "folder-run-updates-applied-conditions");
             var resultsPane = _window.FindControl<Border>("SearchResultsPane")!;
             var resultsSplitter = _window.FindControl<GridSplitter>("SearchResultsSplitter")!;
             var initialHeight = resultsPane.Bounds.Height;

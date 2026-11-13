@@ -54,6 +54,38 @@ internal sealed class SearchPanelTests
     });
 
     [Test]
+    public void EditedConditionsArePendingUntilSearchAndClearResetsAppliedConditions() => SingleThreadTestContext.Run(async () =>
+    {
+        using var operations = await Open(new SourceAccess());
+        var panel = new SearchPanelViewModel(() => operations.Searches, () => operations.Workspace, YieldAsync) { Query = "foo" };
+        panel.RefreshWorkspace();
+        await panel.StartAsync();
+        var original = panel.CurrentOperation;
+        Assert.That(panel.AppliedConditions, Does.Contain("「foo」").And.Contain("大小文字を無視"));
+        Assert.That(panel.HasUnappliedConditions, Is.False);
+
+        panel.MatchCase = true;
+        Assert.That(panel.HasUnappliedConditions, Is.True);
+        panel.MatchCase = false;
+        Assert.That(panel.HasUnappliedConditions, Is.False);
+        panel.Query = "";
+        Assert.That(panel.HasUnappliedConditions, Is.True);
+        Assert.That(panel.CanStart, Is.False);
+        Assert.That(panel.CurrentOperation, Is.SameAs(original));
+        Assert.That(panel.Rows.Count, Is.EqualTo(3));
+
+        panel.Query = "bar";
+        panel.WholeWord = true;
+        await panel.StartAsync();
+        Assert.That(panel.HasUnappliedConditions, Is.False);
+        Assert.That(panel.AppliedConditions, Does.Contain("「bar」").And.Contain("単語単位"));
+        Assert.That(panel.Rows.Count, Is.EqualTo(1));
+        panel.Clear();
+        Assert.That(panel.AppliedConditions, Is.Empty);
+        Assert.That(panel.HasUnappliedConditions, Is.False);
+    });
+
+    [Test]
     public void CancelRemovesUnadoptedFileButKeepsAdoptedCommittedRows() => SingleThreadTestContext.Run(async () =>
     {
         // A full batch is observable before final stamp verification; a short batch may stay local until EOF.

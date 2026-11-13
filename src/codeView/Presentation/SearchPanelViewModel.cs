@@ -23,10 +23,14 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     private bool _matchCase, _wholeWord, _regex;
     public AvaloniaList<SearchResultRow> Rows => _results.Rows;
     public SearchResultRow? SelectedRow { get; set; }
-    public string Query { get => _query; set { _query = value; Changed(nameof(Query), nameof(CanStart)); } }
-    public bool MatchCase { get => _matchCase; set { _matchCase = value; Changed(nameof(MatchCase)); } }
-    public bool WholeWord { get => _wholeWord; set { _wholeWord = value; Changed(nameof(WholeWord)); } }
-    public bool UseRegex { get => _regex; set { _regex = value; Changed(nameof(UseRegex)); } }
+    public string Query { get => _query; set { _query = value; Changed(nameof(Query), nameof(CanStart), nameof(HasUnappliedConditions)); } }
+    public bool MatchCase { get => _matchCase; set { _matchCase = value; Changed(nameof(MatchCase), nameof(HasUnappliedConditions)); } }
+    public bool WholeWord { get => _wholeWord; set { _wholeWord = value; Changed(nameof(WholeWord), nameof(HasUnappliedConditions)); } }
+    public bool UseRegex { get => _regex; set { _regex = value; Changed(nameof(UseRegex), nameof(HasUnappliedConditions)); } }
+    public bool HasUnappliedConditions => _operation is { Request: var request }
+        && (request.Query != Query || request.Options != new SearchOptions(MatchCase, WholeWord, UseRegex));
+    public string AppliedConditions { get; private set; } = "";
+    public bool HasAppliedConditions => AppliedConditions.Length > 0;
     public bool IsVisible { get => _visible; set { _visible = value; Changed(nameof(IsVisible)); } }
     public bool IsRunning => _running;
     public bool CanStart => !_stopping && workspace()?.CanSearch == true && (_coordinator?.CanStart ?? true) && !string.IsNullOrEmpty(Query);
@@ -46,6 +50,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         {
             _workspace = current;
             _operation = null;
+            SetAppliedConditions();
             _results.Clear();
             SelectedRow = null;
             _running = false;
@@ -95,6 +100,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
             : _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
         if (accepted.Status != OperationStatus.Success) return Task.CompletedTask;
         _operation = accepted.Value;
+        SetAppliedConditions();
         Description = description;
         Changed(nameof(Description));
         _results.Clear();
@@ -107,6 +113,28 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         Changed(nameof(Summary), nameof(Progress), nameof(IsRunning), nameof(SelectedRow));
         if (!_pumping) _pump = PumpAsync();
         return _pump;
+    }
+
+    private void SetAppliedConditions()
+    {
+        AppliedConditions = "";
+        if (_operation is { Request: { Query: { } query, Options: var options } })
+        {
+            const int previewLength = 64;
+            if (query.Length > previewLength)
+            {
+                var end = char.IsHighSurrogate(query[previewLength - 1]) ? previewLength - 1 : previewLength;
+                query = query[..end] + "…";
+            }
+
+            var preview = query.Replace("\r", "␍", StringComparison.Ordinal)
+                .Replace("\n", "␊", StringComparison.Ordinal).Replace("\t", "⇥", StringComparison.Ordinal);
+            var comparison = options.MatchCase ? "大小文字を区別" : "大小文字を無視";
+            var boundary = options.WholeWord ? "単語単位" : "部分一致";
+            var mode = options.UseRegex ? "正規表現" : "通常";
+            AppliedConditions = $"実行した条件 「{preview}」・{mode}・{comparison}・{boundary}";
+        }
+        Changed(nameof(AppliedConditions), nameof(HasAppliedConditions), nameof(HasUnappliedConditions));
     }
 
     public void Cancel()
@@ -124,6 +152,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         if (_stopping) return;
         (_coordinator ??= coordinator()).Clear();
         _operation = null;
+        SetAppliedConditions();
         _results.Clear();
         SelectedRow = null;
         _running = false;
@@ -278,6 +307,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     {
         _stopping = true;
         _operation = null;
+        SetAppliedConditions();
         _results.Clear();
         SelectedRow = null;
         _running = false;
