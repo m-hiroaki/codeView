@@ -115,6 +115,15 @@ internal sealed partial class GuiPerformanceProbe
         Check("source-caret-rectangle-visible", _interactiveRows!.TryDisplayPosition(source.Caret, out _) &&
             caretRect is { } visible && visible.Left >= 0 && visible.Right <= view.Bounds.Width + 1 &&
             visible.Top >= 0 && visible.Bottom <= view.Bounds.Height + 1);
+        var target = _sourceDocument.GetLineByNumber(targetLine);
+        if (target.Length > 512)
+        {
+            var previousSource = target.EndOffset - 1;
+            if (char.IsLowSurrogate(_sourceDocument.GetCharAt(previousSource))) previousSource--;
+            Check("long-line-end-keeps-preceding-character", source.Caret == target.EndOffset &&
+                _interactiveRows!.TryDisplayPosition(previousSource, out var previous) &&
+                _editor.Document.GetCharAt(previous) == _sourceDocument.GetCharAt(previousSource));
+        }
         var firstLine = _sourceDocument.GetLineByNumber(1);
         if (_sourceDocument.GetText(firstLine.Offset, firstLine.Length) == "before")
         {

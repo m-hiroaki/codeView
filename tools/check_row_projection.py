@@ -32,12 +32,15 @@ def fixture(path):
         raise ValueError("Use functional fixtures up to 2 MiB")
     text = data.decode("utf-8-sig", errors="strict")
     raw = text.encode("utf-16-le")
+    lines = re.split(r"\r\n|\r|\n", text)
+    lengths = [len(line.encode("utf-16-le")) // 2 for line in lines]
     return {"path": str(path), "inputSha256": sha256(path), "bodySha256": hashlib.sha256(raw).hexdigest(),
             "characters": len(raw) // 2, "lines": 1 + len(re.findall(r"\r\n|\r|\n", text)),
             "firstLineHasText": bool(text and text[0] not in "\r\n"),
             "checksInitialGrapheme": text.startswith("a\u0301"),
             "checksTrailingBlank": re.split(r"\r\n|\r|\n", text, maxsplit=1)[0] == "before",
-            "maximumLineLength": max(len(line.encode("utf-16-le")) // 2 for line in re.split(r"\r\n|\r|\n", text))}
+            "checksLongLineEnd": max(lengths[:2]) > 512,
+            "maximumLineLength": max(lengths)}
 
 
 def validate_report(report, expected, commit, expected_os, contextual=False):
@@ -65,6 +68,8 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
     if expected["checksTrailingBlank"]:
         required_scroll |= {"trailing-blank-click-selects-line-end", "trailing-blank-click-updates-source-position",
                             "horizontal-edge-drag-stops-at-line-end"}
+    if expected["checksLongLineEnd"]:
+        required_scroll.add("long-line-end-keeps-preceding-character")
     if (set(scroll_checks) != required_scroll or len(scroll_checks) != len(required_scroll)
             or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
         raise ValueError("Source scrollbar, wheel/pointer or line extent evidence incomplete")

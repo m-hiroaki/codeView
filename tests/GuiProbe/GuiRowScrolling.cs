@@ -132,16 +132,29 @@ internal sealed partial class GuiPerformanceProbe
         view.EnsureVisualLines();
         var rect = GetRowCaretRectangle(source.Caret);
         if (rect is { } visible && visible.Left >= 0 && visible.Right <= view.Bounds.Width) return;
-        // Start the new slice at the source insertion position.
-        // Never scan the hidden prefix of a giant line to measure visual columns.
-        source.SetViewport(source.FirstVisibleLine, source.Position.Column - 1);
-        _editor.Document = BuildRowDocument(reveal: false);
-        if (!source.TryGetRowSelection(_interactiveRows!, out var selection) || selection!.CaretOffset is not { } caret)
+        var column = source.Position.Column - 1;
+        // Try retaining the preceding character. The projection widens its start
+        // to a scalar or grapheme boundary. Both attempts stay within the row budget.
+        if (column > 0 && TryReprojectAt(column - 1) &&
+            GetRowCaretRectangle(source.Caret) is { } withContext &&
+            withContext.Left >= 0 && withContext.Right <= view.Bounds.Width)
+            return;
+        if (!TryReprojectAt(column))
             throw new InvalidOperationException("原文Caretを行別投影へ再表示できません。");
-        _editor.Select(0, 0);
-        _editor.CaretOffset = caret;
-        _rowRenderer.Apply(_editor.Document, _interactiveRows!, selection);
-        ((IScrollable)view).Offset = default;
+
+        bool TryReprojectAt(long horizontalOffset)
+        {
+            source.SetViewport(source.FirstVisibleLine, horizontalOffset);
+            _editor.Document = BuildRowDocument(reveal: false);
+            if (!source.TryGetRowSelection(_interactiveRows!, out var selection) || selection!.CaretOffset is not { } caret)
+                return false;
+            _editor.Select(0, 0);
+            _editor.CaretOffset = caret;
+            _rowRenderer.Apply(_editor.Document, _interactiveRows!, selection);
+            ((IScrollable)view).Offset = default;
+            view.EnsureVisualLines();
+            return true;
+        }
     }
 
     private Rect? GetRowCaretRectangle(long sourceOffset)
