@@ -495,6 +495,21 @@ internal sealed partial class GuiPerformanceProbe
             && SameOffset(scrollable.Offset, secondOffset), "tab-view-restores-second-caret-and-scroll");
         require(query.Text == "SecondToken" && !search.WholeWord && search.Matches.Count == 1,
             "tab-view-restores-second-search-conditions");
+        var secondHandle = second.State.File!.Document;
+        query.Text = "unused first query";
+        query.Text = "unused second query";
+        query.Text = "SecondToken";
+        tabs.SelectedItem = first;
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        require(ReferenceEquals(tabs.SelectedItem, first) && query.Text == "FirstToken"
+            && search.Matches.Count == 1 && secondHandle.ActiveReadLeases == 0,
+            "tab-view-rapid-query-change-then-switch-keeps-current-results");
+        await SelectAsync(second);
+        require(query.Text == "SecondToken" && search.Matches.Count == 1,
+            "tab-view-reopened-search-uses-last-query");
+
+        query.Text = "closing query";
         var handle = second.State.File!.Document;
         _viewModel.CloseFile();
         await _viewModel.PendingWork.WaitAsync(ct);
@@ -539,6 +554,21 @@ internal sealed partial class GuiPerformanceProbe
         require(_viewModel.Tabs.SequenceEqual(tabs) && ReferenceEquals(document, _editor.Document)
             && _viewModel.FileTree.Rows.Count == 1, "workspace-old-row-cannot-replace-current-view");
         await panel.StartAsync().WaitAsync(ct);
+        var superseded = panel.CurrentOperation;
+        panel.Query = "missing-A";
+        var firstSearch = panel.StartAsync();
+        var firstOperation = panel.CurrentOperation;
+        panel.Query = "missing-B";
+        var secondSearch = panel.StartAsync();
+        var secondOperation = panel.CurrentOperation;
+        panel.Query = "WorkspaceMarker";
+        var lastSearch = panel.StartAsync();
+        await Task.WhenAll(firstSearch, secondSearch, lastSearch).WaitAsync(ct);
+        require(!ReferenceEquals(superseded, panel.CurrentOperation)
+            && firstOperation?.CancellationCause == SearchCancellationCause.Replaced
+            && secondOperation?.CancellationCause == SearchCancellationCause.Replaced
+            && panel.Rows.Count == 1 && panel.Rows[0].FullPath == newPath,
+            "workspace-rapid-replacement-publishes-last-search-only");
         var currentResult = panel.Rows.Single();
         require(currentResult.FullPath == newPath && panel.CanActivate(currentResult), "workspace-search-uses-new-root");
 
