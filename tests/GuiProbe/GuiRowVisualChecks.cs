@@ -45,17 +45,22 @@ internal sealed partial class GuiPerformanceProbe
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
             var reference = Editor(); var projected = Editor();
+            using var contextual = new ContextualRowControl { FlowDirection = _editor.FlowDirection };
             reference.Options.EnableTextDragDrop = projected.Options.EnableTextDragDrop = false;
             reference.Options.IndentationSize = projected.Options.IndentationSize = _editor.Options.IndentationSize;
             var referenceLabel = new TextBlock { Text = "全文の対照", Margin = new Thickness(8), Foreground = Brushes.Black };
             var projectionLabel = new TextBlock { Text = "行別投影", Margin = new Thickness(8), Foreground = Brushes.Black };
             var title = new TextBlock { Margin = new Thickness(8), TextWrapping = TextWrapping.Wrap, Foreground = Brushes.Black };
-            var host = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*"), ColumnDefinitions = new ColumnDefinitions("*,*"), Background = Brushes.WhiteSmoke };
+            var host = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto,Auto"), ColumnDefinitions = new ColumnDefinitions("*,*"), Background = Brushes.WhiteSmoke };
             Grid.SetColumnSpan(title, 2); host.Children.Add(title);
             Grid.SetRow(referenceLabel, 1); host.Children.Add(referenceLabel);
             Grid.SetRow(projectionLabel, 1); Grid.SetColumn(projectionLabel, 1); host.Children.Add(projectionLabel);
             Grid.SetRow(reference, 2); host.Children.Add(reference);
             Grid.SetRow(projected, 2); Grid.SetColumn(projected, 1); host.Children.Add(projected);
+            var contextLabel = new TextBlock { Text = "原文の前後を含めて配置", Margin = new Thickness(8), Foreground = Brushes.Black };
+            Grid.SetRow(contextLabel, 3); Grid.SetColumnSpan(contextLabel, 2); host.Children.Add(contextLabel);
+            var contextHost = new Border { Background = _editor.Background, Child = contextual, ClipToBounds = true };
+            Grid.SetRow(contextHost, 4); Grid.SetColumnSpan(contextHost, 2); host.Children.Add(contextHost);
             owner = new Window { Title = "codeView CI Unicode context comparison", Width = 1120, Height = 300, Content = host };
             void Unexpected(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
             { args.Handled = true; _inputInterrupted = true; Finish("physical-input-during-visual-comparison"); }
@@ -74,6 +79,16 @@ internal sealed partial class GuiPerformanceProbe
                 source.SetViewport(1, c.Start);
                 var rows = source.CreateRowProjection(1, c.Columns);
                 var row = rows.Rows[0];
+                using var indexedBuilder = new DocumentBuilder(collectGraphemeIndex: true);
+                indexedBuilder.Append(c.Text.AsMemory());
+                using var indexedHandle = indexedBuilder.Complete();
+                using var indexedSource = new DocumentDisplaySession(indexedHandle);
+                indexedSource.SetViewport(1, c.Start);
+                var indexedRows = indexedSource.CreateRowProjection(1, c.Columns);
+                var contextRange = indexedRows.GetContext(0);
+                if (contextRange is { } range && indexedSource.ReadRowContext(indexedRows, 0) is { } contextText)
+                    contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground);
+                else contextual.Dispose();
                 var boundaries = StringInfo.ParseCombiningCharacters(c.Text).Append(c.Text.Length).ToHashSet();
                 var startBoundary = boundaries.Contains((int)row.SourceOffset);
                 var endBoundary = boundaries.Contains((int)row.SourceOffset + row.Length);
@@ -83,6 +98,18 @@ internal sealed partial class GuiPerformanceProbe
                 referenceLabel.Text = "全文の対照（小入力のみ）";
                 projectionLabel.Text = $"行別投影: 結合境界 左={startBoundary} / 右={endBoundary}";
                 await VisualFrame(owner, ct);
+                if (c.Name == "ascii-control")
+                {
+                    RequireRows(contextual.TryHitSource(new Point(1, contextual.Bounds.Height / 2), out var hit)
+                        && hit == c.Start, "Contextual row hit did not map to the original offset.");
+                    RequireRows(!contextual.TryHitSource(new Point(-1, 0), out _), "Contextual row accepted a hit outside its clip.");
+                }
+                if (c.Name == "arabic-joining")
+                {
+                    RequireRows(contextRange is { } arabic && arabic.Length == c.Text.Length
+                        && arabic.VisibleLength > 0 && arabic.VisibleLength < arabic.Length,
+                        "Arabic comparison did not format the complete source line with a partial visible range.");
+                }
                 reference.TextArea.TextView.EnsureVisualLines(); projected.TextArea.TextView.EnsureVisualLines();
                 var watch = Stopwatch.StartNew();
                 Point At(TextEditor editor, int offset) => editor.TextArea.TextView.GetVisualPosition(
@@ -131,7 +158,8 @@ internal sealed partial class GuiPerformanceProbe
                     row.SourceOffset, row.Length, RequestedColumns = c.Columns, StartGraphemeBoundary = startBoundary,
                     EndGraphemeBoundary = endBoundary, MaximumRelativeDifference = maxDelta, GeometryEqual = geometryEqual,
                     SourceMappingExact = exactMapping, OriginalCopyExact = copyExact, Accepted = caseAccepted,
-                    Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds });
+                    Points = points, Capture = capture, CaseControlMilliseconds = watch.Elapsed.TotalMilliseconds,
+                    ContextSourceRange = contextRange, ContextDisplayText = indexedRows.Text });
             }
             _rowVisualResults = new { Acquired = true, Accepted = accepted, Cases = cases, FontFamily = _editor.FontFamily.ToString(),
                 FontSize = _editor.FontSize, FlowDirection = _editor.FlowDirection.ToString(), TabSize = _editor.Options.IndentationSize,
