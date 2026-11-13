@@ -65,6 +65,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/inputs/mixed.cs artifacts/row-gui-validation/inputs/empty.cs artifacts/row-gui-validation/inputs/unicode.cs --output artifacts/row-gui-validation/results --rounds 3 --commit $env:GITHUB_SHA --os $platform
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/inputs/mixed.cs artifacts/row-gui-validation/inputs/empty.cs artifacts/row-gui-validation/inputs/unicode.cs --output artifacts/row-gui-validation/results-contextual --rounds 3 --commit $env:GITHUB_SHA --os $platform --contextual
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload row integration evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -76,3 +78,4 @@ jobs:
             artifacts/row-gui-validation/environment.txt
             artifacts/row-gui-validation/inputs/
             artifacts/row-gui-validation/results/
+            artifacts/row-gui-validation/results-contextual/

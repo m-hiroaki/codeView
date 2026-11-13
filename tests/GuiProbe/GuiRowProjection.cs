@@ -13,9 +13,11 @@ internal sealed partial class GuiPerformanceProbe
 {
     private readonly bool _rowsEnabled = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1";
     private readonly bool _rowChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROW_CHECKS") == "1";
+    private readonly bool _contextualRows = Environment.GetEnvironmentVariable("CODEVIEW_GUI_GRAPHEME_INDEX") == "1";
     private DocumentRowProjection? _interactiveRows;
     private RowProjectionRenderer? _rowRenderer;
     private RowClippingMargin? _rowMargin;
+    private ContextualRowLayer? _contextLayer;
     private readonly List<object> _rowSamples = [];
     private object? _rowResults;
     private KeyEventArgs? _scriptedRowKey;
@@ -59,6 +61,17 @@ internal sealed partial class GuiPerformanceProbe
         _interactiveRows = _displaySession!.CreateRowProjection(_rowCount, RowColumns, _windowChars);
         foreach (var row in _interactiveRows.Rows) _sawClippedRow |= row.LeftClipped || row.RightClipped;
         var display = CreateDisplayDocument(_interactiveRows.Text);
+        if (_contextualRows)
+        {
+            var view = _editor.TextArea.TextView;
+            if (_contextLayer is null)
+            {
+                _contextLayer = new ContextualRowLayer(_editor) { IsHitTestVisible = false };
+                view.InsertLayer(_contextLayer, KnownLayer.Text, LayerInsertionPosition.Above);
+                view.VisualLinesChanged += (_, _) => _contextLayer.InvalidateVisual();
+            }
+            _contextLayer.Apply(display, _displaySession, _interactiveRows);
+        }
         _sourceLineNumbers!.Apply(display, new SourceLineNumbers(_displaySession.FirstVisibleLine,
             _sourceDocument!.LineCount, display.LineCount));
         _rowRenderer ??= new RowProjectionRenderer(_editor);
@@ -91,6 +104,7 @@ internal sealed partial class GuiPerformanceProbe
             if (!source.TryGetRowSelection(_interactiveRows!, out selection))
                 throw new InvalidOperationException("再表示後の行投影が失効しました。");
             _viewModel.SetPosition(1, 1);
+            _contextLayer?.SetSelection(source.Anchor, source.Caret);
             if (_rowSamples.Count < 256)
                 _rowSamples.Add(new { source.FirstVisibleLine, source.HorizontalSourceOffset,
                     source.Anchor, source.Caret, DisplayChars = _interactiveRows!.Text.Length,
@@ -103,6 +117,7 @@ internal sealed partial class GuiPerformanceProbe
     private void ClearRowProjection()
     {
         _interactiveRows = null;
+        _contextLayer?.Clear();
         _rowRenderer?.Clear();
         _rowMargin?.Clear();
         _rowWheel.Reset();

@@ -100,11 +100,19 @@ internal sealed class ContextualRowControl : Control, IDisposable
             context.DrawLine(new Pen(Brushes.Gold), caret, caret + new Vector(0, layout.Height));
     }
 
-    internal bool TryHitSource(Point point, out long offset)
+    internal bool TryHitSource(Point point, out long offset, bool clamp = false)
     {
         offset = 0;
         var local = new Point(point.X + _origin, point.Y);
-        if (_layout is not { } layout || !_visible.Any(rect => rect.Contains(local))) return false;
+        if (_layout is not { } layout || _visible.Length == 0) return false;
+        if (!_visible.Any(rect => rect.Contains(local)))
+        {
+            if (!clamp) return false;
+            local = _visible.Select(rect => new Point(
+                    Math.Clamp(local.X, rect.Left, rect.Right),
+                    Math.Clamp(local.Y, rect.Top, rect.Bottom)))
+                .MinBy(candidate => ((Vector)candidate - (Vector)local).SquaredLength);
+        }
         var position = layout.HitTestPoint(local).TextPosition;
         if (position < _range.VisibleOffset || position > _range.VisibleOffset + _range.VisibleLength) return false;
         offset = _range.SourceOffset + position;

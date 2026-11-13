@@ -96,6 +96,10 @@ internal sealed partial class GuiPerformanceProbe
             Check("source-labels-rendered", _sourceLineNumbers.RenderedLabels > 0);
             Check("source-unchanged", original.Text == body && !original.UndoStack.CanUndo && !original.UndoStack.CanRedo);
             Check("read-only-native-display", _editor.IsReadOnly && !_editor.Document.UndoStack.CanUndo);
+            var contextualDraws = _contextLayer?.DrawnRows ?? 0;
+            var contextualHits = _contextLayer?.ResolvedHits ?? 0;
+            RequireRows(!_contextualRows || source.Length == 0 || contextualDraws > 0, "Contextual viewport drew no rows.");
+            RequireRows(!_contextualRows || source.Length == 0 || contextualHits > 0, "Contextual viewport resolved no pointer hits.");
             var sourceLength = source.Length;
             var maximumLineLength = source.MaximumLineLength;
             var lifecycle = await CheckRowLifecycleAsync(body, ct);
@@ -108,6 +112,8 @@ internal sealed partial class GuiPerformanceProbe
                 OriginalClipboardChecks = _clipboardVerificationChecks,
                 ScrollChecks = scrollChecks, SourceBarChanges = _sourceBarChanges, MaximumLineLength = maximumLineLength,
                 Lifecycle = lifecycle,
+                ContextualDrawnRows = contextualDraws,
+                ContextualResolvedHits = contextualHits,
                 Limit = "Native control integration including source scrollbars/routed wheel/pointer capture; no physical input/paint. Logical UTF-16 axis; visual-column alignment pending."
             };
             Finish();

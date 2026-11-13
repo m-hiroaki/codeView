@@ -46,6 +46,16 @@ class RowProjectionEvidenceTests(unittest.TestCase):
         self.report['Os'] = 'Microsoft Windows test'
         validate_report(self.report, self.expected, self.commit, 'windows')
 
+    def test_contextual_viewport_requires_draws_and_pointer_hits_only_when_enabled(self):
+        checks = self.report['RowProjectionChecks']
+        for field in ('ContextualDrawnRows', 'ContextualResolvedHits'):
+            with self.assertRaisesRegex(ValueError, field):
+                validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
+            checks[field] = 1
+        validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
+        with self.assertRaisesRegex(ValueError, 'ContextualDrawnRows'):
+            self.validate()
+
     def test_rejects_wrong_build_mode_os_and_interruption(self):
         for field, value in [('Failure', 'failed'), ('InputInterrupted', True), ('RowProjectionEnabled', False),
                              ('Os', 'Linux'), ('ProductInformationalVersion', 'other'), ('EditorReadOnly', False),

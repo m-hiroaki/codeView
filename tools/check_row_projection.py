@@ -37,7 +37,7 @@ def fixture(path):
             "maximumLineLength": max(len(line.encode("utf-16-le")) // 2 for line in re.split(r"\r\n|\r|\n", text))}
 
 
-def validate_report(report, expected, commit, expected_os):
+def validate_report(report, expected, commit, expected_os, contextual=False):
     if (report.get("Failure") is not None or report.get("InputInterrupted") is not False
             or report.get("RowProjectionEnabled") is not True
             or report.get("Scenario") != "native-interactive-bounded-candidate"
@@ -46,6 +46,11 @@ def validate_report(report, expected, commit, expected_os):
             or not report.get("Os", "").startswith({"windows": "Microsoft Windows", "macos": "macOS"}[expected_os])):
         raise ValueError("Wrong build/OS/mode or interrupted/failed native run")
     checks = report.get("RowProjectionChecks") or {}
+    for field in ("ContextualDrawnRows", "ContextualResolvedHits"):
+        count = checks.get(field, 0)
+        should_be_active = contextual and expected["maximumLineLength"] > 0
+        if type(count) is not int or count < 0 or (count > 0) != should_be_active:
+            raise ValueError(f"Unexpected contextual viewport evidence for {field}")
     lifecycle = checks.get("Lifecycle") or {}
     required_lifecycle = LIFECYCLE_CHECKS | ({"real-search-committed-primary-hit", "real-search-enter-selects-original", "search-caret-before-deferred-selection"}
                                           if expected["characters"] else {"empty-search-has-no-fabricated-hit"})
@@ -95,12 +100,13 @@ def validate_shutdown(report):
         raise ValueError("Real shutdown has pending work, retained source ownership, or missing evidence")
 
 
-def collect(app, inputs, output, rounds, commit, expected_os):
+def collect(app, inputs, output, rounds, commit, expected_os, contextual=False):
     if not 1 <= rounds <= 10 or not 2 <= len(inputs) <= 10 or len(set(inputs)) != len(inputs):
         raise ValueError("Use 1..10 rounds and 2..10 distinct fixtures")
     fixtures = [fixture(path) for path in inputs]
     output.mkdir(parents=True, exist_ok=False)
-    record = {"commit": commit, "fixtures": fixtures, "productSha256": sha256(app.parent / "codeView.dll"),
+    record = {"commit": commit, "fixtures": fixtures, "contextual": contextual,
+              "productSha256": sha256(app.parent / "codeView.dll"),
               "appHostSha256": sha256(app), "rounds": rounds, "runs": [],
               "limit": "Native functional lifecycle/scroll integration, logical UTF-16 columns; physical paint/input and performance acceptance pending."}
     try:
@@ -112,6 +118,8 @@ def collect(app, inputs, output, rounds, commit, expected_os):
                 env.update(CODEVIEW_GUI_PERF_REPORT=str(report_path), CODEVIEW_GUI_WINDOWED="1", CODEVIEW_GUI_INTERACTIVE="1",
                            CODEVIEW_GUI_ROWS="1", CODEVIEW_GUI_ROW_CHECKS="1", CODEVIEW_GUI_VERIFY_CLIPBOARD="1",
                            CODEVIEW_GUI_ROW_SECONDARY=str(inputs[(index + 1) % len(inputs)]))
+                if contextual:
+                    env["CODEVIEW_GUI_GRAPHEME_INDEX"] = "1"
                 row = {"fixture": index, "round": number + 1}
                 record["runs"].append(row)
                 if sha256(inputs[index]) != expected["inputSha256"]:
@@ -122,8 +130,9 @@ def collect(app, inputs, output, rounds, commit, expected_os):
                 if report_path.exists():
                     row["report"] = json.loads(report_path.read_text(encoding="utf-8-sig"))
                 if child.returncode != 0:
-                    raise RuntimeError("Native row test failed: " + label)
-                validate_report(row["report"], expected, commit, expected_os)
+                    failure = (row.get("report") or {}).get("Failure")
+                    raise RuntimeError(f"Native row test failed: {label}: {failure}")
+                validate_report(row["report"], expected, commit, expected_os, contextual)
                 row["shutdown"] = json.loads(Path(str(report_path) + ".shutdown.json").read_text(encoding="utf-8-sig"))
                 validate_shutdown(row["shutdown"])
                 if any(sha256(path) != f["inputSha256"] for path, f in zip(inputs, fixtures)):
@@ -147,7 +156,9 @@ if __name__ == "__main__":
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--os", required=True, choices=("windows", "macos"))
+    parser.add_argument("--contextual", action="store_true")
     args = parser.parse_args()
     if not re.fullmatch(r"[0-9a-f]{40}", args.commit):
         parser.error("Use the full lowercase commit hash")
-    collect(args.app.resolve(), [p.resolve() for p in args.inputs], args.output.resolve(), args.rounds, args.commit, args.os)
+    collect(args.app.resolve(), [p.resolve() for p in args.inputs], args.output.resolve(), args.rounds, args.commit,
+            args.os, args.contextual)
