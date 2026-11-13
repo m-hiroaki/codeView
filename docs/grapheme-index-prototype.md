@@ -22,4 +22,4 @@
 
 専用GUIの視覚比較に、Avaloniaの `TextLayout` で原文の論理行を配置する行描画Controlを追加した。可視範囲の矩形ごとにクリップし、同じ配置のヒットテスト結果を原文のUTF-16位置に戻す。比較画面が一度に持つ配置は1行で、上限は16 Ki UTF-16単位。候補を切り替えるたびに旧配置を破棄する。[Avaloniaの配置実装](https://github.com/AvaloniaUI/Avalonia/blob/8eeda4f6f546165b3f72e63c9f42247abb306905/src/Avalonia.Base/Media/TextFormatting/TextLayout.cs)
 
-このControlは視覚比較用の表示欄で使用する。原文のAnchor/Caretを受け取り、同じ配置から選択背景とCaretを描く。選択背景は可視範囲でクリップし、表示範囲外のCaretは描かない。実ポインター入力との統合、全文対照との配置精度、公式データとの照合、両OSでの性能評価はA-04-03-04に残る。
+このControlは視覚比較用の表示欄で使用する。原文のAnchor/Caretを受け取り、同じ配置から選択背景とCaretを描く。選択背景は可視範囲でクリップし、表示範囲外のCaretは描かない。クリックとShiftクリックは、現行投影の文字素境界を通して既存の原文選択処理に渡す。ドラッグと物理入力、全文対照との配置精度、公式データとの照合、両OSでの性能評価はA-04-03-04に残る。
