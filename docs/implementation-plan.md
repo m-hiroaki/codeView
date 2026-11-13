@@ -397,9 +397,11 @@ flowchart LR
 
   - [x] **P6-03-02：macOSの両アーキテクチャでNative AOT成果物を発行する**（2026-11-13）。コミット `88637a8` をApple Silicon（macOS 27.0.1、Xcode 27.2、SDK 10.0.403）で発行。arm64とx86_64の実行ファイル、対応するスライスを含む4本のdylib、Info.plist、ILCompiler 10.0.14、既存30依存の版とハッシュの一致を確認した。実行ファイルSHA-256はarm64が `e2639b49651d3273487e21bf6ce910241ccd4f1ab686eb46c3fbc57c5cf0c08c`、x86_64が `008ba260ba58a0a530cc6a4f484035b53f2f20dfcab245d7caf67aaeaba16032`。検証ホストではx86_64プロセスを起動できなかったため、Intel向けは発行とバイナリ検査まで確認した。
 
-  - [x] **P6-03-03：ネイティブ依存の通知文書を配布物に同梱する**（2026-11-13）。SkiaSharp・HarfBuzzSharp・OnigwrapとWindowsのANGLEの文書を対象RIDのNuGetパッケージから `licenses/` に入れる。macOSのarm64・x64で文書5点と元パッケージの一致を確認。[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43425948625)で文書6点、通常起動、依存ロックの不変を確認した。ランタイムの通知はP6-03-04で確認した。管理ライブラリ・文法の通知はP6-03に残る。
+  - [x] **P6-03-03：ネイティブ依存の通知文書を配布物に同梱する**（2026-11-13）。SkiaSharp・HarfBuzzSharp・OnigwrapとWindowsのANGLEの文書を対象RIDのNuGetパッケージから `licenses/` に入れる。macOSのarm64・x64で文書5点と元パッケージの一致を確認。[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43425948625)で文書6点、通常起動、依存ロックの不変を確認した。ランタイムの通知はP6-03-04で確認した。管理ライブラリの通知はP6-03-05で確認した。文法データの個別通知はP6-03に残る。
 
   - [x] **P6-03-04：.NETランタイムのライセンス・第三者通知を同梱する**（2026-11-13）。SDKが解決した対象RIDのランタイムからライセンスとNative AOTの第三者通知を `licenses/dotnet/` に入れる。macOSのarm64・x64で両文書がNuGetパッケージとバイト単位で一致した。[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43426616824)で両文書、通常起動、依存ロックの不変を確認した。
+
+  - [x] **P6-03-05：管理ライブラリのライセンスを配布物に同梱する**（2026-11-13）。固定コミット由来のAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスと出典を `licenses/upstream/` に入れる。macOSのarm64・x64で原文との一致と実行ファイルの位置を確認した。[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43427527706)で同梱・通常起動・依存ロック不変を確認した。TextMateSharp内の文法データは個別の上流出典を引き続き確認する。
 
 - [ ] **P6-04：発行形式と起動・資源使用量を比較し最適化する**
   依存：P6-03、P6-02。完了条件：単一ファイル/最小フォルダ・ReadyToRun有無の起動/容量/展開/メモリを比較。UI・メモリを悪化させず選定し、変更箇所の回帰試験を通す。
