@@ -447,7 +447,7 @@ internal sealed partial class GuiPerformanceProbe
         if (_contextLayer is { } layer && _displaySession is { } source && _interactiveRows is { } rows
             && view.GetVisualLineFromVisualTop(y + view.VerticalOffset) is { } line
             && layer.TryHit(line.FirstDocumentLine.LineNumber - 1,
-                new Point(x, y + view.VerticalOffset - line.VisualTop), source, clamp, out var original))
+                new Point(x, y + view.VerticalOffset - line.VisualTop), source, out var original))
             return original is { } offset && rows.TryDisplayPosition(offset, out var display) ? display : null;
         var position = view.GetPosition(new Point(x + view.HorizontalOffset, y + view.VerticalOffset));
         return position is { } found ? _editor.Document.GetOffset(found.Location) :

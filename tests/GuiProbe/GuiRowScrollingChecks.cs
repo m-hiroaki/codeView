@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
 
@@ -114,6 +115,21 @@ internal sealed partial class GuiPerformanceProbe
         Check("source-caret-rectangle-visible", _interactiveRows!.TryDisplayPosition(source.Caret, out _) &&
             caretRect is { } visible && visible.Left >= 0 && visible.Right <= view.Bounds.Width + 1 &&
             visible.Top >= 0 && visible.Bottom <= view.Bounds.Height + 1);
+        var firstLine = _sourceDocument.GetLineByNumber(1);
+        if (_sourceDocument.GetText(firstLine.Offset, firstLine.Length) == "before")
+        {
+            _sourceVerticalBar.Value = 1;
+            _sourceHorizontalBar.Value = 0;
+            RenderInteractive();
+            await RowFrame(ct);
+            var blank = new Point(view.Bounds.Width - 2, view.DefaultLineHeight / 2);
+            Press(blank);
+            Check("trailing-blank-click-selects-line-end", _pointerSelection.IsActive &&
+                source.Anchor == firstLine.EndOffset && source.Caret == firstLine.EndOffset);
+            Release(blank);
+            Check("trailing-blank-click-updates-source-position",
+                _window.FindControl<TextBlock>("CaretPositionStatus")?.Text == "行 1, 列 7");
+        }
         source.Select(anchor, caret);
         source.SetViewport(1, 0);
         RenderInteractive();

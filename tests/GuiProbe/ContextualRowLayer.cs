@@ -51,11 +51,12 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         InvalidateVisual();
     }
 
-    internal bool TryHit(int row, Point point, DocumentDisplaySession source, bool clamp, out long? offset)
+    internal bool TryHit(int row, Point point, DocumentDisplaySession source, out long? offset)
     {
         offset = null;
         if (!ReferenceEquals(editor.Document, _display) || !_rows.TryGetValue(row, out var control)) return false;
-        if (control.TryHitSource(point, out var hit, clamp) && source.TryGetGraphemeBounds(hit, out var before, out var after))
+        if (control.TryHitSource(point, out var hit, clamp: true) &&
+            source.TryGetGraphemeBounds(hit, out var before, out var after))
         {
             offset = control.NearestBoundary(point, before, after);
             ResolvedHits++;
