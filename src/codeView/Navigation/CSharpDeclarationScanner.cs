@@ -214,15 +214,24 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             return false;
         }
 
-        private int Prefix()
+        private int Prefix() => Prefix(out _);
+
+        private int Prefix(out int firstContextual)
         {
+            firstContextual = -1;
             var i = 0;
             while (At(i) == "[") i = SkipGroup(i);
             while (At(i) is "public" or "private" or "protected" or "internal" or "static" or "abstract"
                 or "sealed" or "partial" or "readonly" or "ref" or "unsafe" or "new" or "virtual" or "override"
-                or "extern" or "async" or "volatile" or "const" or "required" or "file") i++;
+                or "extern" or "async" or "volatile" or "const" or "required" or "file")
+            {
+                if (firstContextual < 0 && IsContextualModifier(At(i))) firstContextual = i;
+                i++;
+            }
             return i;
         }
+
+        private static bool IsContextualModifier(string? text) => text is "partial" or "async" or "required" or "file";
 
         public bool TryType(out CSharpToken name, out string? keyword)
         {
@@ -249,8 +258,19 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
 
         public bool TryMember(out CSharpToken name, out int tail, out bool method)
         {
+            var prefix = Prefix(out var firstContextual);
+            if (TryMemberAt(prefix, out name, out tail, out method)) return true;
+
+            // A contextual modifier may instead begin the member's type.
+            for (var i = prefix - 1; firstContextual >= 0 && i >= firstContextual; i--)
+                if (IsContextualModifier(At(i)) && TryMemberAt(i, out name, out tail, out method)) return true;
+            return false;
+        }
+
+        private bool TryMemberAt(int start, out CSharpToken name, out int tail, out bool method)
+        {
             name = default;
-            tail = Prefix();
+            tail = start;
             method = false;
             if (!ReadType(ref tail) || !IsName(tail)) return false;
             name = tokens[tail++];
