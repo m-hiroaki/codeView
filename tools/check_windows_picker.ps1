@@ -76,7 +76,15 @@ function Set-PickerPath($Dialog, [string]$Path) {
     Click-Control $edit
     [System.Windows.Forms.Clipboard]::SetText($Path)
     [System.Windows.Forms.SendKeys]::SendWait('^a^v')
-    Invoke-Control (Wait-For 'native confirmation button' { Find-ById $Dialog '1' })
+    Start-Sleep -Milliseconds 250
+    [System.Windows.Forms.Clipboard]::Clear()
+    [System.Windows.Forms.SendKeys]::SendWait('^a^c')
+    Start-Sleep -Milliseconds 150
+    if ([System.Windows.Forms.Clipboard]::GetText() -cne $Path) {
+        throw "Path was not entered in the $($Dialog.Current.Name) filename field"
+    }
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    Start-Sleep -Milliseconds 250
 }
 function Get-Hashes($Files) {
     @($Files | ForEach-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash })
@@ -101,7 +109,16 @@ try {
         }
     }
     $dialog = Open-Picker 'ファイルを開く'
-    Set-PickerPath $dialog ('"{0}" "{1}"' -f $files[0], $files[1])
+    Set-PickerPath $dialog $folder
+    Set-PickerPath $dialog ('"{0}" "{1}"' -f (Split-Path $files[0] -Leaf), (Split-Path $files[1] -Leaf))
+    $null = Wait-For 'native file dialog to close' {
+        $picker = Find-Named ([System.Windows.Automation.AutomationElement]::RootElement) 'ファイルを開く'
+        !$picker -or $picker.Current.ProcessId -ne $process.Id
+    }
+    $report.checks += 'native-file-picker-submits-selection'
+    $report.visible_names_after_open = @($window.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.Condition]::TrueCondition) | ForEach-Object { $_.Current.Name } | Where-Object { $_ })
+
     $tabs = Wait-For 'tab list' { Find-Named $window '開いているファイル' }
     foreach ($file in $files) {
         $name = Split-Path $file -Leaf
