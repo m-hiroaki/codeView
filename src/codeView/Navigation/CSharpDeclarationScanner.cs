@@ -122,7 +122,10 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             return Emit(DeclarationKind.Type, type);
         if (header.TryDelegate(out var delegated))
             return Emit(DeclarationKind.Delegate, delegated);
-        if (!InType || !header.TryMember(out var member, out var tail, out var method)) return true;
+        if (!InType) return true;
+        var fixedBuffer = header.FixedBufferStart;
+        if (fixedBuffer >= 0) return FinishFixedBuffers(header, fixedBuffer);
+        if (!header.TryMember(out var member, out var tail, out var method)) return true;
         if (header.IsArrow(tail))
         {
             if (tail + 2 == _header.Count) return Fail(DeclarationScanError.Incomplete);
@@ -147,6 +150,26 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             if (tail == _header.Count) break;
             if (header.At(tail++) != "," || !header.IsName(tail)) return Fail(DeclarationScanError.Incomplete);
             member = _header[tail++];
+        }
+        foreach (var field in matching)
+            if (!Emit(DeclarationKind.Field, field)) return false;
+        return true;
+    }
+
+    private bool FinishFixedBuffers(Header header, int index)
+    {
+        if (!header.ReadType(ref index)) return Fail(DeclarationScanError.Incomplete);
+        var matching = new List<CSharpToken>();
+        while (true)
+        {
+            if (!header.IsName(index)) return Fail(DeclarationScanError.Incomplete);
+            var field = _header[index++];
+            if (header.At(index) != "[" || header.At(index + 1) == "]")
+                return Fail(DeclarationScanError.Incomplete);
+            index = header.SkipGroup(index);
+            if (Matches(field)) matching.Add(field);
+            if (index == _header.Count) break;
+            if (header.At(index++) != ",") return Fail(DeclarationScanError.Incomplete);
         }
         foreach (var field in matching)
             if (!Emit(DeclarationKind.Field, field)) return false;
@@ -203,6 +226,14 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             && !IdentifierExtractor.IsReserved(tokens[i].Text);
         public bool IsArrow(int i) => At(i) == "=" && At(i + 1) == ">";
         public bool IsNamespace => At(0) == "namespace" && IsName(1);
+        public int FixedBufferStart
+        {
+            get
+            {
+                var prefix = Prefix();
+                return At(prefix) == "fixed" ? prefix + 1 : -1;
+            }
+        }
 
         public bool HasTopLevelAssignment()
         {
@@ -295,7 +326,7 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
 
         private bool StartsConstraintClause(int i) => At(i) == "where" && IsName(i + 1) && At(i + 2) == ":";
 
-        private bool ReadType(ref int i)
+        public bool ReadType(ref int i)
         {
             while (At(i) is "ref" or "readonly") i++;
             if (At(i) == "(") i = SkipGroup(i); // Tuple type.
@@ -328,7 +359,7 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             return true;
         }
 
-        private int SkipGroup(int i)
+        public int SkipGroup(int i)
         {
             var depth = 0;
             for (; i < tokens.Count; i++)

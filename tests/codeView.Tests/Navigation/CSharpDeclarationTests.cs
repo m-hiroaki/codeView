@@ -59,6 +59,9 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { System.Action A = () => { int Local = 0; }, N = null; }")]
     [TestCase("class C { private file.Value<int>[] N; }")]
     [TestCase("class partial {} class C { private partial N = new partial(); }")]
+    [TestCase("unsafe struct C { public fixed byte N[16]; }")]
+    [TestCase("struct C { [A] private unsafe fixed int Other[1 + 2], @N[sizeof(int)]; }")]
+    [TestCase("unsafe struct C { fixed int N[1], Other[2]; }")]
     public void FindsFields(string source) => AssertMatches(source, DeclarationKind.Field);
 
     [TestCase("N(); class Other {}")]
@@ -71,6 +74,7 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { bool A = value is Pair<int, N, string> pair; }")]
     [TestCase("class C { bool A = Cache<int, N, string> == null; }")]
     [TestCase("class NN { int n; int Name; }")]
+    [TestCase("unsafe struct C { fixed int Other[N]; void M() { fixed (int* N = Other) {} } }")]
     public void ExcludesNonDeclarationsAndUnsupportedMemberForms(string source)
     {
         var (declarations, matches) = Scan(source);
@@ -96,6 +100,8 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { int N = ; }")]
     [TestCase("class C { int N, ; }")]
     [TestCase("class C { int N => ; }")]
+    [TestCase("unsafe struct C { fixed int N[]; }")]
+    [TestCase("unsafe struct C { fixed int N[1], Other; }")]
     [TestCase("interface where {} class C { T N<T>(T value) where T : where => ; }")]
     public void ReportsIncompleteContext(string source) =>
         Assert.That(Scan(source).Declarations.Error, Is.EqualTo(DeclarationScanError.Incomplete));
