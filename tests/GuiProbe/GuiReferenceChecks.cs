@@ -241,6 +241,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckTreeLinksAsync(root, before, Hash, Require, ct);
             await CheckFileDropAsync(root, before, Hash, Require, ct);
             await CheckSingleFileDisplayAsync(root, before, Hash, Require, ct);
+            await CheckLargePlainDocumentAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -706,6 +707,40 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(!_viewModel.HasWorkspace && _viewModel.FilePath == text && _editor.Document.Text == content
             && _editor.IsReadOnly && status.Text == "読み取り専用", "single-file-valid-open-recovers-after-failure");
+    }
+
+    private async Task CheckLargePlainDocumentAsync(string root, Dictionary<string, string> inputs,
+        Func<string, string> hash, Action<bool, string> require, CancellationToken ct)
+    {
+        const int size = 10 * 1024 * 1024;
+        const string marker = "EndOfLargeSource";
+        var path = Path.Combine(root, "large-source.cs");
+        var row = "//" + new string('a', 509) + "\n";
+        var content = string.Concat(Enumerable.Repeat(row, size / row.Length)) + marker;
+        await File.WriteAllTextAsync(path, content, ct);
+        inputs.Add(path, hash(path));
+
+        await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu);
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        require(_editor.Document.TextLength == size + marker.Length && _editor.IsReadOnly
+            && _viewModel.SyntaxStatus.Contains("本文上限")
+            && !_editor.TextArea.TextView.LineTransformers.OfType<SyntaxColorizer>().Any(),
+            "syntax-large-source-visible-without-color");
+
+        var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+        RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = modifier });
+        await Frame(ct);
+        var query = _window.FindControl<TextBox>("InFileQuery")!;
+        query.Text = marker;
+        await _viewModel.PendingWork.WaitAsync(ct);
+        RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        require(_editor.SelectedText == marker && _editor.SelectionStart == size,
+            "syntax-large-source-search-selects-original-tail");
+        _viewModel.CloseFile();
+        await _viewModel.PendingWork.WaitAsync(ct);
     }
 
     private async Task<TappedEventArgs> DoubleTapAsync(Control source, CancellationToken ct)

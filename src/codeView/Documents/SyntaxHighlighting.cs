@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using TextMateSharp.Grammars;
 using TextMateSharp.Registry;
@@ -16,16 +15,20 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
     private static readonly TimeSpan TotalTimeout = TimeSpan.FromSeconds(5);
 
     internal static (SyntaxHighlighting? Highlighting, string Status) Read(
-        DocumentReadLease source, string scope, IRegistryOptions options, CancellationToken ct)
+        DocumentReadLease source, string scope, IRegistryOptions options, CancellationToken ct, TimeProvider? timeProvider = null)
     {
         ct.ThrowIfCancellationRequested();
         if (source.Length > MaximumChars) return (null, "構文色なし（本文上限）");
 
         try
         {
-            var elapsed = Stopwatch.StartNew();
+            var clock = timeProvider ?? TimeProvider.System;
+            var started = clock.GetTimestamp();
             var registry = new Registry(options);
             var grammar = registry.LoadGrammar(scope);
+            ct.ThrowIfCancellationRequested();
+            if (clock.GetElapsedTime(started) >= TotalTimeout)
+                return (null, "構文色なし（処理時間上限）");
             if (grammar is null) return (null, "構文色なし（文法なし）");
 
             var theme = registry.GetTheme();
@@ -41,7 +44,7 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
             bool FinishLine()
             {
                 ct.ThrowIfCancellationRequested();
-                var remaining = TotalTimeout - elapsed.Elapsed;
+                var remaining = TotalTimeout - clock.GetElapsedTime(started);
                 if (remaining <= TimeSpan.Zero)
                 {
                     failure = "構文色なし（処理時間上限）";
@@ -51,10 +54,10 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
                 var text = line.ToString();
                 line.Clear();
                 var lineBudget = remaining < LineTimeout ? remaining : LineTimeout;
-                var started = elapsed.Elapsed;
+                var lineStarted = clock.GetTimestamp();
                 var tokens = grammar.TokenizeLine(text, state, lineBudget);
                 // This TextMateSharp interface does not expose its early-stop flag.
-                if (elapsed.Elapsed - started >= lineBudget || elapsed.Elapsed >= TotalTimeout)
+                if (clock.GetElapsedTime(lineStarted) >= lineBudget || clock.GetElapsedTime(started) >= TotalTimeout)
                 {
                     failure = "構文色なし（処理時間上限）";
                     return false;
@@ -120,7 +123,11 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
                 return true;
             }, ct);
             if (failure is null && line.Length > 0) FinishLine();
-            return failure is null ? (new(spans, palette), "") : (null, failure);
+            ct.ThrowIfCancellationRequested();
+            if (failure is not null) return (null, failure);
+            if (clock.GetElapsedTime(started) >= TotalTimeout)
+                return (null, "構文色なし（処理時間上限）");
+            return (new(spans, palette), "");
         }
         catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
         {

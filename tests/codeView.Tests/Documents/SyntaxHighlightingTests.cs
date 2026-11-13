@@ -1,5 +1,8 @@
 using AvaloniaEdit.Document;
 using CodeView.Documents;
+using TextMateSharp.Internal.Types;
+using TextMateSharp.Registry;
+using TextMateSharp.Themes;
 
 namespace CodeView.Tests.Documents;
 
@@ -84,4 +87,45 @@ public sealed class SyntaxHighlightingTests
         Assert.That(() => SyntaxHighlighting.Read(lease, "source.cs", grammars, new CancellationToken(true)),
             Throws.TypeOf<OperationCanceledException>());
     }
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    public void SlowOrFailedGrammarInitializationDiscardsColoringEvenForEmptyText(bool empty, bool fails)
+    {
+        using var document = new DocumentHandle(new TextDocument(empty ? "" : "int value;"), null);
+        using var lease = document.AcquireReadView();
+        var clock = new TestClock();
+        var catalog = new RegistryWithLoadAction(() =>
+        {
+            clock.Timestamp += TimeSpan.FromSeconds(6).Ticks;
+            if (fails) throw new InvalidDataException("Test grammar failure");
+        });
+        var result = SyntaxHighlighting.Read(lease, "source.c", catalog, default, clock);
+
+        Assert.That(result.Highlighting, Is.Null);
+        Assert.That(result.Status, Does.Contain(fails ? "文法読込・解析失敗" : "処理時間上限"));
+        Assert.That(lease.ReadRange(0, (int)lease.Length), Is.EqualTo(empty ? "" : "int value;"));
+    }
+
+    private sealed class TestClock : TimeProvider
+    {
+        public long Timestamp { get; set; }
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => Timestamp;
+    }
+
+    private sealed class RegistryWithLoadAction(Action onLoad) : IRegistryOptions
+    {
+        private readonly BundledGrammars _catalog = new();
+        public IRawGrammar? GetGrammar(string scopeName)
+        {
+            onLoad();
+            return _catalog.GetGrammar(scopeName);
+        }
+
+        public IRawTheme? GetTheme(string scopeName) => _catalog.GetTheme(scopeName);
+        public ICollection<string>? GetInjections(string scopeName) => _catalog.GetInjections(scopeName);
+        public IRawTheme GetDefaultTheme() => _catalog.GetDefaultTheme();
+    }
+
 }
