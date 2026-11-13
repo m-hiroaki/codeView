@@ -270,7 +270,8 @@ internal sealed partial class GuiPerformanceProbe
             && _editor.Document.Text == "日本語の本文" && _editor.IsReadOnly,
             "cli-first-folder-and-both-files-open");
         var status = _window.FindControl<TextBlock>("DocumentStatus")!;
-        require(status.Text?.Contains("パスが見つかりません") == true
+        require(status.Text?.Contains("開けなかった項目 1件") == true
+            && status.Text.Contains("パスが見つかりません")
             && status.Text.Contains("後続のフォルダ1件"), "cli-status-reports-missing-and-skipped-folder");
         _editor.CaretOffset = 3;
         await Frame(ct);

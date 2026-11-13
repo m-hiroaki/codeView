@@ -94,8 +94,8 @@ def collect(app, output, commit, rounds=3):
             original_hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs]
             row = {'round': number}; record['runs'].append(row)
             with target.with_suffix('.log').open('wb') as log:
-                child = subprocess.run([str(app), str(first), str(first_file), str(second), str(last_file),
-                                        str(fixture / 'missing.txt')], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
+                child = subprocess.run([str(app), str(first), str(first_file), str(fixture / 'missing.txt'),
+                                        str(second), str(last_file)], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
             row['exitCode'] = child.returncode
             if target.exists():
                 row['report'] = json.loads(target.read_text(encoding='utf-8-sig'))

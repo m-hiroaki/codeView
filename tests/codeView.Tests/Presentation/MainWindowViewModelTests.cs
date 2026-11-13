@@ -99,6 +99,42 @@ internal sealed class MainWindowViewModelTests
         finally { viewModel.Stop(); await viewModel.PendingWork; Directory.Delete(root, true); }
     });
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void BatchOpenPreservesFailureSummaryAfterSuccessfulFile(bool binaryFirst) => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-open-summary-").FullName;
+        using var operations = new AppOperations(new FileReader(new SourceAccess()), new AvaloniaEditDocumentAdapter(), new DirectoryReader(new SourceAccess()));
+        var view = new MainWindowViewModel(operations, new SettingsStore(new(Path.Combine(root, "portable.json"),
+            Path.Combine(root, "user.json"))), YieldTreeAsync);
+        try
+        {
+            var secondFolder = Directory.CreateDirectory(Path.Combine(root, "second")).FullName;
+            var binary = Path.Combine(root, "binary.dat");
+            var missing = Path.Combine(root, "missing.txt");
+            var valid = Path.Combine(root, "valid.txt");
+            await File.WriteAllBytesAsync(binary, [0, 1, 0, 2]);
+            await File.WriteAllTextAsync(valid, "valid body");
+            string[] paths = binaryFirst ? [binary, missing, root, secondFolder, valid] : [missing, binary, root, secondFolder, valid];
+            await view.InitializeAsync(paths);
+
+            Assert.That(view.Document!.Text, Is.EqualTo("valid body"));
+            Assert.That(view.WorkspacePath, Is.EqualTo(root));
+            Assert.That(view.Status, Does.Contain("開けなかった項目 2件")
+                .And.Contain(binaryFirst ? "バイナリのため表示できません" : "パスが見つかりません")
+                .And.Contain("後続のフォルダ1件"));
+
+            await view.OpenFilesAsync([valid], OpenOrigin.Menu);
+            Assert.That(view.Status, Is.EqualTo("読み取り専用"));
+        }
+        finally
+        {
+            view.Stop();
+            await view.PendingWork;
+            Directory.Delete(root, true);
+        }
+    });
+
     [TestCase(EncodingChoice.Utf8)]
     [TestCase(EncodingChoice.Cp932)]
     [TestCase(EncodingChoice.Utf16Le)]

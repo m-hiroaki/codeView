@@ -269,17 +269,32 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 {
                     var folderSeen = false;
                     var skippedFolders = 0;
+                    var failedPaths = 0;
+                    string? firstFailure = null;
                     foreach (var path in request!.Paths)
                     {
                         if (_stopping) break;
-                        if (await OpenPathAsync(path, !folderSeen))
+                        var (isFolder, failure) = await OpenPathAsync(path, !folderSeen);
+                        if (isFolder)
                         {
                             if (folderSeen) skippedFolders++;
                             folderSeen = true;
                         }
+                        if (failure is not null)
+                        {
+                            failedPaths++;
+                            firstFailure ??= failure;
+                        }
                     }
-                    if (!_stopping && skippedFolders > 0)
-                        SetStatus(Status + $" 後続のフォルダ{skippedFolders}件は開いていません。");
+                    if (!_stopping && (firstFailure is not null || skippedFolders > 0))
+                    {
+                        var notice = firstFailure ?? Status;
+                        if (firstFailure is not null && request.Paths.Count > 1)
+                            notice = $"開けなかった項目 {failedPaths:N0}件。 {firstFailure}";
+                        if (skippedFolders > 0)
+                            notice += $" 後続のフォルダ{skippedFolders}件は開いていません。";
+                        if (notice != Status) SetStatus(notice);
+                    }
                 }
                 finally { operations.Startup.CompleteOpen(request!.Id); }
             }
@@ -287,43 +302,43 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         finally { _pumping = false; }
     }
 
-    private async Task<bool> OpenPathAsync(string input, bool allowFolder)
+    private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(string input, bool allowFolder)
     {
         SourcePath path;
         try { path = SourcePath.Create(input, _baseDirectory); }
-        catch (ArgumentException) { SetStatus("パスを確認してください。"); return false; }
+        catch (ArgumentException) { return (false, "パスを確認してください。"); }
         OperationResult<SourceEntry> inspected;
         try { inspected = await operations.InspectPathAsync(path, _lifetime.Token); }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return false; }
-        if (_stopping || inspected.Status == OperationStatus.Cancelled) return false;
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return (false, null); }
+        if (_stopping || inspected.Status == OperationStatus.Cancelled) return (false, null);
         if (inspected.Status == OperationStatus.Failure)
-        { SetStatus(ErrorText(inspected.Error!.Code)); return false; }
+            return (false, ErrorText(inspected.Error!.Code));
         if (inspected.Value.Kind == SourceEntryKind.Directory)
         {
-            if (allowFolder) await OpenFolderAsync(path);
-            return true;
+            return (true, allowFolder ? await OpenFolderAsync(path) : null);
         }
-        await LoadAsync(input);
-        return false;
+        return (false, await LoadAsync(path));
     }
 
-    private async Task OpenFolderAsync(SourcePath path)
+    private async Task<string?> OpenFolderAsync(SourcePath path)
     {
         var settings = operations.Startup.Settings?.Snapshot;
-        if (settings is null || _stopping) return;
+        if (settings is null || _stopping) return null;
         SetStatus("フォルダを読み込み中… " + path.DisplayPath);
         var work = operations.OpenFolderAsync(path, settings);
         var workspace = operations.Workspace;
         FileTree.Clear();
         WorkspaceChanged();
         var result = await work;
-        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return;
+        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return null;
         await FileTree.BindAsync(workspace?.Tree);
-        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return;
+        if (_stopping || !ReferenceEquals(operations.Workspace, workspace)) return null;
         WorkspaceChanged();
-        if (result.Status == OperationStatus.Cancelled) return;
-        SetStatus(result.Status == OperationStatus.Success ? "フォルダを開きました。"
-            : "フォルダを読み込めません。 " + ErrorText(result.Error!.Code));
+        if (result.Status == OperationStatus.Cancelled) return null;
+        var failure = result.Status == OperationStatus.Failure
+            ? "フォルダを読み込めません。 " + ErrorText(result.Error!.Code) : null;
+        SetStatus(failure ?? "フォルダを開きました。");
+        return failure;
     }
 
     public async Task RefreshWorkspaceAsync()
@@ -410,22 +425,19 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             SetStatus("読込待ちが上限に達しました。");
     }
 
-    private async Task LoadAsync(string input)
+    private async Task<string?> LoadAsync(SourcePath path)
     {
-        if (_stopping) return;
-        SourcePath path;
-        try { path = SourcePath.Create(input, _baseDirectory); }
-        catch (ArgumentException) { SetStatus("パスを確認してください。"); return; }
+        if (_stopping) return null;
         var work = _tabManager.OpenAsync(path);
         var target = _tabManager.ActiveTab;
         SyncTabs();
         DisplayActiveTab();
         var result = await work;
-        if (_stopping) return;
+        if (_stopping) return null;
         SyncTabs();
         if (ReferenceEquals(_tabManager.ActiveTab, target)) DisplayActiveTab();
-        if (result.Status == OperationStatus.Failure && result.Error!.Code == ErrorCode.QueueFull)
-            SetStatus("読込待ちが上限に達しました。");
+        if (result.Status != OperationStatus.Failure) return null;
+        return result.Error!.Code == ErrorCode.QueueFull ? "読込待ちが上限に達しました。" : FileErrorText(result.Error.Code);
     }
 
     private void SyncTabs()
