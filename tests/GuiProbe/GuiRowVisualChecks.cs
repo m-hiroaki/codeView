@@ -415,27 +415,51 @@ internal sealed partial class GuiPerformanceProbe
                     return true;
                 };
             }
-            var fromRow = rows[0];
-            RequireRows(Raise(fromRow, new PointerPressedEventArgs(fromRow, pointer, owner, Root(fromRow), 0,
-                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None))
-                && pointer.Captured == fromRow, "Autoscroll press did not capture its pointer.");
-            var outside = viewport.TranslatePoint(new Point(1, viewport.Bounds.Height + 4), owner)
+            Point Outside(bool down) => viewport.TranslatePoint(new Point(1, down ? viewport.Bounds.Height + 4 : -4), owner)
                 ?? throw new InvalidOperationException("No viewport transform.");
-            RequireRows(Raise(fromRow, new PointerEventArgs(InputElement.PointerMovedEvent, fromRow, pointer, owner, outside, 0,
-                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None)),
-                "Autoscroll move was not handled.");
-            var timerDeadline = Stopwatch.StartNew();
-            while (firstVisible < 2 && pointer.Captured == fromRow && timerDeadline.Elapsed < TimeSpan.FromSeconds(2))
+            bool Drag(ContextualRowControl row, Point position) => Raise(row,
+                new PointerEventArgs(InputElement.PointerMovedEvent, row, pointer, owner, position, 0,
+                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None));
+            async Task WaitForScroll(int expected)
+            {
+                var watch = Stopwatch.StartNew();
+                while (firstVisible != expected && watch.Elapsed < TimeSpan.FromSeconds(2))
+                    await VisualFrame(owner, ct);
+                RequireRows(firstVisible == expected, $"Autoscroll did not reach viewport row {expected}.");
+            }
+
+            for (var direction = 1; direction >= -1; direction -= 2)
+            {
+                var down = direction > 0;
+                var fromRow = rows[down ? 0 : 3];
+                RequireRows(Raise(fromRow, new PointerPressedEventArgs(fromRow, pointer, owner, Root(fromRow), 0,
+                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None))
+                    && pointer.Captured == fromRow, "Autoscroll press did not capture its pointer.");
+                var outside = Outside(down);
+                RequireRows(Drag(fromRow, outside), "Autoscroll move was not handled.");
+                if (down)
+                {
+                    RequireRows(Drag(fromRow, Root(rows[1])) && source.Caret == projection.Rows[1].SourceOffset,
+                        "Re-entry did not extend the selection within the viewport.");
+                    await Task.Delay(TimeSpan.FromMilliseconds(120), ct);
+                    RequireRows(firstVisible == 0 && viewport.Offset.Y == 0 && pointer.Captured == fromRow,
+                        "Autoscroll did not stop on re-entry.");
+                    RequireRows(Drag(fromRow, outside), "Autoscroll did not restart after re-entry.");
+                }
+                await WaitForScroll(down ? 2 : 0);
+                var anchor = projection.Rows[down ? 0 : 3].SourceOffset;
+                var caret = projection.Rows[down ? 3 : 0].SourceOffset;
+                RequireRows((down ? viewport.Offset.Y > rowHeight : viewport.Offset.Y == 0)
+                    && source.Anchor == anchor && source.Caret == caret,
+                    "Autoscroll did not extend through the newly visible rows.");
+                using (var copy = source.BeginCopy())
+                    RequireRows(copy.ReadText(ct) == "abc\r\ndef\r\nghi\r\n", "Autoscroll selection changed the original copy.");
+                var offset = viewport.Offset;
+                Raise(fromRow, new PointerReleasedEventArgs(fromRow, pointer, owner, outside, 0,
+                    new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
                 await VisualFrame(owner, ct);
-            RequireRows(firstVisible == 2 && viewport.Offset.Y > rowHeight && source.Anchor == 0
-                && source.Caret == projection.Rows[3].SourceOffset, "Autoscroll did not extend through the newly visible rows.");
-            using (var copy = source.BeginCopy())
-                RequireRows(copy.ReadText(ct) == "abc\r\ndef\r\nghi\r\n", "Autoscroll selection changed the original copy.");
-            var offset = viewport.Offset;
-            Raise(fromRow, new PointerReleasedEventArgs(fromRow, pointer, owner, outside, 0,
-                new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
-            await VisualFrame(owner, ct);
-            RequireRows(pointer.Captured is null && viewport.Offset == offset, "Autoscroll continued after release.");
+                RequireRows(pointer.Captured is null && viewport.Offset == offset, "Autoscroll continued after release.");
+            }
         }
         finally
         {
