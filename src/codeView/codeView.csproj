@@ -20,4 +20,33 @@
         <PackageReference Include="TextMateSharp.Grammars" Version="2.0.3" />
         <InternalsVisibleTo Include="codeView.Tests" />
     </ItemGroup>
+    <Target Name="IncludeNativeNotices" AfterTargets="ComputeFilesToPublish"
+            Condition="'$(PublishAot)' == 'true'">
+        <ItemGroup>
+            <NativeNoticePackage Include="@(NativeCopyLocalItems)"
+                                 Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == 'SkiaSharp.NativeAssets.macOS'
+                                     Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'SkiaSharp.NativeAssets.Win32'
+                                     Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'HarfBuzzSharp.NativeAssets.macOS'
+                                     Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'HarfBuzzSharp.NativeAssets.Win32'
+                                     Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'Onigwrap'
+                                     Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'Avalonia.Angle.Windows.Natives'">
+                <!-- These packages store the selected native assets under runtimes/<rid>/native. -->
+                <PackageRoot>$([System.IO.Path]::GetFullPath('%(RootDir)%(Directory)../../..'))</PackageRoot>
+            </NativeNoticePackage>
+            <NativeNotice Include="@(NativeNoticePackage->'%(PackageRoot)/LICENSE.txt')"
+                          Condition="'%(NativeNoticePackage.NuGetPackageId)' != 'Onigwrap'
+                              And '%(NativeNoticePackage.NuGetPackageId)' != 'Avalonia.Angle.Windows.Natives'" />
+            <NativeNotice Include="@(NativeNoticePackage->'%(PackageRoot)/THIRD-PARTY-NOTICES.txt')"
+                          Condition="'%(NativeNoticePackage.NuGetPackageId)' != 'Onigwrap'
+                              And '%(NativeNoticePackage.NuGetPackageId)' != 'Avalonia.Angle.Windows.Natives'" />
+            <NativeNotice Include="@(NativeNoticePackage->'%(PackageRoot)/THIRD-PARTY-NOTICES.TXT')"
+                          Condition="'%(NativeNoticePackage.NuGetPackageId)' == 'Onigwrap'" />
+            <NativeNotice Include="@(NativeNoticePackage->'%(PackageRoot)/LICENSE')"
+                          Condition="'%(NativeNoticePackage.NuGetPackageId)' == 'Avalonia.Angle.Windows.Natives'" />
+            <ResolvedFileToPublish Include="@(NativeNotice->Distinct())">
+                <RelativePath>licenses/%(NativeNotice.NuGetPackageId)/%(NativeNotice.Filename)%(NativeNotice.Extension)</RelativePath>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            </ResolvedFileToPublish>
+        </ItemGroup>
+    </Target>
 </Project>

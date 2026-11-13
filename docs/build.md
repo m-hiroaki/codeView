@@ -84,7 +84,7 @@ Pythonによるスクリプト試験（ビルド自体にPythonは不要）：
 python3 -m unittest discover -s tools -p 'test_build_scripts.py' -v
 ```
 
-ライセンス同梱・署名/公証・両OS別PC・オフライン・性能・全機能の受入を含む最終配布ゲートは引き続き未完了。
+Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。管理ライブラリ・文法・ランタイムの通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
 
 ## テスト実行
 
