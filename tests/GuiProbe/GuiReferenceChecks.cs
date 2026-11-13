@@ -410,6 +410,27 @@ internal sealed partial class GuiPerformanceProbe
         require(_viewModel.FilePath == path && _editor.Document.Text == "tree body", "tree-enter-opens-source");
         require(_editor.TextArea.IsFocused, "tree-enter-focuses-editor");
 
+        _viewModel.CloseFile();
+        var query = _window.FindControl<TextBox>("SearchQuery")!;
+        var searchModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+        var movedFocus = false;
+        void OnStatusChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+        {
+            if (movedFocus || args.PropertyName != nameof(MainWindowViewModel.Status)
+                || !_viewModel.Status.StartsWith("読み込み中…", StringComparison.Ordinal)) return;
+            movedFocus = true;
+            RaiseSearchKey(tree, new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = searchModifier | KeyModifiers.Shift
+            });
+        }
+        _viewModel.PropertyChanged += OnStatusChanged;
+        try { await PressAsync(Key.Enter); }
+        finally { _viewModel.PropertyChanged -= OnStatusChanged; }
+        await Frame(ct);
+        require(movedFocus && query.IsFocused && _viewModel.FilePath == path && _editor.Document.Text == "tree body",
+            "tree-open-preserves-newer-search-focus");
+
         const int extraFiles = 300;
         for (var number = 0; number < extraFiles; number++)
             await File.WriteAllTextAsync(Path.Combine(branch.FullName, $"item-{number:D3}.txt"), "", ct);

@@ -615,8 +615,10 @@ internal sealed partial class MainWindow : Window
     private async void RefreshWorkspaceClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.RefreshWorkspaceAsync);
     private async Task ActivateTreeRowAsync(FileTreeRow row)
     {
+        var interaction = _viewModel.InteractionEpoch;
         await _viewModel.ActivateTreeRowAsync(row);
-        if (row.IsFile && _viewModel.HasDocument && _viewModel.FilePath == row.Node.Entry.Path.FullPath)
+        if (!_closing && _viewModel.InteractionEpoch == interaction && row.IsFile
+            && _viewModel.FileTree.IsCurrentRow(row) && _viewModel.HasDocument && _viewModel.FilePath == row.Node.Entry.Path.FullPath)
             this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
     }
 
@@ -627,9 +629,12 @@ internal sealed partial class MainWindow : Window
         {
             await RunAsync(async () =>
             {
+                var interaction = _viewModel.InteractionEpoch;
                 _viewModel.FileTree.SelectedRow = row;
                 await _viewModel.ActivateTreeRowAsync(row);
-                this.FindControl<ListBox>("FileTreeList")!.Focus();
+                if (!_closing && _viewModel.InteractionEpoch == interaction && _viewModel.IsTreeVisible
+                    && _viewModel.FileTree.IsCurrentRow(row))
+                    this.FindControl<ListBox>("FileTreeList")!.Focus();
             });
         }
     }
