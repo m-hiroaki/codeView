@@ -93,6 +93,20 @@ internal sealed class FileDropInputTests
         if (!accepted) Assert.That(result.Error!.Code, Is.EqualTo(ErrorCode.QueueFull));
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void PickerSelectionUsesTheSamePathValidation(bool includeInvalidItem)
+    {
+        var path = Path.Combine(Path.GetTempPath(), "日本語 #.cs");
+        using var file = StorageItem(new Uri(path));
+        using var remote = StorageItem(new Uri("content://provider/remote.cs"));
+        IReadOnlyList<IStorageItem> selected = includeInvalidItem ? [file, remote] : [file];
+        var result = FileDropInput.ReadPaths(selected, item => item);
+        Assert.That(result.Status, Is.EqualTo(includeInvalidItem ? OperationStatus.Failure : OperationStatus.Success));
+        if (includeInvalidItem) Assert.That(result.Error!.Code, Is.EqualTo(ErrorCode.InvalidPath));
+        else Assert.That(result.Value, Is.EqualTo(new[] { path }));
+    }
+
     internal static IStorageItem StorageItem(Uri path)
     {
         var item = DispatchProxy.Create<IStorageItem, StorageProxy>();

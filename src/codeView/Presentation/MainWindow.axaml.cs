@@ -12,6 +12,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using CodeView.Contracts;
 using CodeView.Files;
 using CodeView.Operations;
 
@@ -299,8 +300,7 @@ internal sealed partial class MainWindow : Window
         {
             Title = "ファイルを開く", AllowMultiple = true
         });
-        var paths = selected.Select(file => file.TryGetLocalPath()).OfType<string>().ToArray();
-        if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
+        await OpenPickerSelectionAsync(selected);
     }
 
     private void ConfigureResizablePanels(MainWindowViewModel viewModel)
@@ -525,8 +525,29 @@ internal sealed partial class MainWindow : Window
         {
             Title = "フォルダを開く", AllowMultiple = false
         });
-        var paths = selected.Select(folder => folder.TryGetLocalPath()).OfType<string>().ToArray();
-        if (paths.Length > 0) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
+        await OpenPickerSelectionAsync(selected);
+    }
+
+    private async Task OpenPickerSelectionAsync(IReadOnlyList<IStorageItem> selected)
+    {
+        IReadOnlyList<string>? paths = null;
+        try
+        {
+            if (_closing || selected.Count == 0) return;
+            var result = FileDropInput.ReadPaths(selected, item => item);
+            if (result.Status == OperationStatus.Success)
+                paths = result.Value;
+            else
+                _viewModel.SetStatus(result.Error!.Code == ErrorCode.QueueFull
+                    ? "選択した項目数またはパス文字数が上限を超えています。"
+                    : "ローカルのファイルまたはフォルダを選択してください。");
+        }
+        finally
+        {
+            foreach (var item in selected) item.Dispose();
+        }
+
+        if (paths is not null) await _viewModel.OpenFilesAsync(paths, OpenOrigin.Menu);
     }
 
     private async Task RunAsync(Func<Task> operation)

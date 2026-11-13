@@ -91,6 +91,8 @@ Operationsの`WorkspaceState`は要求パス、解決後パス、設定スナッ
 
 ツリーUIはPresentationのFileTreeViewModelで論理状態から展開中の行を投影し、VirtualizingStackPanelを使うListBoxへ接続する。ノード単位の遅延展開・要求集約・待機上限・キャッシュはOperationsのTreeSessionに置き、詳細は[03](03-files-tree.md#61-operations内の状態と寿命)に従う。ツリーからのファイルOpenは共通キューへOpenOrigin.Treeとして入力する。検索セッションの取消接続は検索実装時に追加し、SearchEpochを更新するだけで未実装の検索処理が停止するとは扱わない。
 
+ファイル・フォルダ選択ダイアログは、選択結果の件数とローカルパスを共通Openへ渡す前に検証する。非ローカル項目や上限超過が含まれる場合は全体を拒否し、ステータスで理由を示す。キャンセル時は現在の表示を維持する。選択したストレージ項目はパス取得後に解放する。
+
 ### 4.2 ドロップの入力境界
 
 PresentationのFileDropInputがAvaloniaのIDataTransfer/DataFormat.Fileからローカルのファイル/フォルダのパスを同期的に抽出する。Text/URL/URIリストをパスとして解釈しない。Itemsを先に検査し、0件・256件超過を拒否する。ファイル値は項目順に取得し、ローカルパスを得られない項目・NUL・空白だけのパス・文字総量256 Ki文字超過があれば全体を拒否する。ファイルの存在・通常ファイル・文字コードは共通Openのワーカーで検証する。UIで本文を開かず、シェル実行・コピー・移動・削除もしない。
