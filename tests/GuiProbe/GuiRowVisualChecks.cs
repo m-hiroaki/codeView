@@ -48,7 +48,7 @@ internal sealed partial class GuiPerformanceProbe
             using var contextual = new ContextualRowControl { FlowDirection = _editor.FlowDirection };
             DocumentDisplaySession? inputSource = null;
             DocumentRowProjection? inputProjection = null;
-            contextual.SourcePressed += (offset, extend) =>
+            contextual.SourceSelectionRequested += (offset, extend) =>
             {
                 if (inputSource is not { } session || inputProjection is not { } projection
                     || !projection.TryDisplayPosition(offset, out var displayOffset)
@@ -80,6 +80,7 @@ internal sealed partial class GuiPerformanceProbe
                 args.Handled = true; _inputInterrupted = true; Finish("physical-input-during-visual-comparison");
             }
             owner.AddHandler(InputElement.PointerPressedEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+            owner.AddHandler(InputElement.PointerReleasedEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             owner.AddHandler(InputElement.PointerWheelChangedEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             owner.AddHandler(InputElement.KeyDownEvent, Unexpected, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             owner.Show(_window);
@@ -210,31 +211,53 @@ internal sealed partial class GuiPerformanceProbe
         RowVisualCase test, CancellationToken ct)
     {
         using var pointer = new Pointer(100003, PointerType.Mouse, true);
-        bool Press(double x, KeyModifiers modifiers, PointerUpdateKind button = PointerUpdateKind.LeftButtonPressed)
+        Point Root(double x) => control.TranslatePoint(new Point(x, control.Bounds.Height / 2), owner)
+            ?? throw new InvalidOperationException("No contextual pointer transform.");
+        bool Raise(PointerEventArgs args)
         {
-            var point = control.TranslatePoint(new Point(x, control.Bounds.Height / 2), owner)
-                ?? throw new InvalidOperationException("No contextual pointer transform.");
-            var buttons = button == PointerUpdateKind.LeftButtonPressed ? RawInputModifiers.LeftMouseButton : RawInputModifiers.RightMouseButton;
-            var args = new PointerPressedEventArgs(control, pointer, owner, point, 0, new PointerPointProperties(buttons, button), modifiers);
             _scriptedRowPointer = args;
             try { control.RaiseEvent(args); }
             finally { _scriptedRowPointer = null; }
             return args.Handled;
         }
+        bool Press(double x, KeyModifiers modifiers, PointerUpdateKind button = PointerUpdateKind.LeftButtonPressed)
+        {
+            var buttons = button == PointerUpdateKind.LeftButtonPressed ? RawInputModifiers.LeftMouseButton : RawInputModifiers.RightMouseButton;
+            return Raise(new PointerPressedEventArgs(control, pointer, owner, Root(x), 0,
+                new PointerPointProperties(buttons, button), modifiers));
+        }
+        bool Move(double x) => Raise(new PointerEventArgs(InputElement.PointerMovedEvent, control, pointer, owner, Root(x), 0,
+            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None));
+        bool Release(double x) => Raise(new PointerReleasedEventArgs(control, pointer, owner, Root(x), 0,
+            new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
 
         var end = test.Start + test.Columns;
         var nearRight = control.DesiredSize.Width - 1;
         RequireRows(Press(nearRight, KeyModifiers.None) && source.Anchor == end && source.Caret == end,
             "Contextual click did not collapse selection at its original offset.");
+        RequireRows(Release(nearRight), "Contextual click did not release its pointer.");
         RequireRows(Press(1, KeyModifiers.Shift) && source.Anchor == end && source.Caret == test.Start,
             "Contextual shift-click did not extend the original selection.");
+        RequireRows(Release(1), "Contextual shift-click did not release its pointer.");
         using var copy = source.BeginCopy();
         RequireRows(copy.ReadText(ct) == test.Text.Substring(test.Start, test.Columns),
             "Contextual pointer selection changed the original copy range.");
         RequireRows(!Press(-1, KeyModifiers.None) && !Press(1, KeyModifiers.None, PointerUpdateKind.RightButtonPressed)
             && source.Anchor == end && source.Caret == test.Start, "Contextual pointer accepted an outside or right click.");
+
+        RequireRows(Press(1, KeyModifiers.None) && pointer.Captured == control && Move(nearRight)
+            && source.Anchor == test.Start && source.Caret == end, "Contextual drag did not extend forward.");
+        RequireRows(Move(-1) && source.Caret == end && Release(nearRight) && pointer.Captured is null
+            && !Move(1) && source.Caret == end, "Contextual drag did not preserve selection after release.");
+        RequireRows(Press(nearRight, KeyModifiers.None) && Move(1) && source.Anchor == end && source.Caret == test.Start,
+            "Contextual drag did not extend backward.");
+        pointer.Capture(null);
+        RequireRows(!Move(nearRight) && source.Caret == test.Start, "Contextual drag survived capture loss.");
+
+        RequireRows(Press(nearRight, KeyModifiers.None) && Move(1), "Contextual drag did not restart.");
         source.SetViewport(1, test.Start + 1);
-        RequireRows(!Press(1, KeyModifiers.None) && source.Anchor == end && source.Caret == test.Start,
+        RequireRows(Move(nearRight) && pointer.Captured is null && !Press(1, KeyModifiers.None)
+            && source.Anchor == end && source.Caret == test.Start,
             "Contextual pointer accepted an old projection.");
     }
 

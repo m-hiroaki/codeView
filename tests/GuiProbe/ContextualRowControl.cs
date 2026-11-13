@@ -15,11 +15,12 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private Rect[] _visible = [];
     private Rect[] _selection = [];
     private Point? _caret;
+    private IPointer? _dragPointer;
     private double _origin;
 
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
     internal Point? CaretPosition => _caret;
-    internal event Func<long, bool, bool>? SourcePressed;
+    internal event Func<long, bool, bool>? SourceSelectionRequested;
 
     public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground)
     {
@@ -106,15 +107,62 @@ internal sealed class ContextualRowControl : Control, IDisposable
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (e.Handled || e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+        if (e.Handled || _dragPointer is not null
+            || e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
             return;
         if (TryHitSource(e.GetPosition(this), out var offset)
-            && SourcePressed?.Invoke(offset, e.KeyModifiers.HasFlag(KeyModifiers.Shift)) == true)
+            && SourceSelectionRequested?.Invoke(offset, e.KeyModifiers.HasFlag(KeyModifiers.Shift)) == true)
+        {
+            e.Pointer.Capture(this);
+            if (e.Pointer.Captured == this) _dragPointer = e.Pointer;
             e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (e.Handled || !ReferenceEquals(_dragPointer, e.Pointer)) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            EndDrag();
+            return;
+        }
+        ExtendDrag(e);
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (!ReferenceEquals(_dragPointer, e.Pointer) || e.InitialPressMouseButton != MouseButton.Left) return;
+        try { if (!e.Handled) ExtendDrag(e); }
+        finally { EndDrag(); }
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        if (ReferenceEquals(_dragPointer, e.Pointer)) _dragPointer = null;
+        base.OnPointerCaptureLost(e);
+    }
+
+    private void ExtendDrag(PointerEventArgs e)
+    {
+        if (TryHitSource(e.GetPosition(this), out var offset)
+            && SourceSelectionRequested?.Invoke(offset, true) != true)
+            EndDrag();
+        e.Handled = true;
+    }
+
+    private void EndDrag()
+    {
+        var pointer = _dragPointer;
+        _dragPointer = null;
+        if (pointer?.Captured == this) pointer.Capture(null);
     }
 
     public void Dispose()
     {
+        EndDrag();
         _layout?.Dispose();
         _layout = null;
         _visible = [];
