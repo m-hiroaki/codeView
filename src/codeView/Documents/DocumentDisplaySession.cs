@@ -105,6 +105,16 @@ internal sealed class DocumentDisplaySession : IDisposable
         return true;
     }
 
+    internal string? ReadRowContext(DocumentRowProjection projection, int rowIndex)
+    {
+        VerifyAccess();
+        ArgumentNullException.ThrowIfNull(projection);
+        ArgumentOutOfRangeException.ThrowIfNegative(rowIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(rowIndex, projection.Rows.Length);
+        return ReferenceEquals(projection, _rowProjection) && projection.GetContext(rowIndex) is { } context
+            ? _lease!.ReadRange(context.SourceOffset, context.Length) : null;
+    }
+
     public bool TryGetRowSelection(DocumentRowProjection projection, out DocumentRowSelection? selection)
     {
         VerifyAccess();

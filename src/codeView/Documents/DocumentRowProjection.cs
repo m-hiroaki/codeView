@@ -5,13 +5,17 @@ namespace CodeView.Documents;
 /// <summary>Experimental immutable, bounded rows; synthetic LF separators are not source characters.</summary>
 internal sealed class DocumentRowProjection
 {
+    internal const int MaximumContextChars = 64 * 1024;
     private readonly DocumentProjectionRow[] _rows;
+    private readonly DocumentRowContext?[]? _contexts;
     public string Text { get; }
     public int EffectiveColumns { get; }
     public ReadOnlySpan<DocumentProjectionRow> Rows => _rows;
 
-    private DocumentRowProjection(string text, DocumentProjectionRow[] rows, int columns) =>
-        (Text, _rows, EffectiveColumns) = (text, rows, columns);
+    private DocumentRowProjection(string text, DocumentProjectionRow[] rows, int columns, DocumentRowContext?[]? contexts) =>
+        (Text, _rows, EffectiveColumns, _contexts) = (text, rows, columns, contexts);
+
+    internal DocumentRowContext? GetContext(int rowIndex) => _contexts?[rowIndex];
 
     internal static DocumentRowProjection Create(TextDocument source, DocumentReadLease lease, long firstLine,
         long horizontalOffset, int visibleLines, int columns, int maxChars, DocumentGraphemeIndex? graphemes = null)
@@ -32,6 +36,8 @@ internal sealed class DocumentRowProjection
         var effective = Math.Min(columns, (maxChars - count + 1) / count);
         if (effective < 2) throw new ArgumentException("表示行数と文字予算ではスカラーを表示できません。", nameof(maxChars));
         var rows = new DocumentProjectionRow[count];
+        var contexts = graphemes is null ? null : new DocumentRowContext?[count];
+        var contextRemaining = MaximumContextChars;
         var total = 0;
         for (var index = 0; index < count; index++)
         {
@@ -60,6 +66,13 @@ internal sealed class DocumentRowProjection
             }
             rows[index] = new(line.LineNumber, start, end - start, start - line.Offset + 1,
                 total, start > line.Offset, end < line.EndOffset, horizontalOffset > line.Length, unavailable);
+            // A whole logical line preserves paragraph direction and shaping context.
+            // Leave oversized lines explicitly unavailable for contextual layout.
+            if (contexts is not null && !unavailable && horizontalOffset <= line.Length && line.Length <= contextRemaining)
+            {
+                contexts[index] = new(line.Offset, line.Length, start - line.Offset, end - start);
+                contextRemaining -= line.Length;
+            }
             total = checked(total + end - start + (index + 1 < count ? 1 : 0));
         }
         var text = string.Create(total, (Rows: rows, Lease: lease), static (target, state) =>
@@ -71,7 +84,7 @@ internal sealed class DocumentRowProjection
                 if (i + 1 < state.Rows.Length) target[row.DisplayOffset + row.Length] = '\n';
             }
         });
-        return new(text, rows, effective);
+        return new(text, rows, effective, contexts);
     }
 
     public bool TrySourcePosition(int displayOffset, out long sourceOffset)
@@ -155,6 +168,7 @@ internal sealed class DocumentRowProjection
 
 internal readonly record struct DocumentProjectionRow(long SourceLine, long SourceOffset, int Length, long SourceColumn,
     int DisplayOffset, bool LeftClipped, bool RightClipped, bool IsOutsideHorizontalRange, bool IsGraphemeRangeUnavailable = false);
+internal readonly record struct DocumentRowContext(long SourceOffset, int Length, int VisibleOffset, int VisibleLength);
 internal readonly record struct DocumentProjectionSelection(int Offset, int Length);
 internal sealed class DocumentRowSelection(DocumentProjectionSelection[] spans, int? caretOffset, bool reversed)
 {

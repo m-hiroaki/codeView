@@ -314,6 +314,45 @@ public sealed class DocumentRowProjectionTests
         Task.Run(() => Assert.Throws<InvalidOperationException>(() => view.CreateRowProjection(1, 2))).GetAwaiter().GetResult();
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ContextKeepsOriginalLineSeparateFromVisibleTextAndRejectsOldProjection(bool collect)
+    {
+        const string line = "prefix سلام e\u0301 suffix";
+        using var handle = Create(line + "\r\nnext", collect);
+        using var view = new DocumentDisplaySession(handle);
+        view.SetViewport(1, 7);
+        var projection = view.CreateRowProjection(1, 4);
+        Assert.That(projection.Text, Is.EqualTo("سلام"));
+        Assert.That(view.ReadRowContext(projection, 0), Is.EqualTo(collect ? line : null));
+        if (collect)
+        {
+            Assert.That(projection.GetContext(0), Is.EqualTo(new DocumentRowContext(0, line.Length, 7, 4)));
+            Assert.That(projection.TryDisplayPosition(0, out _), Is.False);
+            Assert.That(projection.TrySourcePosition(0, out var source), Is.True);
+            Assert.That(source, Is.EqualTo(7));
+        }
+        view.SetViewport(1, 8);
+        Assert.That(view.ReadRowContext(projection, 0), Is.Null);
+        Assert.Throws<ArgumentOutOfRangeException>(() => view.ReadRowContext(projection, 1));
+    }
+
+    [Test]
+    public void ContextBudgetKeepsExactFitAndSkipsOversizedLines()
+    {
+        var limit = DocumentRowProjection.MaximumContextChars;
+        var oversized = new string('a', limit + 1);
+        var exact = new string('b', limit);
+        using var handle = Create(oversized + "\r\n" + exact + "\r\nend", collectGraphemeIndex: true);
+        using var view = new DocumentDisplaySession(handle);
+        var projection = view.CreateRowProjection(3, 3);
+        Assert.That(projection.Text, Is.EqualTo("aaa\nbbb\nend"));
+        Assert.That(view.ReadRowContext(projection, 0), Is.Null);
+        Assert.That(view.ReadRowContext(projection, 1), Is.EqualTo(exact));
+        Assert.That(view.ReadRowContext(projection, 2), Is.Null);
+        Assert.That(projection.GetContext(1)?.SourceOffset, Is.EqualTo(oversized.Length + 2));
+    }
+
     private static DocumentHandle Create(string text, bool collectGraphemeIndex = false)
     {
         using var builder = new AvaloniaEditDocumentAdapter(collectGraphemeIndex: collectGraphemeIndex).CreateBuilder();
