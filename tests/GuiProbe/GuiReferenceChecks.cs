@@ -863,13 +863,31 @@ internal sealed partial class GuiPerformanceProbe
         var caller = Path.Combine(workspace, "caller.cs");
         var declaration = Path.Combine(workspace, "method.cs");
         var incomplete = Path.Combine(workspace, "incomplete.cs");
-        const string call = "class Caller { void Call() { Compute(); } }";
+        const string call = """
+            class Caller {
+                void Call(Worker worker, ClassTarget c, StructTarget s, InterfaceTarget i,
+                    EnumTarget e, RecordTarget r, DelegateTarget d) {
+                    worker.Compute();
+                    var values = (worker.PropertyTarget, worker.FieldTarget);
+                    MissingTarget();
+                }
+            }
+            """;
         const string method = """
             class Worker {
                 // int Compute() => 0;
                 string description = "int Compute() => 0;";
                 public int Compute() => 42;
+                public int PropertyTarget { get; init; }
+                public int FirstField = 1, FieldTarget = 2;
             }
+            // class ClassTarget {}
+            class ClassTarget {}
+            struct StructTarget {}
+            interface InterfaceTarget {}
+            enum EnumTarget { A }
+            record RecordTarget(int Value);
+            delegate void DelegateTarget();
             """;
         await File.WriteAllTextAsync(caller, call, ct);
         await File.WriteAllTextAsync(declaration, method, ct);
@@ -906,6 +924,32 @@ internal sealed partial class GuiPerformanceProbe
         require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate)
             && panel.Rows.Count(row => row.FullPath == declaration) == 3
             && panel.Rows.Count(row => row.FullPath == caller) == 1, "method-reference-includes-comment-and-string");
+
+        (string Name, string Kind)[] declarations =
+        [
+            ("ClassTarget", "型"), ("StructTarget", "型"), ("InterfaceTarget", "型"), ("EnumTarget", "型"),
+            ("RecordTarget", "型"), ("DelegateTarget", "デリゲート"), ("PropertyTarget", "プロパティ"), ("FieldTarget", "フィールド")
+        ];
+        foreach (var (name, kind) in declarations)
+        {
+            await _viewModel.OpenFilesAsync([caller], OpenOrigin.Menu);
+            await Frame(ct);
+            _editor.Select(call.IndexOf(name, StringComparison.Ordinal) + 1, 0);
+            await PressAsync(KeyModifiers.None);
+            var offset = method.LastIndexOf(name, StringComparison.Ordinal);
+            require(panel.Rows.Count == 1 && panel.CanActivate(panel.Rows[0]) && panel.Rows[0].After.Contains(kind)
+                && _viewModel.FilePath == declaration && _editor.SelectionStart == offset
+                && _editor.SelectedText == name && _editor.TextArea.IsFocused, $"basic-definition-{name}");
+        }
+
+        await _viewModel.OpenFilesAsync([caller], OpenOrigin.Menu);
+        await Frame(ct);
+        var missing = call.IndexOf("MissingTarget", StringComparison.Ordinal) + 1;
+        _editor.Select(missing, 0);
+        await PressAsync(KeyModifiers.None);
+        require(panel.Rows.Count == 0 && panel.Summary.Contains("定義が見つかりません")
+            && _viewModel.FilePath == caller && _editor.SelectionStart == missing && _editor.SelectionLength == 0,
+            "basic-definition-missing-keeps-source");
     }
 
     private async Task CheckOriginalCopyAsync(string root, Dictionary<string, string> inputs,

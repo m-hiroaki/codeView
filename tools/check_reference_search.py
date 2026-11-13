@@ -58,6 +58,9 @@ CHECKS = [
     'workspace-large-result-reuses-tab-and-selects-original-tail', 'workspace-large-results-clear-keeps-document',
     'method-definition-partial-search-does-not-auto-jump', 'method-definition-excludes-comment-and-string',
     'method-reference-includes-comment-and-string',
+    'basic-definition-ClassTarget', 'basic-definition-StructTarget', 'basic-definition-InterfaceTarget',
+    'basic-definition-EnumTarget', 'basic-definition-RecordTarget', 'basic-definition-DelegateTarget',
+    'basic-definition-PropertyTarget', 'basic-definition-FieldTarget', 'basic-definition-missing-keeps-source',
     'original-copy-keeps-mixed-newlines-and-unicode', 'original-copy-empty-final-line-keeps-clipboard',
     'all-input-sha256-unchanged',
 ]
