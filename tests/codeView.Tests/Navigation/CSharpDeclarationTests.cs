@@ -20,6 +20,7 @@ internal sealed class CSharpDeclarationTests
     [TestCase("public delegate void N();")]
     [TestCase("[A] public delegate System.Collections.Generic.List<T[]> N<T>(T value) where T : class;")]
     [TestCase("class C { public delegate ref int N(in int value); }")]
+    [TestCase("interface where {} delegate T N<T>(T value) where T : where;")]
     public void FindsDelegates(string source) => AssertMatches(source, DeclarationKind.Delegate);
 
     [TestCase("class C { void N() {} }")]
@@ -30,6 +31,10 @@ internal sealed class CSharpDeclarationTests
     [TestCase("struct C { public ref readonly global::System.Int32 N() => ref Value; }")]
     [TestCase("class async {} class C { public async N() => new async(); }")]
     [TestCase("class C { public async Task<int> N() => await Task.FromResult(1); }")]
+    [TestCase("interface where {} class C { T N<T>(T value) where T : where => value; }")]
+    [TestCase("interface where {} interface I<T> {} class C { T N<T,U>(T value) where T : I<where> where U : new() { return value; } }")]
+    [TestCase("interface where {} interface C { T N<T>(T value) where T : where; }")]
+    [TestCase("using where = System; class C { T N<T>(T value) where T : where::IDisposable => value; }")]
     public void FindsMethods(string source) => AssertMatches(source, DeclarationKind.Method);
 
     [TestCase("class C { int N { get; set; } }")]
@@ -84,6 +89,7 @@ internal sealed class CSharpDeclarationTests
     [TestCase("class C { int N = ; }")]
     [TestCase("class C { int N, ; }")]
     [TestCase("class C { int N => ; }")]
+    [TestCase("interface where {} class C { T N<T>(T value) where T : where => ; }")]
     public void ReportsIncompleteContext(string source) =>
         Assert.That(Scan(source).Declarations.Error, Is.EqualTo(DeclarationScanError.Incomplete));
 

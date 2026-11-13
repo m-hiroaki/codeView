@@ -284,14 +284,16 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
 
         private int EndMethod(int i)
         {
-            while (At(i) == "where" && IsName(i + 1) && At(i + 2) == ":")
+            while (StartsConstraintClause(i))
             {
                 i += 3;
-                while (At(i) is not (null or "where" or "="))
+                while (At(i) is not (null or "=") && !StartsConstraintClause(i))
                     i = At(i) is "(" or "[" ? SkipGroup(i) : i + 1;
             }
             return i;
         }
+
+        private bool StartsConstraintClause(int i) => At(i) == "where" && IsName(i + 1) && At(i + 2) == ":";
 
         private bool ReadType(ref int i)
         {

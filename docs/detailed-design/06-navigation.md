@@ -90,6 +90,8 @@ Navigationの`CSharpLexer`は任意分割のUTF-16を受け、識別子/キー�
 
 メンバーの型名には `async`、`partial`、`required`、`file` も使える。修飾子として読み進めてメンバーを認識できなかった場合は、その語を型名の先頭として読み直す。戻る範囲は既存の宣言ヘッダー内に限る。[C#の文脈キーワード](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/contextual-keywords)
 
+メソッドとデリゲートのジェネリック制約では、`where`・型パラメーター名・コロンの並びで次の制約句を判定する。制約に使う型名や別名の `where` は、同じ制約句の一部として扱う。[C#のジェネリック型制約](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/where-generic-type-constraint)
+
 通常画面への接続は5.1節に記載する。固定試験は正常系、呼出し・ローカル変数の除外、同名、原文範囲、上限、実ファイルの確定・無効化を含む47件。macOSの通常テストは.NET 938件とPython 112件が成功した。
 
 ## 5. 完了と候補選択
