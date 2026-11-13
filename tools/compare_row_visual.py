@@ -170,6 +170,12 @@ def collect(app, output, rounds, commit, expected_os):
             comparison = row['report']['RowVisualComparison']
             mismatches = [c['Name'] for c in comparison['Cases'] if not c['ContextAccepted']]
             print(f"visual-{number}: acquired; accepted={comparison['Accepted']}; contextual differences={mismatches}", flush=True)
+            for case in comparison['Cases']:
+                if not case['ContextAccepted'] and case['ContextPoints']:
+                    first = next(p for p in case['ContextPoints'] if abs(p['RelativeXDifference']) > .1)
+                    print(f"  {case['Name']}: first difference at UTF-16 {first['SourceOffset']}: "
+                          f"{first['RelativeXDifference']:+.3f} DIP; max {case['ContextMaximumRelativeXDifference']:.3f} DIP",
+                          flush=True)
         record['acquired'] = True
         record['accepted'] = all(r['report']['RowVisualComparison']['Accepted'] for r in record['runs'])
         record['contextAccepted'] = all(r['report']['RowVisualComparison']['ContextAccepted'] for r in record['runs'])
