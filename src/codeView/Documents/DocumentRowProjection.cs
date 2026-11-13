@@ -57,8 +57,16 @@ internal sealed class DocumentRowProjection
                 {
                     start = checked((int)before);
                     var limit = Math.Min(line.EndOffset, (long)start + effective);
-                    if (graphemes.TryGetBounds(lease, limit, out var boundary, out _))
+                    if (graphemes.TryGetBounds(lease, limit, out var boundary, out var following))
+                    {
                         end = checked((int)boundary);
+                        // Keep the full first grapheme if the projection still has room
+                        // after reserving each later row's usual width and separator.
+                        var remainingRows = count - index - 1;
+                        var rowBudget = maxChars - total - remainingRows * (effective + 1);
+                        if (end == start && following - start <= rowBudget)
+                            end = checked((int)following);
+                    }
                     else end = start;
                     unavailable = end == start;
                 }

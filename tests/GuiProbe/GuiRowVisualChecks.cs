@@ -104,6 +104,12 @@ internal sealed partial class GuiPerformanceProbe
                 indexedSource.SetViewport(1, c.Start);
                 var indexedRows = indexedSource.CreateRowProjection(1, c.Columns);
                 var contextRange = indexedRows.GetContext(0);
+                if (c.Name is "zwj-left" or "regional-left")
+                {
+                    var expected = c.Name == "zwj-left" ? "👩‍💻" : "🇯🇵";
+                    RequireRows(indexedRows.Text == expected && contextRange is { VisibleOffset: 1 } fit
+                        && fit.VisibleLength == expected.Length, "Contextual row lost a wide grapheme with spare budget.");
+                }
                 if (contextRange is { } range && indexedSource.ReadRowContext(indexedRows, 0) is { } contextText)
                 {
                     contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground);

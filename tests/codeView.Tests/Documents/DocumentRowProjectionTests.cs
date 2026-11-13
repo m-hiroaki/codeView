@@ -115,19 +115,37 @@ public sealed class DocumentRowProjectionTests
         Assert.That(copy.ReadText(default), Is.EqualTo(text));
     }
 
-    [TestCase(0, 0)]
-    [TestCase(DocumentGraphemeIndex.WindowChars, 1)]
-    public void UnavailableGraphemeRangeDoesNotProduceMappablePartialText(int extraMarks, int horizontal)
+    [TestCase(0, 0, 2, 6)]
+    [TestCase(DocumentGraphemeIndex.WindowChars, 1, 1, 4)]
+    public void UnavailableGraphemeRangeDoesNotProduceMappablePartialText(int extraMarks, int horizontal, int rows, int budget)
     {
-        var text = "e\u0301\u0301" + new string('\u0301', extraMarks);
+        var text = "e\u0301\u0301\u0301" + new string('\u0301', extraMarks) + "\nx";
         using var handle = Create(text, collectGraphemeIndex: true);
         using var view = new DocumentDisplaySession(handle);
         view.SetViewport(1, horizontal);
-        var projection = view.CreateRowProjection(1, 2);
-        Assert.That(projection.Text, Is.Empty);
+        var projection = view.CreateRowProjection(rows, 2, budget);
+        Assert.That(projection.Rows[0].Length, Is.Zero);
         Assert.That(projection.Rows[0].IsGraphemeRangeUnavailable, Is.True);
         Assert.That(projection.TrySourcePosition(0, out _), Is.False);
         Assert.That(projection.TryDisplayPosition(projection.Rows[0].SourceOffset, out _), Is.False);
+    }
+
+    [TestCase("👩‍💻")]
+    [TestCase("🇯🇵")]
+    public void WideFirstGraphemeCanUseSpareBudgetWithoutDisplacingLaterRows(string cluster)
+    {
+        using var handle = Create($"A{cluster}Z\r\n123456", collectGraphemeIndex: true);
+        using var view = new DocumentDisplaySession(handle);
+        view.SetViewport(1, 2);
+        var projection = view.CreateRowProjection(2, 3, cluster.Length + 4);
+        Assert.That(projection.Text, Is.EqualTo(cluster + "\n345"));
+        Assert.That(projection.Rows[0].SourceOffset, Is.EqualTo(1));
+        Assert.That(projection.GetContext(0)?.VisibleLength, Is.EqualTo(cluster.Length));
+        Assert.That(projection.TrySourcePosition(cluster.Length, out var offset), Is.True);
+        Assert.That(offset, Is.EqualTo(cluster.Length + 1));
+        var tooSmall = view.CreateRowProjection(2, 3, cluster.Length + 3);
+        Assert.That(tooSmall.Text, Is.EqualTo("\n345"));
+        Assert.That(tooSmall.Rows[0].IsGraphemeRangeUnavailable, Is.True);
     }
 
     [Test]
