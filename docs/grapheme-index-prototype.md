@@ -1,5 +1,7 @@
 # 文字素境界索引の独立試作
 
+比較画面の2行検証では、ドラッグ開始行がポインターを捕捉し、行をまたぐと移動先の配置へ座標を変換する。上下いずれの方向でも同じ原文選択を使い、コピーに元のCRLFが含まれる。画面外への自動スクロールは後続で扱う。
+
 固定12ケースで、可視部分の全文字素境界について、先頭境界を基準にした横位置を全文AvaloniaEditの位置と比較した。macOSとWindowsの各3プロセスで11ケースは差0.1 DIP以内だった。タブ・日本語・絵文字・ヘブライ文字・アラビア文字を同時に含む `unicode-full-control` は、両OSの全回で差が残った。画像の画素一致と物理入力はこの測定の対象外。[比較結果](https://github.com/m-hiroaki/codeView/actions/runs/43439885493)
 
 再比較では、全文表示と同じタブ幅と段落終端をAvaloniaに渡した。途中の測定で残っていた差は、右から左の文字で終わる行の末尾（UTF-16位置28）に限られた。段落終端を揃えた後は、両OSの各3プロセスで固定12ケースすべての位置差が0.1 DIP以内になった。[再比較結果](https://github.com/m-hiroaki/codeView/actions/runs/43441227930) [AvaloniaEditの行末処理](https://github.com/AvaloniaUI/AvaloniaEdit/blob/86fdebec4cff7affb0e14c7885df71d28edce777/src/AvaloniaEdit/Rendering/VisualLineTextSource.cs)
