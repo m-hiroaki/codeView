@@ -74,7 +74,9 @@ jobs:
             'upstream/MicroCom.txt',
             'upstream/Onigwrap.txt',
             'upstream/SimpleJSON.txt',
+            'upstream/Swift-grammar.txt',
             'upstream/TextMateSharp.txt',
+            'upstream/Tinymist.txt',
             'upstream/README.md',
             'Avalonia.Angle.Windows.Natives/LICENSE',
             'HarfBuzzSharp.NativeAssets.Win32/LICENSE.txt',
@@ -86,6 +88,11 @@ jobs:
           foreach ($notice in $notices) {
             $file = Get-Item (Join-Path $payload $notice) -ErrorAction Stop
             if ($file.Length -eq 0) { throw "Empty notice $notice" }
+          }
+          foreach ($name in @('Swift-grammar.txt', 'Tinymist.txt')) {
+            $source = Get-FileHash (Join-Path 'build/licenses' $name)
+            $published = Get-FileHash (Join-Path "$payload/upstream" $name)
+            if ($source.Hash -ne $published.Hash) { throw "Notice content differs: $name" }
           }
           ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile artifacts/publish-validation/起動確認.cs -Output artifacts/publish-validation/launch.json
       - name: Verify checked-in dependency locks unchanged
