@@ -8,6 +8,25 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:OS -ne 'Windows_NT') {
     throw 'Run only in the disposable Windows Actions desktop.'
 }
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class PickerMouse {
+    [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+    [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint x, uint y, uint data, UIntPtr extraInfo);
+}
+'@
+function Click-Control($Control) {
+    $bounds = $Control.Current.BoundingRectangle
+    if ($bounds.IsEmpty -or $bounds.Width -le 0 -or $bounds.Height -le 0) {
+        throw "No bounds for $($Control.Current.Name)"
+    }
+    if (![PickerMouse]::SetCursorPos([int]($bounds.Left + $bounds.Width / 2), [int]($bounds.Top + $bounds.Height / 2))) {
+        throw "Could not move mouse to $($Control.Current.Name)"
+    }
+    [PickerMouse]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
+    [PickerMouse]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+}
 
 function Wait-For([string]$Description, [scriptblock]$Read) {
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
@@ -32,18 +51,21 @@ function Find-ById($Root, [string]$Id) {
     $Root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
 }
 function Invoke-Control($Control) {
-    $Control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+    $pattern = $null
+    if ($Control.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) {
+        $pattern.Invoke()
+    } else {
+        Click-Control $Control
+    }
 }
 function Open-Picker([string]$Title) {
     $menu = Wait-For 'File menu' { Find-Named $window 'ファイル' }
-    $pattern = $null
-    if ($menu.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) {
-        $pattern.Expand()
-    } else {
-        Invoke-Control $menu
+    Click-Control $menu
+    $item = Wait-For $Title {
+        $item = Find-Named $window ($Title + '…')
+        if ($item -and !$item.Current.BoundingRectangle.IsEmpty) { $item }
     }
-    $item = Wait-For $Title { Find-Named $window ($Title + '…') }
-    Invoke-Control $item
+    Click-Control $item
     Wait-For "$Title native dialog" {
         $dialog = Find-Named ([System.Windows.Automation.AutomationElement]::RootElement) $Title
         if ($dialog -and $dialog.Current.ProcessId -eq $process.Id -and $dialog.Current.ClassName -eq '#32770') { $dialog }
