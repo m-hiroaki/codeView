@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:OS -ne 'Windows_NT') {
     throw 'Run only in the disposable Windows Actions desktop.'
 }
-Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms
 Add-Type @'
 using System;
 using System.Runtime.InteropServices;
@@ -73,18 +73,9 @@ function Open-Picker([string]$Title) {
 }
 function Set-PickerPath($Dialog, [string]$Path) {
     $edit = Wait-For 'native filename edit' { Find-ById $Dialog '1148' }
-    $pattern = $null
-    if (!$edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$pattern)) {
-        $condition = [System.Windows.Automation.PropertyCondition]::new(
-            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
-            [System.Windows.Automation.ControlType]::Edit)
-        $edit = $edit.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
-        if ($edit) {
-            $null = $edit.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$pattern)
-        }
-    }
-    if (!$pattern) { throw "The native filename control has no editable value for $($Dialog.Current.Name)" }
-    $pattern.SetValue($Path)
+    Click-Control $edit
+    [System.Windows.Forms.Clipboard]::SetText($Path)
+    [System.Windows.Forms.SendKeys]::SendWait('^a^v')
     Invoke-Control (Wait-For 'native confirmation button' { Find-ById $Dialog '1' })
 }
 function Get-Hashes($Files) {
@@ -139,6 +130,9 @@ try {
         $name = Split-Path $file -Leaf
         $null = Wait-For "tree item $name" { Find-Named $tree $name }
     }
+    foreach ($file in $files) {
+        if (!(Find-Named $tabs (Split-Path $file -Leaf))) { throw "Tab lost after opening a folder: $file" }
+    }
     $report.checks += 'native-folder-picker-loads-workspace-and-tree'
 
     if (!$process.CloseMainWindow() -or !$process.WaitForExit(15000) -or $process.ExitCode -ne 0) {
@@ -149,6 +143,8 @@ try {
     $report.passed = $true
 } catch {
     $report.error = $_.ToString()
+    $report.script_stack = $_.ScriptStackTrace
+    Write-Host ($report | ConvertTo-Json -Depth 5)
     throw
 } finally {
     if ($process) {
