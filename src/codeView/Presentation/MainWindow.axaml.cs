@@ -447,8 +447,15 @@ internal sealed partial class MainWindow : Window
     private void HideSearchClicked(object? sender, RoutedEventArgs args) => Run(() => _viewModel.SearchPanel.IsVisible = false);
     private async void SearchResultDoubleTapped(object? sender, TappedEventArgs args)
     {
-        if (args.Source is Avalonia.StyledElement { DataContext: SearchResultRow row })
+        for (var current = args.Source as Visual; current is not null && !ReferenceEquals(current, sender);
+            current = current.GetVisualParent())
+        {
+            if (current is not ListBoxItem { Content: SearchResultRow row }) continue;
+            if (!_viewModel.SearchPanel.CanActivate(row)) return;
+            args.Handled = true;
             await RunAsync(() => _viewModel.ActivateSearchResultAsync(row));
+            return;
+        }
     }
     private async void SearchResultKeyDown(object? sender, KeyEventArgs args)
     {

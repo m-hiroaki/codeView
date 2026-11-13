@@ -337,26 +337,15 @@ internal sealed partial class GuiPerformanceProbe
         await PressAsync(Key.Left);
         require(rows.Count == 2 && !folder.Node.IsExpanded, "tree-left-collapses-folder");
 
-        async Task<TappedEventArgs> DoubleTapAsync(Control source)
-        {
-            using var pointer = new Pointer(1, PointerType.Mouse, true);
-            var args = new TappedEventArgs(InputElement.DoubleTappedEvent,
-                new PointerEventArgs(null, source, pointer, _window, default, 0, default!, KeyModifiers.None));
-            source.RaiseEvent(args);
-            await _viewModel.PendingWork.WaitAsync(ct);
-            await Frame(ct);
-            return args;
-        }
-
         var empty = rows[1];
         var container = (ListBoxItem)tree.ContainerFromItem(empty)!;
         var disclosure = container.GetVisualDescendants().OfType<Button>().Single();
-        var emptyTap = await DoubleTapAsync(tree);
-        var disclosureTap = await DoubleTapAsync(disclosure);
+        var emptyTap = await DoubleTapAsync(tree, ct);
+        var disclosureTap = await DoubleTapAsync(disclosure, ct);
         require(!emptyTap.Handled && !disclosureTap.Handled && rows.Count == 2
             && !folder.Node.IsExpanded && !empty.Node.IsExpanded, "tree-background-and-disclosure-double-tap-ignored");
 
-        await DoubleTapAsync(container);
+        await DoubleTapAsync(container, ct);
         require(ReferenceEquals(tree.SelectedItem, empty) && empty.Node.IsExpanded && empty.Detail == "空"
             && !folder.Node.IsExpanded, "tree-double-tap-uses-hit-row-and-shows-empty");
         tree.SelectedItem = folder;
@@ -544,6 +533,27 @@ internal sealed partial class GuiPerformanceProbe
         var currentResult = panel.Rows.Single();
         require(currentResult.FullPath == newPath && panel.CanActivate(currentResult), "workspace-search-uses-new-root");
 
+        var resultList = _window.FindControl<ListBox>("SearchResultsList")!;
+        await Frame(ct);
+        resultList.SelectedItem = currentResult;
+        var backgroundTap = await DoubleTapAsync(resultList, ct);
+        require(!backgroundTap.Handled && ReferenceEquals(document, _editor.Document),
+            "search-double-tap-background-does-not-open-selection");
+        var resultContainer = (ListBoxItem)resultList.ContainerFromItem(currentResult)!;
+        var snippet = resultContainer.GetVisualDescendants().OfType<TextBlock>().Last();
+        var resultTap = await DoubleTapAsync(snippet, ct);
+        require(resultTap.Handled && _viewModel.FilePath == newPath && _editor.SelectedText == "WorkspaceMarker"
+            && _editor.TextArea.IsFocused, "search-double-tap-opens-hit-and-selects-text");
+
+        await File.WriteAllTextAsync(newPath, "External edit", ct);
+        inputs[newPath] = hash(newPath);
+        await DoubleTapAsync(snippet, ct);
+        require(_viewModel.FilePath == newPath && _editor.SelectionLength == 0
+            && _viewModel.Status.Contains("再検索") && _editor.Document.Text == "WorkspaceMarker",
+            "search-double-tap-stale-hit-keeps-document-without-selection");
+        _viewModel.CloseFile();
+        await Frame(ct);
+
         _viewModel.CloseWorkspace();
         await Frame(ct);
         require(!_viewModel.HasWorkspace && !_viewModel.CanSearchWorkspace && !panel.CanStart
@@ -688,6 +698,17 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(!_viewModel.HasWorkspace && _viewModel.FilePath == text && _editor.Document.Text == content
             && _editor.IsReadOnly && status.Text == "読み取り専用", "single-file-valid-open-recovers-after-failure");
+    }
+
+    private async Task<TappedEventArgs> DoubleTapAsync(Control source, CancellationToken ct)
+    {
+        using var pointer = new Pointer(1, PointerType.Mouse, true);
+        var args = new TappedEventArgs(InputElement.DoubleTappedEvent,
+            new PointerEventArgs(null, source, pointer, _window, default, 0, default!, KeyModifiers.None));
+        source.RaiseEvent(args);
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        return args;
     }
 
     private static void DragSplitter(GridSplitter splitter, Vector delta)
