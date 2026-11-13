@@ -4,6 +4,7 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -243,6 +244,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckSingleFileDisplayAsync(root, before, Hash, Require, ct);
             await CheckLargePlainDocumentAsync(root, before, Hash, Require, ct);
             await CheckMethodNavigationAsync(root, before, Hash, Require, ct);
+            await CheckOriginalCopyAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
@@ -861,6 +863,44 @@ internal sealed partial class GuiPerformanceProbe
         require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate)
             && panel.Rows.Count(row => row.FullPath == declaration) == 3
             && panel.Rows.Count(row => row.FullPath == caller) == 1, "method-reference-includes-comment-and-string");
+    }
+
+    private async Task CheckOriginalCopyAsync(string root, Dictionary<string, string> inputs,
+        Func<string, string> hash, Action<bool, string> require, CancellationToken ct)
+    {
+        var path = Path.Combine(root, "copy.txt");
+        const string selection = "日本語\r\n😀\rfinal\n";
+        var content = "prefix " + selection + "suffix\n";
+        await File.WriteAllTextAsync(path, content, ct);
+        inputs.Add(path, hash(path));
+        await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu);
+        await Frame(ct);
+        var clipboard = _window.Clipboard ?? throw new InvalidOperationException("Native clipboard unavailable.");
+        var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+        try
+        {
+            _editor.TextArea.Focus();
+            _editor.Select(7, selection.Length);
+            var copy = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.C, KeyModifiers = modifier };
+            RaiseSearchKey(_editor.TextArea, copy);
+            string? actual = null;
+            for (var retry = 0; retry < 100; retry++)
+            {
+                actual = await clipboard.TryGetValueAsync(DataFormat.Text);
+                if (actual == selection) break;
+                await Task.Delay(20, ct);
+            }
+            require(copy.Handled && actual == selection && _editor.Document.Text == content,
+                "original-copy-keeps-mixed-newlines-and-unicode");
+            _editor.Select(content.Length, 0);
+            _editor.CaretOffset = content.Length;
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.C, KeyModifiers = modifier });
+            await Frame(ct);
+            require(await clipboard.TryGetValueAsync(DataFormat.Text) == selection,
+                "original-copy-empty-final-line-keeps-clipboard");
+        }
+        finally { await clipboard.ClearAsync(); }
     }
 
     private async Task<TappedEventArgs> DoubleTapAsync(Control source, CancellationToken ct)

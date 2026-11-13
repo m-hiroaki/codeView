@@ -558,6 +558,14 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         Changed(nameof(Position));
     }
 
+    internal DocumentSelectionCopy? BeginCopy(int offset, int length)
+    {
+        if (_stopping || !_originalSourceOffsetsAvailable || length == 0 || _displayedHandle is not { } document)
+            return null;
+        if (offset < 0 || length < 0 || (long)offset + length > document.Length) return null;
+        return new DocumentSelectionCopy(document.AcquireReadView(), offset, length);
+    }
+
     public void CloseFile()
     {
         if (_selectedTab is { } tab) CloseTab(tab);

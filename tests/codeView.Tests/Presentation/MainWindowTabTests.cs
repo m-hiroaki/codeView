@@ -205,6 +205,26 @@ internal sealed class MainWindowTabTests
         Assert.That(view.HasDocument, Is.False);
     });
 
+    [Test]
+    public void CopyCapturesOriginalRangeAndReleasesItsLeaseAfterClosing() => WithView(async fixture =>
+    {
+        const string text = "A\r\n日本語\r😀\nZ";
+        File.WriteAllText(fixture.First, text);
+        var view = fixture.View;
+        await view.InitializeAsync([fixture.First]);
+        var handle = view.SelectedTab!.State.File!.Document;
+        Assert.That(view.BeginCopy(1, 0), Is.Null);
+        Assert.That(view.BeginCopy(1, text.Length), Is.Null);
+        using var selection = view.BeginCopy(1, text.Length - 2);
+        Assert.That(handle.ActiveReadLeases, Is.EqualTo(1));
+        view.CloseFile();
+        Assert.That(view.BeginCopy(1, 1), Is.Null);
+        Assert.That(handle.IsReleased, Is.True);
+        Assert.That(await Task.Run(() => selection!.ReadText(default)), Is.EqualTo(text[1..^1]));
+        selection!.Dispose();
+        Assert.That(handle.ActiveReadLeases, Is.Zero);
+    });
+
     private static void WithView(Func<Fixture, Task> run) => SingleThreadTestContext.Run(async () =>
     {
         using var fixture = new Fixture();

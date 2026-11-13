@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -5,6 +6,7 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
@@ -20,6 +22,7 @@ internal sealed partial class MainWindow : Window
     private readonly MainWindowViewModel _viewModel;
     private bool _allowClose;
     private bool _closing;
+    private ClipboardCopyCoordinator? _copies;
 
     public MainWindow(MainWindowViewModel viewModel, string[] args)
     {
@@ -90,6 +93,20 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        AddHandler(KeyDownEvent, async (_, key) =>
+        {
+            if (_closing || key.Key != Key.C || key.KeyModifiers != modifier || !editor.TextArea.IsKeyboardFocusWithin
+                || editor.TextArea.Selection is AvaloniaEdit.Editing.RectangleSelection) return;
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (GuiPerformanceProbe.HasInteractiveDocument) return;
+#endif
+            key.Handled = true;
+            await RunAsync(() => CopySourceAsync(editor));
+        }, RoutingStrategies.Tunnel);
+        viewModel.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(MainWindowViewModel.Document)) _copies?.Invalidate();
+        };
         SyntaxColorizer? syntaxColorizer = null;
         viewModel.SyntaxChanged += highlighting =>
         {
@@ -195,9 +212,13 @@ internal sealed partial class MainWindow : Window
             eventArgs.Cancel = true;
             if (_closing) return;
             _closing = true;
-            await StopAndWaitAsync(viewModel.Stop, () =>
+            await StopAndWaitAsync(() =>
             {
-                var pending = viewModel.PendingWork;
+                try { _copies?.Dispose(); }
+                finally { viewModel.Stop(); }
+            }, () =>
+            {
+                var pending = Task.WhenAll(viewModel.PendingWork, _copies?.PendingWork ?? Task.CompletedTask);
 #if CODEVIEW_PERFORMANCE_PROBE
                 pending = Task.WhenAll(pending, GuiPerformanceProbe.PendingCopyWork);
 #endif
@@ -236,6 +257,40 @@ internal sealed partial class MainWindow : Window
             }
         }
         catch (Exception) { markFailed(); }
+    }
+
+    private async Task CopySourceAsync(TextEditor editor)
+    {
+        var offset = editor.SelectionStart;
+        var length = editor.SelectionLength;
+        if (length == 0 && editor.Options.CutCopyWholeLine && editor.Document is { } document)
+        {
+            var line = document.GetLineByNumber(editor.TextArea.Caret.Line);
+            offset = line.Offset;
+            length = line.TotalLength;
+        }
+
+        if (_viewModel.BeginCopy(offset, length) is not { } selection) return;
+        _copies ??= new ClipboardCopyCoordinator(WriteSourceClipboardAsync);
+        ClipboardCopyRequest request;
+        try { request = _copies.Start(selection); }
+        catch { selection.Dispose(); throw; }
+
+        var result = await request.Completion;
+        if (result.Status == ClipboardCopyStatus.Unavailable && !_closing && _copies.CanAdopt(request))
+            _viewModel.SetStatus("クリップボードを利用できません。再試行してください。");
+    }
+
+    private async Task WriteSourceClipboardAsync(string text)
+    {
+        var clipboard = Clipboard ?? throw new ClipboardUnavailableException();
+        try
+        {
+            await clipboard.SetValueAsync(DataFormat.Text, text);
+            await clipboard.FlushAsync();
+        }
+        catch (Exception error) when (error is ExternalException and not SEHException or IOException or NotSupportedException)
+        { throw new ClipboardUnavailableException(); }
     }
 
     private async Task OpenFilesAsync()
