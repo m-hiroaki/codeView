@@ -66,7 +66,7 @@ Navigationの`CSharpLexer`は任意分割のUTF-16を受け、識別子/キー�
 
 | 種別 | 初期対応の形 | 判定に使う文脈 |
 | --- | --- | --- |
-| 型 | `class N`、`struct N`、`interface N`、`enum N`、`record N`、`record class/struct N` | 名前トークンの完全一致。型の入れ子も文脈スタックで扱う |
+| 型 | `class N`、`struct N`、`interface N`、`enum N`、`record N`、`record class/struct N` | 名前トークンの完全一致。空の型本体を表すセミコロンと、型の入れ子も扱う |
 | Delegate | `delegate ReturnType N(...)` | 戻り値の後の名前・引数列・終端 |
 | Method | `ReturnType N(...) { ... }`、`=> ...;`、インターフェース等の`;`宣言 | 型本体直下。修飾子・属性・ジェネリック引数・制約を有界窓で読む |
 | Property | `Type N { get; ... }`、`Type N => ...;` | 型本体直下で引数列のないメンバー形 |

@@ -15,6 +15,11 @@ internal sealed class CSharpDeclarationTests
     [TestCase("readonly record struct N<T>(T Value) where T : class;")]
     [TestCase("namespace Outer { [A] public partial class Host { public class N<T> where T : class {} } }")]
     [TestCase("namespace Outer; [A] public class @N {}")]
+    [TestCase("class N;")]
+    [TestCase("class N(int value) : Base(value);")]
+    [TestCase("namespace Outer { struct N<T> where T : class; }")]
+    [TestCase("class Outer { interface N<T> : IDisposable; }")]
+    [TestCase("[A] enum N : byte;")]
     public void FindsTypes(string source) => AssertMatches(source, DeclarationKind.Type);
 
     [TestCase("public delegate void N();")]
@@ -57,6 +62,7 @@ internal sealed class CSharpDeclarationTests
     public void FindsFields(string source) => AssertMatches(source, DeclarationKind.Field);
 
     [TestCase("N(); class Other {}")]
+    [TestCase("class Other; struct NN; interface NN; enum NN;")]
     [TestCase("class C { C() : base() {} void M() { N(); obj.N(); int N = 1; void N() {} } }")]
     [TestCase("class C { void M() { /* class N {} */ string x = \"class N {}\"; } }")]
     [TestCase("class C { int I.N() => 1; event Action N; }")]
@@ -85,6 +91,7 @@ internal sealed class CSharpDeclarationTests
     }
 
     [TestCase("class C { int N;")]
+    [TestCase("class N")]
     [TestCase("class C { void N(] {} }")]
     [TestCase("class C { int N = ; }")]
     [TestCase("class C { int N, ; }")]

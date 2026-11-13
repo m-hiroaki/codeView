@@ -118,7 +118,7 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
     private bool FinishHeader()
     {
         var header = new Header(_header);
-        if (header.TryType(out var type, out var keyword) && keyword == "record")
+        if (header.TryType(out var type, out _))
             return Emit(DeclarationKind.Type, type);
         if (header.TryDelegate(out var delegated))
             return Emit(DeclarationKind.Delegate, delegated);
