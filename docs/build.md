@@ -84,7 +84,7 @@ Pythonによるスクリプト試験（ビルド自体にPythonは不要）：
 python3 -m unittest discover -s tools -p 'test_build_scripts.py' -v
 ```
 
-Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。`licenses/dotnet/` には、対象RIDの.NETランタイムのライセンスと、Native AOTで使用したランタイムパッケージの第三者通知を同梱する。`licenses/upstream/` にはAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスと固定コミットの出典を収録する。同梱された文法データの個別出典に対応する通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
+Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。`licenses/dotnet/` には、対象RIDの.NETランタイムのライセンスと、Native AOTで使用したランタイムパッケージの第三者通知を同梱する。`licenses/upstream/` にはAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスに加え、Swiftリソースの通知とTypstリソースのTinymistライセンスを収録する。出典は同じディレクトリのREADMEに記載する。他の文法データの個別通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
 
 ## テスト実行
 

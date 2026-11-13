@@ -429,6 +429,8 @@ flowchart LR
 
   - [x] **P6-03-05：管理ライブラリのライセンスを配布物に同梱する**（2026-11-13）。固定コミット由来のAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスと出典を `licenses/upstream/` に入れる。macOSのarm64・x64で原文との一致と実行ファイルの位置を確認した。[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43427527706)で同梱・通常起動・依存ロック不変を確認した。TextMateSharp内の文法データは個別の上流出典を引き続き確認する。
 
+  - [x] **P6-03-06：SwiftとTypstの文法に対応する通知を同梱する**（2026-11-13）。固定版TextMateSharpに付属するSwiftの通知と、Typst文法の同梱マニフェストが示すTinymist 0.12.18のライセンスを `licenses/upstream/` に収録した。macOS arm64・x64の実発行と[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43434662794)で、同梱された2文書がリポジトリの原文と一致することを確認した。他の文法の個別出典は引き続き確認する。
+
 - [ ] **P6-04：発行形式と起動・資源使用量を比較し最適化する**
   依存：P6-03、P6-02。完了条件：単一ファイル/最小フォルダ・ReadyToRun有無の起動/容量/展開/メモリを比較。UI・メモリを悪化させず選定し、変更箇所の回帰試験を通す。
 
