@@ -49,6 +49,8 @@ CHECKS = [
     'single-file-loading-status-is-bound', 'single-file-empty-is-readable',
     'single-file-binary-is-rejected-with-status', 'single-file-valid-open-recovers-after-failure',
     'syntax-large-source-visible-without-color', 'syntax-large-source-search-selects-original-tail',
+    'workspace-large-regex-result-is-committed-at-original-tail',
+    'workspace-large-result-reuses-tab-and-selects-original-tail', 'workspace-large-results-clear-keeps-document',
     'all-input-sha256-unchanged',
 ]
 

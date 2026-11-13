@@ -714,7 +714,8 @@ internal sealed partial class GuiPerformanceProbe
     {
         const int size = 10 * 1024 * 1024;
         const string marker = "EndOfLargeSource";
-        var path = Path.Combine(root, "large-source.cs");
+        var workspace = Directory.CreateDirectory(Path.Combine(root, "large-search")).FullName;
+        var path = Path.Combine(workspace, "large-source.cs");
         var row = "//" + new string('a', 509) + "\n";
         var content = string.Concat(Enumerable.Repeat(row, size / row.Length)) + marker;
         await File.WriteAllTextAsync(path, content, ct);
@@ -739,6 +740,37 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(_editor.SelectedText == marker && _editor.SelectionStart == size,
             "syntax-large-source-search-selects-original-tail");
+        RaiseSearchKey(query, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
+        var existing = _editor.Document;
+        var tabCount = _viewModel.Tabs.Count;
+        await _viewModel.OpenFilesAsync([workspace], OpenOrigin.Menu);
+        var panel = _viewModel.SearchPanel;
+        panel.Query = "^" + marker + "$";
+        panel.MatchCase = true;
+        panel.UseRegex = true;
+        await panel.StartAsync().WaitAsync(ct);
+        await Frame(ct);
+        var hit = panel.Rows.SingleOrDefault();
+        require(hit is not null && hit.FullPath == path && panel.CanActivate(hit)
+            && hit.Hit.Range.Offset == size && hit.Hit.Range.Start.Line == size / row.Length + 1
+            && hit.Hit.Range.Start.Column == 1 && panel.Summary.Contains("検索完了"),
+            "workspace-large-regex-result-is-committed-at-original-tail");
+
+        var results = _window.FindControl<ListBox>("SearchResultsList")!;
+        results.SelectedItem = hit;
+        RaiseSearchKey(results, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        await Frame(ct);
+        require(_viewModel.Tabs.Count == tabCount && ReferenceEquals(existing, _editor.Document)
+            && _editor.SelectedText == marker && _editor.SelectionStart == size && _editor.TextArea.IsFocused,
+            "workspace-large-result-reuses-tab-and-selects-original-tail");
+        panel.Clear();
+        await Frame(ct);
+        require(panel.IsVisible && panel.Rows.Count == 0 && panel.AppliedConditions.Length == 0
+            && ReferenceEquals(existing, _editor.Document), "workspace-large-results-clear-keeps-document");
+
+        _viewModel.CloseWorkspace();
         _viewModel.CloseFile();
         await _viewModel.PendingWork.WaitAsync(ct);
     }
