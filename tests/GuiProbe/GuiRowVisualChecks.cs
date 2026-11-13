@@ -113,7 +113,8 @@ internal sealed partial class GuiPerformanceProbe
                 }
                 if (contextRange is { } range && indexedSource.ReadRowContext(indexedRows, 0) is { } contextText)
                 {
-                    contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground);
+                    var tabWidth = reference.Options.IndentationSize * reference.TextArea.TextView.WideSpaceWidth;
+                    contextual.SetRow(contextText, range, new Typeface(_editor.FontFamily), _editor.FontSize, _editor.Foreground, tabWidth);
                     inputSource = indexedSource;
                     inputProjection = indexedRows;
                     indexedSource.Select(indexedRows.Rows[0].SourceOffset + indexedRows.Rows[0].Length, indexedRows.Rows[0].SourceOffset);

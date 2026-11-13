@@ -22,7 +22,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
     internal Point? CaretPosition => _caret;
     internal event Func<Point, long, bool, bool>? SourceSelectionRequested;
 
-    public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground)
+    public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground, double tabWidth)
     {
         Dispose();
         if (text.Length != range.Length || text.Length > DocumentDisplaySession.MaximumSliceChars
@@ -30,7 +30,9 @@ internal sealed class ContextualRowControl : Control, IDisposable
             || range.VisibleLength < 0 || range.VisibleLength > text.Length - range.VisibleOffset)
             throw new ArgumentException("描画文脈の長さが一致しません。", nameof(text));
 
-        var layout = new TextLayout(text, typeface, size, foreground, flowDirection: FlowDirection);
+        var run = new GenericTextRunProperties(typeface, size, foregroundBrush: foreground);
+        var paragraph = new RowParagraph(run, FlowDirection, tabWidth);
+        var layout = new TextLayout(new RowTextSource(text, run), paragraph);
         try
         {
             _visible = layout.HitTestTextRange(range.VisibleOffset, range.VisibleLength)
@@ -189,5 +191,23 @@ internal sealed class ContextualRowControl : Control, IDisposable
         _origin = 0;
         InvalidateMeasure();
         InvalidateVisual();
+    }
+
+    private sealed class RowParagraph(TextRunProperties run, FlowDirection direction, double tabWidth) : TextParagraphProperties
+    {
+        public override TextRunProperties DefaultTextRunProperties => run;
+        public override FlowDirection FlowDirection => direction;
+        public override TextAlignment TextAlignment => TextAlignment.Left;
+        public override TextWrapping TextWrapping => TextWrapping.NoWrap;
+        public override double DefaultIncrementalTab => tabWidth;
+        public override double LineHeight => double.NaN;
+        public override bool FirstLineInParagraph => true;
+        public override double Indent => 0;
+    }
+
+    private sealed class RowTextSource(string text, TextRunProperties run) : ITextSource
+    {
+        public TextRun? GetTextRun(int textSourceIndex) =>
+            textSourceIndex < text.Length ? new TextCharacters(text.AsMemory(textSourceIndex), run) : null;
     }
 }
