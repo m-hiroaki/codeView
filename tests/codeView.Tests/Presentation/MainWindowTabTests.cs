@@ -172,6 +172,39 @@ internal sealed class MainWindowTabTests
         }
     });
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void SyntaxNotificationFailureReachesShutdown(bool statusNotificationFails) => SingleThreadTestContext.Run(async () =>
+    {
+        using var fixture = new Fixture();
+        File.WriteAllText(fixture.First, "class First {}");
+        var view = fixture.View;
+        var syntaxError = new InvalidOperationException("Could not apply syntax colors.");
+        var statusError = new InvalidOperationException("Could not notify status.");
+        var fatal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        view.SyntaxChanged += highlighting =>
+        {
+            if (highlighting is not null) throw syntaxError;
+        };
+        view.PropertyChanged += (_, args) =>
+        {
+            if (statusNotificationFails && args.PropertyName == nameof(view.Status)
+                && view.Status.Contains("構文色分けエラー", StringComparison.Ordinal)) throw statusError;
+        };
+        view.FatalFailure += () => fatal.TrySetResult();
+        await view.InitializeAsync([fixture.First]);
+        await fatal.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var failure = view.PendingWork.Exception!.Flatten().InnerExceptions;
+        Assert.That(failure, Does.Contain(syntaxError));
+        if (statusNotificationFails) Assert.That(failure, Does.Contain(statusError));
+        else Assert.That(failure, Has.Count.EqualTo(1));
+        var failures = 0;
+        await MainWindow.StopAndWaitAsync(view.Stop, () => view.PendingWork, () => failures++);
+        Assert.That(failures, Is.EqualTo(1));
+        Assert.That(view.HasDocument, Is.False);
+    });
+
     private static void WithView(Func<Fixture, Task> run) => SingleThreadTestContext.Run(async () =>
     {
         using var fixture = new Fixture();

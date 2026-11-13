@@ -41,6 +41,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private SearchResultMove? _selectionMove;
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
+    private Task _syntaxFailure = Task.CompletedTask;
     private readonly HashSet<Task> _manualWork = [];
     private bool _isTreeVisible = true;
     public FileTreeViewModel FileTree { get; } = new(treeYield);
@@ -80,7 +81,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
     public string SyntaxStatus { get; private set; } = "";
     public event Action<SyntaxHighlighting?>? SyntaxChanged;
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, _syntaxFailure, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -576,11 +577,25 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private async Task ObserveSyntaxAsync(DocumentHandle document, string scope, CancellationTokenSource request)
     {
         try { await TrackManualAsync(HighlightAsync(document, scope, request)); }
-        catch (Exception)
+        catch (Exception error)
         {
+            if (_stopping)
+            {
+                RecordSyntaxFailure(error);
+                return;
+            }
+
             try { SetStatus("予期しない構文色分けエラーのため終了します。"); }
-            finally { FatalFailure?.Invoke(); }
+            catch (Exception notificationError) { error = new AggregateException(error, notificationError); }
+            RecordSyntaxFailure(error);
+            FatalFailure?.Invoke();
         }
+    }
+
+    private void RecordSyntaxFailure(Exception error)
+    {
+        _syntaxFailure = Task.FromException(error);
+        _ = _syntaxFailure.Exception;
     }
 
     private async Task HighlightAsync(DocumentHandle document, string scope, CancellationTokenSource request)
@@ -593,7 +608,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             if (ReferenceEquals(_syntaxRequest, request) && !request.IsCancellationRequested)
                 SetSyntax(result.Highlighting, result.Status);
         }
-        catch (OperationCanceledException) when (request.IsCancellationRequested) { }
+        catch (OperationCanceledException error) when (request.IsCancellationRequested && error.CancellationToken == request.Token) { }
         finally
         {
             if (ReferenceEquals(_syntaxRequest, request)) _syntaxRequest = null;
