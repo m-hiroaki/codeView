@@ -388,9 +388,9 @@ internal sealed partial class GuiPerformanceProbe
             }
 
             var rowHeight = rows[0].Bounds.Height;
+            host.Child = null;
             var viewport = new ScrollViewer { Content = panel, Height = 2 * rowHeight,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
-            host.Child = null;
             host.Child = viewport;
             await VisualFrame(owner, ct);
             var firstVisible = 0;
