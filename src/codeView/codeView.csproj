@@ -20,9 +20,18 @@
         <PackageReference Include="TextMateSharp.Grammars" Version="2.0.3" />
         <InternalsVisibleTo Include="codeView.Tests" />
     </ItemGroup>
-    <Target Name="IncludeNativeNotices" AfterTargets="ComputeFilesToPublish"
+    <Target Name="IncludePublishNotices" AfterTargets="ComputeFilesToPublish"
             Condition="'$(PublishAot)' == 'true'">
         <ItemGroup>
+            <CoreRuntimePack Include="@(ResolvedRuntimePack)"
+                             Condition="'%(ResolvedRuntimePack.FrameworkName)' == 'Microsoft.NETCore.App'
+                                 And '%(ResolvedRuntimePack.RuntimeIdentifier)' == '$(RuntimeIdentifier)'" />
+            <RuntimeNotice Include="@(CoreRuntimePack->'%(PackageDirectory)/LICENSE.TXT')" />
+            <RuntimeNotice Include="$(RuntimePackagePath)/THIRD-PARTY-NOTICES.TXT" />
+            <ResolvedFileToPublish Include="@(RuntimeNotice)">
+                <RelativePath>licenses/dotnet/%(RuntimeNotice.Filename)%(RuntimeNotice.Extension)</RelativePath>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            </ResolvedFileToPublish>
             <NativeNoticePackage Include="@(NativeCopyLocalItems)"
                                  Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == 'SkiaSharp.NativeAssets.macOS'
                                      Or '%(NativeCopyLocalItems.NuGetPackageId)' == 'SkiaSharp.NativeAssets.Win32'
@@ -48,5 +57,7 @@
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             </ResolvedFileToPublish>
         </ItemGroup>
+        <Error Condition="'@(CoreRuntimePack)' == '' Or '$(RuntimePackagePath)' == ''"
+               Text="Could not resolve the runtime packs for the .NET license and notices." />
     </Target>
 </Project>

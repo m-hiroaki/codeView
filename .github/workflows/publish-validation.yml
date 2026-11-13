@@ -66,6 +66,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $payload = 'artifacts/publish/win-x64/codeView/licenses'
           $notices = @(
+            'dotnet/LICENSE.TXT',
+            'dotnet/THIRD-PARTY-NOTICES.TXT',
             'Avalonia.Angle.Windows.Natives/LICENSE',
             'HarfBuzzSharp.NativeAssets.Win32/LICENSE.txt',
             'HarfBuzzSharp.NativeAssets.Win32/THIRD-PARTY-NOTICES.txt',
