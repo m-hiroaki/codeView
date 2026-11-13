@@ -551,6 +551,11 @@ internal sealed partial class GuiPerformanceProbe
         var resultContainer = (ListBoxItem)resultList.ContainerFromItem(currentResult)!;
         var snippet = resultContainer.GetVisualDescendants().OfType<TextBlock>().Last();
         var resultTap = await DoubleTapAsync(snippet, ct);
+        await Frame(ct);
+        if (!resultTap.Handled || _viewModel.FilePath != newPath || _editor.SelectedText != "WorkspaceMarker"
+            || !_editor.TextArea.IsFocused)
+            Console.Error.WriteLine($"Search result move handled={resultTap.Handled}, path={_viewModel.FilePath}, "
+                + $"selection={_editor.SelectionStart}+{_editor.SelectionLength}, focused={_editor.TextArea.IsFocused}, status={_viewModel.Status}");
         require(resultTap.Handled && _viewModel.FilePath == newPath && _editor.SelectedText == "WorkspaceMarker"
             && _editor.TextArea.IsFocused, "search-double-tap-opens-hit-and-selects-text");
 
