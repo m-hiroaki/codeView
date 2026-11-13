@@ -168,13 +168,22 @@ internal sealed class SearchResultMoveTests
                 case "clear": f.View.SearchPanel.Clear(); break;
                 case "root": f.View.CloseWorkspace(); break;
                 case "shutdown": f.View.Stop(); break;
-                case "input": f.View.RecordUserInteraction(); f.View.SetPosition(2, 2); break;
+                case "input":
+                    f.View.RecordUserInteraction();
+                    f.View.SetPosition(2, 2);
+                    f.View.SetStatus("新しい操作の通知");
+                    break;
             }
         }
         finally { f.Source.Release(); }
         await work;
         Assert.That(selected, Is.False);
-        if (action == "input") Assert.That(f.View.Position, Is.EqualTo("行 2, 列 2"));
+        if (action == "input")
+        {
+            Assert.That(f.View.Position, Is.EqualTo("行 2, 列 2"));
+            Assert.That(f.View.Status, Is.EqualTo("新しい操作の通知"));
+        }
+        if (action == "clear") Assert.That(f.View.Status, Is.EqualTo("読み取り専用"));
     });
 
     [Test]

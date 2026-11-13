@@ -149,18 +149,23 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         ClearSearchSelection?.Invoke();
         var navigator = operations.ResultNavigator;
         var request = navigator.Start(source, row.Hit);
-        SetStatus("検索結果への移動を待機しています…");
+        var moveStatus = "検索結果への移動を待機しています…";
+        SetStatus(moveStatus);
         if (await request.Started is not null && !_stopping)
         {
-            SyncTabs(); DisplayActiveTab();
-            if (interaction == _interactionEpoch && ReferenceEquals(navigator.Current, request) && SearchPanel.CanActivate(row))
-                SetStatus("結果の更新情報を確認しています…");
+            SyncTabs();
+            DisplayActiveTab(updateStatus: !IsCurrentMove() && OwnsMoveStatus());
+            if (IsCurrentMove() && OwnsMoveStatus())
+            {
+                moveStatus = "結果の更新情報を確認しています…";
+                SetStatus(moveStatus);
+            }
         }
         var result = await request.Completion;
         if (_stopping) return;
         SyncTabs();
-        DisplayActiveTab();
-        if (interaction != _interactionEpoch || !ReferenceEquals(navigator.Current, request) || !SearchPanel.CanActivate(row)) return;
+        DisplayActiveTab(updateStatus: OwnsMoveStatus());
+        if (!IsCurrentMove()) return;
         if (result.Status == OperationStatus.Failure)
         { SetStatus(FileErrorText(result.Error!.Code) + " 再読み込み・再検索してください。"); return; }
         if (result.Status != OperationStatus.Success || !navigator.CanAdopt(request, result.Value)) return;
@@ -180,6 +185,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             DocumentMoveWarning.UnverifiedLength => "長い一致の全体を再確認できないため、選択せず移動しました。再検索してください。",
             _ => "検索結果へ移動しました。"
         });
+
+        bool IsCurrentMove() => interaction == _interactionEpoch && ReferenceEquals(navigator.Current, request)
+            && SearchPanel.CanActivate(row);
+        bool OwnsMoveStatus() => (navigator.Current is null || ReferenceEquals(navigator.Current, request))
+            && Status == moveStatus;
     }
 
     public async Task InitializeAsync(string[] paths)
@@ -459,7 +469,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         finally { _syncingTabs = false; }
     }
 
-    private void DisplayActiveTab()
+    private void DisplayActiveTab(bool updateStatus = true)
     {
         var tab = _tabManager.ActiveTab;
         var file = tab?.File;
@@ -497,14 +507,15 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 "shift_jis" => "Shift_JIS（CP932）", null => "",
                 _ => file!.EncodingName.ToUpperInvariant()
             };
-            SetStatus(tab is null ? "ファイルを開いて、読み始めましょう。" : tab.Status switch
-            {
-                TabStatus.Loading => "読み込み中… " + tab.Path.DisplayPath,
-                TabStatus.Reloading => "再読み込み中… " + tab.Path.DisplayPath,
-                _ when tab.Error is not null => FileErrorText(tab.Error.Code),
-                _ when tab.WasCancelled => "読込を取り消しました。",
-                _ => "読み取り専用"
-            });
+            if (updateStatus)
+                SetStatus(tab is null ? "ファイルを開いて、読み始めましょう。" : tab.Status switch
+                {
+                    TabStatus.Loading => "読み込み中… " + tab.Path.DisplayPath,
+                    TabStatus.Reloading => "再読み込み中… " + tab.Path.DisplayPath,
+                    _ when tab.Error is not null => FileErrorText(tab.Error.Code),
+                    _ when tab.WasCancelled => "読込を取り消しました。",
+                    _ => "読み取り専用"
+                });
             if (changedDocument) Changed(nameof(Document), nameof(HasDocument));
             Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
         }
@@ -672,7 +683,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         Attempt(_lifetime.Cancel);
         Attempt(operations.Dispose);
         Attempt(SyncTabs);
-        Attempt(DisplayActiveTab);
+        Attempt(() => DisplayActiveTab());
         Attempt(FileTree.Clear);
         Attempt(WorkspaceChanged);
         if (failures?.Count == 1) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
