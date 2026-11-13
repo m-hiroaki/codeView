@@ -603,10 +603,12 @@ internal sealed partial class MainWindow : Window
         args.Handled = true;
         await RunAsync(() =>
         {
-            var canCopy = !_closing && FileDropInput.CanOfferCopy(args.DataTransfer, args.DragEffects);
+            var allowed = args.DragEffects;
             args.DragEffects = DragDropEffects.None;
-            return canCopy ? _viewModel.OpenDropAsync(args.DataTransfer, () => args.DragEffects = DragDropEffects.Copy)
-                : Task.CompletedTask;
+            if (_closing || (allowed & DragDropEffects.Copy) == 0 || !args.DataTransfer.Contains(DataFormat.File))
+                return Task.CompletedTask;
+            // Validate the full transfer here so a delivered over-limit drop can report its reason.
+            return _viewModel.OpenDropAsync(args.DataTransfer, () => args.DragEffects = DragDropEffects.Copy);
         });
     }
 

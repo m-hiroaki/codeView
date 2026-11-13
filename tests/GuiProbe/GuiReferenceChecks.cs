@@ -762,6 +762,12 @@ internal sealed partial class GuiPerformanceProbe
         require(mixed.Handled && mixed.DragEffects == DragDropEffects.None && _viewModel.WorkspacePath == workspace
             && ReferenceEquals(existing, _editor.Document), "drop-mixed-invalid-rejected-atomically");
 
+        var tooMany = await DropAsync(DragDropEffects.Copy,
+            Enumerable.Range(0, StartupOpenQueue.MaxPaths + 1).Select(_ => DataTransferItem.CreateFile(file)).ToArray());
+        require(tooMany.Handled && tooMany.DragEffects == DragDropEffects.None && _viewModel.WorkspacePath == workspace
+            && ReferenceEquals(existing, _editor.Document) && _viewModel.Status.Contains("ドロップの項目数またはパス文字数が上限"),
+            "drop-over-limit-reports-rejection");
+
         var accepted = await DropAsync(DragDropEffects.Copy | DragDropEffects.Move,
             DataTransferItem.CreateFile(first), DataTransferItem.CreateFile(file), DataTransferItem.CreateFile(second));
         require(accepted.Handled && accepted.DragEffects == DragDropEffects.Copy && _viewModel.WorkspacePath == firstRoot

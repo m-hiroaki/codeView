@@ -50,7 +50,7 @@ CHECKS = [
     'tree-links-visible-in-name-order', 'tree-folder-link-does-not-expand',
     'tree-links-not-followed-by-workspace-search', 'tree-file-link-explicitly-opens',
     'tree-folder-link-explicit-root-and-cycle-blocked', 'tree-search-resolves-explicit-root',
-    'drop-move-only-rejected', 'drop-mixed-invalid-rejected-atomically',
+    'drop-move-only-rejected', 'drop-mixed-invalid-rejected-atomically', 'drop-over-limit-reports-rejection',
     'drop-file-and-first-folder-open-read-only',
     'single-file-loading-status-is-bound', 'single-file-empty-is-readable',
     'single-file-binary-is-rejected-with-status', 'single-file-valid-open-recovers-after-failure',
