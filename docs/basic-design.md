@@ -128,6 +128,39 @@ flowchart TD
 
 ショートカットは要件の仮定を引き継ぐ設計案とし、メニューからも全操作を実行可能にする。macOSのファンクションキーの動作は実機で確認する。
 
+### 3.3 ユースケース図
+
+ソースコードを読む開発者が、codeViewで行う主な操作を示す。
+
+```mermaid
+flowchart LR
+    Developer["開発者"]
+
+    subgraph CodeView ["codeView"]
+        direction TB
+        OpenFile(["ファイルを開く"])
+        OpenFolder(["フォルダを開く"])
+        BrowseTree(["ツリーをたどってファイルを開く"])
+        ReadFile(["ソースを閲覧・コピーする"])
+        ManageTabs(["タブを切り替える・閉じる"])
+        Reload(["ファイルを再読み込みする"])
+        FindInFile(["ファイル内を検索する"])
+        SearchFolder(["フォルダ内を全文検索する"])
+        GoToDefinition(["C#の定義へジャンプする（簡易）"])
+        FindReferences(["識別子の参照箇所を探す（簡易）"])
+        SaveSettings(["除外フォルダの設定を保存する"])
+    end
+
+    Developer --- OpenFile & OpenFolder & BrowseTree
+    Developer --- ReadFile & ManageTabs & Reload
+    Developer --- FindInFile & SearchFolder & GoToDefinition & FindReferences
+    Developer --- SaveSettings
+```
+
+- ファイルとフォルダは、メニュー、ドラッグ＆ドロップ、起動引数から開ける。本文は読み取り専用で表示し、対応する文法があれば構文色を付ける。文字コードを指定して読み直すこともできる。[開く処理と本文表示](#4-ワークスペースファイルタブ)
+- ファイル内検索はアクティブタブの本文を対象とし、前後の一致へ移動できる。全文検索・定義ジャンプ・参照検索にはフォルダを開いている必要がある。全文検索・参照検索の一覧から該当箇所へ移動できる。[検索と移動](#6-検索定義ジャンプ参照検索)
+- 除外フォルダの設定は、ファイルツリーとフォルダを横断する検索・探索に適用する。[ファイルツリー](#5-ファイルツリー)・[設定](#91-設定)
+
 ## 4. ワークスペース・ファイル・タブ
 
 ### 4.1 開く処理
