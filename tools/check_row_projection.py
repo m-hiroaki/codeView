@@ -42,6 +42,7 @@ def fixture(path):
             "checksContextualSearch": text.endswith("// 色分け 日本語😀\r\n") or
                 (text.startswith("before\r\n") and "line99 日本語😀" in text),
             "checksLongLineSearch": text.startswith("before\r\n") and "line99 日本語😀" in text and "LONG_MATCH" in text,
+            "checksContextualSymbols": text.startswith("before\r\n// ") and " LONG_MATCH\r\n" in text,
             "checksTrailingBlank": re.split(r"\r\n|\r|\n", text, maxsplit=1)[0] == "before",
             "checksLongLineEnd": max(lengths[:2]) > 512,
             "maximumLineLength": max(lengths)}
@@ -64,6 +65,9 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
     lifecycle = checks.get("Lifecycle") or {}
     required_lifecycle = LIFECYCLE_CHECKS | ({"real-search-committed-primary-hit", "real-search-enter-selects-original", "search-caret-before-deferred-selection"}
                                           if expected["characters"] else {"empty-search-has-no-fabricated-hit"})
+    if contextual and expected["checksContextualSymbols"]:
+        required_lifecycle |= {"contextual-reference-search-uses-original-selection",
+                               "contextual-definition-moves-to-original-range"}
     if (set(lifecycle.get("Checks", [])) != required_lifecycle or len(lifecycle.get("Checks", [])) != len(required_lifecycle)
             or lifecycle.get("SearchOutcome") != ("hit" if expected["characters"] else "empty") or lifecycle.get("WorkloadStarts") != 1):
         raise ValueError("Real tab/reload/search/close lifecycle evidence incomplete")

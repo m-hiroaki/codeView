@@ -508,14 +508,20 @@ internal sealed partial class MainWindow : Window
     private Task FindSymbolAsync(bool definitions)
     {
         var editor = this.FindControl<TextEditor>("Editor")!;
+#if CODEVIEW_PERFORMANCE_PROBE
+        if (GuiPerformanceProbe.TryReadContextualSelection(out var original))
+            return Find(original.Caret, original.Start, original.Length);
+#endif
         if (!ReferenceEquals(editor.Document, _viewModel.Document))
         {
             _viewModel.SetStatus("定義・参照探索は通常の本文表示で利用してください。表示投影の専用試作では未接続です。");
             return Task.CompletedTask;
         }
-        return definitions
-            ? _viewModel.FindDefinitionsAsync(editor.CaretOffset, editor.SelectionStart, editor.SelectionLength)
-            : _viewModel.FindReferencesAsync(editor.CaretOffset, editor.SelectionStart, editor.SelectionLength);
+        return Find(editor.CaretOffset, editor.SelectionStart, editor.SelectionLength);
+
+        Task Find(int caret, int start, int length) => definitions
+            ? _viewModel.FindDefinitionsAsync(caret, start, length)
+            : _viewModel.FindReferencesAsync(caret, start, length);
     }
 
     private async void FindReferencesClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => FindSymbolAsync(definitions: false));

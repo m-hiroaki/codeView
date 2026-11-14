@@ -107,7 +107,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private async Task FindSymbolAsync(int caret, int selectionStart, int selectionLength, bool definitions)
     {
         if (_stopping) return;
-        if (_document is not { } document) { SetStatus("探索するファイルを開いてください。"); return; }
+        var document = _document;
+#if CODEVIEW_PERFORMANCE_PROBE
+        if (GuiPerformanceProbe.HasContextualRows && GuiPerformanceProbe.TryGetOriginalPosition(out _, out var source))
+            document = source;
+#endif
+        if (document is null) { SetStatus("探索するファイルを開いてください。"); return; }
         if (!CanSearchWorkspace) { SetStatus("探索するフォルダを開いてください。"); return; }
         if ((uint)caret > document.TextLength || (uint)selectionStart > document.TextLength || selectionLength < 0
             || selectionLength > document.TextLength - selectionStart || selectionLength > IdentifierExtractor.MaximumChars + 1)

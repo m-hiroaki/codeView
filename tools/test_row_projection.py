@@ -17,6 +17,7 @@ class RowProjectionEvidenceTests(unittest.TestCase):
         self.expected = {'characters': 4, 'lines': 2, 'bodySha256': 'body', 'maximumLineLength': 3,
                          'firstLineHasText': True, 'checksTrailingBlank': False, 'checksInitialGrapheme': False,
                          'checksContextualSyntax': False, 'checksContextualSearch': False, 'checksLongLineSearch': False,
+                         'checksContextualSymbols': False,
                          'checksLongLineEnd': False}
         checks = ['routed-document-end', 'end-caret-projected', 'routed-document-start', 'routed-shift-selection',
                   'routed-select-all-original', 'native-selection-excludes-synthetic-lf', 'selection-spans-exclude-separators',

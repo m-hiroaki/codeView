@@ -130,6 +130,28 @@ internal sealed partial class GuiPerformanceProbe
                 _displaySession.SelectionLength == scalarLength && _displaySession.Caret == 0 && _interactiveRows!.TryDisplayPosition(0, out _));
         }
         else Check("empty-search-has-no-fabricated-hit", panel.Rows.Count == 0);
+
+        if (_contextualRows && originalBody.StartsWith("before\r\n// ", StringComparison.Ordinal) &&
+            originalBody.IndexOf(" LONG_MATCH\r\n", StringComparison.Ordinal) is var reference && reference >= 0)
+        {
+            const string name = "LONG_MATCH";
+            var definition = Path.Combine(Path.GetDirectoryName(primaryPath)!, "definition.cs");
+            TrySelectOriginal(reference + 1, name.Length);
+            await SendSymbolKeyAsync(KeyModifiers.Shift);
+            var hit = panel.Rows.SingleOrDefault(row => row.FullPath == primaryPath && row.Hit.Range.Offset == reference + 1);
+            Check("contextual-reference-search-uses-original-selection", panel.Query == name &&
+                hit is not null && panel.CanActivate(hit) && panel.Rows.Any(row => row.FullPath == definition));
+
+            await SendSymbolKeyAsync(KeyModifiers.None);
+            while (_viewModel.FilePath != definition || _displaySession?.SelectionLength != name.Length)
+                await RowFrame(ct);
+            using (var copy = _displaySession!.BeginCopy())
+                Check("contextual-definition-moves-to-original-range", copy.ReadText(ct) == name &&
+                    _displaySession.SelectionStart == "class ".Length &&
+                    _interactiveRows!.TryDisplayPosition(_displaySession.SelectionStart, out _));
+            _viewModel.CloseFile();
+            _viewModel.SelectedTab = _viewModel.Tabs.Single(tab => tab.FullPath == primaryPath);
+        }
         _viewModel.CloseWorkspace();
         var before = CurrentRowView();
         if (selected is not null) await _viewModel.ActivateSearchResultAsync(selected).WaitAsync(ct);
@@ -140,6 +162,17 @@ internal sealed partial class GuiPerformanceProbe
         Check("lifecycle-workload-started-once", _rowWorkStarts == 1 && !_finished);
         return new { Checks = checks, SearchOutcome = scalarLength == 0 ? "empty" : "hit", WorkloadStarts = _rowWorkStarts,
             History = "weak handle keys, scalar values only" };
+
+        async Task SendSymbolKeyAsync(KeyModifiers modifiers)
+        {
+            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers };
+            _scriptedRowKey = key;
+            try { _editor.TextArea.RaiseEvent(key); }
+            finally { _scriptedRowKey = null; }
+            RequireRows(key.Handled && !_finished, "Original symbol shortcut was not handled.");
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await RowFrame(ct);
+        }
     }
 
     private RowViewState CurrentRowView() => new(_displaySession!.Anchor, _displaySession.Caret,
