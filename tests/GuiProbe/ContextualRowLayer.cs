@@ -11,17 +11,26 @@ namespace CodeView.Presentation;
 /// <summary>Uses the existing row editor for viewport geometry and input ownership.</summary>
 internal sealed class ContextualRowLayer(TextEditor editor) : Control
 {
-    private readonly Dictionary<int, ContextualRowControl> _rows = [];
+    private Dictionary<long, ContextualRowControl> _rows = [];
     private TextDocument? _display;
+    private DocumentDisplaySession? _source;
+    private SyntaxHighlighting? _highlighting;
+    private Typeface _typeface;
+    private double _fontSize;
+    private double _tabWidth;
+    private FlowDirection _direction;
+    private IBrush? _foreground;
+    private long _firstLine;
 
     internal long DrawnRows { get; private set; }
     internal long ResolvedHits { get; private set; }
+    internal long ReusedLayouts { get; private set; }
 
     internal bool TryGetHorizontalOffset(double delta, DocumentDisplaySession source, out long column)
     {
         column = 0;
         return _display is not null && ReferenceEquals(editor.Document, _display) &&
-            _rows.TryGetValue(0, out var first) && first.TryGetHorizontalOffset(delta, source, out column);
+            _rows.TryGetValue(_firstLine, out var first) && first.TryGetHorizontalOffset(delta, source, out column);
     }
 
     internal bool TryGetCaretRectangle(int displayOffset, long sourceOffset, out Rect? rectangle)
@@ -29,20 +38,49 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         rectangle = null;
         if (_display is null || !ReferenceEquals(editor.Document, _display)) return false;
         var line = _display.GetLineByOffset(displayOffset);
-        if (!_rows.TryGetValue(line.LineNumber - 1, out var control)) return false;
+        if (!_rows.TryGetValue(_firstLine + line.LineNumber - 1, out var control)) return false;
         rectangle = control.GetCaretRectangle(sourceOffset);
         return true;
     }
 
     internal bool RowHasForeground(int row, Color color) =>
-        _rows.TryGetValue(row, out var control) && control.HasForeground(color);
+        _rows.TryGetValue(_firstLine + row, out var control) && control.HasForeground(color);
 
     internal void Apply(TextDocument display, DocumentDisplaySession source, DocumentRowProjection projection,
         SyntaxHighlighting? highlighting)
     {
-        Clear();
-        _display = display;
         var view = editor.TextArea.TextView;
+        var typeface = new Typeface(editor.FontFamily);
+        var tabWidth = editor.Options.IndentationSize * view.WideSpaceWidth;
+        if (!ReferenceEquals(_source, source) || !ReferenceEquals(_highlighting, highlighting) ||
+            _typeface != typeface || _fontSize != editor.FontSize || _tabWidth != tabWidth ||
+            _direction != editor.FlowDirection || !ReferenceEquals(_foreground, editor.Foreground))
+            Clear();
+        _source = source;
+        _highlighting = highlighting;
+        _typeface = typeface;
+        _fontSize = editor.FontSize;
+        _tabWidth = tabWidth;
+        _direction = editor.FlowDirection;
+        _foreground = editor.Foreground;
+        _display = display;
+        _firstLine = projection.Rows[0].SourceLine;
+        var previous = _rows;
+        _rows = new(projection.Rows.Length);
+        try
+        {
+            ApplyRows(source, projection, highlighting, previous);
+        }
+        finally
+        {
+            foreach (var row in previous.Values) row.Dispose();
+        }
+        InvalidateVisual();
+    }
+
+    private void ApplyRows(DocumentDisplaySession source, DocumentRowProjection projection,
+        SyntaxHighlighting? highlighting, Dictionary<long, ContextualRowControl> previous)
+    {
         var budget = DocumentDisplaySession.MaximumSliceChars;
         var spanIndex = 0;
         if (highlighting is not null)
@@ -60,9 +98,17 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         }
         for (var index = 0; index < projection.Rows.Length; index++)
         {
-            if (projection.GetContext(index) is not { VisibleLength: > 0 } range || range.Length > budget
-                || source.ReadRowContext(projection, index) is not { } text) continue;
-            var control = new ContextualRowControl { FlowDirection = editor.FlowDirection };
+            if (projection.GetContext(index) is not { VisibleLength: > 0 } range || range.Length > budget) continue;
+            var line = projection.Rows[index].SourceLine;
+            if (previous.TryGetValue(line, out var cached) && cached.TryReuseLayout(range))
+            {
+                previous.Remove(line);
+                _rows.Add(line, cached);
+                budget -= range.Length;
+                ReusedLayouts++;
+                continue;
+            }
+            if (source.ReadRowContext(projection, index) is not { } text) continue;
             List<(int Start, int End, IBrush Brush)>? colors = null;
             if (highlighting is not null)
             {
@@ -81,12 +127,11 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
                     (colors ??= []).Add((start, end, new SolidColorBrush(color)));
                 }
             }
-            control.SetRow(text, range, new Typeface(editor.FontFamily), editor.FontSize, editor.Foreground,
-                editor.Options.IndentationSize * view.WideSpaceWidth, colors);
-            _rows.Add(index, control);
+            var control = new ContextualRowControl { FlowDirection = _direction };
+            control.SetRow(text, range, _typeface, _fontSize, _foreground, _tabWidth, colors);
+            _rows.Add(line, control);
             budget -= range.Length;
         }
-        InvalidateVisual();
     }
 
     internal void SetSelection(long anchor, long caret)
@@ -98,7 +143,7 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
     internal bool TryHit(int row, Point point, DocumentDisplaySession source, out long? offset)
     {
         offset = null;
-        if (!ReferenceEquals(editor.Document, _display) || !_rows.TryGetValue(row, out var control)) return false;
+        if (!ReferenceEquals(editor.Document, _display) || !_rows.TryGetValue(_firstLine + row, out var control)) return false;
         if (control.TryHitSource(point, out var hit, clamp: true) &&
             source.TryGetGraphemeBounds(hit, out var before, out var after))
         {
@@ -115,7 +160,7 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         using var viewport = context.PushClip(new Rect(view.Bounds.Size));
         foreach (var line in view.VisualLines)
         {
-            if (!_rows.TryGetValue(line.FirstDocumentLine.LineNumber - 1, out var row)) continue;
+            if (!_rows.TryGetValue(_firstLine + line.FirstDocumentLine.LineNumber - 1, out var row)) continue;
             var y = line.VisualTop - view.VerticalOffset;
             var rect = new Rect(0, y, view.Bounds.Width, line.Height);
             if (editor.Background is { } background) context.FillRectangle(background, rect);
@@ -131,6 +176,8 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         foreach (var row in _rows.Values) row.Dispose();
         _rows.Clear();
         _display = null;
+        _source = null;
+        _highlighting = null;
         InvalidateVisual();
     }
 }

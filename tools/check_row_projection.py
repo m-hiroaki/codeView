@@ -89,7 +89,7 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
     if contextual and expected["checksInitialGrapheme"]:
         required.update(("routed-shift-selects-whole-grapheme", "routed-shift-returns-to-grapheme-start"))
     if contextual and expected["checksContextualSyntax"]:
-        required.add("contextual-syntax-keeps-original-comment-color")
+        required.update(("contextual-syntax-keeps-original-comment-color", "contextual-layout-reused-after-horizontal-scroll"))
     if (set(names) != required or len(names) != len(required)
             or checks.get("SourceSha256") != expected["bodySha256"]
             or checks.get("Utf16Characters") != expected["characters"] or checks.get("SourceLineCount") != expected["lines"]

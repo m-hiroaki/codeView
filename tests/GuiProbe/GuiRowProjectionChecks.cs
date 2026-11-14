@@ -35,6 +35,9 @@ internal sealed partial class GuiPerformanceProbe
             {
                 await _viewModel.PendingWork.WaitAsync(ct);
                 var line = original.GetLineByNumber(original.LineCount - 1);
+                source.SetViewport(line.LineNumber, 0);
+                RenderInteractive();
+                var previousLayouts = _contextLayer!.ReusedLayouts;
                 source.SetViewport(line.LineNumber, 3);
                 RenderInteractive();
                 var spans = _contextualSyntax?.Spans;
@@ -46,6 +49,8 @@ internal sealed partial class GuiPerformanceProbe
                     Color.TryParse(brush, out var color) &&
                     _contextLayer!.RowHasForeground(0, color) &&
                     _interactiveRows!.TryDisplayPosition(line.Offset + 3, out var start) && start == 0);
+                Check("contextual-layout-reused-after-horizontal-scroll",
+                    _contextLayer.ReusedLayouts > previousLayouts);
                 source.SetViewport(1, 0);
                 RenderInteractive();
             }

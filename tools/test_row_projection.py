@@ -71,6 +71,7 @@ class RowProjectionEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Source, checks'):
             validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         checks['Checks'].append('contextual-syntax-keeps-original-comment-color')
+        checks['Checks'].append('contextual-layout-reused-after-horizontal-scroll')
         validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         with self.assertRaisesRegex(ValueError, 'ContextualDrawnRows'):
             self.validate()

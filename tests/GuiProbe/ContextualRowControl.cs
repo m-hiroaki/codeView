@@ -41,17 +41,31 @@ internal sealed class ContextualRowControl : Control, IDisposable
         var layout = new TextLayout(new RowTextSource(text, run, colors), paragraph);
         try
         {
-            _visible = layout.HitTestTextRange(range.VisibleOffset, range.VisibleLength)
-                .Where(rect => rect.Width > 0).ToArray();
-            _origin = _visible.Length > 0 ? _visible.Min(rect => rect.Left) : 0;
-            _range = range;
             _layout = layout;
+            UpdateVisibleRange(range);
         }
         catch
         {
+            _layout = null;
             layout.Dispose();
             throw;
         }
+    }
+
+    internal bool TryReuseLayout(DocumentRowContext range)
+    {
+        if (_layout is null || range.SourceOffset != _range.SourceOffset || range.Length != _range.Length)
+            return false;
+        if (range != _range) UpdateVisibleRange(range);
+        return true;
+    }
+
+    private void UpdateVisibleRange(DocumentRowContext range)
+    {
+        _visible = _layout!.HitTestTextRange(range.VisibleOffset, range.VisibleLength)
+            .Where(rect => rect.Width > 0).ToArray();
+        _origin = _visible.Length > 0 ? _visible.Min(rect => rect.Left) : 0;
+        _range = range;
         InvalidateMeasure();
         InvalidateVisual();
     }
