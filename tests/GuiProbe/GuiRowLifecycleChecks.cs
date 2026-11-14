@@ -143,6 +143,20 @@ internal sealed partial class GuiPerformanceProbe
                 hit is not null && panel.CanActivate(hit) && panel.Rows.Any(row => row.FullPath == definition));
 
             await SendSymbolKeyAsync(KeyModifiers.None);
+            var candidate = panel.Rows.SingleOrDefault(row => row.FullPath == definition && row.Hit.Range.Offset == "class ".Length);
+            RequireRows(panel.Query == name && candidate is not null && panel.CanActivate(candidate),
+                "Definition search did not report the original declaration.");
+            if (_viewModel.FilePath != definition)
+            {
+                var results = _window.FindControl<ListBox>("SearchResultsList")!;
+                results.SelectedItem = candidate;
+                var enter = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter };
+                _scriptedRowKey = enter;
+                try { results.RaiseEvent(enter); }
+                finally { _scriptedRowKey = null; }
+                RequireRows(enter.Handled, "Definition result was not activated.");
+                await _viewModel.PendingWork.WaitAsync(ct);
+            }
             while (_viewModel.FilePath != definition || _displaySession?.SelectionLength != name.Length)
                 await RowFrame(ct);
             using (var copy = _displaySession!.BeginCopy())
