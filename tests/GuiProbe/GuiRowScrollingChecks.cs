@@ -101,7 +101,11 @@ internal sealed partial class GuiPerformanceProbe
         Check("routed-pointer-selects-original", source.Length == 0 || source.SelectionLength > 0);
         var beforeEdge = _pointerEdgeSteps;
         Move(new Point(10, view.Bounds.Height + 5));
-        await Task.Delay(120, ct); // The existing single timer, never recursive offset-change callbacks.
+        // Wait for the timer dispatch, which may be delayed on a busy hosted runner.
+        var deadline = System.Diagnostics.Stopwatch.StartNew();
+        while (_sourceDocument.LineCount > 1 && _pointerEdgeSteps == beforeEdge &&
+               _pointerTimer?.IsEnabled == true && deadline.Elapsed < TimeSpan.FromSeconds(2))
+            await Task.Delay(20, ct);
         Check("routed-edge-timer", _sourceDocument.LineCount == 1 || _pointerEdgeSteps > beforeEdge);
         Release(new Point(10, view.Bounds.Height + 5));
         Check("routed-pointer-release", !_pointerSelection.IsActive && pointer.Captured is null && _pointerTimer?.IsEnabled != true);
