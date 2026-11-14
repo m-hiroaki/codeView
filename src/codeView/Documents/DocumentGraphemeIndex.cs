@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Globalization;
 using AvaloniaEdit.Document;
 
 namespace CodeView.Documents;
@@ -57,7 +56,7 @@ internal sealed class DocumentGraphemeIndex
                 while (consumed < available)
                 {
                     ct.ThrowIfCancellationRequested();
-                    var size = StringInfo.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
+                    var size = IndicConjunctBreak.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
                     // The final cluster of a partial window can continue in the next window.
                     if (!eof && consumed + size == available) break;
                     consumed += size;
@@ -108,7 +107,7 @@ internal sealed class DocumentGraphemeIndex
                 while (consumed < available)
                 {
                     ct.ThrowIfCancellationRequested();
-                    var size = StringInfo.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
+                    var size = IndicConjunctBreak.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
                     if (!eof && consumed + size == available) break;
                     var end = start + consumed + size;
                     if (end >= offset)

@@ -5,7 +5,6 @@ using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CodeView.Documents;
 using CodeView.Contracts;
-using System.Globalization;
 
 namespace CodeView.Presentation;
 
@@ -129,7 +128,7 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
                         continue;
                     var start = (int)(span.Offset - range.SourceOffset);
                     var end = start + span.Length;
-                    boundaries ??= StringInfo.ParseCombiningCharacters(text);
+                    boundaries ??= IndicConjunctBreak.GetBoundaries(text);
                     if (Array.BinarySearch(boundaries, start) < 0 ||
                         (end != text.Length && Array.BinarySearch(boundaries, end) < 0)) continue;
                     (colors ??= []).Add((start, end, new SolidColorBrush(color)));

@@ -12,7 +12,7 @@
 
 ## 実装範囲
 
-- 不変のReadLeaseを明示的に渡して構築する。約4 Ki UTF-16間隔で、StringInfoが確定した文字素境界だけを保存する。大きな本文では保持予算に合わせて間隔を広げる。
+- 不変のReadLeaseを明示的に渡して構築する。約4 Ki UTF-16間隔で、確定した文字素境界だけを保存する。大きな本文では保持予算に合わせて間隔を広げる。
 - 本文全体を複製しない。作業窓は最大64 Ki UTF-16、原文読取は既存の16 Ki単位。境界照会は要求位置までの距離に128単位を足した範囲から始め、境界が確定しない場合だけ窓を広げる。索引配列と管理情報の保守的な見積りを合わせて1 MiB以下に制限する。
 - 窓末尾の最後の文字素は、EOF以外では確定しない。サロゲートの途中を再開位置にしない。確定境界から再開し、長いprefixを照会のたびに全走査しない。
 - 照会も一つの作業窓まで。確定できなければfalseを返す。単一文字素が窓を超えると構築を止め、`IndexedLength`と`IsComplete=false`で未解決のsuffixを明示する。未解決位置の境界を推定しない。
@@ -26,7 +26,9 @@
 
 [Unicode 16.0.0の公式データ](https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.txt)は、[.NET 10のデータ版](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/Tools/GenUnicodeProp/GenUnicodeProp.csproj)に合わせてテスト専用に同梱する。SHA-256は `ee2b9354d270ac061b29f09662cafea06341d77e704b8cc6bd72aaeeda363cb5`。同梱のLICENSE.txtはUnicode License V3。
 
-公式1,093例の全UTF-16位置を、本文冒頭と4,096単位の索引再開点の2条件で照合する。1,086例は公式境界と一致する。7例は[StringInfoのGB9c未対応](https://github.com/dotnet/runtime/issues/111546)による差として件数を検証し、その7例でも索引がStringInfoの全文境界からずれないことを確認する。GB9cの境界是正は未完了。
+初回照合では、[.NET 10のStringInfoがGB9cを実装していない](https://github.com/dotnet/runtime/issues/111546)ため、公式1,093例中7例で差が出た。索引の分割にGB9cを補い、本文冒頭と4,096単位の索引再開点で全例のUTF-16位置を公式境界と照合する。64 Ki窓の継ぎ目では、ZWJで結合が続く場合とZWNJで切れる場合も確認する。
+
+GB9cに使う3種類のIndic_Conjunct_Break範囲を[Unicode 16.0.0のDerivedCoreProperties.txt](https://www.unicode.org/Public/16.0.0/ucd/DerivedCoreProperties.txt)から取り、同じ値で隣接する範囲を統合する。原典のSHA-256は `39d35161f2954497f69e08bdb9e701493f476a3d30222de20028feda36c1dabd`。StringInfoの分割境界の直後が子音の場合に限り、直前に子音とリンカーの列があるかを確認する。試作の構文色の境界検査にも同じ分割を使う。
 
 索引がある行別投影では、表示開始位置を手前の文字素境界へ戻し、その位置から既存の表示文字数予算内に収まる境界までを取得する。文字素が1つも収まらないか境界を確定できない行は、専用GUIの余白に交差印を出し、空の表示位置から原文への移動を拒否する。選択範囲のコピーには従来の原文を使う。
 

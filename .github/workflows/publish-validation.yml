@@ -78,6 +78,7 @@ jobs:
             'upstream/Swift-grammar.txt',
             'upstream/TextMateSharp.txt',
             'upstream/Tinymist.txt',
+            'upstream/Unicode.txt',
             'upstream/README.md',
             'Avalonia.Angle.Windows.Natives/LICENSE',
             'HarfBuzzSharp.NativeAssets.Win32/LICENSE.txt',
@@ -90,7 +91,7 @@ jobs:
             $file = Get-Item (Join-Path $payload $notice) -ErrorAction Stop
             if ($file.Length -eq 0) { throw "Empty notice $notice" }
           }
-          foreach ($name in @('Swift-grammar.txt', 'Tinymist.txt')) {
+          foreach ($name in @('Swift-grammar.txt', 'Tinymist.txt', 'Unicode.txt')) {
             $source = Get-FileHash (Join-Path 'build/licenses' $name)
             $published = Get-FileHash (Join-Path "$payload/upstream" $name)
             if ($source.Hash -ne $published.Hash) { throw "Notice content differs: $name" }

@@ -8,19 +8,18 @@ public sealed class DocumentGraphemeIndexTests
 {
     [TestCase("")]
     [TestCase("a\r\nb\rc\n\t日本語")]
-    [TestCase("Ae\u0301B👩‍💻🇯🇵각क्‍ष\u0600a سلام אבג")]
+    [TestCase("Ae\u0301B👩‍💻🇯🇵각क्‌ष\u0600a سلام אבג")]
     [TestCase("\ud800a\udc00\ud800\ud800\udc00")]
     public void EveryOffsetMatchesWholeStringOracle(string text) => Verify(text, everyOffset: true);
 
     [TestCase(false)]
     [TestCase(true)]
-    public void Unicode16BoundariesAndTheRuntimeLimitAreAccountedFor(bool afterCheckpoint)
+    public void AllUnicode16BoundariesMatchTheOfficialData(bool afterCheckpoint)
     {
         var data = Path.Combine(TestContext.CurrentContext.TestDirectory,
             "Documents", "TestData", "Unicode16", "GraphemeBreakTest.txt");
         var prefix = afterCheckpoint ? new string('x', 4095) + '\0' : string.Empty;
         var cases = 0;
-        var differences = 0;
         var lineNumber = 0;
         foreach (var line in File.ReadLines(data))
         {
@@ -38,14 +37,7 @@ public sealed class DocumentGraphemeIndexTests
             }
             cases++;
             var sample = text.ToString();
-            var wholeString = StringInfo.ParseCombiningCharacters(sample).Append(sample.Length).ToArray();
             var boundaries = expected.ToArray();
-            if (!boundaries.SequenceEqual(wholeString))
-            {
-                Assert.That(line, Does.Contain("[9.3]"), $"Unicode 16 line {lineNumber}");
-                differences++;
-                boundaries = wholeString;
-            }
 
             using var builder = new DocumentBuilder(collectGraphemeIndex: true);
             builder.Append(prefix.AsMemory());
@@ -64,14 +56,30 @@ public sealed class DocumentGraphemeIndexTests
             }
         }
         Assert.That(cases, Is.EqualTo(1093));
-        // .NET 10 StringInfo does not implement GB9c, tracked in dotnet/runtime#111546.
-        Assert.That(differences, Is.EqualTo(7));
+    }
+
+    [TestCase("क्‍ष्‍ण", true)]
+    [TestCase("क्‌ष", false)]
+    public void ConjunctAtAWindowSeamRespectsJoiners(string sample, bool joined)
+    {
+        var start = DocumentGraphemeIndex.WindowChars - 2;
+        using var builder = new DocumentBuilder(collectGraphemeIndex: true);
+        builder.Append(new string('x', start).AsMemory());
+        builder.Append((sample + "z").AsMemory());
+        using var handle = builder.Complete();
+        using var lease = handle.AcquireReadView();
+        var index = handle.GraphemeIndex!;
+        Assert.That(index.IsComplete, Is.True);
+        Assert.That(index.TryGetBounds(lease, start + 3, out var before, out var after), Is.True);
+        Assert.That((before, after), Is.EqualTo(joined
+            ? ((long)start, (long)start + sample.Length)
+            : ((long)start + 3, (long)start + 3)));
     }
 
     [TestCase("e\u0301")]
     [TestCase("👩‍💻")]
     [TestCase("🇯🇵🇺🇸🇨")]
-    [TestCase("각क्‍ष\u0600a")]
+    [TestCase("각क्‌ष\u0600a")]
     [TestCase("\r\n")]
     public void RestartsAndWindowSeamsMatchOracle(string element)
     {

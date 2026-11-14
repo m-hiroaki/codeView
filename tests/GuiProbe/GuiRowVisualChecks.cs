@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Avalonia;
@@ -121,7 +120,7 @@ internal sealed partial class GuiPerformanceProbe
                     contextual.SetSelection(indexedSource.Anchor, indexedSource.Caret);
                 }
                 else contextual.Dispose();
-                var boundaries = StringInfo.ParseCombiningCharacters(c.Text).Append(c.Text.Length).ToHashSet();
+                var boundaries = IndicConjunctBreak.GetBoundaries(c.Text).Append(c.Text.Length).ToHashSet();
                 var startBoundary = boundaries.Contains((int)row.SourceOffset);
                 var endBoundary = boundaries.Contains((int)row.SourceOffset + row.Length);
                 reference.Document = CreateDisplayDocument(c.Text);

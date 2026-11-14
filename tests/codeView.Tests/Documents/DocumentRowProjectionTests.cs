@@ -132,6 +132,7 @@ public sealed class DocumentRowProjectionTests
 
     [TestCase("👩‍💻")]
     [TestCase("🇯🇵")]
+    [TestCase("क्‍ष")]
     public void WideFirstGraphemeCanUseSpareBudgetWithoutDisplacingLaterRows(string cluster)
     {
         using var handle = Create($"A{cluster}Z\r\n123456", collectGraphemeIndex: true);
