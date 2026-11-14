@@ -10,6 +10,52 @@ namespace CodeView.Tests.Presentation;
 internal sealed class MainWindowViewModelTests
 {
     private static async Task YieldTreeAsync() => await Task.Yield();
+
+    [Test]
+    public void SavedExclusionsApplyOnNextStartupAndUnchangedSettingsDoNotWrite() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-save-restart-").FullName;
+        var workspace = Directory.CreateDirectory(Path.Combine(root, "workspace")).FullName;
+        Directory.CreateDirectory(Path.Combine(workspace, "skip"));
+        var locations = new SettingsLocations(Path.Combine(root, "portable.json"), Path.Combine(root, "user.json"));
+        try
+        {
+            await UseViewAsync(async view =>
+            {
+                Assert.That(view.EditableSettings, Is.Not.Null);
+                Assert.That(File.Exists(locations.UserFile), Is.False);
+                await view.SaveExcludedNamesAsync(SettingsSnapshot.Default.ExcludedDirectoryNames.ToArray());
+                Assert.That(File.Exists(locations.UserFile), Is.False);
+                await view.SaveExcludedNamesAsync(["skip"]);
+                Assert.That(view.Status, Does.Contain("再起動後"));
+                Assert.That(view.FileTree.Rows.Select(row => row.Name), Does.Contain("skip"));
+            });
+            await UseViewAsync(view =>
+            {
+                Assert.That(view.FileTree.Rows.Select(row => row.Name), Does.Not.Contain("skip"));
+                Assert.That(view.EditableSettings?.ExcludedDirectoryNames, Is.EqualTo(new[] { "skip" }));
+                return Task.CompletedTask;
+            });
+        }
+        finally { Directory.Delete(root, true); }
+
+        async Task UseViewAsync(Func<MainWindowViewModel, Task> verify)
+        {
+            var access = new SourceAccess();
+            using var operations = new AppOperations(new FileReader(access), new AvaloniaEditDocumentAdapter(), new DirectoryReader(access));
+            var view = new MainWindowViewModel(operations, new SettingsStore(locations), YieldTreeAsync);
+            try
+            {
+                await view.InitializeAsync([workspace]);
+                await verify(view);
+            }
+            finally
+            {
+                view.Stop();
+                await view.PendingWork;
+            }
+        }
+    });
     [Test]
     public void ShutdownWaitsForManualRefreshAndCannotRestoreWorkspace() => SingleThreadTestContext.Run(async () =>
     {
