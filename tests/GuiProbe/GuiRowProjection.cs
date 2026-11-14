@@ -62,6 +62,8 @@ internal sealed partial class GuiPerformanceProbe
     private KeyEventArgs? _scriptedRowKey;
     private PointerEventArgs? _scriptedRowPointer;
     private int _rowCount;
+    private TextDocument? _rowDisplay;
+    private long _reusedRowDisplays;
     private bool _sawClippedRow;
     private const int RowColumns = 512;
 
@@ -92,14 +94,25 @@ internal sealed partial class GuiPerformanceProbe
         _revealRowsPending = true;
     }
 
-    private TextDocument BuildRowDocument(bool reveal)
+    private TextDocument BuildRowDocument(bool reveal, bool reuseDisplay = false)
     {
         InstallSourceScrollBars();
         if (reveal) RevealRowCaret();
         _rowCount = RequestedRowCount();
+        var previousText = _interactiveRows?.Text;
         _interactiveRows = _displaySession!.CreateRowProjection(_rowCount, RowColumns, _windowChars);
         foreach (var row in _interactiveRows.Rows) _sawClippedRow |= row.LeftClipped || row.RightClipped;
-        var display = CreateDisplayDocument(_interactiveRows.Text);
+        // Keep the editor's visual lines when different source positions display the same text.
+        // The source mapping still changes with every new projection.
+        TextDocument display;
+        if (reuseDisplay && _rowDisplay is { } current && ReferenceEquals(current, _editor.Document) &&
+            string.Equals(previousText, _interactiveRows.Text, StringComparison.Ordinal))
+        {
+            display = current;
+            _reusedRowDisplays++;
+        }
+        else display = CreateDisplayDocument(_interactiveRows.Text);
+        _rowDisplay = display;
         if (_contextualRows)
         {
             var view = _editor.TextArea.TextView;
@@ -131,10 +144,14 @@ internal sealed partial class GuiPerformanceProbe
             var source = _displaySession!;
             if (_interactiveRows is null || _rowCount != RequestedRowCount() ||
                 !source.TryGetRowSelection(_interactiveRows, out _))
-                _editor.Document = BuildRowDocument(reveal: false);
+            {
+                var display = BuildRowDocument(reveal: false, reuseDisplay: true);
+                if (!ReferenceEquals(display, _editor.Document)) _editor.Document = display;
+            }
             if (!source.TryGetRowSelection(_interactiveRows!, out var selection))
                 throw new InvalidOperationException("現在の行投影に選択を対応できません。");
-            _editor.Select(0, 0); // Synthetic separators must never enter native selection/copy.
+            if (_editor.SelectionLength != 0)
+                _editor.Select(0, 0); // Synthetic separators must never enter native selection/copy.
             _editor.TextArea.Caret.CaretBrush = Brushes.Transparent;
             if (selection!.CaretOffset is { } caret) _editor.CaretOffset = caret;
             _rowRenderer!.Apply(_editor.Document, _interactiveRows!, selection);
@@ -157,6 +174,7 @@ internal sealed partial class GuiPerformanceProbe
     private void ClearRowProjection()
     {
         _interactiveRows = null;
+        _rowDisplay = null;
         _contextLayer?.Clear();
         _rowRenderer?.Clear();
         _rowMargin?.Clear();

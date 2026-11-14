@@ -204,6 +204,9 @@ internal sealed partial class GuiPerformanceProbe
             "Use the large single-line or mixed-line fixture.");
         var firstSeen = new HashSet<long>();
         var horizontalSeen = new HashSet<long>();
+        var reusedBefore = _reusedRowDisplays;
+        var display = _editor.Document;
+        var firstRows = _interactiveRows!;
         var previous = Stopwatch.GetTimestamp();
         for (var step = 0; step < 64; step++)
         {
@@ -219,6 +222,13 @@ internal sealed partial class GuiPerformanceProbe
             RequireRows(source.FirstVisibleLine == firstLine && source.HorizontalSourceOffset == horizontal &&
                 source.Anchor == 0 && source.Caret == 0 && _editor.Document!.TextLength <= _windowChars,
                 "Large viewport or independent source caret mismatch.");
+            if (original.LineCount == 1 && step == 1)
+            {
+                RequireRows(ReferenceEquals(display, _editor.Document) &&
+                    !source.TryMoveFromRows(firstRows, 0) &&
+                    _interactiveRows!.TrySourcePosition(0, out var mapped) && mapped == horizontal,
+                    "Reused display must use the new mapping and reject the previous projection.");
+            }
             firstSeen.Add(firstLine);
             horizontalSeen.Add(horizontal);
             await RowFrame(ct);
@@ -228,7 +238,7 @@ internal sealed partial class GuiPerformanceProbe
         }
         _rowResults = new { LargeFixture = true, FirstLinesVisited = firstSeen.Count,
             HorizontalPositionsVisited = horizontalSeen.Count, OriginalLength = source.Length,
-            MaximumLineLength = longest, Contextual = _contextualRows };
+            MaximumLineLength = longest, Contextual = _contextualRows, ReusedDisplays = _reusedRowDisplays - reusedBefore };
         Finish();
     }
 

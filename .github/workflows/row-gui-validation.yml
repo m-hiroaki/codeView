@@ -91,6 +91,7 @@ jobs:
                   $result.RowProjectionChecks.Contextual -ne ($context -eq '1') -or
                   $result.ScrollSynchronousMilliseconds.Count -ne 64 -or
                   $result.RowProjectionChecks.HorizontalPositionsVisited -ne 32 -or
+                  ($fixture -eq 'single' -and $result.RowProjectionChecks.ReusedDisplays -lt 30) -or
                   ($fixture -eq 'mixed' -and $result.RowProjectionChecks.FirstLinesVisited -le 1)) {
                   throw "Missing large row evidence: $fixture/$context"
               }
