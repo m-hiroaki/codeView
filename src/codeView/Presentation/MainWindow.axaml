@@ -91,20 +91,29 @@
                           ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" Focusable="True" Background="#303A48"
                           IsVisible="{Binding IsTreeVisible}" AutomationProperties.Name="ファイルツリーの幅を調整" />
             <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
-                <ListBox x:Name="TabList" Height="48" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
+                <ListBox x:Name="TabList" MinHeight="28" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
                          SelectedItem="{Binding SelectedTab, Mode=TwoWay}" SelectionMode="Single"
                          SelectionChanged="TabSelectionChanged"
                          Background="#202630" BorderThickness="0" Padding="0"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          AutomationProperties.Name="開いているファイル">
                     <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
-                    <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="10,3" /></Style></ListBox.Styles>
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="MinHeight" Value="28" />
+                            <Setter Property="Padding" Value="10,0" />
+                        </Style>
+                    </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TabViewModel">
                             <Grid ColumnDefinitions="*,Auto,Auto" ToolTip.Tip="{Binding FullPath}" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Label}" MaxWidth="230" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" />
                                 <TextBlock Grid.Column="1" Text="{Binding StatusText}" Margin="6,0" Foreground="#E6C88C" FontSize="10" VerticalAlignment="Center" />
-                                <Button Grid.Column="2" Content="×" Click="CloseTabClicked" Focusable="False" Background="Transparent" BorderThickness="0" Padding="4,0" AutomationProperties.Name="タブを閉じる" />
+                                <Button Grid.Column="2" Content="×" Click="CloseTabClicked" Focusable="False"
+                                        Width="24" Height="24" MinWidth="0" MinHeight="0" VerticalAlignment="Center"
+                                        Background="Transparent" BorderThickness="0" Padding="0"
+                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                        AutomationProperties.Name="タブを閉じる" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

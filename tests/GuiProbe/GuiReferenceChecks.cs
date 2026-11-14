@@ -506,6 +506,12 @@ internal sealed partial class GuiPerformanceProbe
         var second = _viewModel.Tabs[1];
         require(list.IsEffectivelyVisible && first.Label.Contains("first") && second.Label.Contains("second")
             && _viewModel.Tabs.Count == 2 && _editor.Document.Text == "second body", "tabs-same-name-distinct-labels");
+        var item = (ListBoxItem)list.ContainerFromItem(second)!;
+        var close = item.GetVisualDescendants().OfType<Button>().Single();
+        var closeOrigin = close.TranslatePoint(default, item);
+        require(Math.Abs(list.Bounds.Height - 28) < 1 && close.Bounds.Height >= 23
+            && closeOrigin is { Y: >= 0 } origin && origin.Y + close.Bounds.Height <= item.Bounds.Height + 0.5,
+            "tabs-compact-height-and-close-button");
         var secondDocument = _editor.Document;
 
         list.SelectedItem = first;
