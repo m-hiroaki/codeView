@@ -5,6 +5,7 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodeView.Documents;
 
@@ -51,6 +52,36 @@ internal sealed partial class GuiPerformanceProbe
                     _interactiveRows!.TryDisplayPosition(line.Offset + 3, out var start) && start == 0);
                 Check("contextual-layout-reused-after-horizontal-scroll",
                     _contextLayer.ReusedLayouts > previousLayouts);
+                await CheckInFileMatchAsync("色分け", line.Offset + 3, contextualHighlight: true);
+            }
+            else if (_contextualRows && body.StartsWith("before\r\n", StringComparison.Ordinal) &&
+                     body.IndexOf("line99 日本語😀", StringComparison.Ordinal) is var match && match >= 0)
+            {
+                await CheckInFileMatchAsync("line99 日本語😀", match, contextualHighlight: true);
+                if (body.IndexOf("LONG_MATCH", StringComparison.Ordinal) is var longMatch && longMatch >= 0)
+                    await CheckInFileMatchAsync("LONG_MATCH", longMatch, contextualHighlight: false);
+            }
+
+            async Task CheckInFileMatchAsync(string query, int offset, bool contextualHighlight)
+            {
+                source.MoveCaret(0);
+                var search = _viewModel.InFileSearch;
+                search.Query = query;
+                search.IsVisible = true;
+                await search.PendingWork.WaitAsync(ct);
+                var rendered = _rowRenderer!.DrawnMatches;
+                _window.FindControl<Button>("InFileNext")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                while (source.SelectionStart != offset || source.SelectionLength != query.Length)
+                    await RowFrame(ct);
+                using (var copy = source.BeginCopy())
+                    Check(contextualHighlight ? "contextual-in-file-next-selects-original" : "long-line-in-file-selects-original",
+                        copy.ReadText(ct) == query);
+                await RowFrame(ct);
+                Check(contextualHighlight ? "contextual-in-file-highlight-is-visible" : "long-line-in-file-highlight-is-visible",
+                    contextualHighlight ? _contextLayer!.MatchRectangleCount > 0 : _rowRenderer.DrawnMatches > rendered);
+                search.IsVisible = false;
+                search.Query = "";
+                source.MoveCaret(0);
                 source.SetViewport(1, 0);
                 RenderInteractive();
             }

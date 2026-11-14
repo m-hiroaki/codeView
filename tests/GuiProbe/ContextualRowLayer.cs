@@ -4,6 +4,7 @@ using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CodeView.Documents;
+using CodeView.Contracts;
 using System.Globalization;
 
 namespace CodeView.Presentation;
@@ -25,6 +26,13 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
     internal long DrawnRows { get; private set; }
     internal long ResolvedHits { get; private set; }
     internal long ReusedLayouts { get; private set; }
+    internal int MatchRectangleCount => _rows.Values.Sum(row => row.MatchRectangleCount);
+
+    internal void SetMatches(IReadOnlyList<TextRange> matches)
+    {
+        foreach (var row in _rows.Values) row.SetMatches(matches);
+        InvalidateVisual();
+    }
 
     internal bool TryGetHorizontalOffset(double delta, DocumentDisplaySession source, out long column)
     {

@@ -39,6 +39,9 @@ def fixture(path):
             "firstLineHasText": bool(text and text[0] not in "\r\n"),
             "checksInitialGrapheme": text.startswith("a\u0301"),
             "checksContextualSyntax": text.endswith("// 色分け 日本語😀\r\n"),
+            "checksContextualSearch": text.endswith("// 色分け 日本語😀\r\n") or
+                (text.startswith("before\r\n") and "line99 日本語😀" in text),
+            "checksLongLineSearch": text.startswith("before\r\n") and "line99 日本語😀" in text and "LONG_MATCH" in text,
             "checksTrailingBlank": re.split(r"\r\n|\r|\n", text, maxsplit=1)[0] == "before",
             "checksLongLineEnd": max(lengths[:2]) > 512,
             "maximumLineLength": max(lengths)}
@@ -90,6 +93,10 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
         required.update(("routed-shift-selects-whole-grapheme", "routed-shift-returns-to-grapheme-start"))
     if contextual and expected["checksContextualSyntax"]:
         required.update(("contextual-syntax-keeps-original-comment-color", "contextual-layout-reused-after-horizontal-scroll"))
+    if contextual and expected["checksContextualSearch"]:
+        required.update(("contextual-in-file-next-selects-original", "contextual-in-file-highlight-is-visible"))
+    if contextual and expected["checksLongLineSearch"]:
+        required.update(("long-line-in-file-selects-original", "long-line-in-file-highlight-is-visible"))
     if (set(names) != required or len(names) != len(required)
             or checks.get("SourceSha256") != expected["bodySha256"]
             or checks.get("Utf16Characters") != expected["characters"] or checks.get("SourceLineCount") != expected["lines"]

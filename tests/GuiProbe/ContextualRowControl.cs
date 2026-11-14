@@ -5,6 +5,8 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
 using CodeView.Documents;
+using CodeView.Contracts;
+using CodeView.Search;
 
 namespace CodeView.Presentation;
 
@@ -15,6 +17,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private DocumentRowContext _range;
     private Rect[] _visible = [];
     private Rect[] _selection = [];
+    private Rect[] _matches = [];
     private Point? _caret;
     private IPointer? _dragPointer;
     private DispatcherTimer? _dragTimer;
@@ -22,6 +25,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
     private double _origin;
 
     internal ReadOnlySpan<Rect> SelectionBounds => _selection;
+    internal int MatchRectangleCount => _matches.Length;
     internal Point? CaretPosition => _caret;
     internal event Func<Point, long, bool, bool>? SourceSelectionRequested;
     internal Func<Point, ContextualRowControl?>? FindDragRow { get; set; }
@@ -86,23 +90,47 @@ internal sealed class ContextualRowControl : Control, IDisposable
             var visibleEnd = visibleStart + _range.VisibleLength;
             var first = Math.Max(visibleStart, Math.Min(anchor, caret));
             var last = Math.Min(visibleEnd, Math.Max(anchor, caret));
-            var shift = new Vector(-_origin, 0);
             if (last > first)
             {
-                _selection = layout.HitTestTextRange((int)(first - _range.SourceOffset), (int)(last - first))
-                    .SelectMany(rect => _visible.Select(clip => rect.Intersect(clip)))
-                    .Where(rect => rect.Width > 0 && rect.Height > 0)
-                    .Select(rect => rect.Translate(shift)).ToArray();
+                _selection = ClipRange(layout, (int)(first - _range.SourceOffset), (int)(last - first)).ToArray();
             }
             _caret = GetCaretRectangle(caret)?.Position;
         }
         InvalidateVisual();
     }
 
+    internal void SetMatches(IReadOnlyList<TextRange> matches)
+    {
+        _matches = [];
+        if (_layout is not { } layout || _visible.Length == 0 || matches.Count == 0) return;
+        var first = _range.SourceOffset + _range.VisibleOffset;
+        var last = first + _range.VisibleLength;
+        var index = InFileSearch.LowerBound(matches, first);
+        if (index > 0 && matches[index - 1].End > first) index--;
+        var rectangles = new List<Rect>();
+        for (; index < matches.Count && matches[index].Offset <= last; index++)
+        {
+            var start = Math.Max(first, matches[index].Offset);
+            var end = Math.Min(last, matches[index].End);
+            if (end > start)
+                rectangles.AddRange(ClipRange(layout, (int)(start - _range.SourceOffset), (int)(end - start)));
+            else if (matches[index].Length == 0 && GetCaretRectangle(start) is { } caret)
+                rectangles.Add(caret);
+        }
+        _matches = rectangles.ToArray();
+    }
+
+    private IEnumerable<Rect> ClipRange(TextLayout layout, int start, int length) =>
+        layout.HitTestTextRange(start, length)
+            .SelectMany(rect => _visible.Select(clip => rect.Intersect(clip)))
+            .Where(rect => rect.Width > 0 && rect.Height > 0)
+            .Select(rect => rect.Translate(new Vector(-_origin, 0)));
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
         if (_layout is not { } layout) return;
+        foreach (var rect in _matches) context.FillRectangle(InFileMatchRenderer.Highlight, rect);
         foreach (var rect in _selection) context.FillRectangle(Brushes.DarkSlateBlue, rect);
         foreach (var rect in _visible)
         {
@@ -273,6 +301,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
         _layout = null;
         _visible = [];
         _selection = [];
+        _matches = [];
         _caret = null;
         _origin = 0;
         InvalidateMeasure();

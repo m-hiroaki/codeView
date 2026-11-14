@@ -575,7 +575,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
         }
         finally { _attaching = false; }
-        InFileSearch.Attach(tab, _tabManager.Tabs, _originalSourceOffsetsAvailable);
+        var canSearchOriginal = _originalSourceOffsetsAvailable;
+#if CODEVIEW_PERFORMANCE_PROBE
+        canSearchOriginal |= GuiPerformanceProbe.HasContextualRows;
+#endif
+        InFileSearch.Attach(tab, _tabManager.Tabs, canSearchOriginal);
         if (changedDocument)
         {
             RefreshSyntax(file);

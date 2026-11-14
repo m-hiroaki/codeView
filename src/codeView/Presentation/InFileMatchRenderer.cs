@@ -8,7 +8,7 @@ namespace CodeView.Presentation;
 
 internal sealed class InFileMatchRenderer(InFileSearchViewModel search) : IBackgroundRenderer
 {
-    private static readonly IBrush Highlight = new SolidColorBrush(Color.FromArgb(110, 219, 165, 49));
+    internal static readonly IBrush Highlight = new SolidColorBrush(Color.FromArgb(110, 219, 165, 49));
     public KnownLayer Layer => KnownLayer.Background;
 
     public void Draw(TextView view, DrawingContext context)

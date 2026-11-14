@@ -115,7 +115,7 @@
                             <TextBox x:Name="InFileQuery" Text="{Binding InFileSearch.Query, Mode=TwoWay}"
                                      PlaceholderText="ファイル内を検索" AutomationProperties.Name="ファイル内検索語" />
                             <Button Grid.Column="1" Content="前へ" Click="InFilePreviousClicked" Margin="6,0,0,0" />
-                            <Button Grid.Column="2" Content="次へ" Click="InFileNextClicked" Margin="6,0,0,0" />
+                            <Button x:Name="InFileNext" Grid.Column="2" Content="次へ" Click="InFileNextClicked" Margin="6,0,0,0" />
                             <Button Grid.Column="3" Content="閉じる" Click="HideInFileSearchClicked" Margin="6,0,0,0" />
                         </Grid>
                         <StackPanel Orientation="Horizontal" Spacing="8">

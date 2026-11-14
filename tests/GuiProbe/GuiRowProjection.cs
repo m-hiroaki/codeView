@@ -6,6 +6,8 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using CodeView.Documents;
+using CodeView.Contracts;
+using CodeView.Search;
 
 namespace CodeView.Presentation;
 
@@ -18,6 +20,24 @@ internal sealed partial class GuiPerformanceProbe
 
     internal static bool HasContextualRows => _instance is { _rowsEnabled: true, _contextualRows: true };
 
+    internal static bool TryReadContextualSelection(out (int Caret, int Start, int Length) selection)
+    {
+        selection = default;
+        if (!HasContextualRows || _instance!._displaySession is not { } source) return false;
+        selection = (checked((int)source.Caret), checked((int)source.SelectionStart), checked((int)source.SelectionLength));
+        return true;
+    }
+
+    internal static bool TryApplyContextualMatches(InFileSearchViewModel search)
+    {
+        if (!HasContextualRows) return false;
+        var probe = _instance!;
+        var matches = search.IsVisible ? search.Matches : [];
+        probe._contextLayer?.SetMatches(matches);
+        probe._rowRenderer?.SetMatches(matches);
+        return true;
+    }
+
     internal static bool TryApplyContextualSyntax(SyntaxHighlighting? highlighting)
     {
         if (!HasContextualRows) return false;
@@ -29,6 +49,7 @@ internal sealed partial class GuiPerformanceProbe
         {
             layer.Apply(probe._editor.Document, source, rows, highlighting);
             layer.SetSelection(source.Anchor, source.Caret);
+            TryApplyContextualMatches(probe._viewModel.InFileSearch);
         }
         return true;
     }
@@ -118,6 +139,7 @@ internal sealed partial class GuiPerformanceProbe
             if (selection!.CaretOffset is { } caret) _editor.CaretOffset = caret;
             _rowRenderer!.Apply(_editor.Document, _interactiveRows!, selection);
             KeepRowCaretPhysicallyVisible();
+            if (_contextualRows) TryApplyContextualMatches(_viewModel.InFileSearch);
             SyncSourceScrollBars();
             if (!source.TryGetRowSelection(_interactiveRows!, out selection))
                 throw new InvalidOperationException("再表示後の行投影が失効しました。");
@@ -170,23 +192,56 @@ internal sealed class RowProjectionRenderer(AvaloniaEdit.TextEditor editor) : IB
 {
     private TextDocument? _document;
     private DocumentRowSelection? _selection;
+    private DocumentRowProjection? _projection;
+    private IReadOnlyList<TextRange> _matches = [];
     public KnownLayer Layer => KnownLayer.Selection;
     public long DrawnSpans { get; private set; }
+    internal long DrawnMatches { get; private set; }
 
     public void Apply(TextDocument document, DocumentRowProjection rows, DocumentRowSelection selection)
     {
         if (document.TextLength != rows.Text.Length) throw new ArgumentException("行投影が表示文書と一致しません。");
         _document = document;
         _selection = selection;
+        _projection = rows;
         editor.TextArea.TextView.InvalidateLayer(Layer);
     }
 
-    public void Clear() { _document = null; _selection = null; }
+    public void Clear() { _document = null; _selection = null; _projection = null; _matches = []; }
+
+    internal void SetMatches(IReadOnlyList<TextRange> matches)
+    {
+        _matches = matches;
+        editor.TextArea.TextView.InvalidateLayer(Layer);
+    }
 
     public void Draw(TextView textView, DrawingContext context)
     {
         if (!textView.VisualLinesValid || !ReferenceEquals(textView.Document, _document) || _selection is null) return;
         using var clip = context.PushClip(new Rect(textView.Bounds.Size));
+        if (_matches.Count != 0 && _projection is { } projection)
+        {
+            foreach (var row in projection.Rows)
+            {
+                if (row.Length == 0) continue;
+                var end = row.SourceOffset + row.Length;
+                var index = InFileSearch.LowerBound(_matches, row.SourceOffset);
+                if (index > 0 && _matches[index - 1].End > row.SourceOffset) index--;
+                for (; index < _matches.Count && _matches[index].Offset <= end; index++)
+                {
+                    var match = _matches[index];
+                    var start = Math.Max(row.SourceOffset, match.Offset);
+                    var length = Math.Min(end, match.End) - start;
+                    if (length <= 0 && match.Length != 0) continue;
+                    var segment = new SimpleSegment(row.DisplayOffset + (int)(start - row.SourceOffset), (int)length);
+                    foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, segment))
+                    {
+                        context.FillRectangle(InFileMatchRenderer.Highlight, new Rect(rect.X, rect.Y, Math.Max(2, rect.Width), rect.Height));
+                        DrawnMatches++;
+                    }
+                }
+            }
+        }
         foreach (var span in _selection.Spans)
         {
             foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, new SimpleSegment(span.Offset, span.Length)))
