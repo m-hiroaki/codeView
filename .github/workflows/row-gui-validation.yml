@@ -90,12 +90,15 @@ jobs:
               if ($result.Failure -or !$result.RowProjectionChecks.LargeFixture -or
                   $result.RowProjectionChecks.Contextual -ne ($context -eq '1') -or
                   $result.ScrollSynchronousMilliseconds.Count -ne 64 -or
+                  $result.RowProjectionChecks.Updates.Count -ne 64 -or
                   $result.RowProjectionChecks.HorizontalPositionsVisited -ne 32 -or
                   ($fixture -eq 'single' -and $result.RowProjectionChecks.ReusedDisplays -lt 30) -or
                   ($fixture -eq 'mixed' -and $result.RowProjectionChecks.FirstLinesVisited -le 1)) {
                   throw "Missing large row evidence: $fixture/$context"
               }
               Write-Host "$fixture/$context attach=$($result.DocumentAttachmentMilliseconds) ms; max scroll=$(($result.ScrollSynchronousMilliseconds | Measure-Object -Maximum).Maximum) ms; memory=$($result.MemoryIncrease) bytes"
+              $slowest = $result.RowProjectionChecks.Updates | Sort-Object TotalMilliseconds -Descending | Select-Object -First 3
+              $slowest | ForEach-Object { Write-Host ($_ | ConvertTo-Json -Compress) }
             }
           }
           Remove-Item (Join-Path $root.FullName 'mixed.cs'), (Join-Path $root.FullName 'single.cs')

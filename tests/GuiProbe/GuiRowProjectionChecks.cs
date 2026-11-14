@@ -207,6 +207,7 @@ internal sealed partial class GuiPerformanceProbe
         var reusedBefore = _reusedRowDisplays;
         var display = _editor.Document;
         var firstRows = _interactiveRows!;
+        var updates = new List<object>(64);
         var previous = Stopwatch.GetTimestamp();
         for (var step = 0; step < 64; step++)
         {
@@ -214,11 +215,26 @@ internal sealed partial class GuiPerformanceProbe
             var firstLine = step < 32 ? Math.Min(2, original.LineCount)
                 : 1 + (long)(original.LineCount - 1) * (step - 32) / 31;
             if (step >= 32) horizontal = 0;
+            var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+            var gen0Before = GC.CollectionCount(0);
+            var reusedAtStart = _reusedRowDisplays;
             var start = Stopwatch.GetTimestamp();
             _sourceVerticalBar!.Value = firstLine;
+            var verticalEnd = Stopwatch.GetTimestamp();
             _sourceHorizontalBar!.Value = horizontal;
+            var horizontalEnd = Stopwatch.GetTimestamp();
             _editor.TextArea.TextView.EnsureVisualLines();
-            _scrollTimes.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+            var end = Stopwatch.GetTimestamp();
+            var total = Stopwatch.GetElapsedTime(start, end).TotalMilliseconds;
+            updates.Add(new { Step = step, FirstLine = firstLine, HorizontalOffset = horizontal,
+                TotalMilliseconds = total,
+                VerticalMilliseconds = Stopwatch.GetElapsedTime(start, verticalEnd).TotalMilliseconds,
+                HorizontalMilliseconds = Stopwatch.GetElapsedTime(verticalEnd, horizontalEnd).TotalMilliseconds,
+                VisualLinesMilliseconds = Stopwatch.GetElapsedTime(horizontalEnd, end).TotalMilliseconds,
+                AllocatedBytes = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore,
+                Gen0Collections = GC.CollectionCount(0) - gen0Before,
+                ReusedDisplays = _reusedRowDisplays - reusedAtStart });
+            _scrollTimes.Add(total);
             RequireRows(source.FirstVisibleLine == firstLine && source.HorizontalSourceOffset == horizontal &&
                 source.Anchor == 0 && source.Caret == 0 && _editor.Document!.TextLength <= _windowChars,
                 "Large viewport or independent source caret mismatch.");
@@ -238,7 +254,8 @@ internal sealed partial class GuiPerformanceProbe
         }
         _rowResults = new { LargeFixture = true, FirstLinesVisited = firstSeen.Count,
             HorizontalPositionsVisited = horizontalSeen.Count, OriginalLength = source.Length,
-            MaximumLineLength = longest, Contextual = _contextualRows, ReusedDisplays = _reusedRowDisplays - reusedBefore };
+            MaximumLineLength = longest, Contextual = _contextualRows,
+            ReusedDisplays = _reusedRowDisplays - reusedBefore, Updates = updates };
         Finish();
     }
 
