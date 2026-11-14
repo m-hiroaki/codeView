@@ -161,6 +161,31 @@ public sealed class SettingsStoreTests
     }
 
     [Test]
+    public async Task TemporaryFileCannotBeCreatedInReadOnlyPortableDirectory()
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            Assert.Ignore("Darwinのディレクトリ書込権限で検証。");
+            return;
+        }
+        var dir = Directory.CreateDirectory(Path.Combine(_root, "portable")).FullName;
+        var path = Path.Combine(dir, "settings.json");
+        await File.WriteAllTextAsync(path, "{}");
+        var store = new SettingsStore(new(path, _locations.UserFile));
+        var loaded = await store.LoadAsync(default);
+        var previousMode = File.GetUnixFileMode(dir);
+        try
+        {
+            File.SetUnixFileMode(dir, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+            Assert.That((await store.SaveAsync(loaded, new(["skip"]), [], default)).Status, Is.EqualTo(OperationStatus.Failure));
+            Assert.That(await File.ReadAllTextAsync(path), Is.EqualTo("{}"));
+            Assert.That(Directory.GetFileSystemEntries(dir), Is.EqualTo(new[] { path }));
+            Assert.That(File.Exists(_locations.UserFile), Is.False);
+        }
+        finally { File.SetUnixFileMode(dir, previousMode); }
+    }
+
+    [Test]
     public void CancelledLoadDoesNotReturnSuccess()
     {
         using var source = new CancellationTokenSource();

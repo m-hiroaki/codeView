@@ -9,6 +9,7 @@ import subprocess
 CHECKS = [
     'cli-first-folder-and-both-files-open', 'cli-status-reports-missing-and-skipped-folder',
     'cli-original-path-position-and-encoding-visible',
+    'settings-dialog-cancel-does-not-write', 'settings-dialog-saves-only-after-confirmation',
     'original-readonly-document', 'syntax-colors-visible', 'shift-f12-source-identifier', 'fixed-reference-options',
     'all-text-case-sensitive-word-results', 'visible-name-match-disclaimer', 'search-preserves-source',
     'menu-selection-reference-search', 'result-enter-original-cp932-selection',

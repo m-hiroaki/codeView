@@ -623,6 +623,7 @@ internal sealed partial class MainWindow : Window
             if (_viewModel.EditableSettings is not { } settings) return;
             var names = new TextBox
             {
+                Name = "ExcludedFolderNames",
                 AcceptsReturn = true,
                 MinHeight = 160,
                 MaxHeight = 320,
@@ -630,8 +631,8 @@ internal sealed partial class MainWindow : Window
                 Text = string.Join(Environment.NewLine, settings.ExcludedDirectoryNames)
             };
             Avalonia.Automation.AutomationProperties.SetName(names, "除外フォルダ名");
-            var cancel = new Button { Content = "キャンセル", IsCancel = true };
-            var save = new Button { Content = "保存" };
+            var cancel = new Button { Name = "CancelExcludedFolders", Content = "キャンセル", IsCancel = true };
+            var save = new Button { Name = "SaveExcludedFolders", Content = "保存" };
             var dialog = new Window
             {
                 Title = "除外フォルダの設定",

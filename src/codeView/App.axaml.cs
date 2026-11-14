@@ -38,7 +38,11 @@ internal sealed partial class App : Application
                 collectGraphemeIndex: rows && Environment.GetEnvironmentVariable("CODEVIEW_GUI_GRAPHEME_INDEX") == "1");
 #endif
             var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source));
-            var settings = new SettingsStore(SettingsLocations.ForApplication(AppContext.BaseDirectory));
+            var locations = SettingsLocations.ForApplication(AppContext.BaseDirectory);
+#if CODEVIEW_PERFORMANCE_PROBE
+            locations = GuiPerformanceProbe.SelectSettingsLocations(locations);
+#endif
+            var settings = new SettingsStore(locations);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(operations, settings), desktop.Args ?? []);
         }
 

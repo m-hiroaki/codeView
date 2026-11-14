@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Controls;
@@ -10,6 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using CodeView.Operations;
+using CodeView.Settings;
 
 namespace CodeView.Presentation;
 
@@ -17,6 +19,15 @@ internal sealed partial class GuiPerformanceProbe
 {
     private readonly bool _referenceChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_REFERENCE_CHECKS") == "1";
     private object? _referenceResults;
+
+    internal static SettingsLocations SelectSettingsLocations(SettingsLocations normal)
+    {
+        var output = Environment.GetEnvironmentVariable("CODEVIEW_GUI_PERF_REPORT");
+        return Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" &&
+            Environment.GetEnvironmentVariable("CODEVIEW_GUI_REFERENCE_CHECKS") == "1" &&
+            !string.IsNullOrWhiteSpace(output)
+            ? new(output + ".portable-settings.json", output + ".user-settings.json") : normal;
+    }
 
     private static void ValidateReferenceMode(bool hasInput)
     {
@@ -42,6 +53,7 @@ internal sealed partial class GuiPerformanceProbe
             deadline.CancelAfter(TimeSpan.FromSeconds(45));
             var ct = deadline.Token;
             await CheckStartupArgumentsAsync(Require, ct);
+            await CheckSettingsDialogAsync(Require, ct);
             var root = _output + ".inputs";
             Directory.CreateDirectory(root);
             var body = Path.Combine(root, "body.cs");
@@ -1061,6 +1073,42 @@ internal sealed partial class GuiPerformanceProbe
         splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragStartedEvent });
         splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragDeltaEvent, Vector = delta });
         splitter.RaiseEvent(new VectorEventArgs { RoutedEvent = Thumb.DragCompletedEvent, Vector = delta });
+    }
+
+    private async Task CheckSettingsDialogAsync(Action<bool, string> require, CancellationToken ct)
+    {
+        var desktop = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
+        var locations = SelectSettingsLocations(SettingsLocations.ForApplication(AppContext.BaseDirectory));
+        var menu = _window.FindControl<MenuItem>("SettingsMenu")!;
+        var marker = "codeview-settings-check";
+        async Task<Window> OpenAsync()
+        {
+            menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            while (true)
+            {
+                var dialog = desktop.Windows.FirstOrDefault(w => w.Title == "除外フォルダの設定");
+                if (dialog is not null && dialog.IsVisible) return dialog;
+                await Frame(ct);
+            }
+        }
+        var first = await OpenAsync();
+        var firstPanel = (StackPanel)first.Content!;
+        ((TextBox)firstPanel.Children[1]).Text = marker;
+        var buttons = (StackPanel)firstPanel.Children[2];
+        buttons.Children.OfType<Button>().Single(b => b.Name == "CancelExcludedFolders")
+            .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        await Frame(ct);
+        require(!first.IsVisible && !File.Exists(locations.UserFile), "settings-dialog-cancel-does-not-write");
+
+        var second = await OpenAsync();
+        var secondPanel = (StackPanel)second.Content!;
+        ((TextBox)secondPanel.Children[1]).Text = marker;
+        ((StackPanel)secondPanel.Children[2]).Children.OfType<Button>().Single(b => b.Name == "SaveExcludedFolders")
+            .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        while (second.IsVisible) await Frame(ct);
+        var saved = await new SettingsStore(locations).LoadAsync(ct);
+        require(saved.Warning is null && saved.Snapshot.ExcludedDirectoryNames.SequenceEqual(new[] { marker }) &&
+            _viewModel.Status.Contains("再起動後"), "settings-dialog-saves-only-after-confirmation");
     }
 
     private Task Frame(CancellationToken ct)
