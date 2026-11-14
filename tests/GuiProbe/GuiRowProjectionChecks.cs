@@ -19,6 +19,11 @@ internal sealed partial class GuiPerformanceProbe
             var ct = timeout.Token;
             var source = _displaySession!;
             var original = _sourceDocument!;
+            if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROW_LARGE_CHECKS") == "1")
+            {
+                await RunLargeRowChecksAsync(ct);
+                return;
+            }
             RequireRows(original.TextLength <= 2 * 1024 * 1024, "Use bounded functional fixtures, not the performance corpus.");
             var body = original.Text;
             var checks = new List<string>();
@@ -132,6 +137,43 @@ internal sealed partial class GuiPerformanceProbe
             Console.Error.WriteLine(error);
             Finish("row-projection-check-failed: " + error.Message);
         }
+    }
+
+    private async Task RunLargeRowChecksAsync(CancellationToken ct)
+    {
+        var source = _displaySession!;
+        var original = _sourceDocument!;
+        var longest = source.MaximumLineLength;
+        RequireRows(source.Length >= 49L * 1024 * 1024 && longest >= 49 * 1024 * 1024,
+            "Use the large single-line or mixed-line fixture.");
+        var firstSeen = new HashSet<long>();
+        var horizontalSeen = new HashSet<long>();
+        var previous = Stopwatch.GetTimestamp();
+        for (var step = 0; step < 64; step++)
+        {
+            var horizontal = (long)longest * Math.Min(step, 31) / 31;
+            var firstLine = step < 32 ? Math.Min(2, original.LineCount)
+                : 1 + (long)(original.LineCount - 1) * (step - 32) / 31;
+            if (step >= 32) horizontal = 0;
+            var start = Stopwatch.GetTimestamp();
+            _sourceVerticalBar!.Value = firstLine;
+            _sourceHorizontalBar!.Value = horizontal;
+            _editor.TextArea.TextView.EnsureVisualLines();
+            _scrollTimes.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+            RequireRows(source.FirstVisibleLine == firstLine && source.HorizontalSourceOffset == horizontal &&
+                source.Anchor == 0 && source.Caret == 0 && _editor.Document!.TextLength <= _windowChars,
+                "Large viewport or independent source caret mismatch.");
+            firstSeen.Add(firstLine);
+            horizontalSeen.Add(horizontal);
+            await RowFrame(ct);
+            var now = Stopwatch.GetTimestamp();
+            _tickIntervals.Add(Stopwatch.GetElapsedTime(previous, now).TotalMilliseconds);
+            previous = now;
+        }
+        _rowResults = new { LargeFixture = true, FirstLinesVisited = firstSeen.Count,
+            HorizontalPositionsVisited = horizontalSeen.Count, OriginalLength = source.Length,
+            MaximumLineLength = longest, Contextual = _contextualRows };
+        Finish();
     }
 
     private async Task RowFrame(CancellationToken ct)

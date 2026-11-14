@@ -67,6 +67,36 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/check_row_projection.py --app $app --inputs artifacts/row-gui-validation/inputs/mixed.cs artifacts/row-gui-validation/inputs/empty.cs artifacts/row-gui-validation/inputs/unicode.cs --output artifacts/row-gui-validation/results-contextual --rounds 3 --commit $env:GITHUB_SHA --os $platform --contextual
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Measure large mixed and single-line viewport
+        run: |
+          $root = New-Item -ItemType Directory -Force artifacts/row-gui-validation/results-large
+          python -c "from pathlib import Path; p=Path(r'$($root.FullName)'); line=b'x'*(50<<20); (p/'single.cs').write_bytes(line); (p/'mixed.cs').write_bytes(b'head\r\n'+line+b'\r\n'+b'after\r\n'*96)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $app = if ($IsWindows) { 'artifacts/row-gui-validation/app/codeView.exe' } else { 'artifacts/row-gui-validation/app/codeView' }
+          $env:CODEVIEW_GUI_WINDOWED = '1'
+          $env:CODEVIEW_GUI_INTERACTIVE = '1'
+          $env:CODEVIEW_GUI_ROWS = '1'
+          $env:CODEVIEW_GUI_ROW_CHECKS = '1'
+          $env:CODEVIEW_GUI_ROW_LARGE_CHECKS = '1'
+          foreach ($context in @('0', '1')) {
+            $env:CODEVIEW_GUI_GRAPHEME_INDEX = $context
+            foreach ($fixture in @('single', 'mixed')) {
+              $env:CODEVIEW_GUI_PERF_REPORT = Join-Path $root.FullName "$fixture-$context.json"
+              $child = Start-Process -FilePath $app -ArgumentList (Join-Path $root.FullName "$fixture.cs") -PassThru
+              if (!$child.WaitForExit(90000)) { $child.Kill(); throw "Large row run timed out: $fixture/$context" }
+              if ($child.ExitCode -ne 0) { throw "Large row run failed: $fixture/$context" }
+              $result = Get-Content -Raw $env:CODEVIEW_GUI_PERF_REPORT | ConvertFrom-Json
+              if ($result.Failure -or !$result.RowProjectionChecks.LargeFixture -or
+                  $result.RowProjectionChecks.Contextual -ne ($context -eq '1') -or
+                  $result.ScrollSynchronousMilliseconds.Count -ne 64 -or
+                  $result.RowProjectionChecks.HorizontalPositionsVisited -ne 32 -or
+                  ($fixture -eq 'mixed' -and $result.RowProjectionChecks.FirstLinesVisited -le 1)) {
+                  throw "Missing large row evidence: $fixture/$context"
+              }
+              Write-Host "$fixture/$context attach=$($result.DocumentAttachmentMilliseconds) ms; max scroll=$(($result.ScrollSynchronousMilliseconds | Measure-Object -Maximum).Maximum) ms; memory=$($result.MemoryIncrease) bytes"
+            }
+          }
+          Remove-Item (Join-Path $root.FullName 'mixed.cs'), (Join-Path $root.FullName 'single.cs')
       - name: Upload row integration evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -79,3 +109,4 @@ jobs:
             artifacts/row-gui-validation/inputs/
             artifacts/row-gui-validation/results/
             artifacts/row-gui-validation/results-contextual/
+            artifacts/row-gui-validation/results-large/
