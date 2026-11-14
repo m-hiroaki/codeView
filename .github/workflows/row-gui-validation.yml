@@ -11,6 +11,7 @@ on:
       - tools/test_row_projection.py
       - src/codeView/Documents/DocumentRowProjection.cs
       - src/codeView/Documents/DocumentDisplaySession.cs
+      - src/codeView/Documents/DocumentGraphemeIndex.cs
       - src/codeView/Documents/DocumentAdapter.cs
       - src/codeView/Presentation/MainWindow.axaml.cs
       - src/codeView/Presentation/MainWindowViewModel.cs

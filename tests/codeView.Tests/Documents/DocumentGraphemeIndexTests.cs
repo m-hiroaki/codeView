@@ -22,6 +22,20 @@ public sealed class DocumentGraphemeIndexTests
         Verify(new string('x', DocumentGraphemeIndex.WindowChars - 3) + repeated, everyOffset: false);
     }
 
+    [TestCase(127)]
+    [TestCase(128)]
+    [TestCase(129)]
+    [TestCase(8192)]
+    public void QueryExpandsLookaheadWhenClusterContinues(int marks)
+    {
+        using var builder = new DocumentBuilder(collectGraphemeIndex: true);
+        builder.Append(("a" + new string('\u0301', marks) + "😀z").AsMemory());
+        using var handle = builder.Complete();
+        using var lease = handle.AcquireReadView();
+        Assert.That(handle.GraphemeIndex!.TryGetBounds(lease, 1, out var start, out var end), Is.True);
+        Assert.That((start, end), Is.EqualTo((0L, marks + 1L)));
+    }
+
     [TestCase(DocumentGraphemeIndex.WindowChars - 1, true)]
     [TestCase(DocumentGraphemeIndex.WindowChars, true)]
     [TestCase(DocumentGraphemeIndex.WindowChars + 1, false)]

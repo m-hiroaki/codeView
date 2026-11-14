@@ -96,34 +96,39 @@ internal sealed class DocumentGraphemeIndex
         var found = Array.BinarySearch(_checkpoints, 0, _count, offset);
         var start = _checkpoints[found >= 0 ? found : ~found - 1];
         if (start == offset) { before = after = start; return true; }
-        var buffer = ArrayPool<char>.Shared.Rent(WindowChars);
-        try
+        var capacity = (int)Math.Min(WindowChars, offset - start + 128);
+        while (true)
         {
-            var available = Fill(source, start, buffer, ct);
-            var eof = start + available == Length;
-            var consumed = 0;
-            while (consumed < available)
+            var buffer = ArrayPool<char>.Shared.Rent(capacity);
+            try
             {
-                ct.ThrowIfCancellationRequested();
-                var size = StringInfo.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
-                if (!eof && consumed + size == available) return false;
-                var end = start + consumed + size;
-                if (end >= offset)
+                var available = Fill(source, start, buffer, ct, capacity);
+                var eof = start + available == Length;
+                var consumed = 0;
+                while (consumed < available)
                 {
-                    before = end == offset ? end : start + consumed;
-                    after = end;
-                    return true;
+                    ct.ThrowIfCancellationRequested();
+                    var size = StringInfo.GetNextTextElementLength(buffer.AsSpan(consumed, available - consumed));
+                    if (!eof && consumed + size == available) break;
+                    var end = start + consumed + size;
+                    if (end >= offset)
+                    {
+                        before = end == offset ? end : start + consumed;
+                        after = end;
+                        return true;
+                    }
+                    consumed += size;
                 }
-                consumed += size;
+                if (eof || capacity == WindowChars) return false;
             }
-            return false;
+            finally { ArrayPool<char>.Shared.Return(buffer, clearArray: true); }
+            capacity = Math.Min(WindowChars, capacity * 2);
         }
-        finally { ArrayPool<char>.Shared.Return(buffer, clearArray: true); }
     }
 
-    private static int Fill(DocumentReadLease source, long offset, char[] buffer, CancellationToken ct)
+    private static int Fill(DocumentReadLease source, long offset, char[] buffer, CancellationToken ct, int capacity = WindowChars)
     {
-        var count = (int)Math.Min(WindowChars, source.Length - offset);
+        var count = (int)Math.Min(capacity, source.Length - offset);
         for (var copied = 0; copied < count;)
         {
             ct.ThrowIfCancellationRequested();
