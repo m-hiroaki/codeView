@@ -34,6 +34,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private bool _pumping;
     private bool _stopping;
     private bool _initialized;
+    private SettingsLoadResult? _settingsForSave;
+    private bool _savingSettings;
     private long _interactionEpoch;
     private long _selectionInteractionEpoch = -1;
     private SearchResultRow? _selectionRow;
@@ -53,6 +55,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool CanReopenEncoding => _tabManager.ActiveTab is not null;
     public bool CanReload => _tabManager.ActiveTab is not null;
     public bool HasTabs => Tabs.Count > 0;
+    public bool CanSaveSettings => !_stopping && !_pumping && !_savingSettings && _settingsForSave is { CanSave: true };
     public AvaloniaList<TabViewModel> Tabs { get; } = [];
     public long ViewEpoch { get; private set; }
     public TabViewModel? SelectedTab
@@ -144,7 +147,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 
     private async Task ActivateSearchResultCoreAsync(SearchResultRow row)
     {
-        if (_stopping || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
+        if (_stopping || _savingSettings || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
         var interaction = _interactionEpoch;
         ClearSearchSelection?.Invoke();
         var navigator = operations.ResultNavigator;
@@ -215,6 +218,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
         if (_stopping) return;
         operations.Startup.CompleteSettings(settings);
+        _settingsForSave = settings;
+        Changed(nameof(CanSaveSettings));
         await EnsurePumpAsync();
         // Keep the fallback notice visible after queued files finish loading instead
         // of immediately replacing it with their loading/completion status.
@@ -265,6 +270,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 
     private Task EnsurePumpAsync()
     {
+        if (_savingSettings) return Task.CompletedTask;
         if (_pumping) return _pump;
         _pump = PumpAsync();
         return _pump;
@@ -275,6 +281,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _pumping = true;
         try
         {
+            Changed(nameof(CanSaveSettings));
             while (!_stopping && operations.Startup.TryTake(out var request))
             {
                 try
@@ -311,7 +318,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 finally { operations.Startup.CompleteOpen(request!.Id); }
             }
         }
-        finally { _pumping = false; }
+        finally
+        {
+            _pumping = false;
+            if (!_stopping) Changed(nameof(CanSaveSettings));
+        }
     }
 
     private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(string input, bool allowFolder)
@@ -364,6 +375,50 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         _manualWork.Add(operation);
         try { await operation; }
         finally { _manualWork.Remove(operation); }
+    }
+
+    internal SettingsSnapshot? EditableSettings => CanSaveSettings ? _settingsForSave?.Snapshot : null;
+
+    internal Task SaveExcludedNamesAsync(string[] names) => TrackManualAsync(SaveSettingsAsync(names));
+
+    private async Task SaveSettingsAsync(string[] names)
+    {
+        if (!CanSaveSettings || _settingsForSave is not { } loaded) return;
+        if (!operations.PendingResultMoveWork.IsCompleted)
+        {
+            SetStatus("検索結果への移動が完了してから設定を保存してください。");
+            return;
+        }
+        if (loaded.Snapshot.ExcludedDirectoryNames.SequenceEqual(names, StringComparer.Ordinal)) return;
+        _savingSettings = true;
+        try
+        {
+            Changed(nameof(CanSaveSettings));
+            var openSources = _tabManager.Tabs.Select(tab => tab.Path.FullPath).ToArray();
+            var snapshot = new SettingsSnapshot(names);
+            var saved = await Task.Run(() => settingsStore.SaveAsync(loaded, snapshot, openSources, _lifetime.Token));
+            if (_stopping) return;
+            if (saved.Status == OperationStatus.Success)
+            {
+                _settingsForSave = saved.Value;
+                SetStatus("除外フォルダの設定を保存しました。再起動後に適用されます。");
+            }
+            else if (saved.Error?.Code == ErrorCode.ChangedDuringRead)
+                SetStatus("設定が外部で変更されたか、保存先を確認できません。再起動してからお試しください。");
+            else
+                SetStatus("除外フォルダの設定を保存できません。入力内容と保存先を確認してください。");
+        }
+        catch (OperationCanceledException error) when (_lifetime.IsCancellationRequested &&
+            error.CancellationToken == _lifetime.Token) { }
+        finally
+        {
+            _savingSettings = false;
+            if (!_stopping)
+            {
+                Changed(nameof(CanSaveSettings));
+                await EnsurePumpAsync();
+            }
+        }
     }
 
     public void CloseWorkspace()

@@ -616,6 +616,55 @@ internal sealed partial class MainWindow : Window
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
     private async void OpenFolderClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFolderAsync);
+
+    private async void EditExcludedFoldersClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(async () =>
+        {
+            if (_viewModel.EditableSettings is not { } settings) return;
+            var names = new TextBox
+            {
+                AcceptsReturn = true,
+                MinHeight = 160,
+                MaxHeight = 320,
+                MaxLength = 128 * 1024,
+                Text = string.Join(Environment.NewLine, settings.ExcludedDirectoryNames)
+            };
+            Avalonia.Automation.AutomationProperties.SetName(names, "除外フォルダ名");
+            var cancel = new Button { Content = "キャンセル", IsCancel = true };
+            var save = new Button { Content = "保存" };
+            var dialog = new Window
+            {
+                Title = "除外フォルダの設定",
+                Width = 450,
+                SizeToContent = SizeToContent.Height,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Content = new StackPanel
+                {
+                    Margin = new Thickness(16), Spacing = 12,
+                    Children =
+                    {
+                        new TextBlock { Text = "除外するフォルダ名を1行に1つ入力します。保存した設定は再起動後に適用されます。",
+                            TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                        names,
+                        new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8,
+                            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Children = { cancel, save } }
+                    }
+                }
+            };
+            cancel.Click += (_, _) => dialog.Close();
+            save.Click += async (_, _) =>
+            {
+                await RunAsync(async () =>
+                {
+                    save.IsEnabled = false;
+                    cancel.IsEnabled = false;
+                    var entries = (names.Text ?? "").ReplaceLineEndings("\n").Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    await _viewModel.SaveExcludedNamesAsync(entries);
+                    dialog.Close();
+                });
+            };
+            await dialog.ShowDialog(this);
+        });
     private async void RefreshWorkspaceClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.RefreshWorkspaceAsync);
     private async Task ActivateTreeRowAsync(FileTreeRow row)
     {

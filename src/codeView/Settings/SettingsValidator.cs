@@ -71,10 +71,17 @@ internal static class SettingsValidator
         }
     }
 
-    private static bool IsDirectoryName(string name)
+    internal static bool IsDirectoryName(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || name is "." or "..")
             return false;
+        // Reject malformed UTF-16 before the JSON writer could replace it with U+FFFD.
+        for (var index = 0; index < name.Length; index++)
+        {
+            if (!char.IsSurrogate(name[index])) continue;
+            if (!char.IsSurrogatePair(name, index)) return false;
+            index++;
+        }
         var count = 0;
         foreach (var rune in name.EnumerateRunes())
         {

@@ -179,12 +179,7 @@ internal sealed class SourceAccess : ISourceAccess
         try
         {
             // Darwin stat64: st_mode is a 16-bit field at offset 4. Reserve the full native structure.
-            var status = new byte[256];
-            var result = RuntimeInformation.ProcessArchitecture == Architecture.X64
-                ? MacFStatInode64(fd, status)
-                : MacFStat(fd, status);
-            if (result != 0)
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
+            var status = GetMacFileStatus(handle);
             var mode = BitConverter.ToUInt16(status, 4);
             if ((mode & 0xf000) != 0x8000)
                 throw new NotRegularFileException();
@@ -218,14 +213,44 @@ internal sealed class SourceAccess : ISourceAccess
 
     private sealed class NotRegularFileException : Exception;
 
+    internal static bool HasSingleLink(SafeFileHandle handle)
+    {
+        if (OperatingSystem.IsMacOS())
+            return BitConverter.ToUInt16(GetMacFileStatus(handle), 6) == 1; // Darwin stat64 st_nlink.
+        return OperatingSystem.IsWindows() &&
+            GetFileInformationByHandle(handle, out var information) && information.NumberOfLinks == 1;
+    }
+
+    private static byte[] GetMacFileStatus(SafeFileHandle handle)
+    {
+        var status = new byte[256];
+        var result = RuntimeInformation.ProcessArchitecture == Architecture.X64
+            ? MacFStatInode64(handle, status)
+            : MacFStat(handle, status);
+        if (result != 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        return status;
+    }
+
     [DllImport("libc", EntryPoint = "open", SetLastError = true)]
     private static extern int MacOpen([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
 
     [DllImport("libc", EntryPoint = "fstat", SetLastError = true)]
-    private static extern int MacFStat(int fd, [Out] byte[] status);
+    private static extern int MacFStat(SafeFileHandle handle, [Out] byte[] status);
 
     [DllImport("libc", EntryPoint = "fstat$INODE64", SetLastError = true)]
-    private static extern int MacFStatInode64(int fd, [Out] byte[] status);
+    private static extern int MacFStatInode64(SafeFileHandle handle, [Out] byte[] status);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WindowsFileInformation
+    {
+        public uint Attributes;
+        public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime, AccessTime, WriteTime;
+        public uint VolumeSerialNumber, FileSizeHigh, FileSizeLow, NumberOfLinks, FileIndexHigh, FileIndexLow;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out WindowsFileInformation information);
 
     [DllImport("kernel32.dll", EntryPoint = "GetFileType", SetLastError = true)]
     private static extern uint WindowsGetFileType(SafeFileHandle handle);

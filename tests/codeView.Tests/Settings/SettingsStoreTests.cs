@@ -52,6 +52,114 @@ public sealed class SettingsStoreTests
         Assert.That(result.CanSave, Is.False);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ExplicitSaveUsesUserLocationOrReplacesLoadedPortableFile(bool portable)
+    {
+        if (portable) await File.WriteAllTextAsync(_locations.PortableFile, "{}");
+        var store = new SettingsStore(_locations);
+        var loaded = await store.LoadAsync(default);
+        var first = await store.SaveAsync(loaded, new(["除外", "bin"]), [], default);
+        Assert.That(first.Status, Is.EqualTo(OperationStatus.Success));
+        Assert.That(first.Value.FilePath, Is.EqualTo(portable ? _locations.PortableFile : _locations.UserFile));
+        var second = await store.SaveAsync(first.Value, new([]), [], default);
+        Assert.That(second.Status, Is.EqualTo(OperationStatus.Success));
+        Assert.That((await store.LoadAsync(default)).Snapshot.ExcludedDirectoryNames, Is.Empty);
+        Assert.That(Directory.GetFiles(_root), Has.Length.EqualTo(1));
+    }
+
+    [TestCase("{\"schemaVersion\":2}", false)]
+    [TestCase("{\"future\":true}", false)]
+    [TestCase("{\"schemaVersion\":1}", true)]
+    public async Task SavePreservesSettingsAfterExternalChangeOrUnknownSchema(string current, bool changeAfterLoad)
+    {
+        var store = new SettingsStore(_locations);
+        await File.WriteAllTextAsync(_locations.PortableFile,
+            changeAfterLoad ? "{\"schemaVersion\":1,\"excludedDirectoryNames\":[]}" : current);
+        var loaded = await store.LoadAsync(default);
+        if (changeAfterLoad) await File.WriteAllTextAsync(_locations.PortableFile, current);
+        var result = await store.SaveAsync(loaded, new(["bin"]), [], default);
+        Assert.That(result.Error?.Code, Is.EqualTo(changeAfterLoad ? ErrorCode.ChangedDuringRead : ErrorCode.InvalidSettings));
+        Assert.That(await File.ReadAllTextAsync(_locations.PortableFile), Is.EqualTo(current));
+        Assert.That(Directory.GetFiles(_root), Has.Length.EqualTo(1));
+    }
+
+    [Test]
+    public async Task RejectsOpenSettingsFileInvalidNamesAndNewPortableFile()
+    {
+        var store = new SettingsStore(_locations);
+        var defaults = await store.LoadAsync(default);
+        Assert.That((await store.SaveAsync(defaults, new(["bad/name"]), [], default)).Error?.Code,
+            Is.EqualTo(ErrorCode.InvalidSettings));
+        await File.WriteAllTextAsync(_locations.PortableFile, "{}");
+        Assert.That((await store.SaveAsync(defaults, new(["bin"]), [], default)).Error?.Code,
+            Is.EqualTo(ErrorCode.ChangedDuringRead));
+        var loaded = await store.LoadAsync(default);
+        Assert.That((await store.SaveAsync(loaded, new(["bin"]), [_locations.PortableFile], default)).Error?.Code,
+            Is.EqualTo(ErrorCode.InvalidSettings));
+        Assert.That(await File.ReadAllTextAsync(_locations.PortableFile), Is.EqualTo("{}"));
+    }
+
+    [Test]
+    public async Task HardLinkedSettingsCannotBeReplaced()
+    {
+        await File.WriteAllTextAsync(_locations.PortableFile, "{}");
+        var alias = Path.Combine(_root, "source.cs");
+        if (OperatingSystem.IsWindows())
+        {
+            using var process = Process.Start(new ProcessStartInfo("fsutil.exe")
+            { UseShellExecute = false, ArgumentList = { "hardlink", "create", alias, _locations.PortableFile } })!;
+            await process.WaitForExitAsync();
+            Assert.That(process.ExitCode, Is.Zero);
+        }
+        else
+        {
+            using var process = Process.Start(new ProcessStartInfo("/bin/ln")
+            { UseShellExecute = false, ArgumentList = { _locations.PortableFile, alias } })!;
+            await process.WaitForExitAsync();
+            Assert.That(process.ExitCode, Is.Zero);
+        }
+        var store = new SettingsStore(_locations);
+        var loaded = await store.LoadAsync(default);
+        Assert.That((await store.SaveAsync(loaded, new(["bin"]), [], default)).Status, Is.EqualTo(OperationStatus.Failure));
+        Assert.That(await File.ReadAllTextAsync(alias), Is.EqualTo("{}"));
+        Assert.That(await File.ReadAllTextAsync(_locations.PortableFile), Is.EqualTo("{}"));
+    }
+
+    [Test]
+    public async Task LinkedSourceAndLinkedSettingsDirectoryCannotBeWritten()
+    {
+        if (!OperatingSystem.IsMacOS()) Assert.Ignore("設定のシンボリックリンクをDarwinで検証。");
+        await File.WriteAllTextAsync(_locations.PortableFile, "{}");
+        var alias = Path.Combine(_root, "source.cs");
+        File.CreateSymbolicLink(alias, _locations.PortableFile);
+        var store = new SettingsStore(_locations);
+        var loaded = await store.LoadAsync(default);
+        Assert.That((await store.SaveAsync(loaded, new(["bin"]), [alias], default)).Error?.Code,
+            Is.EqualTo(ErrorCode.InvalidSettings));
+        var link = Path.Combine(_root, "linked");
+        Directory.CreateSymbolicLink(link, _root);
+        var linkedStore = new SettingsStore(new(Path.Combine(link, "portable.json"), _locations.UserFile));
+        var linked = await linkedStore.LoadAsync(default);
+        Assert.That((await linkedStore.SaveAsync(linked, new(["bin"]), [], default)).Status,
+            Is.EqualTo(OperationStatus.Failure));
+        Assert.That(await File.ReadAllTextAsync(_locations.PortableFile), Is.EqualTo("{}"));
+    }
+
+    [Test]
+    public async Task ReplacementBlockedByWindowsShareModeLeavesFileAndCleansTemporary()
+    {
+        if (!OperatingSystem.IsWindows()) Assert.Ignore("Windowsの置換失敗を検証。");
+        await File.WriteAllTextAsync(_locations.PortableFile, "{}");
+        var store = new SettingsStore(_locations);
+        var loaded = await store.LoadAsync(default);
+        await using var held = new FileStream(_locations.PortableFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+        Assert.That((await store.SaveAsync(loaded, new(["bin"]), [], default)).Status,
+            Is.EqualTo(OperationStatus.Failure));
+        Assert.That(await File.ReadAllTextAsync(_locations.PortableFile), Is.EqualTo("{}"));
+        Assert.That(Directory.GetFiles(_root), Has.Length.EqualTo(1));
+    }
+
     [Test]
     public void CancelledLoadDoesNotReturnSuccess()
     {
