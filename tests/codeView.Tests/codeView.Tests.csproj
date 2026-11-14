@@ -12,6 +12,7 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" PrivateAssets="all" />
         <ProjectReference Include="../../src/codeView/codeView.csproj" />
         <Using Include="NUnit.Framework" />
+        <None Update="Documents/TestData/Unicode16/GraphemeBreakTest.txt" CopyToOutputDirectory="PreserveNewest" />
         <Compile Include="../GuiProbe/ScrollProbePlan.cs" Link="Performance/ScrollProbePlan.cs" />
         <Compile Include="../GuiProbe/StartupTimeline.cs" Link="Performance/StartupTimeline.cs" />
         <Compile Include="../GuiProbe/TextWindow.cs" Link="Performance/TextWindow.cs" />

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using CodeView.Documents;
 
 namespace CodeView.Tests.Documents;
@@ -10,6 +11,62 @@ public sealed class DocumentGraphemeIndexTests
     [TestCase("Ae\u0301B👩‍💻🇯🇵각क्‍ष\u0600a سلام אבג")]
     [TestCase("\ud800a\udc00\ud800\ud800\udc00")]
     public void EveryOffsetMatchesWholeStringOracle(string text) => Verify(text, everyOffset: true);
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void Unicode16BoundariesAndTheRuntimeLimitAreAccountedFor(bool afterCheckpoint)
+    {
+        var data = Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "Documents", "TestData", "Unicode16", "GraphemeBreakTest.txt");
+        var prefix = afterCheckpoint ? new string('x', 4095) + '\0' : string.Empty;
+        var cases = 0;
+        var differences = 0;
+        var lineNumber = 0;
+        foreach (var line in File.ReadLines(data))
+        {
+            lineNumber++;
+            var comment = line.IndexOf('#');
+            var input = (comment < 0 ? line : line[..comment]).Trim();
+            if (input.Length == 0) continue;
+            var text = new StringBuilder();
+            var expected = new List<int>();
+            foreach (var token in input.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (token == "÷") expected.Add(text.Length);
+                else if (token != "×") text.Append(char.ConvertFromUtf32(
+                    int.Parse(token, NumberStyles.HexNumber, CultureInfo.InvariantCulture)));
+            }
+            cases++;
+            var sample = text.ToString();
+            var wholeString = StringInfo.ParseCombiningCharacters(sample).Append(sample.Length).ToArray();
+            var boundaries = expected.ToArray();
+            if (!boundaries.SequenceEqual(wholeString))
+            {
+                Assert.That(line, Does.Contain("[9.3]"), $"Unicode 16 line {lineNumber}");
+                differences++;
+                boundaries = wholeString;
+            }
+
+            using var builder = new DocumentBuilder(collectGraphemeIndex: true);
+            builder.Append(prefix.AsMemory());
+            builder.Append(sample.AsMemory());
+            using var handle = builder.Complete();
+            using var lease = handle.AcquireReadView();
+            var index = handle.GraphemeIndex!;
+            Assert.That(index.CheckpointCount, Is.EqualTo(afterCheckpoint ? 2 : 1));
+            for (var offset = 0; offset <= sample.Length; offset++)
+            {
+                var found = Array.BinarySearch(boundaries, offset);
+                var before = prefix.Length + boundaries[found >= 0 ? found : ~found - 1];
+                var after = prefix.Length + boundaries[found >= 0 ? found : ~found];
+                Assert.That(index.TryGetBounds(lease, prefix.Length + offset, out var left, out var right)
+                    && (left, right) == ((long)before, (long)after), Is.True, $"Unicode 16 line {lineNumber}, offset {offset}");
+            }
+        }
+        Assert.That(cases, Is.EqualTo(1093));
+        // .NET 10 StringInfo does not implement GB9c, tracked in dotnet/runtime#111546.
+        Assert.That(differences, Is.EqualTo(7));
+    }
 
     [TestCase("e\u0301")]
     [TestCase("👩‍💻")]
