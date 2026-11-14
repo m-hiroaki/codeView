@@ -119,12 +119,15 @@ internal sealed partial class GuiPerformanceProbe
             // Two matches in unicode.cs and one in the CP932 comment.
             await _viewModel.OpenFilesAsync([body], OpenOrigin.Menu);
             await Frame(ct);
+            panel.IsVisible = false;
+            await Frame(ct);
             _editor.Select(8, 0);
             var definitionKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12 };
             RaiseSearchKey(_editor.TextArea, definitionKey);
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct); await Frame(ct);
-            Require(definitionKey.Handled && panel.Description.Contains("簡易") && panel.Rows.Count == 1
+            Require(definitionKey.Handled && !panel.IsVisible && !results.IsEffectivelyVisible
+                && panel.Description.Contains("簡易") && panel.Rows.Count == 1
                 && _editor.SelectedText == "Target" && _editor.SelectionStart == 6, "f12-single-definition-auto-selection");
 
             var duplicate = Path.Combine(root, "duplicate.cs");
@@ -132,7 +135,7 @@ internal sealed partial class GuiPerformanceProbe
             before.Add(duplicate, Hash(duplicate));
             _window.FindControl<MenuItem>("FindDefinitionsMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             await _viewModel.PendingWork.WaitAsync(ct);
-            Require(panel.Rows.Count == 2 && _viewModel.FilePath == body, "definition-menu-multiple-candidates");
+            Require(panel.IsVisible && panel.Rows.Count == 2 && _viewModel.FilePath == body, "definition-menu-multiple-candidates");
             results.SelectedItem = panel.Rows.Single(x => x.FullPath == duplicate);
             RaiseSearchKey(results, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             await _viewModel.PendingWork.WaitAsync(ct);

@@ -109,7 +109,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         _notice = "検索を開始しています…";
         _progress = "";
         _lastProgress = null;
-        IsVisible = true;
+        if (!definitions) IsVisible = true;
         Changed(nameof(Summary), nameof(Progress), nameof(IsRunning), nameof(SelectedRow));
         if (!_pumping) _pump = PumpAsync();
         return _pump;

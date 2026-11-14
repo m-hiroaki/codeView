@@ -9,19 +9,29 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class DefinitionJumpTests
 {
-    [Test]
-    public void SingleCompleteCandidateNavigatesToOriginalSpelling() => WithView(async (view, folder, _) =>
+    [TestCase(false)]
+    [TestCase(true)]
+    public void SingleCompleteCandidateNavigatesWithoutChangingPanelVisibility(bool initiallyVisible) => WithView(async (view, folder, _) =>
     {
         var target = Path.Combine(folder, "target.cs");
         await File.WriteAllTextAsync(target, "namespace A { class @Target {} }");
         await File.WriteAllTextAsync(Path.Combine(folder, "ignored.txt"), "class Target {}");
         var selection = new List<(long, int)>();
+        view.SearchPanel.IsVisible = initiallyVisible;
+        var visibilityChanges = new List<bool>();
+        view.SearchPanel.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(SearchPanelViewModel.IsVisible))
+                visibilityChanges.Add(view.SearchPanel.IsVisible);
+        };
         view.SelectSearchRange += (offset, length) => selection.Add((offset, length));
 
         await Find(view);
 
         Assert.That(view.FilePath, Is.EqualTo(target));
         Assert.That(selection, Is.EqualTo(new[] { (20L, 7) }));
+        Assert.That(view.SearchPanel.IsVisible, Is.EqualTo(initiallyVisible));
+        Assert.That(visibilityChanges, Is.Empty);
         Assert.That(view.SearchPanel.Description, Does.Contain("簡易").And.Contain("名前一致"));
         Assert.That(view.SearchPanel.Rows.Single().After, Does.Contain("型"));
     });
@@ -36,6 +46,7 @@ internal sealed class DefinitionJumpTests
 
         Assert.That(view.FilePath, Is.EqualTo(body));
         Assert.That(view.SearchPanel.Rows.Count, Is.EqualTo(2));
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
         await view.ActivateSearchResultAsync(view.SearchPanel.Rows.Single(row => row.FullPath == target));
         Assert.That(view.FilePath, Is.EqualTo(target));
     });
@@ -49,6 +60,7 @@ internal sealed class DefinitionJumpTests
 
         Assert.That(view.FilePath, Is.EqualTo(body));
         Assert.That(view.SearchPanel.Rows, Is.Empty);
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
         Assert.That(view.SearchPanel.Summary, Does.Contain(partial ? "未評価あり" : "定義が見つかりません"));
     });
 
@@ -62,6 +74,7 @@ internal sealed class DefinitionJumpTests
 
         Assert.That(view.FilePath, Is.EqualTo(body));
         Assert.That(view.SearchPanel.Summary, Does.Contain("部分結果"));
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
         var row = view.SearchPanel.Rows.Single();
         Assert.That(view.SearchPanel.CanActivate(row), Is.True);
         await view.ActivateSearchResultAsync(row);
@@ -97,7 +110,11 @@ internal sealed class DefinitionJumpTests
             Assert.That(duringDrain, Is.Null);
             Assert.That(view.FilePath, Is.EqualTo(body));
             if (cancel) Assert.That(view.SearchPanel.Summary, Does.Contain("取り消し"));
-            else Assert.That(view.SearchPanel.Rows.Count, Is.EqualTo(1));
+            else
+            {
+                Assert.That(view.SearchPanel.Rows.Count, Is.EqualTo(1));
+                Assert.That(view.SearchPanel.IsVisible, Is.False);
+            }
         }, () =>
         {
             var callback = duringDrain;

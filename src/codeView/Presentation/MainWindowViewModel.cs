@@ -143,9 +143,13 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var work = SearchPanel.StartDefinitionsAsync(name);
         var operation = SearchPanel.CurrentOperation;
         await work;
-        if (!ReferenceEquals(previous, operation) && interaction == _interactionEpoch && view == ViewEpoch
-            && SearchPanel.SingleCompleteDefinition(operation) is { } row)
+        if (_stopping || interaction != _interactionEpoch || view != ViewEpoch
+            || operation is null || ReferenceEquals(previous, operation)
+            || !ReferenceEquals(SearchPanel.CurrentOperation, operation)) return;
+        if (SearchPanel.SingleCompleteDefinition(operation) is { } row)
             await ActivateSearchResultCoreAsync(row);
+        else
+            SearchPanel.IsVisible = true;
     }
 
     public Task ActivateSearchResultAsync(SearchResultRow row) => TrackManualAsync(ActivateSearchResultCoreAsync(row));
