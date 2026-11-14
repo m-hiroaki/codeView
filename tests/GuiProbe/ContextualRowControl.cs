@@ -27,7 +27,8 @@ internal sealed class ContextualRowControl : Control, IDisposable
     internal Func<Point, ContextualRowControl?>? FindDragRow { get; set; }
     internal Func<Point, bool>? ScrollDragViewport { get; set; }
 
-    public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground, double tabWidth)
+    public void SetRow(string text, DocumentRowContext range, Typeface typeface, double size, IBrush? foreground,
+        double tabWidth, IReadOnlyList<(int Start, int End, IBrush Brush)>? colors = null)
     {
         Dispose();
         if (text.Length != range.Length || text.Length > DocumentDisplaySession.MaximumSliceChars
@@ -37,7 +38,7 @@ internal sealed class ContextualRowControl : Control, IDisposable
 
         var run = new GenericTextRunProperties(typeface, size, foregroundBrush: foreground);
         var paragraph = new RowParagraph(run, FlowDirection, tabWidth);
-        var layout = new TextLayout(new RowTextSource(text, run), paragraph);
+        var layout = new TextLayout(new RowTextSource(text, run, colors), paragraph);
         try
         {
             _visible = layout.HitTestTextRange(range.VisibleOffset, range.VisibleLength)
@@ -57,6 +58,9 @@ internal sealed class ContextualRowControl : Control, IDisposable
 
     protected override Size MeasureOverride(Size availableSize) =>
         new(_visible.Length == 0 ? 0 : _visible.Max(rect => rect.Right) - _origin, _layout?.Height ?? 0);
+
+    internal bool HasForeground(Color color) => _layout?.TextLines.SelectMany(line => line.TextRuns)
+        .Any(run => run.Properties?.ForegroundBrush is ISolidColorBrush brush && brush.Color == color) == true;
 
     internal void SetSelection(long anchor, long caret)
     {
@@ -273,9 +277,29 @@ internal sealed class ContextualRowControl : Control, IDisposable
         public override double Indent => 0;
     }
 
-    private sealed class RowTextSource(string text, TextRunProperties run) : ITextSource
+    private sealed class RowTextSource(string text, TextRunProperties run,
+        IReadOnlyList<(int Start, int End, IBrush Brush)>? colors) : ITextSource
     {
-        public TextRun? GetTextRun(int textSourceIndex) =>
-            textSourceIndex < text.Length ? new TextCharacters(text.AsMemory(textSourceIndex), run) : new TextEndOfParagraph(1);
+        public TextRun? GetTextRun(int textSourceIndex)
+        {
+            if (textSourceIndex >= text.Length) return new TextEndOfParagraph(1);
+            var end = text.Length;
+            var properties = run;
+            if (colors is not null)
+            {
+                foreach (var color in colors)
+                {
+                    if (color.End <= textSourceIndex) continue;
+                    if (color.Start > textSourceIndex) end = color.Start;
+                    else
+                    {
+                        end = color.End;
+                        properties = new GenericTextRunProperties(run.Typeface, run.FontRenderingEmSize, foregroundBrush: color.Brush);
+                    }
+                    break;
+                }
+            }
+            return new TextCharacters(text.AsMemory(textSourceIndex, end - textSourceIndex), properties);
+        }
     }
 }

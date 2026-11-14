@@ -4,6 +4,7 @@ using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CodeView.Documents;
+using System.Globalization;
 
 namespace CodeView.Presentation;
 
@@ -33,19 +34,55 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
         return true;
     }
 
-    internal void Apply(TextDocument display, DocumentDisplaySession source, DocumentRowProjection projection)
+    internal bool RowHasForeground(int row, Color color) =>
+        _rows.TryGetValue(row, out var control) && control.HasForeground(color);
+
+    internal void Apply(TextDocument display, DocumentDisplaySession source, DocumentRowProjection projection,
+        SyntaxHighlighting? highlighting)
     {
         Clear();
         _display = display;
         var view = editor.TextArea.TextView;
         var budget = DocumentDisplaySession.MaximumSliceChars;
+        var spanIndex = 0;
+        if (highlighting is not null)
+        {
+            var high = highlighting.Spans.Count;
+            var low = 0;
+            var start = projection.Rows[0].SourceOffset - projection.Rows[0].SourceColumn + 1;
+            while (low < high)
+            {
+                var middle = low + (high - low) / 2;
+                if (highlighting.Spans[middle].Offset < start) low = middle + 1;
+                else high = middle;
+            }
+            spanIndex = low;
+        }
         for (var index = 0; index < projection.Rows.Length; index++)
         {
             if (projection.GetContext(index) is not { VisibleLength: > 0 } range || range.Length > budget
                 || source.ReadRowContext(projection, index) is not { } text) continue;
             var control = new ContextualRowControl { FlowDirection = editor.FlowDirection };
+            List<(int Start, int End, IBrush Brush)>? colors = null;
+            if (highlighting is not null)
+            {
+                int[]? boundaries = null;
+                while (spanIndex < highlighting.Spans.Count && highlighting.Spans[spanIndex].Offset < range.SourceOffset + range.Length)
+                {
+                    var span = highlighting.Spans[spanIndex++];
+                    if (span.Offset < range.SourceOffset || span.Offset + span.Length > range.SourceOffset + range.Length ||
+                        !highlighting.Palette.TryGetValue(span.Foreground, out var value) || !Color.TryParse(value, out var color))
+                        continue;
+                    var start = (int)(span.Offset - range.SourceOffset);
+                    var end = start + span.Length;
+                    boundaries ??= StringInfo.ParseCombiningCharacters(text);
+                    if (Array.BinarySearch(boundaries, start) < 0 ||
+                        (end != text.Length && Array.BinarySearch(boundaries, end) < 0)) continue;
+                    (colors ??= []).Add((start, end, new SolidColorBrush(color)));
+                }
+            }
             control.SetRow(text, range, new Typeface(editor.FontFamily), editor.FontSize, editor.Foreground,
-                editor.Options.IndentationSize * view.WideSpaceWidth);
+                editor.Options.IndentationSize * view.WideSpaceWidth, colors);
             _rows.Add(index, control);
             budget -= range.Length;
         }

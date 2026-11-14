@@ -657,7 +657,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         CancelSyntax();
         SetSyntax(null, "");
-        if (_stopping || !_originalSourceOffsetsAvailable || file is null
+        var canColorize = _originalSourceOffsetsAvailable;
+#if CODEVIEW_PERFORMANCE_PROBE
+        canColorize |= GuiPerformanceProbe.HasContextualRows;
+#endif
+        if (_stopping || !canColorize || file is null
             || SyntaxChanged is null || BundledGrammars.ScopeForPath(file.Path.FullPath) is not { } scope) return;
         var request = new CancellationTokenSource();
         _syntaxRequest = request;

@@ -14,6 +14,24 @@ internal sealed partial class GuiPerformanceProbe
     private readonly bool _rowsEnabled = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1";
     private readonly bool _rowChecks = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROW_CHECKS") == "1";
     private readonly bool _contextualRows = Environment.GetEnvironmentVariable("CODEVIEW_GUI_GRAPHEME_INDEX") == "1";
+    private SyntaxHighlighting? _contextualSyntax;
+
+    internal static bool HasContextualRows => _instance is { _rowsEnabled: true, _contextualRows: true };
+
+    internal static bool TryApplyContextualSyntax(SyntaxHighlighting? highlighting)
+    {
+        if (!HasContextualRows) return false;
+        var probe = _instance!;
+        if (ReferenceEquals(probe._contextualSyntax, highlighting)) return true;
+        probe._contextualSyntax = highlighting;
+        if (probe._contextLayer is { } layer && probe._displaySession is { } source &&
+            probe._interactiveRows is { } rows)
+        {
+            layer.Apply(probe._editor.Document, source, rows, highlighting);
+            layer.SetSelection(source.Anchor, source.Caret);
+        }
+        return true;
+    }
     private DocumentRowProjection? _interactiveRows;
     private RowProjectionRenderer? _rowRenderer;
     private RowClippingMargin? _rowMargin;
@@ -70,7 +88,7 @@ internal sealed partial class GuiPerformanceProbe
                 view.InsertLayer(_contextLayer, KnownLayer.Text, LayerInsertionPosition.Above);
                 view.VisualLinesChanged += (_, _) => _contextLayer.InvalidateVisual();
             }
-            _contextLayer.Apply(display, _displaySession, _interactiveRows);
+            _contextLayer.Apply(display, _displaySession, _interactiveRows, _contextualSyntax);
         }
         _sourceLineNumbers!.Apply(display, new SourceLineNumbers(_displaySession.FirstVisibleLine,
             _sourceDocument!.LineCount, display.LineCount));

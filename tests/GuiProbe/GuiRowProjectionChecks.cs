@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CodeView.Documents;
 
@@ -29,6 +30,25 @@ internal sealed partial class GuiPerformanceProbe
             var checks = new List<string>();
             void Check(string name, bool passed)
             { RequireRows(passed, name); checks.Add(name); }
+            const string comment = "// 色分け 日本語😀";
+            if (_contextualRows && body.EndsWith(comment + "\r\n", StringComparison.Ordinal))
+            {
+                await _viewModel.PendingWork.WaitAsync(ct);
+                var line = original.GetLineByNumber(original.LineCount - 1);
+                source.SetViewport(line.LineNumber, 3);
+                RenderInteractive();
+                var spans = _contextualSyntax?.Spans;
+                var span = spans?.FirstOrDefault(item => item.Offset <= line.Offset + 3 &&
+                    line.Offset + 3 < item.Offset + item.Length);
+                Check("contextual-syntax-keeps-original-comment-color",
+                    span is { Length: > 0 } colored &&
+                    _contextualSyntax!.Palette.TryGetValue(colored.Foreground, out var brush) &&
+                    Color.TryParse(brush, out var color) &&
+                    _contextLayer!.RowHasForeground(0, color) &&
+                    _interactiveRows!.TryDisplayPosition(line.Offset + 3, out var start) && start == 0);
+                source.SetViewport(1, 0);
+                RenderInteractive();
+            }
             void SendKey(Key key, KeyModifiers modifiers = KeyModifiers.None)
             {
                 var args = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers };

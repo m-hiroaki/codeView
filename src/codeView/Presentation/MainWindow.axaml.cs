@@ -111,6 +111,9 @@ internal sealed partial class MainWindow : Window
         SyntaxColorizer? syntaxColorizer = null;
         viewModel.SyntaxChanged += highlighting =>
         {
+#if CODEVIEW_PERFORMANCE_PROBE
+            if (GuiPerformanceProbe.TryApplyContextualSyntax(highlighting)) return;
+#endif
             var textView = editor.TextArea.TextView;
             if (syntaxColorizer is null && highlighting is null) return;
             if (syntaxColorizer is not null) textView.LineTransformers.Remove(syntaxColorizer);

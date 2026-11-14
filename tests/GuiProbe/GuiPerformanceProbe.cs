@@ -217,6 +217,7 @@ internal sealed partial class GuiPerformanceProbe
     internal static TextDocument SelectDisplayDocument(DocumentHandle handle, TextDocument document, TextPosition position)
     {
         if (_instance is not { _windowed: true } probe) return document;
+        probe._contextualSyntax = null;
         if (probe._rowChecks) (probe._rowSeenHandles ??= []).Add(new(handle));
         probe.RememberRowView();
         probe._sourceDocument = document;
