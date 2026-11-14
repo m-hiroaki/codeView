@@ -130,6 +130,20 @@ internal sealed class ContextualRowControl : Control, IDisposable
             ? layout.HitTestTextPosition((int)local).X - _origin : null;
     }
 
+    internal bool TryGetHorizontalOffset(double delta, DocumentDisplaySession source, out long column)
+    {
+        column = 0;
+        if (_layout is not { } layout || _visible.Length == 0) return false;
+        var line = layout.TextLines[0];
+        var target = Math.Clamp(_origin + delta, 0, line.WidthIncludingTrailingWhitespace);
+        var hit = layout.HitTestPoint(new Point(target, line.Height / 2)).TextPosition;
+        if (hit < 0 || hit > _range.Length ||
+            !source.TryGetGraphemeBounds(_range.SourceOffset + hit, out var before, out var after)) return false;
+        column = NearestBoundary(new Point(target - _origin, 0), before, after) - _range.SourceOffset;
+        return column >= 0 && column <= _range.Length &&
+            (delta > 0 ? column > source.HorizontalSourceOffset : column < source.HorizontalSourceOffset);
+    }
+
     internal Rect? GetCaretRectangle(long offset)
     {
         var local = offset - _range.SourceOffset;

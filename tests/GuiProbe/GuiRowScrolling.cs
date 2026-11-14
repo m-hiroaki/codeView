@@ -116,6 +116,9 @@ internal sealed partial class GuiPerformanceProbe
     private void ScrollRows(long lines, long columns)
     {
         if (_displaySession is not { } source) return;
+        if (lines == 0 && columns != 0 && _contextLayer is { } contextual &&
+            contextual.TryGetHorizontalOffset(columns * _editor.TextArea.TextView.WideSpaceWidth, source, out var visual))
+            columns = visual - source.HorizontalSourceOffset;
         source.ScrollViewport(lines, columns);
         source.SetViewport(source.FirstVisibleLine, Math.Min(source.HorizontalSourceOffset, source.MaximumLineLength));
         _revealRowsPending = false;

@@ -16,6 +16,13 @@ internal sealed class ContextualRowLayer(TextEditor editor) : Control
     internal long DrawnRows { get; private set; }
     internal long ResolvedHits { get; private set; }
 
+    internal bool TryGetHorizontalOffset(double delta, DocumentDisplaySession source, out long column)
+    {
+        column = 0;
+        return _display is not null && ReferenceEquals(editor.Document, _display) &&
+            _rows.TryGetValue(0, out var first) && first.TryGetHorizontalOffset(delta, source, out column);
+    }
+
     internal bool TryGetCaretRectangle(int displayOffset, long sourceOffset, out Rect? rectangle)
     {
         rectangle = null;

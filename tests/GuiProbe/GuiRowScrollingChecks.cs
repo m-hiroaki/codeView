@@ -75,6 +75,22 @@ internal sealed partial class GuiPerformanceProbe
             source.HorizontalSourceOffset == Math.Min(18, source.MaximumLineLength));
         Check("wheel-preserves-source-selection", source.Anchor == anchor && source.Caret == caret);
 
+        if (_contextualRows && _sourceDocument.GetText(0, Math.Min(2, _sourceDocument.TextLength)) == "a\u0301")
+        {
+            source.SetViewport(1, 0);
+            RenderInteractive();
+            await RowFrame(ct);
+            _rowWheel.Reset();
+            var expected = 0L;
+            var hasVisualMapping = _contextLayer is { } layer &&
+                layer.TryGetHorizontalOffset(16 * view.WideSpaceWidth, source, out expected);
+            Check("visual-wheel-maps-to-grapheme-boundary", hasVisualMapping &&
+                source.TryGetGraphemeBounds(expected, out var before, out var after) && before == after);
+            Wheel(new Vector(-1, 0));
+            Check("visual-wheel-preserves-selection-and-uses-layout",
+                source.HorizontalSourceOffset == expected && source.Anchor == anchor && source.Caret == caret);
+        }
+
         _sourceVerticalBar.Value = 1;
         _sourceHorizontalBar.Value = 0;
         RenderInteractive();

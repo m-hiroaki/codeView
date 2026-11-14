@@ -58,6 +58,10 @@ class RowProjectionEvidenceTests(unittest.TestCase):
             validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
         checks['ScrollChecks'].append('contextual-caret-rectangle-visible')
         self.expected['checksInitialGrapheme'] = True
+        for check in ('visual-wheel-maps-to-grapheme-boundary', 'visual-wheel-preserves-selection-and-uses-layout'):
+            with self.assertRaisesRegex(ValueError, 'wheel/pointer'):
+                validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)
+            checks['ScrollChecks'].append(check)
         for check in ('routed-shift-selects-whole-grapheme', 'routed-shift-returns-to-grapheme-start'):
             with self.assertRaisesRegex(ValueError, 'Source, checks'):
                 validate_report(self.report, self.expected, self.commit, 'macos', contextual=True)

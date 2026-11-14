@@ -70,6 +70,8 @@ def validate_report(report, expected, commit, expected_os, contextual=False):
                             "horizontal-edge-drag-stops-at-line-end"}
     if expected["checksLongLineEnd"]:
         required_scroll.add("long-line-end-keeps-preceding-character")
+    if contextual and expected["checksInitialGrapheme"]:
+        required_scroll.update(("visual-wheel-maps-to-grapheme-boundary", "visual-wheel-preserves-selection-and-uses-layout"))
     if (set(scroll_checks) != required_scroll or len(scroll_checks) != len(required_scroll)
             or checks.get("MaximumLineLength") != expected["maximumLineLength"]):
         raise ValueError("Source scrollbar, wheel/pointer or line extent evidence incomplete")
