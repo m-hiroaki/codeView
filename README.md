@@ -1,5 +1,7 @@
 # codeView
 
+<img src="docs/codeView-icon.png" width="96" height="96" alt="codeView アプリアイコン">
+
 Windows / macOS向けの、コードリーディングに特化したソースコードビューア。
 読み取り専用で、大量のコードを快適に閲覧できる速度・応答性・メモリ効率を重視します。
 
