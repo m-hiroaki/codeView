@@ -13,7 +13,7 @@ internal sealed class RoslynNavigationTests
     public async Task RealRoslynResolvesConfiguredSourceAndReferences(string extension, bool sharedSource)
     {
         var executable = RequireServer();
-        var root = Directory.CreateTempSubdirectory("codeview-roslyn-");
+        var root = new DirectoryInfo(LspFilePath.Resolve(Directory.CreateTempSubdirectory("codeview-roslyn-").FullName));
         try
         {
             var fixture = await CreateFixtureAsync(root.FullName, extension, sharedSource);
@@ -118,10 +118,12 @@ internal sealed class RoslynNavigationTests
             #endif
             """);
 
+        string? sharedProject = null;
         if (shared)
         {
             var other = Directory.CreateDirectory(Path.Combine(root, "Shared")).FullName;
-            await File.WriteAllTextAsync(Path.Combine(other, "Shared.csproj"), projectStart + reference +
+            sharedProject = Path.Combine(other, "Shared.csproj");
+            await File.WriteAllTextAsync(sharedProject, projectStart + reference +
                 """<ItemGroup><Compile Include="../App/Caller.cs" /></ItemGroup></Project>""");
         }
         var selected = extension == ".csproj" ? appProject : Path.Combine(root, "Probe" + extension);
@@ -136,7 +138,10 @@ internal sealed class RoslynNavigationTests
             await DotnetAsync(root, "new", "sln", "--format", "sln", "--name", "Probe");
             await DotnetAsync(root, "sln", selected, "add", appProject, libProject);
         }
-        await DotnetAsync(root, "restore", selected, "--ignore-failed-sources", "--disable-build-servers");
+        // Restore from project entry points to avoid concurrent writes for Lib through the solution and project reference.
+        await DotnetAsync(root, "restore", appProject, "--ignore-failed-sources", "--disable-build-servers");
+        if (sharedProject is not null)
+            await DotnetAsync(root, "restore", sharedProject, "--ignore-failed-sources", "--disable-build-servers");
         return (selected, new Uri(path).AbsoluteUri, caller);
     }
 

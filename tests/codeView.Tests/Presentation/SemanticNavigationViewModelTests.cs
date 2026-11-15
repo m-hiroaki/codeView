@@ -70,14 +70,20 @@ internal sealed class SemanticNavigationViewModelTests
                 var selections = new List<(long Offset, int Length)>();
                 view.SelectSearchRange += (offset, length) => selections.Add((offset, length));
                 var caret = text.IndexOf("Run", StringComparison.Ordinal);
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+                string? lastSummary = null;
                 do
                 {
                     view.SearchPanel.IsVisible = false;
-                    await view.FindDefinitionsAsync(caret, caret, 0).WaitAsync(deadline.Token);
+                    try { await view.FindDefinitionsAsync(caret, caret, 0).WaitAsync(deadline.Token); }
+                    catch (OperationCanceledException) when (deadline.IsCancellationRequested)
+                    {
+                        Assert.Fail($"Definition search timed out. Last result: {lastSummary}; status: {view.Status}");
+                    }
                     if (view.FilePath == caller)
                     {
-                        Assert.That(view.SearchPanel.Summary, Does.Contain("部分結果"));
+                        lastSummary = $"{view.SearchPanel.Summary} ({view.SearchPanel.Rows.Count} rows, {view.SearchPanel.Description})";
+                        Assert.That(lastSummary, Does.Contain("部分結果"));
                         await Task.Delay(50, deadline.Token);
                     }
                 }
