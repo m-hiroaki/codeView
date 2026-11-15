@@ -50,7 +50,15 @@ internal sealed class LanguageServerSession(
                     await StopAsync().ConfigureAwait(false);
                     await StartAsync(token).ConfigureAwait(false);
                 }
-                return await action(_transport!, token).ConfigureAwait(false);
+                try
+                {
+                    return await action(_transport!, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested && !_closing.IsCancellationRequested)
+                {
+                    await StopAsync(force: true).ConfigureAwait(false);
+                    throw;
+                }
             }
             finally { _gate.Release(); }
         }
@@ -193,7 +201,7 @@ internal sealed class LanguageServerSession(
         writer.WriteEndObject();
     }
 
-    private async Task StopAsync()
+    private async Task StopAsync(bool force = false)
     {
         var process = _process;
         if (process is null) return;
@@ -206,7 +214,7 @@ internal sealed class LanguageServerSession(
         try
         {
             using var grace = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            if (transport is { IsClosed: false } && !process.HasExited)
+            if (!force && transport is { IsClosed: false } && !process.HasExited)
             {
                 try
                 {
@@ -220,7 +228,9 @@ internal sealed class LanguageServerSession(
             {
                 try { process.Kill(entireProcessTree: true); }
                 catch (InvalidOperationException) when (process.HasExited) { }
-                await process.WaitForExitAsync().ConfigureAwait(false);
+                using var forcedExit = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                try { await process.WaitForExitAsync(forcedExit.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { throw new IOException("言語サーバーを終了できませんでした。"); }
             }
         }
         finally
@@ -232,8 +242,8 @@ internal sealed class LanguageServerSession(
                 {
                     // A process descendant can inherit stderr even after the server exits.
                     process.StandardError.Dispose();
-                    try { await drain.ConfigureAwait(false); }
-                    catch (Exception error) when (error is IOException or ObjectDisposedException) { }
+                    try { await drain.WaitAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false); }
+                    catch (Exception error) when (error is IOException or ObjectDisposedException or TimeoutException) { }
                 }
             }
             finally { process.Dispose(); }

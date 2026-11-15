@@ -231,7 +231,8 @@ internal sealed class LspTransport : IAsyncDisposable
         _stop.Cancel();
         _input.Dispose();
         _output.Dispose();
-        await _reader.ConfigureAwait(false);
+        try { await _reader.WaitAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false); }
+        catch (TimeoutException) { }
     }
 }
 

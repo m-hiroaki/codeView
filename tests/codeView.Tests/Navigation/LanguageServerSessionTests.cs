@@ -73,14 +73,14 @@ internal sealed class LanguageServerSessionTests
     }
 
     [Test]
-    public async Task RequestTimeoutCancelsTheRequestAndLeavesTheSessionUsable()
+    public async Task RequestTimeoutStopsTheProcessAndNextRequestRestarts()
     {
         using var fixture = await ServerFixture.CreateAsync();
         await using var server = fixture.SessionWithTimeout(TimeSpan.FromSeconds(1));
         var pid = (await Request(server, "pid")).GetInt32();
         Assert.ThrowsAsync<TimeoutException>(async () => await Request(server, "hold"));
-        await WaitForLog(fixture.Log, "$/cancelRequest");
-        Assert.That((await Request(server, "pid")).GetInt32(), Is.EqualTo(pid));
+        Assert.That(IsRunning(pid), Is.False);
+        Assert.That((await Request(server, "pid")).GetInt32(), Is.Not.EqualTo(pid));
     }
 
     [Test]

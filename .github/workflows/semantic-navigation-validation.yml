@@ -66,7 +66,7 @@ jobs:
         run: |
           dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet test codeView.slnx -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -m:1 -nr:false --filter 'FullyQualifiedName~LanguageServerSessionTests|FullyQualifiedName~RoslynNavigationTests|FullyQualifiedName~ClangdNavigationTests|FullyQualifiedName~SemanticResultMapperTests|FullyQualifiedName~SemanticNavigationViewModelTests' --logger 'trx;LogFileName=semantic-navigation.trx' --results-directory artifacts/semantic-navigation
+          dotnet test codeView.slnx -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -m:1 -nr:false --filter 'FullyQualifiedName~LanguageServerSessionTests|FullyQualifiedName~RoslynNavigationTests|FullyQualifiedName~ClangdNavigationTests|FullyQualifiedName~SemanticResultMapperTests|FullyQualifiedName~SemanticNavigationViewModelTests' --logger 'trx;LogFileName=semantic-navigation.trx' --logger 'console;verbosity=normal' --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none --results-directory artifacts/semantic-navigation
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Exercise application commands with real language servers
         run: |

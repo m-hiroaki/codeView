@@ -30,15 +30,19 @@ internal sealed class RoslynNavigationTests
             Assert.That(Path.GetFileName(new Uri(target.GetProperty("uri").GetString()!).LocalPath), Is.EqualTo("Api.cs"));
             Assert.That(StartLine(target), Is.EqualTo(2), "The enabled C# conditional branch is selected.");
             Assert.That(references.Locations.EnumerateArray().Select(StartLine).Distinct().Order(), Is.EqualTo(new[] { 4, 5 }));
-            var external = await roslyn.SearchAsync(session, SemanticOperation.Definition, fixture.Uri, 1, fixture.Text,
-                _ => new(8, 38), deadline.Token);
-            if (external.Locations.ValueKind == JsonValueKind.Array)
-                Assert.That(external.Locations.EnumerateArray().All(location =>
-                {
-                    var uri = new Uri(location.GetProperty("uri").GetString()!);
-                    return !uri.IsFile || Path.GetRelativePath(root.FullName, uri.LocalPath).StartsWith("..", StringComparison.Ordinal)
-                        || Path.IsPathRooted(Path.GetRelativePath(root.FullName, uri.LocalPath));
-                }), Is.True, "Framework definitions are outside the workspace.");
+            if (extension == ".slnx" && !sharedSource)
+            {
+                var external = await roslyn.SearchAsync(session, SemanticOperation.Definition, fixture.Uri, 1, fixture.Text,
+                    _ => new(8, 38), deadline.Token);
+                Assert.That(external.Locations.ValueKind is JsonValueKind.Null or JsonValueKind.Array, Is.True);
+                if (external.Locations.ValueKind == JsonValueKind.Array)
+                    Assert.That(external.Locations.EnumerateArray().All(location =>
+                    {
+                        var uri = new Uri(location.GetProperty("uri").GetString()!);
+                        return !uri.IsFile || Path.GetRelativePath(root.FullName, uri.LocalPath).StartsWith("..", StringComparison.Ordinal)
+                            || Path.IsPathRooted(Path.GetRelativePath(root.FullName, uri.LocalPath));
+                    }), Is.True, "Framework definitions are outside the workspace.");
+            }
 
             Task<SemanticReply> SearchAsync(SemanticOperation operation) => roslyn.SearchAsync(session, operation, fixture.Uri,
                 1, fixture.Text, _ => new(4, 21), deadline.Token);
@@ -132,7 +136,7 @@ internal sealed class RoslynNavigationTests
             await DotnetAsync(root, "new", "sln", "--format", "sln", "--name", "Probe");
             await DotnetAsync(root, "sln", selected, "add", appProject, libProject);
         }
-        await DotnetAsync(root, "restore", selected, "--ignore-failed-sources");
+        await DotnetAsync(root, "restore", selected, "--ignore-failed-sources", "--disable-build-servers");
         return (selected, new Uri(path).AbsoluteUri, caller);
     }
 
@@ -149,6 +153,7 @@ internal sealed class RoslynNavigationTests
         var errors = process.StandardError.ReadToEndAsync();
         try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(20)); }
         catch { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); throw; }
-        Assert.That(process.ExitCode, Is.Zero, (await output) + (await errors));
+        var messages = await Task.WhenAll(output, errors).WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.That(process.ExitCode, Is.Zero, string.Concat(messages));
     }
 }

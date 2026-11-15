@@ -120,12 +120,13 @@ internal sealed class SemanticNavigationViewModelTests
             WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardOutput = true, RedirectStandardError = true
         };
-        foreach (var arg in new[] { "restore", project, "--ignore-failed-sources" }) start.ArgumentList.Add(arg);
+        foreach (var arg in new[] { "restore", project, "--ignore-failed-sources", "--disable-build-servers" }) start.ArgumentList.Add(arg);
         using var process = Process.Start(start)!;
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();
         try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(15)); }
         catch { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); throw; }
-        Assert.That(process.ExitCode, Is.Zero, (await stdout) + (await stderr));
+        var messages = await Task.WhenAll(stdout, stderr).WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.That(process.ExitCode, Is.Zero, string.Concat(messages));
     }
 }
