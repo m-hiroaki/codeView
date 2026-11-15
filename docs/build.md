@@ -8,6 +8,7 @@ Windows上で、次を用意する。
 
 - [global.json](../global.json)で指定した.NET SDK（10.0.403、許容パッチ版は同ファイルに従う）。
 - Visual Studio 2022以降、または対応するBuild Tools。「C++によるデスクトップ開発」と既定のMSVC/Windows SDKコンポーネントを含める。[Microsoftの前提条件](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/#prerequisites)を参照。
+- Python 3（`py -3`）。
 
 コマンドプロンプトで実行する。
 
@@ -17,7 +18,7 @@ build-windows.bat
 
 出力先：`artifacts\publish\win-x64\codeView\codeView.exe`
 
-`codeView`フォルダ全体を使う。Native AOT本体に加え、描画などに必要なネイティブDLLも残す。実行先への.NETランタイムの別途インストールは不要な自己完結構成である。Windows ARM64を対象とするバッチではない。
+`codeView`フォルダ全体を使う。Native AOT本体、描画用のネイティブDLL、`language-servers`と`licenses`を収録する。本体の起動は自己完結構成である。C#の意味解析には.NET 10互換ランタイムと対象プロジェクトのSDKが必要になる。配布対象はWindows x64である。
 
 バッチは`dotnet publish -c Release -r win-x64 --self-contained true -p:PublishAot=true -p:PublishTrimmed=true`を実行する。通常のJIT発行へ切り替えるフォールバックはない。AOT/トリミングの警告を隠さず、コンパイラー/リンカーの警告もエラーとして扱う。[AvaloniaのAOT資料](https://docs.avaloniaui.net/docs/deployment/native-aot)も参照する。
 

@@ -4,7 +4,7 @@ import struct
 import tempfile
 import unittest
 
-from check_windows_publish import inspect_payload, native_x64
+from check_windows_publish import WINDOWS_CLANGD, WINDOWS_ROSLYN, inspect_payload, native_x64
 
 
 def pe_image():
@@ -72,6 +72,32 @@ class WindowsPublishTests(unittest.TestCase):
                 (folder / name).write_bytes(b'fallback')
                 with self.assertRaises(ValueError):
                     inspect_payload(folder)
+
+    def test_manifest_includes_bundled_helpers_and_hashes_their_managed_dependencies(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            (folder / 'codeView.exe').write_bytes(pe_image())
+            with self.assertRaisesRegex(ValueError, 'Missing language server'):
+                inspect_payload(folder, require_language_servers=True)
+            inputs = {
+                WINDOWS_ROSLYN: pe_image(), WINDOWS_CLANGD: pe_image(),
+                'language-servers/roslyn/Server.runtimeconfig.json': b'config',
+                'language-servers/roslyn/Server.dll': b'managed assembly',
+                'licenses/language-servers/roslyn/LICENSE.txt': b'MIT',
+                'licenses/language-servers/roslyn/ThirdPartyNotices.rtf': b'notices',
+                'licenses/language-servers/clangd/LICENSE.TXT': b'Apache',
+            }
+            for relative, data in inputs.items():
+                path = folder / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+            items = {f['path']: f for f in inspect_payload(folder, require_language_servers=True)['files']}
+            for relative, data in inputs.items():
+                self.assertEqual(items[relative]['sha256'], hashlib.sha256(data).hexdigest())
+            self.assertEqual(items[WINDOWS_ROSLYN]['pe']['machine'], 'AMD64')
+            (folder / WINDOWS_CLANGD).write_bytes(b'incorrect binary')
+            with self.assertRaises(ValueError):
+                inspect_payload(folder, require_language_servers=True)
 
 
 if __name__ == '__main__':

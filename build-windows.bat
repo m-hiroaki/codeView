@@ -7,6 +7,8 @@ pushd "%~dp0"
 if errorlevel 1 exit /b 1
 where dotnet.exe >nul 2>&1
 if errorlevel 1 goto sdk_missing
+py -3 --version >nul 2>&1
+if errorlevel 1 goto python_missing
 set "CODEVIEW_OUTPUT=%CD%\artifacts\publish\win-x64"
 set "CODEVIEW_BUILD=%CD%\artifacts\build\win-x64"
 set "CODEVIEW_STAGE=%CODEVIEW_BUILD%\stage-%RANDOM%-%RANDOM%"
@@ -22,6 +24,8 @@ if errorlevel 1 goto failed
 dotnet.exe publish src\codeView\codeView.csproj -c Release -r win-x64 --self-contained true --artifacts-path "%CODEVIEW_BUILD%" -o "%CODEVIEW_STAGE%\payload" -p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false -p:CodeViewPerformanceProbe=false -p:RestoreLockedMode=false "-p:NuGetLockFilePath=%CODEVIEW_STAGE%\publish.packages.lock.json" -p:IlcTreatWarningsAsErrors=true -p:ILLinkTreatWarningsAsErrors=true -m:1 -nr:false
 if errorlevel 1 goto failed
 if not exist "%CODEVIEW_STAGE%\payload\codeView.exe" goto executable_missing
+py -3 tools\package_language_servers.py win-x64 "%CODEVIEW_STAGE%\payload"
+if errorlevel 1 goto failed
 if not exist "%CODEVIEW_OUTPUT%" mkdir "%CODEVIEW_OUTPUT%"
 if errorlevel 1 goto failed
 rem Replace only generated output after Native AOT publish succeeds.
@@ -43,6 +47,9 @@ echo ERROR: Build failed. Check the output above. 1>&2
 goto cleanup
 :sdk_missing
 echo ERROR: Install the .NET SDK specified in global.json. 1>&2
+goto cleanup
+:python_missing
+echo ERROR: Install Python 3 with the py launcher. 1>&2
 goto cleanup
 :stage_exists
 rem Do not remove a staging directory that this invocation did not create.

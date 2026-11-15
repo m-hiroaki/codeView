@@ -28,11 +28,21 @@ def native_x64(data):
     return {'machine': 'AMD64', 'format': 'PE32+', 'clr_header': False}
 
 
-def inspect_payload(folder):
+WINDOWS_ROSLYN = 'language-servers/roslyn/Microsoft.CodeAnalysis.LanguageServer.exe'
+WINDOWS_CLANGD = 'language-servers/clangd/bin/clangd.exe'
+
+
+def inspect_payload(folder, require_language_servers=False):
     folder = Path(folder)
     executable = folder / 'codeView.exe'
     if not executable.is_file():
         raise ValueError('Missing codeView.exe')
+    if require_language_servers:
+        for relative in (WINDOWS_ROSLYN, WINDOWS_CLANGD, 'licenses/language-servers/roslyn/LICENSE.txt',
+                         'licenses/language-servers/roslyn/ThirdPartyNotices.rtf', 'licenses/language-servers/clangd/LICENSE.TXT'):
+            path = folder / relative
+            if not path.is_file() or path.stat().st_size == 0:
+                raise ValueError(f'Missing language server payload: {relative}')
     files = []
     forbidden = {'codeview.dll', 'coreclr.dll', 'clrjit.dll', 'hostfxr.dll', 'hostpolicy.dll'}
     for path in sorted(folder.rglob('*')):
@@ -40,12 +50,14 @@ def inspect_payload(folder):
             raise ValueError('Unexpected symlink in payload')
         if not path.is_file():
             continue
-        if path.name.lower() in forbidden or path.name.endswith(('.deps.json', '.runtimeconfig.json')):
+        relative = path.relative_to(folder).as_posix()
+        server_file = relative.startswith(('language-servers/roslyn/', 'language-servers/clangd/'))
+        if not server_file and (path.name.lower() in forbidden or path.name.endswith(('.deps.json', '.runtimeconfig.json'))):
             raise ValueError(f'Unexpected managed runtime payload: {path.name}')
         data = path.read_bytes()
-        item = {'path': path.relative_to(folder).as_posix(), 'bytes': len(data),
+        item = {'path': relative, 'bytes': len(data),
                 'sha256': hashlib.sha256(data).hexdigest()}
-        if path.suffix.lower() in ('.exe', '.dll'):
+        if relative in (WINDOWS_ROSLYN, WINDOWS_CLANGD) or (not server_file and path.suffix.lower() in ('.exe', '.dll')):
             item['pe'] = native_x64(data)
         files.append(item)
     return {'schema': 1, 'files': files, 'total_bytes': sum(x['bytes'] for x in files)}
@@ -71,8 +83,9 @@ def main():
     parser.add_argument('--folder', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--icon', type=Path)
+    parser.add_argument('--require-language-servers', action='store_true')
     args = parser.parse_args()
-    report = inspect_payload(args.folder)
+    report = inspect_payload(args.folder, args.require_language_servers)
     if args.icon is not None:
         report['application_icon_images'] = check_icon(args.folder / 'codeView.exe', args.icon)
     args.output.parent.mkdir(parents=True, exist_ok=True)

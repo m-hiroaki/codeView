@@ -8,10 +8,13 @@ on:
       - .github/workflows/publish-validation.yml
       - build-windows.bat
       - build/codeView.ico
+      - build/language-servers.json
       - build/licenses/**
       - global.json
       - tools/check_windows_publish.py
       - tools/test_windows_publish.py
+      - tools/package_language_servers.py
+      - tools/test_package_language_servers.py
       - tools/check_windows_launch.ps1
       - tools/check_windows_picker.ps1
       - src/codeView/Presentation/MainWindow.axaml.cs
@@ -65,7 +68,11 @@ jobs:
         run: |
           python -m unittest discover -s tools -p test_windows_publish.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/check_windows_publish.py --folder artifacts/publish/win-x64/codeView --output artifacts/publish-validation/manifest.json --icon build/codeView.ico
+          python -m unittest discover -s tools -p test_package_language_servers.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/check_windows_publish.py --folder artifacts/publish/win-x64/codeView --output artifacts/publish-validation/manifest.json --icon build/codeView.ico --require-language-servers
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & 'artifacts/publish/win-x64/codeView/language-servers/clangd/bin/clangd.exe' --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $payload = 'artifacts/publish/win-x64/codeView/licenses'
           $notices = @(
