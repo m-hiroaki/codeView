@@ -6,15 +6,19 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using AvaloniaEdit;
 using CodeView.Operations;
 
 namespace CodeView.Presentation;
 
-internal sealed partial class GuiPerformanceProbe
+internal sealed class GuiSemanticChecks(MainWindow _window, MainWindowViewModel _viewModel, TextEditor _editor,
+    Action<Control, KeyEventArgs> raiseSearchKey)
 {
-    private async Task<object> CheckSemanticAsync(string root, Action<bool, string> require, CancellationToken ct)
+    internal sealed record Result(int[] ShutdownPids, IReadOnlyList<object> Timings,
+        IReadOnlyList<double> ManagedFirstScroll, int MovedFrames);
+
+    internal async Task<Result> RunAsync(string root, Action<bool, string> require, CancellationToken ct)
     {
-        var tools = (Roslyn: Env("CODEVIEW_TEST_ROSLYN"), Clangd: Env("CODEVIEW_TEST_CLANGD"));
         var desktop = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
         var panel = _viewModel.SearchPanel;
         var timings = new List<object>();
@@ -27,13 +31,13 @@ internal sealed partial class GuiPerformanceProbe
         var managedCaller = Path.Combine(managed, "Caller.cs");
         await _viewModel.OpenFilesAsync([managed, managedCaller], OpenOrigin.Menu);
         var config = await OpenOptionsAsync();
-        Set(config, "RoslynExecutable", Path.Combine(managed, "missing.exe"));
+        require(config.GetVisualDescendants().OfType<TextBox>().Count() == 2, "semantic-dialog-omits-server-paths");
+        Set(config, "RoslynProject", Path.Combine(managed, "missing.csproj"));
         Click(config, "EnableSemanticNavigation");
         await Frame(ct);
         require(config.IsVisible && _viewModel.SemanticServerProcessIds.Length == 0
-            && _viewModel.Status.Contains("絶対パス"), "semantic-unavailable-server-leaves-simple-search");
-        Set(config, "RoslynExecutable", tools.Roslyn);
-        Set(config, "RoslynProject", Path.Combine(managed, "Demo.csproj"));
+            && _viewModel.Status.Contains("絶対パス"), "semantic-invalid-project-leaves-simple-search");
+        Set(config, "RoslynProject", "");
         Click(config, "EnableSemanticNavigation");
         while (config.IsVisible) await Frame(ct);
         require(_viewModel.SemanticServerProcessIds.Length == 0
@@ -48,7 +52,6 @@ internal sealed partial class GuiPerformanceProbe
             && _viewModel.DefinitionMenuLabel.Contains("簡易"), "semantic-workspace-switch-stops-server");
 
         config = await OpenOptionsAsync();
-        Set(config, "ClangdExecutable", tools.Clangd);
         Set(config, "ClangdDatabase", Path.Combine(native, "compile_commands.json"));
         Click(config, "EnableSemanticNavigation");
         while (config.IsVisible) await Frame(ct);
@@ -73,14 +76,13 @@ internal sealed partial class GuiPerformanceProbe
             && panel.Description.Contains("名前一致") && panel.Rows.Count > 1, "semantic-switches-back-to-name-search");
 
         config = await OpenOptionsAsync();
-        Set(config, "ClangdExecutable", tools.Clangd);
         Click(config, "EnableSemanticNavigation");
         while (config.IsVisible) await Frame(ct);
         await JumpAsync(Path.Combine(native, "Caller.cpp"), Path.Combine(native, "Target.cpp"), "RunCpp");
         var shutdownPids = _viewModel.SemanticServerProcessIds;
         require(shutdownPids.Length == 1, "semantic-server-active-before-app-exit");
         if (measure && movedFrames < 2) throw new InvalidOperationException("No scrolling was observed during analysis.");
-        return new { Timings = timings, ShutdownPids = shutdownPids, ManagedFirstScroll = managedFirstScroll, MovedFrames = movedFrames };
+        return new(shutdownPids, timings, managedFirstScroll, movedFrames);
 
         async Task<Window> OpenOptionsAsync()
         {
@@ -144,7 +146,7 @@ internal sealed partial class GuiPerformanceProbe
         async Task SendKeyAsync(KeyModifiers modifiers, bool scroll = false)
         {
             var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers };
-            RaiseSearchKey(_editor.TextArea, key);
+            raiseSearchKey(_editor.TextArea, key);
             var pending = _viewModel.PendingWork;
             if (scroll)
             {
@@ -167,7 +169,6 @@ internal sealed partial class GuiPerformanceProbe
             if (!key.Handled) throw new InvalidOperationException("F12 was not handled.");
         }
 
-        static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? throw new InvalidOperationException(name);
         static void Set(Window window, string control, string value) =>
             window.GetVisualDescendants().OfType<TextBox>().Single(box => box.Name == control).Text = value;
         static void Click(Window window, string control) => window.GetVisualDescendants().OfType<Button>()
@@ -181,5 +182,12 @@ internal sealed partial class GuiPerformanceProbe
             }
             catch (ArgumentException) { return false; }
         }
+    }
+
+    private Task Frame(CancellationToken ct)
+    {
+        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _window.RequestAnimationFrame(_ => ready.TrySetResult());
+        return ready.Task.WaitAsync(TimeSpan.FromSeconds(10), ct);
     }
 }

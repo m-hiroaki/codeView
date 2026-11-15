@@ -29,6 +29,12 @@ command -v python3 >/dev/null || { echo 'ERROR: Install Python 3.' >&2; exit 1; 
 
 codeview_output="$codeview_root/artifacts/publish/$codeview_rid"
 codeview_build="$codeview_root/artifacts/build/$codeview_rid"
+codeview_semantic_probe=false
+if [[ "${CODEVIEW_SEMANTIC_PROBE:-}" == 1 ]]; then
+    codeview_output="$codeview_root/artifacts/semantic-probe/publish/$codeview_rid"
+    codeview_build="$codeview_root/artifacts/semantic-probe/build/$codeview_rid"
+    codeview_semantic_probe=true
+fi
 mkdir -p "$codeview_build" "$codeview_output"
 codeview_stage="$(mktemp -d "$codeview_build/stage.XXXXXX")"
 trap 'rm -rf "$codeview_stage"' EXIT
@@ -40,6 +46,7 @@ dotnet publish src/codeView/codeView.csproj -c Release -r "$codeview_rid" \
     --self-contained true --artifacts-path "$codeview_build" -o "$codeview_stage/payload" \
     -p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false \
     -p:CodeViewPerformanceProbe=false -p:RestoreLockedMode=false \
+    "-p:CodeViewSemanticProbe=$codeview_semantic_probe" \
     -p:IlcTreatWarningsAsErrors=true -p:ILLinkTreatWarningsAsErrors=true \
     "-p:NuGetLockFilePath=$codeview_stage/publish.packages.lock.json" -m:1 -nr:false
 

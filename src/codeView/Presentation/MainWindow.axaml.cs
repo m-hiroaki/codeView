@@ -222,6 +222,9 @@ internal sealed partial class MainWindow : Window
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.InitializationFinished(viewModel.HasDocument);
 #endif
+#if CODEVIEW_SEMANTIC_PROBE
+            await BundledSemanticProbe.RunAsync(this, viewModel, editor);
+#endif
         };
         viewModel.FatalFailure += () => { Program.MarkFailed(); Close(); };
         Closing += async (_, eventArgs) =>
@@ -658,9 +661,7 @@ internal sealed partial class MainWindow : Window
             if (!_viewModel.CanSearchWorkspace) return;
             var epoch = _viewModel.WorkspaceEpoch;
             var current = _viewModel.SemanticOptions;
-            var roslyn = new TextBox { Name = "RoslynExecutable", Text = current?.RoslynExecutable };
             var project = new TextBox { Name = "RoslynProject", Text = current?.CSharpProject, PlaceholderText = "空欄の場合は作業フォルダ直下から選択" };
-            var clangd = new TextBox { Name = "ClangdExecutable", Text = current?.ClangdExecutable };
             var database = new TextBox { Name = "ClangdDatabase", Text = current?.CompilationDatabase, PlaceholderText = "空欄の場合は作業フォルダと build から検出" };
             var apply = new Button { Name = "EnableSemanticNavigation", Content = "有効にする" };
             var disable = new Button { Name = "DisableSemanticNavigation", Content = "簡易検索に戻す" };
@@ -685,9 +686,7 @@ internal sealed partial class MainWindow : Window
                             Text = "信頼できる作業フォルダで有効にしてください。Roslyn のプロジェクト読込では、プロジェクト由来の処理が実行される場合があります。",
                             TextWrapping = Avalonia.Media.TextWrapping.Wrap
                         },
-                        PathField("C# の Roslyn Language Server", roslyn),
                         PathField("C# のソリューションまたはプロジェクト", project),
-                        PathField("C/C++ の clangd", clangd),
                         PathField("C/C++ の compile_commands.json", database),
                         error,
                         new StackPanel
@@ -706,8 +705,7 @@ internal sealed partial class MainWindow : Window
             };
             apply.Click += (_, _) =>
             {
-                var options = new SemanticWorkspaceOptions(Input(roslyn), Input(project), Input(clangd), Input(database));
-                if (_viewModel.ConfigureSemanticNavigation(epoch, options)) dialog.Close();
+                if (_viewModel.EnableBundledSemanticNavigation(epoch, Input(project), Input(database), AppContext.BaseDirectory)) dialog.Close();
                 else error.Text = _viewModel.Status;
             };
             await dialog.ShowDialog(this);

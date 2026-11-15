@@ -23,7 +23,7 @@ internal sealed class LanguageServerSession(
 
     internal string PositionEncoding { get; private set; } = "utf-16";
     internal int DocumentVersion => _version;
-#if CODEVIEW_PERFORMANCE_PROBE
+#if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
     internal int? ProcessId => _process is { HasExited: false } process ? process.Id : null;
 #endif
 

@@ -55,7 +55,8 @@ internal sealed partial class GuiPerformanceProbe
             var ct = deadline.Token;
             if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_ROOT") is { } semanticRoot)
             {
-                var semantic = await CheckSemanticAsync(semanticRoot, Require, ct);
+                var semantic = await new GuiSemanticChecks(_window, _viewModel, _editor, RaiseSearchKey)
+                    .RunAsync(semanticRoot, Require, ct);
                 _referenceResults = new { Passed = true, Checks = checks, Semantic = semantic };
                 Finish();
                 return;

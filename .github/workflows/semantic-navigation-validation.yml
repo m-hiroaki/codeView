@@ -7,6 +7,13 @@ on:
     paths:
       - .github/workflows/semantic-navigation-validation.yml
       - global.json
+      - build-mac.sh
+      - build-windows.bat
+      - build/language-servers.json
+      - build/licenses/Roslyn.txt
+      - tools/package_language_servers.py
+      - src/codeView/codeView.csproj
+      - src/codeView/App.axaml.cs
       - src/codeView/Navigation/**
       - src/codeView/Operations/**
       - src/codeView/Presentation/MainWindow*
@@ -24,11 +31,11 @@ jobs:
   semantic-navigation:
     name: Semantic navigation (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025, macos-15]
+        os: [windows-2025, macos-15, macos-15-intel]
     defaults:
       run:
         shell: pwsh
@@ -42,26 +49,43 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
-      - name: Prepare language servers
+      - name: Publish and relocate the Native AOT acceptance build
+        env:
+          CODEVIEW_SEMANTIC_PROBE: '1'
         run: |
-          $artifacts = Join-Path $PWD 'artifacts/semantic-navigation'
-          New-Item -ItemType Directory -Force $artifacts | Out-Null
-          $toolDirectory = Join-Path $artifacts 'tools'
-          dotnet tool install roslyn-language-server --version 5.13.0-1.26514.10 --tool-path $toolDirectory
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $roslyn = if ($IsWindows) {
-            # The generated tool shim is not necessarily an executable. Use the package's native entry point.
-            (Get-ChildItem (Join-Path $toolDirectory '.store') -Recurse -Force -File -Filter 'roslyn-language-server.exe' |
-              Select-Object -First 1).FullName
-          } else { Join-Path $toolDirectory 'roslyn-language-server' }
-          $clangd = (Get-Command clangd -ErrorAction SilentlyContinue).Source
-          if (!$clangd -and $IsWindows) { $clangd = Join-Path $env:ProgramFiles 'LLVM/bin/clangd.exe' }
-          if (!$clangd -or !(Test-Path -LiteralPath $clangd -PathType Leaf)) { throw 'clangd is missing' }
-          if (!$roslyn -or !(Test-Path -LiteralPath $roslyn -PathType Leaf)) { throw 'Roslyn executable is missing' }
+          $evidence = Join-Path $PWD 'artifacts/semantic-navigation'
+          $relocated = Join-Path $evidence 'moved 配布'
+          New-Item -ItemType Directory -Force $relocated | Out-Null
+          if ($IsWindows) {
+            & cmd.exe /d /c build-windows.bat 2>&1 | Tee-Object (Join-Path $evidence 'publish.log')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Copy-Item 'artifacts/semantic-probe/publish/win-x64/codeView' $relocated -Recurse
+            $payload = Join-Path $relocated 'codeView'
+            $app = Join-Path $payload 'codeView.exe'
+            $roslyn = Join-Path $payload 'language-servers/roslyn/Microsoft.CodeAnalysis.LanguageServer.exe'
+            $clangd = Join-Path $payload 'language-servers/clangd/bin/clangd.exe'
+          } else {
+            $rid = if ((uname -m) -eq 'arm64') { 'osx-arm64' } else { 'osx-x64' }
+            & ./build-mac.sh $rid 2>&1 | Tee-Object (Join-Path $evidence 'publish.log')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $payload = Join-Path $relocated 'codeView.app'
+            ditto "artifacts/semantic-probe/publish/$rid/codeView.app" $payload
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            codesign --verify --deep --strict $payload
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $app = Join-Path $payload 'Contents/MacOS/codeView'
+            $roslyn = Join-Path $payload 'Contents/Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer'
+            $clangd = Join-Path $payload 'Contents/Helpers/clangd'
+          }
+          foreach ($file in @($app, $roslyn, $clangd)) {
+            if (!(Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing relocated executable $file" }
+          }
+          "CODEVIEW_BUNDLED_APP=$app" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "CODEVIEW_TEST_ROSLYN=$roslyn" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "CODEVIEW_TEST_CLANGD=$clangd" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
-          dotnet --info | Out-File (Join-Path $artifacts 'environment.txt')
-          & $clangd --version | Out-File (Join-Path $artifacts 'environment.txt') -Append
+          dotnet --info | Out-File (Join-Path $evidence 'environment.txt')
+          & $clangd --version | Out-File (Join-Path $evidence 'environment.txt') -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run semantic navigation integration tests
         id: integration
         run: |
@@ -69,13 +93,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet test codeView.slnx -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -m:1 -nr:false --filter 'FullyQualifiedName~LanguageServerSessionTests|FullyQualifiedName~RoslynNavigationTests|FullyQualifiedName~ClangdNavigationTests|FullyQualifiedName~SemanticResultMapperTests|FullyQualifiedName~SemanticNavigationViewModelTests' --logger 'trx;LogFileName=semantic-navigation.trx' --logger 'console;verbosity=normal' --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none --results-directory artifacts/semantic-navigation
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Exercise application commands with real language servers
+      - name: Exercise application commands using the relocated bundle
         if: ${{ !cancelled() && (success() || steps.integration.outcome == 'failure') }}
         run: |
-          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/semantic-navigation/app -m:1 -nr:false
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $app = if ($IsWindows) { 'artifacts/semantic-navigation/app/codeView.exe' } else { 'artifacts/semantic-navigation/app/codeView' }
-          python tools/check_reference_search.py --app $app --output artifacts/semantic-navigation/gui --commit $env:GITHUB_SHA --rounds 1 --semantic
+          python tools/check_reference_search.py --app $env:CODEVIEW_BUNDLED_APP --output artifacts/semantic-navigation/gui --commit $env:GITHUB_SHA --rounds 1 --semantic --native-aot
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload evidence
         if: always()
@@ -85,6 +106,7 @@ jobs:
           retention-days: 14
           path: |
             artifacts/semantic-navigation/environment.txt
+            artifacts/semantic-navigation/publish.log
             artifacts/semantic-navigation/*.trx
             artifacts/semantic-navigation/gui/reference-*.json
             artifacts/semantic-navigation/gui/reference-*.log

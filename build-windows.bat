@@ -11,6 +11,12 @@ py -3 --version >nul 2>&1
 if errorlevel 1 goto python_missing
 set "CODEVIEW_OUTPUT=%CD%\artifacts\publish\win-x64"
 set "CODEVIEW_BUILD=%CD%\artifacts\build\win-x64"
+set "CODEVIEW_SEMANTIC_BUILD=false"
+if defined CODEVIEW_SEMANTIC_PROBE (
+    set "CODEVIEW_OUTPUT=%CD%\artifacts\semantic-probe\publish\win-x64"
+    set "CODEVIEW_BUILD=%CD%\artifacts\semantic-probe\build\win-x64"
+    set "CODEVIEW_SEMANTIC_BUILD=true"
+)
 set "CODEVIEW_STAGE=%CODEVIEW_BUILD%\stage-%RANDOM%-%RANDOM%"
 if exist "%CODEVIEW_STAGE%" goto stage_exists
 mkdir "%CODEVIEW_STAGE%"
@@ -21,7 +27,7 @@ dotnet.exe restore src\codeView\codeView.csproj --locked-mode --disable-parallel
 if errorlevel 1 goto failed
 copy /y src\codeView\packages.lock.json "%CODEVIEW_STAGE%\publish.packages.lock.json" >nul
 if errorlevel 1 goto failed
-dotnet.exe publish src\codeView\codeView.csproj -c Release -r win-x64 --self-contained true --artifacts-path "%CODEVIEW_BUILD%" -o "%CODEVIEW_STAGE%\payload" -p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false -p:CodeViewPerformanceProbe=false -p:RestoreLockedMode=false "-p:NuGetLockFilePath=%CODEVIEW_STAGE%\publish.packages.lock.json" -p:IlcTreatWarningsAsErrors=true -p:ILLinkTreatWarningsAsErrors=true -m:1 -nr:false
+dotnet.exe publish src\codeView\codeView.csproj -c Release -r win-x64 --self-contained true --artifacts-path "%CODEVIEW_BUILD%" -o "%CODEVIEW_STAGE%\payload" -p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false -p:CodeViewPerformanceProbe=false -p:CodeViewSemanticProbe=%CODEVIEW_SEMANTIC_BUILD% -p:RestoreLockedMode=false "-p:NuGetLockFilePath=%CODEVIEW_STAGE%\publish.packages.lock.json" -p:IlcTreatWarningsAsErrors=true -p:ILLinkTreatWarningsAsErrors=true -m:1 -nr:false
 if errorlevel 1 goto failed
 if not exist "%CODEVIEW_STAGE%\payload\codeView.exe" goto executable_missing
 py -3 tools\package_language_servers.py win-x64 "%CODEVIEW_STAGE%\payload"

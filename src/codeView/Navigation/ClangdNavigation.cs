@@ -5,14 +5,20 @@ namespace CodeView.Navigation;
 internal sealed class ClangdNavigation(string root, string? database, string cacheRoot)
 {
     private readonly ClangdCompilationDatabase _compilation = new(root, database, cacheRoot);
-    private readonly string[] _arguments = ["--background-index", "--enable-config=false", "--log=error", ""];
+    private List<string> _arguments = [];
     private int _indexState;
     private Diagnostics? _lastDiagnostics;
 
     private sealed record Diagnostics(string Uri, int Version, bool HasErrors);
 
-    public LanguageServerSession CreateSession(string executable) =>
-        new(executable, _arguments, LspFilePath.Resolve(root), Observe, WriteInitialization);
+    public LanguageServerSession CreateSession(string executable)
+    {
+        _arguments = ["--background-index", "--enable-config=false", "--log=error"];
+        if (BundledLanguageServers.ClangdResourceDirectory(executable) is { } resources)
+            _arguments.Add("--resource-dir=" + resources);
+        _arguments.Add(""); // The active compilation database is selected on first search.
+        return new(executable, _arguments, LspFilePath.Resolve(root), Observe, WriteInitialization);
+    }
 
     public async Task<SemanticReply> SearchAsync(LanguageServerSession session, SemanticOperation operation, string uri,
         string languageId, long revision, string text, Func<string, LspPosition> position, CancellationToken ct)

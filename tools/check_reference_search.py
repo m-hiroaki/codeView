@@ -81,7 +81,7 @@ CHECKS = [
 
 
 SEMANTIC_CHECKS = [
-    'semantic-startup-uses-simple-search', 'semantic-unavailable-server-leaves-simple-search',
+    'semantic-startup-uses-simple-search', 'semantic-dialog-omits-server-paths', 'semantic-invalid-project-leaves-simple-search',
     'semantic-enable-defers-server-launch',
     'semantic-cs-f12-selects-original-definition', 'semantic-cs-shift-f12-finds-symbol-reference',
     'semantic-workspace-switch-stops-server',
@@ -122,7 +122,7 @@ def create_semantic_fixture(root, measure=False):
             ("Target", f'int {symbol}(int n) {{ return n; }}'),
         ):
             file = native / f"{title}.{extension}"
-            sources[file] = '#include "library.h"\n' + text + "\n"
+            sources[file] = '#include <stdarg.h>\n#include "library.h"\n' + text + "\n"
             commands.append(dict(directory=str(native), file=file.name, arguments=[compiler, "-c", file.name]))
     sources[native / "compile_commands.json"] = json.dumps(commands)
     if measure:
@@ -209,12 +209,13 @@ def measure_processes(args, env, log):
     return child.returncode, resources
 
 
-def collect(app, output, commit, rounds=3, semantic=False, measure=False):
+def collect(app, output, commit, rounds=3, semantic=False, measure=False, native_aot=False):
     if not 1 <= rounds <= 10:
         raise ValueError('Use 1..10 isolated processes')
     output.mkdir(parents=True, exist_ok=False)
+    product = app if native_aot else app.parent / 'codeView.dll'
     record = {'commit': commit, 'appHostSha256': hashlib.sha256(app.read_bytes()).hexdigest(),
-              'productSha256': hashlib.sha256((app.parent / 'codeView.dll').read_bytes()).hexdigest(), 'runs': []}
+              'productSha256': hashlib.sha256(product.read_bytes()).hexdigest(), 'runs': []}
     try:
         for number in range(1, rounds + 1):
             target = output / f'reference-{number}.json'
@@ -238,8 +239,7 @@ def collect(app, output, commit, rounds=3, semantic=False, measure=False):
                 if measure:
                     env.update(CODEVIEW_GUI_SEMANTIC_MEASURE='1')
                 for key in ('CODEVIEW_TEST_ROSLYN', 'CODEVIEW_TEST_CLANGD'):
-                    if not env.get(key) or not Path(env[key]).is_file():
-                        raise ValueError(f'{key} must point to a real executable')
+                    env.pop(key, None)
             original_hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs]
             row = {'round': number}; record['runs'].append(row)
             args = [str(app), str(first), str(first_file), str(fixture / 'missing.txt'), str(second), str(last_file)]
@@ -256,6 +256,8 @@ def collect(app, output, commit, rounds=3, semantic=False, measure=False):
                 failure = row.get('report', {}).get('Failure') or f"exit code {row['exitCode']}"
                 raise RuntimeError(f'Native reference search failed: {failure}')
             validate(row.get('report', {}), commit, checks)
+            if native_aot and row['report'].get('NativeAot') is not True:
+                raise ValueError('The bundled acceptance probe was not Native AOT')
             if semantic:
                 stopped = row['report']['ReferenceChecks']['Semantic']['ShutdownPids']
                 if not stopped or any(process_is_running(pid) for pid in stopped):
@@ -276,8 +278,11 @@ if __name__ == '__main__':
     parser.add_argument('--commit', required=True)
     parser.add_argument('--rounds', type=int, default=3)
     parser.add_argument('--semantic', action='store_true')
+    parser.add_argument('--native-aot', action='store_true')
     parser.add_argument('--measure', action='store_true')
     args = parser.parse_args()
     if args.measure and (not args.semantic or sys.platform != 'darwin'):
         parser.error('--measure requires --semantic on macOS')
-    collect(args.app.resolve(), args.output.resolve(), args.commit, args.rounds, args.semantic, args.measure)
+    if args.native_aot and (not args.semantic or args.measure):
+        parser.error('--native-aot requires --semantic without --measure')
+    collect(args.app.resolve(), args.output.resolve(), args.commit, args.rounds, args.semantic, args.measure, args.native_aot)

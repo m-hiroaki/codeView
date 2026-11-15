@@ -160,10 +160,16 @@ def main():
     system = 'windows' if args.rid == 'win-x64' else 'mac'
     clangd = archive(args.cache, f'https://github.com/clangd/clangd/releases/download/{version}/clangd-{system}-{version}.zip',
                      native['sha256'][system])
+    def payload_bytes():
+        return sum(path.stat().st_size for path in args.payload.rglob('*') if not path.is_symlink() and path.is_file())
+
+    before = payload_bytes()
     if args.rid == 'win-x64':
         stage_windows(args.payload, roslyn, clangd, native)
     else:
         stage_macos(args.payload, args.rid, roslyn, clangd, native)
+    after = payload_bytes()
+    print(f'Payload bytes ({args.rid}): before={before}, after={after}, added={after - before}')
 
 
 if __name__ == '__main__':

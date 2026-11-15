@@ -11,6 +11,67 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class SemanticNavigationViewModelTests
 {
+    [Test]
+    public void ResolvesBundledServersInRelocatedApplicationAndKeepsSimpleSearchAvailable() => SingleThreadTestContext.Run(async () =>
+    {
+        var temporary = Directory.CreateTempSubdirectory("codeview 同梱 ");
+        try
+        {
+            var root = temporary.CreateSubdirectory("workspace").FullName;
+            var source = Path.Combine(root, "Source.cs");
+            await File.WriteAllTextAsync(source, "class Source {}");
+            var app = temporary.CreateSubdirectory(OperatingSystem.IsMacOS() ? "Code View.app/Contents/MacOS" : "distribution").FullName;
+            var access = new SourceAccess();
+            using var operations = new AppOperations(new(access), new AvaloniaEditDocumentAdapter(), new(access));
+            var view = new MainWindowViewModel(operations,
+                new SettingsStore(new(Path.Combine(temporary.FullName, "portable.json"), Path.Combine(temporary.FullName, "user.json"))),
+                async () => await Task.Yield());
+            try
+            {
+                await view.InitializeAsync([root, source]);
+                Assert.That(view.EnableBundledSemanticNavigation(view.WorkspaceEpoch, null, null, app), Is.False);
+                Assert.That(view.Status, Does.Contain("同梱"));
+                Assert.That(view.DefinitionMenuLabel, Does.Contain("簡易"));
+
+                var (roslyn, clangd) = OperatingSystem.IsMacOS()
+                    ? (Path.Combine(app, "../Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer"),
+                        Path.Combine(app, "../Helpers/clangd"))
+                    : (Path.Combine(app, "language-servers/roslyn/Microsoft.CodeAnalysis.LanguageServer.exe"),
+                        Path.Combine(app, "language-servers/clangd/bin/clangd.exe"));
+                Write(roslyn);
+                Assert.That(view.EnableBundledSemanticNavigation(view.WorkspaceEpoch, null, null, app), Is.True);
+                Assert.That(view.Status, Does.Contain("clangd が見つかりません"));
+                Assert.That(view.DefinitionMenuLabel, Does.Contain("意味解析"));
+                Assert.That(view.SemanticOptions!.RoslynExecutable, Is.EqualTo(Path.GetFullPath(roslyn)));
+
+                Write(clangd);
+                if (OperatingSystem.IsMacOS())
+                {
+                    Assert.That(BundledLanguageServers.Resolve(app).Clangd, Is.Null);
+                    Write(Path.Combine(app, "../Resources/clangd/include/stddef.h"));
+                }
+                Assert.That(view.EnableBundledSemanticNavigation(view.WorkspaceEpoch, "not-absolute.csproj", null, app), Is.False);
+                Assert.That(view.EnableBundledSemanticNavigation(view.WorkspaceEpoch, null, null, app), Is.True);
+                Assert.That(view.SemanticOptions!.ClangdExecutable, Is.EqualTo(Path.GetFullPath(clangd)));
+                Assert.That(view.ConfigureSemanticNavigation(view.WorkspaceEpoch, null), Is.True);
+                Assert.That(view.DefinitionMenuLabel, Does.Contain("簡易"));
+            }
+            finally
+            {
+                view.Stop();
+                await view.PendingWork;
+            }
+        }
+        finally { temporary.Delete(recursive: true); }
+
+        static void Write(string path)
+        {
+            path = Path.GetFullPath(path);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, "test");
+        }
+    });
+
     [TestCase("cs")]
     [TestCase("c")]
     [TestCase("cpp")]

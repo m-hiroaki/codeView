@@ -78,7 +78,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public string DefinitionMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "定義へジャンプ（意味解析）" : "定義へジャンプ（簡易）";
     public string ReferencesMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "参照を検索（意味解析）" : "参照を検索（名前一致）";
     internal SemanticWorkspaceOptions? SemanticOptions => operations.SemanticOptions;
-#if CODEVIEW_PERFORMANCE_PROBE
+#if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
     internal int[] SemanticServerProcessIds => operations.SemanticServerProcessIds;
 #endif
     public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
@@ -105,6 +105,22 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public Task FindDefinitionsAsync(int caret, int selectionStart, int selectionLength)
         => TrackManualAsync(FindSymbolAsync(caret, selectionStart, selectionLength, definitions: true));
 
+    internal bool EnableBundledSemanticNavigation(long? rootEpoch, string? project, string? database, string appDirectory)
+    {
+        if (_stopping || rootEpoch != WorkspaceEpoch || !CanSearchWorkspace) return false;
+        var (roslyn, clangd) = BundledLanguageServers.Resolve(appDirectory);
+        if (roslyn is null && clangd is null)
+        {
+            SetStatus("同梱の Roslyn と clangd が見つかりません。配布物を確認してください。");
+            return false;
+        }
+
+        if (!ConfigureSemanticNavigation(rootEpoch, new(roslyn, project, clangd, database))) return false;
+        if (roslyn is null) SetStatus("同梱の Roslyn が見つかりません。C# では簡易検索を使用します。");
+        if (clangd is null) SetStatus("同梱の clangd が見つかりません。C/C++ では簡易検索を使用します。");
+        return true;
+    }
+
     internal bool ConfigureSemanticNavigation(long? rootEpoch, SemanticWorkspaceOptions? options)
     {
         if (_stopping || rootEpoch != WorkspaceEpoch || !CanSearchWorkspace) return false;
@@ -114,7 +130,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             || options.CSharpProject is { } project && (!Path.IsPathFullyQualified(project) || !RoslynNavigation.SupportsProject(project) || !File.Exists(project))
             || options.CompilationDatabase is { } database && (!Path.IsPathFullyQualified(database) || !File.Exists(database))))
         {
-            SetStatus("言語サーバーの実行ファイルと、指定したプロジェクト設定の絶対パスを確認してください。");
+            SetStatus("指定したプロジェクト設定の絶対パスと、同梱の言語サーバーを確認してください。");
             return false;
         }
         RecordUserInteraction();

@@ -31,7 +31,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private RoslynNavigation? _roslyn;
     private ClangdNavigation? _clangd;
     internal SemanticWorkspaceOptions? SemanticOptions { get; private set; }
-#if CODEVIEW_PERFORMANCE_PROBE
+#if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
     internal int[] SemanticServerProcessIds => _languageServers?.Values.Select(server => server.ProcessId)
         .OfType<int>().ToArray() ?? [];
 #endif
