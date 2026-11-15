@@ -47,7 +47,7 @@ internal sealed class RoslynNavigationTests
             Task<SemanticReply> SearchAsync(SemanticOperation operation) => roslyn.SearchAsync(session, operation, fixture.Uri,
                 1, fixture.Text, _ => new(4, 21), deadline.Token);
         }
-        finally { root.Delete(recursive: true); }
+        finally { await DeleteFixtureAsync(root); }
     }
 
     [Test]
@@ -69,7 +69,17 @@ internal sealed class RoslynNavigationTests
                 1, text, _ => new(0, 19), deadline.Token);
             Assert.That(result.IsPartial, Is.True);
         }
-        finally { root.Delete(recursive: true); }
+        finally { await DeleteFixtureAsync(root); }
+    }
+
+    private static async Task DeleteFixtureAsync(DirectoryInfo root)
+    {
+        // On Windows a Roslyn build host can briefly keep the project directory open as it exits.
+        for (var attempt = 0; ; attempt++)
+        {
+            try { root.Delete(recursive: true); return; }
+            catch (IOException) when (OperatingSystem.IsWindows() && attempt < 15) { await Task.Delay(200); }
+        }
     }
 
     private static int StartLine(JsonElement location) =>

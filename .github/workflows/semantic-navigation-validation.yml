@@ -63,12 +63,14 @@ jobs:
           dotnet --info | Out-File (Join-Path $artifacts 'environment.txt')
           & $clangd --version | Out-File (Join-Path $artifacts 'environment.txt') -Append
       - name: Run semantic navigation integration tests
+        id: integration
         run: |
           dotnet restore codeView.slnx --locked-mode -p:PublishAot=false -p:CodeViewPerformanceProbe=false -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet test codeView.slnx -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -m:1 -nr:false --filter 'FullyQualifiedName~LanguageServerSessionTests|FullyQualifiedName~RoslynNavigationTests|FullyQualifiedName~ClangdNavigationTests|FullyQualifiedName~SemanticResultMapperTests|FullyQualifiedName~SemanticNavigationViewModelTests' --logger 'trx;LogFileName=semantic-navigation.trx' --logger 'console;verbosity=normal' --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none --results-directory artifacts/semantic-navigation
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Exercise application commands with real language servers
+        if: ${{ !cancelled() && (success() || steps.integration.outcome == 'failure') }}
         run: |
           dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/semantic-navigation/app -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

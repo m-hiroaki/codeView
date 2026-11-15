@@ -23,19 +23,22 @@ internal sealed class RoslynNavigation(string root, string project)
             var (context, label, contextIsPartial) = loaded
                 ? await GetProjectContextAsync(transport, uri, token).ConfigureAwait(false) : (null, null, true);
             JsonElement locations = default;
-            var queryFailed = false;
             try
             {
                 locations = await SemanticServerQuery.RequestAsync(transport, operation, uri,
                     position(session.PositionEncoding), context, token).ConfigureAwait(false);
             }
             catch (LspRequestException) when (!loaded || contextIsPartial || _projectScopePartial || Volatile.Read(ref _loadIssue) != 0)
+            { }
+            var status = (!loaded, _projectScopePartial, Volatile.Read(ref _loadIssue) != 0, contextIsPartial) switch
             {
-                queryFailed = true;
-            }
-            var partial = queryFailed || !loaded || Volatile.Read(ref _loadIssue) != 0 || contextIsPartial || _projectScopePartial;
-            return new SemanticReply(locations, session.PositionEncoding, label ?? Path.GetFileName(project), partial,
-                partial ? "C#の解析範囲を確認できませんでした。" : null);
+                (true, _, _, _) => "C#プロジェクトの読み込みが完了していません。",
+                (_, true, _, _) => "C#プロジェクトの参照関係を確認できませんでした。",
+                (_, _, true, _) => "C#プロジェクトの読み込みで問題が報告されました。",
+                (_, _, _, true) => "C#ファイルの解析構成を一つに確定できませんでした。",
+                _ => null
+            };
+            return new SemanticReply(locations, session.PositionEncoding, label ?? Path.GetFileName(project), status is not null, status);
         }, ct).ConfigureAwait(false);
 
     private async Task OpenProjectAsync(LspTransport transport, CancellationToken ct)

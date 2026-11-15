@@ -71,6 +71,8 @@ internal sealed record RoslynProjectGraph(IReadOnlyList<string> Projects, bool C
         options.ArgumentList.Add("msbuild");
         options.ArgumentList.Add(project);
         options.ArgumentList.Add("-nologo");
+        options.ArgumentList.Add("-m:1");
+        options.ArgumentList.Add("-nr:false");
         options.ArgumentList.Add("-getProperty:TargetFrameworks");
         options.ArgumentList.Add("-getItem:ProjectReference");
         if (framework is not null) options.ArgumentList.Add("-property:TargetFramework=" + framework);

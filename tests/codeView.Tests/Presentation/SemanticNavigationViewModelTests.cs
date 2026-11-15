@@ -82,9 +82,15 @@ internal sealed class SemanticNavigationViewModelTests
                     }
                     if (view.FilePath == caller)
                     {
-                        lastSummary = $"{view.SearchPanel.Summary} ({view.SearchPanel.Rows.Count} rows, {view.SearchPanel.Description})";
+                        var summary = $"{view.SearchPanel.Summary} ({view.SearchPanel.Rows.Count} rows, {view.SearchPanel.Description})";
+                        if (summary != lastSummary) TestContext.Progress.WriteLine(summary);
+                        lastSummary = summary;
                         Assert.That(lastSummary, Does.Contain("部分結果"));
-                        await Task.Delay(50, deadline.Token);
+                        try { await Task.Delay(50, deadline.Token); }
+                        catch (OperationCanceledException) when (deadline.IsCancellationRequested)
+                        {
+                            Assert.Fail($"Definition search remained partial. Last result: {lastSummary}; status: {view.Status}");
+                        }
                     }
                 }
                 while (view.FilePath == caller);
