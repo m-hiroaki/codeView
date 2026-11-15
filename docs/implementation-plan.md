@@ -449,6 +449,8 @@ flowchart LR
 
   - [x] **P6-03-06：SwiftとTypstの文法に対応する通知を同梱する**（2026-11-13）。固定版TextMateSharpに付属するSwiftの通知と、Typst文法の同梱マニフェストが示すTinymist 0.12.18のライセンスを `licenses/upstream/` に収録した。macOS arm64・x64の実発行と[Windows x64の実発行CI](https://github.com/m-hiroaki/codeView/actions/runs/43434662794)で、同梱された2文書がリポジトリの原文と一致することを確認した。他の文法の個別出典は引き続き確認する。
 
+  - [x] **P6-03-07：WindowsとmacOSの配布物にアプリアイコンを設定する**（2026-11-15）。Windows x64のNative AOT実行ファイルに添付ICOの全7画像が埋め込まれ、通常起動することを確認した。macOSのarm64・x64は発行したアプリバンドルにICNSとその参照が入ることを確認した。[Windowsの発行・検査結果](https://github.com/m-hiroaki/codeView/actions/runs/43684270813)
+
 - [ ] **P6-04：発行形式と起動・資源使用量を比較し最適化する**
   依存：P6-03、P6-02。完了条件：単一ファイル/最小フォルダ・ReadyToRun有無の起動/容量/展開/メモリを比較。UI・メモリを悪化させず選定し、変更箇所の回帰試験を通す。
 
