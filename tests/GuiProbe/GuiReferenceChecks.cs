@@ -10,6 +10,7 @@ using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using AvaloniaEdit.Editing;
 using CodeView.Operations;
 using CodeView.Settings;
 
@@ -670,6 +671,15 @@ internal sealed partial class GuiPerformanceProbe
         var secondOffset = await SetAsync(second, "SecondToken", false, 91, 200, new(920, 1220));
         require(firstOffset.X > 0 && firstOffset.Y > 0 && secondOffset.X > firstOffset.X
             && secondOffset.Y > firstOffset.Y, "tab-view-distinct-scroll-offsets");
+        var area = _editor.TextArea;
+        var numbers = area.LeftMargins.OfType<LineNumberMargin>().Single();
+        var separator = area.LeftMargins.Single(DottedLineMargin.IsDottedLineMargin);
+        require(numbers.TranslatePoint(new Point(numbers.Bounds.Width, 0), area) is { } numbersEnd
+            && separator.TranslatePoint(default, area) is { } separatorStart
+            && separator.TranslatePoint(new Point(separator.Bounds.Width, 0), area) is { } separatorEnd
+            && area.TextView.TranslatePoint(default, area) is { } textStart
+            && separatorStart.X - numbersEnd.X >= 5 && textStart.X - separatorEnd.X >= 9,
+            "line-number-spacing-after-horizontal-scroll");
 
         static bool SameOffset(Vector left, Vector right) => Math.Abs(left.X - right.X) <= 1
             && Math.Abs(left.Y - right.Y) <= 1;
