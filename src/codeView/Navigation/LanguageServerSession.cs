@@ -22,6 +22,15 @@ internal sealed class LanguageServerSession(
     private long _openRevision;
 
     internal string PositionEncoding { get; private set; } = "utf-16";
+    internal int DocumentVersion => _version;
+
+    internal async Task RestartAsync(CancellationToken ct)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct, _closing.Token);
+        await _gate.WaitAsync(deadline.Token).ConfigureAwait(false);
+        try { await StopAsync().ConfigureAwait(false); }
+        finally { _gate.Release(); }
+    }
 
     internal async Task<T> UseAsync<T>(Func<LspTransport, CancellationToken, Task<T>> action, CancellationToken ct)
     {
