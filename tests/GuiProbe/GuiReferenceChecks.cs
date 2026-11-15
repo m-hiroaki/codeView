@@ -438,6 +438,12 @@ internal sealed partial class GuiPerformanceProbe
         require(icon.IsEffectivelyVisible && icon.Text == "C#" && !icon.IsHitTestVisible
             && !codeItem.GetVisualDescendants().OfType<Button>().Single().IsEffectivelyVisible,
             "tree-language-icon-visible-without-disclosure-button");
+        var folderItem = (ListBoxItem)tree.ContainerFromItem(folder)!;
+        var fileItem = (ListBoxItem)tree.ContainerFromItem(file)!;
+        require(Math.Abs(folderItem.Bounds.Height - 22) < 1 && Math.Abs(codeItem.Bounds.Height - 22) < 1
+            && codeItem.TranslatePoint(default, tree) is { } codeTop
+            && fileItem.TranslatePoint(default, tree) is { } fileTop
+            && Math.Abs(fileTop.Y - codeTop.Y - 22) < 1, "tree-compact-row-spacing");
         tree.SelectedItem = file;
         await PressAsync(Key.Left);
         require(ReferenceEquals(tree.SelectedItem, folder), "tree-left-selects-parent");

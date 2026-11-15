@@ -32,6 +32,7 @@ CHECKS = [
     'reload-shorter-document-clamps-caret',
     'tree-root-direct-filtered-and-tab-preserved', 'tree-right-expands-selected-folder',
     'tree-language-icon-visible-without-disclosure-button',
+    'tree-compact-row-spacing',
     'tree-left-selects-parent', 'tree-left-collapses-folder',
     'tree-background-and-disclosure-double-tap-ignored', 'tree-double-tap-uses-hit-row-and-shows-empty',
     'tree-enter-opens-source', 'tree-enter-focuses-editor', 'tree-open-preserves-newer-search-focus',
