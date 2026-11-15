@@ -198,3 +198,9 @@ macOS arm64、.NET SDK 10.0.403、Roslyn Language Server 5.13.0-1.26514.10で確
 dotnet tool install roslyn-language-server --version 5.13.0-1.26514.10 --tool-path artifacts/semantic-navigation/roslyn
 python3 tools/check_roslyn_navigation.py --server artifacts/semantic-navigation/roslyn/roslyn-language-server
 ```
+
+### 8.3 通信とプロセスの寿命（P5-09-03）
+
+LSPのJSON-RPCは標準入出力の`Content-Length`フレームで送受信する。応答は要求IDで照合し、通信を閉じた場合は待機中の要求を終了する。フレームの上限はヘッダー8 KiB、本文32 MiBとする。取消・期限切れになった要求には`$/cancelRequest`を通知し、後から届く応答は採用しない。位置エンコーディングが省略された場合はUTF-16を使う。同期する文書のパス・版が変わった場合は、以前の文書を閉じて表示中の原文を再送する。
+
+Operationsが現在のフォルダに対して言語ごとのセッションを所有する。セッションの登録後、最初の要求で実行ファイルを起動する。通信の切断や異常終了後は次の要求で起動し直す。フォルダを閉じるか切り替えると、進行中の要求を取り消し、`shutdown`と`exit`を送る。応答しなければプロセスツリーの終了を試みる。アプリの終了処理は解放を待つ。標準エラーを読み捨て、ソースを含むログを保存しない。各言語のプロジェクト読込と通常画面の接続はP5-09-04以降で行う。

@@ -25,6 +25,8 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private TabManager? _tabs;
     private SearchCoordinator? _searches;
     private SearchResultNavigator? _resultNavigator;
+    private Dictionary<SemanticLanguage, LanguageServerSession>? _languageServers;
+    private Task _retiredLanguageServers = Task.CompletedTask;
     private StartupOpenQueue? _startup;
 
     public StartupOpenQueue Startup => _startup ??= new(_requestIds);
@@ -76,7 +78,30 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         finally { slot.Release(); }
     }
 
-    public Task PendingSearchWork => _searches?.PendingWork ?? Task.CompletedTask;
+    public Task PendingSearchWork => _retiredLanguageServers.IsCompletedSuccessfully
+        ? _searches?.PendingWork ?? Task.CompletedTask
+        : Task.WhenAll(_searches?.PendingWork ?? Task.CompletedTask, _retiredLanguageServers);
+
+    // Register on the same serialized context that owns Workspace, before starting a search worker.
+    internal LanguageServerSession GetLanguageServer(WorkspaceState owner, SemanticLanguage language,
+        Func<LanguageServerSession> create)
+    {
+        if (_stopping || !ReferenceEquals(Workspace, owner) || !owner.CanSearch)
+            throw new OperationCanceledException(owner.Token);
+        _languageServers ??= [];
+        if (!_languageServers.TryGetValue(language, out var server))
+            _languageServers.Add(language, server = create());
+        return server;
+    }
+
+    internal void RetireLanguageServers()
+    {
+        var servers = _languageServers;
+        _languageServers = null;
+        if (servers is not null)
+            _retiredLanguageServers = Task.WhenAll(
+                servers.Values.Select(server => server.DisposeAsync().AsTask()).Append(_retiredLanguageServers));
+    }
     public SearchResultNavigator ResultNavigator => !_stopping ? _resultNavigator ??= new(Tabs, Searches, reader)
         : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingResultMoveWork => _resultNavigator?.PendingWork ?? Task.CompletedTask;
@@ -104,6 +129,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         var entered = false;
         try
         {
+            await _retiredLanguageServers.WaitAsync(load.Token);
             await _treeSlot.WaitAsync(load.Token);
             entered = true;
             var resolved = await directories.ResolveRootAsync(path, load.Token);
@@ -153,6 +179,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private void CancelWorkspace()
     {
         List<Exception>? failures = null;
+        RetireLanguageServers();
         if (Workspace?.Tree is { } tree)
         {
             try { tree.Dispose(); }
