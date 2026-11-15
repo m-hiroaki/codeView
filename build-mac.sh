@@ -25,6 +25,7 @@ case "$codeview_rid" in
     *) echo 'ERROR: Specify osx-arm64 or osx-x64.' >&2; exit 2 ;;
 esac
 command -v dotnet >/dev/null || { echo 'ERROR: Install the .NET SDK specified in global.json.' >&2; exit 1; }
+command -v python3 >/dev/null || { echo 'ERROR: Install Python 3.' >&2; exit 1; }
 
 codeview_output="$codeview_root/artifacts/publish/$codeview_rid"
 codeview_build="$codeview_root/artifacts/build/$codeview_rid"
@@ -51,9 +52,10 @@ mkdir -p "$codeview_stage/codeView.app/Contents/Resources"
 cp -R "$codeview_stage/payload/." "$codeview_stage/codeView.app/Contents/MacOS/"
 cp build/Info.plist "$codeview_stage/codeView.app/Contents/Info.plist"
 cp build/codeView.icns "$codeview_stage/codeView.app/Contents/Resources/codeView.icns"
+python3 tools/package_language_servers.py "$codeview_rid" "$codeview_stage/codeView.app"
 # Replace only the generated app, after publish and packaging have succeeded.
 rm -rf "$codeview_output/codeView.app"
 mv "$codeview_stage/codeView.app" "$codeview_output/codeView.app"
 cp "$codeview_stage/publish.packages.lock.json" "$codeview_output/publish.packages.lock.json"
 echo "Built: $codeview_output/codeView.app"
-echo 'This build is not distribution-signed or notarized.'
+echo 'Signed ad hoc for local validation. Distribution signing and notarization are separate.'

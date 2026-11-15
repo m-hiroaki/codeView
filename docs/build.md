@@ -26,7 +26,7 @@ Windows 2025 CIで実バッチのAOTリンク・通常ウィンドウ起動・�
 
 ## macOS：Native AOTの自己完結型.app
 
-macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツールチェーンを用意して実行する。[MicrosoftのNative AOT前提条件](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/#prerequisites)を参照。
+macOS上で同じ.NET SDK、Python 3、Xcode Command Line ToolsまたはXcodeのC/C++ツールチェーンを用意して実行する。[MicrosoftのNative AOT前提条件](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/#prerequisites)を参照。
 
 ```sh
 ./build-mac.sh
@@ -41,7 +41,7 @@ macOS上で同じ.NET SDKと、Xcode Command Line ToolsまたはXcodeのC/C++ツ
 
 出力先：`artifacts/publish/<RID>/codeView.app`
 
-`.app`全体を使う。Mac版もPublishAot=trueとPublishTrimmed=trueを指定してNative AOTで発行し、コンパイラー/リンカーの警告をエラーとする。通常のJIT発行へフォールバックしない。SDKが生成する.dSYMも同梱する。`build/Info.plist`と発行された全ファイルを組み合わせる。署名・公証・インストーラー・アーカイブ生成は行わない。Info.plistの製品名/識別子/版は同ファイルで管理する。配布時のGatekeeperと署名確認は別途必要である。
+`.app`全体を使う。Mac版もPublishAot=trueとPublishTrimmed=trueを指定してNative AOTで発行し、コンパイラー/リンカーの警告をエラーとする。SDKが生成する.dSYMは `Contents/Resources` に入る。Roslynとclangdを `Contents/Helpers` に置き、補助コードからアプリ全体の順にad hoc署名して厳密に検証する。一般配布用のDeveloper ID署名と公証は別工程で行う。Info.plistの製品名・識別子・版は `build/Info.plist` で管理する。
 
 ## NU1903（ILCompiler 10.0.12）が出る場合
 
@@ -87,7 +87,7 @@ Pythonによるスクリプト試験（ビルド自体にPythonは不要）：
 python3 -m unittest discover -s tools -p 'test_build_scripts.py' -v
 ```
 
-Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/MacOS/licenses/` に入る。`licenses/dotnet/` には、対象RIDの.NETランタイムのライセンスと、Native AOTで使用したランタイムパッケージの第三者通知を同梱する。`licenses/upstream/` にはAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスに加え、Swiftリソースの通知、TypstリソースのTinymistライセンス、Unicode 16.0.0の文字プロパティのライセンスを収録する。出典は同じディレクトリのREADMEに記載する。他の文法データの個別通知、署名、公証、別PCでの受け入れは最終配布に向けて確認する。
+Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、WindowsのANGLEについて、NuGetパッケージ内のライセンス・第三者通知を `licenses/` に同梱する。macOSでは `codeView.app/Contents/Resources/licenses/` に入る。`licenses/dotnet/` には、対象RIDの.NETランタイムのライセンスと、Native AOTで使用したランタイムパッケージの第三者通知を同梱する。`licenses/upstream/` にはAvalonia、AvaloniaEdit、MicroCom、Onigwrap、TextMateSharp、SimpleJSONのライセンスに加え、Swiftリソースの通知、TypstリソースのTinymistライセンス、Unicode 16.0.0の文字プロパティのライセンスを収録する。出典は同じディレクトリのREADMEに記載する。`licenses/language-servers/` にはRoslynとclangdのライセンス・通知を収録する。他の文法データの個別通知、配布用署名、公証、別PCでの受け入れは最終配布に向けて確認する。
 
 ## テスト実行
 

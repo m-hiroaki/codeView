@@ -21,6 +21,14 @@ class MacBuildTests(unittest.TestCase):
         (self.repo / "build").mkdir()
         shutil.copy2(ROOT / "build/Info.plist", self.repo / "build/Info.plist")
         shutil.copy2(ROOT / "build/codeView.icns", self.repo / "build/codeView.icns")
+        (self.repo / 'tools').mkdir()
+        (self.repo / 'tools/package_language_servers.py').write_text('''
+import os, pathlib, sys
+if os.environ.get('TEST_PACKAGE_EXIT'): sys.exit(int(os.environ['TEST_PACKAGE_EXIT']))
+root = pathlib.Path(sys.argv[2]) / 'Contents/Helpers'
+root.mkdir()
+(root / 'selected-rid').write_text(sys.argv[1])
+''')
         project = self.repo / "src/codeView"
         project.mkdir(parents=True)
         (project / "codeView.csproj").write_text("<Project />")
@@ -67,6 +75,7 @@ if os.environ.get('TEST_MISSING_EXECUTABLE') != '1':
         app = self.repo / "artifacts/publish/osx-arm64/codeView.app"
         self.assertTrue((app / "Contents/MacOS/codeView").stat().st_mode & 0o111)
         self.assertTrue((app / "Contents/MacOS/libAvaloniaNative.dylib").exists())
+        self.assertEqual((app / 'Contents/Helpers/selected-rid').read_text(), 'osx-arm64')
         with (app / "Contents/Info.plist").open('rb') as stream:
             info = plistlib.load(stream)
         self.assertEqual(info['CFBundleExecutable'], 'codeView')
@@ -118,6 +127,15 @@ if os.environ.get('TEST_MISSING_EXECUTABLE') != '1':
     def test_success_without_executable_is_failure(self):
         self.assertEqual(self.run_build(TEST_MISSING_EXECUTABLE='1').returncode, 1)
         self.assertFalse((self.repo / 'artifacts/publish/osx-arm64/codeView.app').exists())
+
+    def test_failed_packaging_preserves_previous_app_and_cleans_staging(self):
+        old = self.repo / 'artifacts/publish/osx-arm64/codeView.app/old-marker'
+        old.parent.mkdir(parents=True)
+        old.write_text('previous successful build')
+        result = self.run_build(TEST_PACKAGE_EXIT='41')
+        self.assertEqual(result.returncode, 41, result.stderr)
+        self.assertTrue(old.is_file())
+        self.assertEqual(list((self.repo / 'artifacts/build/osx-arm64').glob('stage.*')), [])
 
 
 if __name__ == '__main__':

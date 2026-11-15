@@ -3,7 +3,9 @@ import argparse
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
+import plistlib
 import shutil
+import subprocess
 import tempfile
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -55,32 +57,95 @@ def copy_tree(package, prefix, target):
         copy_entry(package, entry, target.joinpath(*relative.parts))
 
 
+def stage_roslyn(roslyn, rid, managed, notices):
+    with ZipFile(roslyn) as package:
+        copy_tree(package, f'tools/net10.0/{rid}/', managed)
+        copy_entry(package, 'ThirdPartyNotices.rtf', notices / 'ThirdPartyNotices.rtf')
+    shutil.copyfile(ROOT / 'build/licenses/Roslyn.txt', notices / 'LICENSE.txt')
+    require_files(managed / (ROSLYN_EXECUTABLE + '.runtimeconfig.json'),
+                  managed / 'BuildHost-netcore/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll')
+
+
+def stage_clangd(clangd, executable, resources, notices, configuration, system):
+    prefix = f"clangd_{configuration['version']}/"
+    with ZipFile(clangd) as package:
+        binary = 'clangd.exe' if system == 'windows' else 'clangd'
+        copy_entry(package, prefix + 'bin/' + binary, executable)
+        copy_tree(package, prefix + 'lib/clang/' + configuration['resourceVersion'] + '/', resources)
+        copy_entry(package, prefix + 'LICENSE.TXT', notices / 'LICENSE.TXT')
+    require_files(resources / 'include/stddef.h')
+
+
+def require_files(*paths):
+    for path in paths:
+        if not path.is_file():
+            raise ValueError(f'Missing language server dependency: {path}')
+
+
 def stage_windows(root, roslyn, clangd, configuration):
     servers = root / 'language-servers'
     managed = servers / 'roslyn'
     native = servers / 'clangd'
     notices = root / 'licenses/language-servers'
-    with ZipFile(roslyn) as package:
-        copy_tree(package, 'tools/net10.0/win-x64/', managed)
-        copy_entry(package, 'ThirdPartyNotices.rtf', notices / 'roslyn/ThirdPartyNotices.rtf')
-    shutil.copyfile(ROOT / 'build/licenses/Roslyn.txt', notices / 'roslyn/LICENSE.txt')
-    prefix = f"clangd_{configuration['version']}/"
-    with ZipFile(clangd) as package:
-        copy_entry(package, prefix + 'bin/clangd.exe', native / 'bin/clangd.exe')
-        copy_tree(package, prefix + 'lib/clang/', native / 'lib/clang')
-        copy_entry(package, prefix + 'LICENSE.TXT', notices / 'clangd/LICENSE.TXT')
+    stage_roslyn(roslyn, 'win-x64', managed, notices / 'roslyn')
+    stage_clangd(clangd, native / 'bin/clangd.exe', native / 'lib/clang' / configuration['resourceVersion'],
+                 notices / 'clangd', configuration, 'windows')
     native_x64((managed / (ROSLYN_EXECUTABLE + '.exe')).read_bytes())
     native_x64((native / 'bin/clangd.exe').read_bytes())
-    for path in (managed / (ROSLYN_EXECUTABLE + '.runtimeconfig.json'),
-                 managed / 'BuildHost-netcore/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll',
-                 native / 'lib/clang' / configuration['resourceVersion'] / 'include/stddef.h'):
-        if not path.is_file():
-            raise ValueError(f'Missing language server dependency: {path}')
+
+
+def sign(path):
+    subprocess.run(['codesign', '--force', '--sign', '-', '--timestamp=none', path], check=True)
+
+
+def stage_macos(root, rid, roslyn, clangd, configuration):
+    arch = 'arm64' if rid == 'osx-arm64' else 'x86_64'
+    contents = root / 'Contents'
+    helpers = contents / 'Helpers'
+    resources = contents / 'Resources'
+    for entry in (contents / 'MacOS').iterdir():
+        if entry.suffix == '.dylib':
+            sign(entry)
+        elif entry.name != 'codeView':
+            entry.rename(resources / entry.name)
+    notices = resources / 'licenses/language-servers'
+    helper = helpers / 'Roslyn.app'
+    managed = helper / 'Contents/MacOS'
+    managed_resources = helper / 'Contents/Resources'
+    stage_roslyn(roslyn, rid, managed, notices / 'roslyn')
+    with (helper / 'Contents/Info.plist').open('wb') as stream:
+        plistlib.dump({'CFBundleName': 'Roslyn', 'CFBundleExecutable': ROSLYN_EXECUTABLE,
+                       'CFBundleIdentifier': 'io.github.m-hiroaki.codeview.roslyn',
+                       'CFBundleVersion': '1', 'CFBundlePackageType': 'APPL'}, stream)
+    managed_resources.mkdir()
+    for entry in managed.iterdir():
+        if entry.name in (ROSLYN_EXECUTABLE, 'roslyn-language-server') or entry.suffix == '.dylib':
+            entry.chmod(0o755)
+            subprocess.run(['lipo', '-verify_arch', arch, entry], check=True)
+            if entry.name != ROSLYN_EXECUTABLE:
+                sign(entry)
+        else:
+            entry.rename(managed_resources / entry.name)
+            entry.symlink_to(Path('../Resources') / entry.name)
+    require_files(managed / ROSLYN_EXECUTABLE)
+    sign(helper)
+
+    with tempfile.TemporaryDirectory(prefix='clangd-', dir=root.parent) as temporary:
+        universal = Path(temporary) / 'clangd'
+        stage_clangd(clangd, universal, resources / 'clangd', notices / 'clangd', configuration, 'mac')
+        binary = helpers / 'clangd'
+        subprocess.run(['lipo', universal, '-thin', arch, '-output', binary], check=True)
+        binary.chmod(0o755)
+        subprocess.run(['lipo', '-verify_arch', arch, binary], check=True)
+        sign(binary)
+
+    sign(root)
+    subprocess.run(['codesign', '--verify', '--deep', '--strict', root], check=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('rid', choices=('win-x64',))
+    parser.add_argument('rid', choices=('win-x64', 'osx-arm64', 'osx-x64'))
     parser.add_argument('payload', type=Path)
     parser.add_argument('--cache', type=Path, default=ROOT / 'artifacts/language-servers/downloads')
     args = parser.parse_args()
@@ -92,9 +157,13 @@ def main():
                      managed['sha256'][args.rid], f'roslyn-{args.rid}-{version}.nupkg')
     native = configuration['clangd']
     version = native['version']
-    clangd = archive(args.cache, f'https://github.com/clangd/clangd/releases/download/{version}/clangd-windows-{version}.zip',
-                     native['sha256']['windows'])
-    stage_windows(args.payload, roslyn, clangd, native)
+    system = 'windows' if args.rid == 'win-x64' else 'mac'
+    clangd = archive(args.cache, f'https://github.com/clangd/clangd/releases/download/{version}/clangd-{system}-{version}.zip',
+                     native['sha256'][system])
+    if args.rid == 'win-x64':
+        stage_windows(args.payload, roslyn, clangd, native)
+    else:
+        stage_macos(args.payload, args.rid, roslyn, clangd, native)
 
 
 if __name__ == '__main__':
