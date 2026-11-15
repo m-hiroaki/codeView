@@ -84,6 +84,15 @@ UTF-8 BOMは除いて検証する。同名JSONプロパティの重複は値の�
 
 発行記録にはRID、SDK・依存版、ビルド設定、発行形式、成果物のハッシュ、同梱物とライセンス、署名状態を含める。正確なコマンドとパッケージ構成はD-01・D-08で決定して記録する。
 
+### 言語サーバーの同梱（P6-03-09）
+
+サーバーの手動導入とパス入力を省くため、RoslynとclangdをNative AOTの配布物に収録する。既存のLSP、作業フォルダごとの有効化、検索時の遅延起動と終了処理を使用する。発行と設定画面への影響があり、配布サイズと依存の更新作業が増える。同梱内容を固定した後に発行処理と設定を接続し、実際の配布物で動作を確認する。
+
+- Windows x64、macOS arm64とx64向けに、NuGetのRID別 `roslyn-language-server` 5.13.0-1.26514.10とclangd 23.1.0の公式ZIPを採用する。clangdのmacOS ZIPには両CPUのMach-Oスライスがある。取得元の版と取得データのSHA-256を [`build/language-servers.json`](../../build/language-servers.json) に固定する。[RoslynのRID別パッケージ](https://www.nuget.org/packages/roslyn-language-server/5.13.0-1.26514.10)・[clangd 23.1.0](https://github.com/clangd/clangd/releases/tag/23.1.0)
+- Roslynは `Microsoft.CodeAnalysis.LanguageServer` を直接起動する。管理DLL、設定、ローカライズ、ネイティブ依存と `BuildHost-*` を収録する。対象プロジェクトの.NET SDKと依存の復元が引き続き必要で、Roslynの起動にも.NET 10互換ランタイムが必要である。ライセンスはパッケージのソースと同じコミットのMIT原文を使用し、パッケージ内の第三者通知も収録する。[MIT原文](https://github.com/dotnet/roslyn/blob/d82b7f7dc6c203f66c41a23207e10bf462af896f/License.txt)
+- Windowsでは `codeView.exe` と同じ配布フォルダの `language-servers/roslyn` と `language-servers/clangd` に配置し、clangdの `bin` と `lib/clang` の相対関係を保つ。clangdの組み込みヘッダーとアーカイブのライセンスも収録する。[clangdのヘッダー構成](https://clangd.llvm.org/troubleshooting)
+- macOSでは実行ファイルを `Contents/Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer` と `Contents/Helpers/clangd` に置く。Roslyn補助アプリではネイティブファイルを `MacOS` に、管理DLLなどを `Resources` に置き、隣接リソースを探索するため `MacOS` から相対シンボリックリンクを張る。clangdのヘッダーは `Contents/Resources/clangd` に置き、`--resource-dir` で渡す。署名はネイティブ依存、補助アプリとclangd、外側の.appの順で行い、厳密検証後に配布用の公証へ進む。配置試作でRoslyn補助アプリのad hoc署名を厳密検証し、arm64で実際の定義と参照を確認した。[バンドル配置](https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle)・[配布署名](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac)
+
 スクリプトは元ロックをlocked-modeで確認後、作業用コピーからRID/AOTツールを含む発行用ロックを生成する。元ロックは更新せず、生成したロックは成果物の隣に保存する。発行と実行ファイル確認後に生成済みアプリだけを置き換え、失敗は非0終了とする。通常の層/依存方向/製品起動処理は変更しない。
 
 ## 7. OS別受け入れとオフライン
