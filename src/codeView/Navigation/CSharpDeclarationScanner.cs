@@ -3,7 +3,7 @@ using CodeView.Files;
 
 namespace CodeView.Navigation;
 
-internal enum DeclarationKind { Type, Delegate, Method, Property, Field }
+internal enum DeclarationKind { Type, Delegate, Method, Property, Field, Function, Variable, Macro, Enumerator }
 internal enum DeclarationScanError { None, Incomplete, DeclarationLimit, DepthLimit }
 internal readonly record struct DeclarationMatch(DeclarationKind Kind, TextRange Range);
 internal readonly record struct DeclarationScanResult(CSharpFileLexResult Lexical, DeclarationScanError Error)

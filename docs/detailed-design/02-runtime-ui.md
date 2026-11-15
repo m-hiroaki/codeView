@@ -162,7 +162,7 @@ SearchResultsはスライス中の行をStageし、Publishで1回のAddRange通�
 | `ExpandNode` / `RefreshTree` | 確定ルートあり | ノードの列挙世代を確認して遅延列挙 |
 | `StartWorkspaceSearch` | 確定ルート・非空の条件 | 条件を固定し共用検索を開始 |
 | `FindInFile` / `FindNext` / `FindPrevious` | 本文表示済み | タブ別の条件と版で検索。欄の前後移動とEnter / Shift+Enterを対応 |
-| `GoToDefinition` | ルート・C#本文・有効識別子 | 「定義へジャンプ（簡易）」を実行 |
+| `GoToDefinition` | ルート・C#またはC/C++本文・有効識別子 | 「定義へジャンプ（簡易）」を実行 |
 | `FindReferences` | ルート・有効識別子 | 共用参照一覧を開始 |
 | `CloseTab` / `NextTab` / `PreviousTab` | 対象タブあり | 本文・位置の独立状態を操作。最後のタブ閉鎖は空画面 |
 | `ToggleTree` / `ToggleResults` | 常時 | 表示状態だけ変更 |

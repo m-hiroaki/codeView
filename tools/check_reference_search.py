@@ -70,6 +70,8 @@ CHECKS = [
     'basic-definition-ClassTarget', 'basic-definition-StructTarget', 'basic-definition-InterfaceTarget',
     'basic-definition-EnumTarget', 'basic-definition-RecordTarget', 'basic-definition-DelegateTarget',
     'basic-definition-PropertyTarget', 'basic-definition-FieldTarget', 'basic-definition-missing-keeps-source',
+    'c-f12-jumps-to-body-without-opening-panel', 'cpp-f12-chooses-among-c-and-cpp-definitions',
+    'cpp-candidate-enter-opens-original-header-position',
     'original-copy-keeps-mixed-newlines-and-unicode', 'original-copy-empty-final-line-keeps-clipboard',
     'all-input-sha256-unchanged',
 ]

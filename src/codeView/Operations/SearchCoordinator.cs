@@ -44,7 +44,8 @@ internal sealed class WorkspaceSearchOperation
 /// <summary>All entry points and continuations are owned by the serialized operation context.</summary>
 internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> start,
     Func<WorkspaceState?> workspace, OperationIdentity epoch, OperationIdentity requestIds,
-    Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? findReferences = null) : IDisposable
+    Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? findReferences = null,
+    Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? findCppDefinitions = null) : IDisposable
 {
     private WorkspaceSearchOperation? _waiting;
     private WorkspaceSearchOperation? _active;
@@ -63,6 +64,10 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
     public OperationResult<WorkspaceSearchOperation> StartReferences(string name) =>
         StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
             definitions: false, findReferences ?? start);
+
+    internal OperationResult<WorkspaceSearchOperation> StartCppDefinitions(string name) =>
+        StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
+            definitions: true, findCppDefinitions ?? throw new InvalidOperationException());
 
     private OperationResult<WorkspaceSearchOperation> StartCore(string? query, SearchOptions options,
         EncodingChoice encoding, bool definitions,

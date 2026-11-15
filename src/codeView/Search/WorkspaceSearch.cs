@@ -63,18 +63,19 @@ internal delegate OperationError? DeclarationFileSearch(PreparedText source, Fun
 internal sealed class TextSearch(DirectoryReader directories, FileReader files)
 {
     public WorkspaceSearchSession StartWorkspace(WorkspaceSearchRequest request, CancellationToken ct)
-        => StartWorkspace(request, ct, null);
+        => StartWorkspace(request, ct, null, null);
 
-    internal WorkspaceSearchSession StartWorkspace(WorkspaceSearchRequest request, CancellationToken ct, DeclarationFileSearch? declarations)
+    internal WorkspaceSearchSession StartWorkspace(WorkspaceSearchRequest request, CancellationToken ct,
+        DeclarationFileSearch? declarations, Func<string, bool>? includesPath)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Root);
         ArgumentNullException.ThrowIfNull(request.Exclusions);
-        return new(session => new WorkspaceWorker(directories, files, request, session, ct, declarations).Run());
+        return new(session => new WorkspaceWorker(directories, files, request, session, ct, declarations, includesPath).Run());
     }
 
     private sealed class WorkspaceWorker(DirectoryReader directories, FileReader files, WorkspaceSearchRequest request,
-        WorkspaceSearchSession session, CancellationToken ct, DeclarationFileSearch? declarations)
+        WorkspaceSearchSession session, CancellationToken ct, DeclarationFileSearch? declarations, Func<string, bool>? includesPath)
     {
         private readonly Dictionary<ErrorCode, long> _errors = new();
         private readonly List<OperationError> _samples = new(SearchLimits.ErrorSamples);
@@ -127,7 +128,7 @@ internal sealed class TextSearch(DirectoryReader directories, FileReader files)
                     }
                     else if (entry.Kind != DirectoryWalkKind.File)
                         _progress = _progress with { ExcludedEntries = checked(_progress.ExcludedEntries + 1) };
-                    else if (declarations is not null && !string.Equals(Path.GetExtension(entry.Path.FullPath), ".cs", StringComparison.OrdinalIgnoreCase))
+                    else if (includesPath is not null && !includesPath(entry.Path.FullPath))
                         _progress = _progress with { ExcludedEntries = checked(_progress.ExcludedEntries + 1) };
                     else ScanFile(entry.Path, consume, read);
                     Publish();

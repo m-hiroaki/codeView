@@ -117,7 +117,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var end = (int)Math.Min(document.TextLength, (long)center + IdentifierExtractor.MaximumChars + 2);
         var context = document.GetText(origin, end - origin);
         var isCSharp = string.Equals(Path.GetExtension(FilePath), ".cs", StringComparison.OrdinalIgnoreCase);
-        if (definitions && !isCSharp) { SetStatus("簡易定義ジャンプはC#ファイルに対応しています。"); return; }
+        var cpp = definitions && CppDeclarationScanner.IncludesPath(FilePath);
+        if (definitions && !isCSharp && !cpp) { SetStatus("簡易定義ジャンプはC#、C、C++のファイルに対応しています。"); return; }
         // Selection is authoritative even if the native caret is at its other end.
         var localCaret = selectionLength > 0 ? selectionStart - origin : caret - origin;
         if (!IdentifierExtractor.TryExtract(context, localCaret, selectionLength > 0 ? selectionStart - origin : localCaret,
@@ -135,7 +136,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var interaction = _interactionEpoch;
         var view = ViewEpoch;
         var previous = SearchPanel.CurrentOperation;
-        var work = SearchPanel.StartDefinitionsAsync(name);
+        var work = SearchPanel.StartDefinitionsAsync(name, cpp);
         var operation = SearchPanel.CurrentOperation;
         await work;
         if (_stopping || interaction != _interactionEpoch || view != ViewEpoch

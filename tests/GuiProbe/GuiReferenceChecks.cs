@@ -305,6 +305,7 @@ internal sealed partial class GuiPerformanceProbe
             await CheckSingleFileDisplayAsync(root, before, Hash, Require, ct);
             await CheckLargePlainDocumentAsync(root, before, Hash, Require, ct);
             await CheckMethodNavigationAsync(root, before, Hash, Require, ct);
+            await CheckCppNavigationAsync(root, before, Hash, Require, ct);
             await CheckOriginalCopyAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
@@ -1103,6 +1104,69 @@ internal sealed partial class GuiPerformanceProbe
         require(panel.Rows.Count == 0 && panel.Summary.Contains("定義が見つかりません")
             && _viewModel.FilePath == caller && _editor.SelectionStart == missing && _editor.SelectionLength == 0,
             "basic-definition-missing-keeps-source");
+    }
+
+    private async Task CheckCppNavigationAsync(string root, Dictionary<string, string> inputs,
+        Func<string, string> hash, Action<bool, string> require, CancellationToken ct)
+    {
+        const string cCall = "#include \"common.h\"\nint main(void) { return Compute(2); }\n";
+        const string cBody = "/* int Compute(int n) {} */\r\nint Compute(int n) { return n; }\n";
+        const string cppCall = "int main() { return api::Compute(2.0); }\n";
+        const string cppBody = "namespace api { int Compute(double n) { return 1; } }\n";
+        var workspace = Directory.CreateDirectory(Path.Combine(root, "cpp-navigation")).FullName;
+        var c = await WriteAsync("c-launch.c", cCall);
+        var implementation = await WriteAsync("c-implementation.c", cBody);
+        await WriteAsync("common.h", "int Compute(int);\n");
+        await WriteAsync("unrelated.cs", "class InvalidForCpp { int Compute(int n) => n; }\n");
+        var panel = _viewModel.SearchPanel;
+        await _viewModel.OpenFilesAsync([workspace], OpenOrigin.Menu);
+        panel.IsVisible = false;
+        await OpenAndSelectAsync(c, cCall);
+        var key = await PressAsync();
+        require(key.Handled && !panel.IsVisible && _viewModel.FilePath == implementation
+            && _editor.SelectionStart == cBody.LastIndexOf("Compute", StringComparison.Ordinal)
+            && _editor.SelectedText == "Compute" && _editor.TextArea.IsFocused
+            && panel.Rows.Single().After.Contains("関数"),
+            "c-f12-jumps-to-body-without-opening-panel");
+
+        var cpp = await WriteAsync("cpp-launch.cpp", cppCall);
+        var header = await WriteAsync("api.hpp", cppBody);
+        await OpenAndSelectAsync(cpp, cppCall);
+        key = await PressAsync();
+        require(key.Handled && panel.IsVisible && panel.Rows.Count == 2 && panel.Rows.All(panel.CanActivate)
+            && _viewModel.FilePath == cpp, "cpp-f12-chooses-among-c-and-cpp-definitions");
+        var results = _window.FindControl<ListBox>("SearchResultsList")!;
+        results.SelectedItem = panel.Rows.Single(row => row.FullPath == header);
+        RaiseSearchKey(results, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct); await Frame(ct);
+        require(_viewModel.FilePath == header && _editor.SelectionStart == cppBody.IndexOf("Compute", StringComparison.Ordinal)
+            && _editor.SelectedText == "Compute" && _editor.TextArea.IsFocused,
+            "cpp-candidate-enter-opens-original-header-position");
+
+        async Task<string> WriteAsync(string file, string contents)
+        {
+            var path = Path.Combine(workspace, file);
+            await File.WriteAllTextAsync(path, contents, ct);
+            inputs.Add(path, hash(path));
+            return path;
+        }
+
+        async Task OpenAndSelectAsync(string path, string contents)
+        {
+            await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu);
+            await Frame(ct);
+            _editor.Select(contents.IndexOf("Compute", StringComparison.Ordinal) + 1, 0);
+        }
+
+        async Task<KeyEventArgs> PressAsync()
+        {
+            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12 };
+            RaiseSearchKey(_editor.TextArea, key);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct); await Frame(ct);
+            return key;
+        }
     }
 
     private async Task CheckOriginalCopyAsync(string root, Dictionary<string, string> inputs,

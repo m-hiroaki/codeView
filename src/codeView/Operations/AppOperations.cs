@@ -32,7 +32,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     public TabManager Tabs => !_stopping ? _tabs ??= new(BuildDocument, _loadSlot) : throw new ObjectDisposedException(nameof(AppOperations));
     public Task PendingTabWork => _tabs?.PendingWork ?? Task.CompletedTask;
     public SearchCoordinator Searches => !_stopping ? _searches ??= new(StartSearch,
-        () => Workspace, _workspaceSearchEpoch, _requestIds, StartReferences) : throw new ObjectDisposedException(nameof(AppOperations));
+        () => Workspace, _workspaceSearchEpoch, _requestIds, StartReferences, StartCppDefinitions) : throw new ObjectDisposedException(nameof(AppOperations));
     private WorkspaceSearchSession StartSearch(WorkspaceSearchRequest request, CancellationToken ct)
     {
         var search = new TextSearch(directories, reader);
@@ -42,6 +42,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
 
     private WorkspaceSearchSession StartReferences(WorkspaceSearchRequest request, CancellationToken ct) =>
         CreateNavigator(new TextSearch(directories, reader)).FindReferences(request, ct);
+
+    private WorkspaceSearchSession StartCppDefinitions(WorkspaceSearchRequest request, CancellationToken ct) =>
+        new SimpleSymbolNavigator(new TextSearch(directories, reader), reader, cpp: true).FindDefinitions(request, ct);
 
     private ISymbolNavigator CreateNavigator(TextSearch search) => new SimpleSymbolNavigator(search, reader);
 
