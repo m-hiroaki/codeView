@@ -44,13 +44,26 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         this.FindControl<MenuItem>("FindDefinitionsMenu")!.InputGesture = new KeyGesture(Key.F12);
         this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F12, KeyModifiers.Shift);
+        var jumpModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt;
+        var jumpBack = OperatingSystem.IsMacOS() ? Key.OemOpenBrackets : Key.Left;
+        var jumpForward = OperatingSystem.IsMacOS() ? Key.OemCloseBrackets : Key.Right;
+        this.FindControl<MenuItem>("JumpBackMenu")!.InputGesture = new KeyGesture(jumpBack, jumpModifier);
+        this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(jumpForward, jumpModifier);
         this.FindControl<MenuItem>("InFileSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
         // The list's directional navigation may consume arrows before they bubble.
         this.FindControl<ListBox>("FileTreeList")!.AddHandler(KeyDownEvent, TreeKeyDown, RoutingStrategies.Tunnel);
-        AddHandler(KeyDownEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(KeyDownEvent, async (_, key) =>
+        {
+            if (key.KeyModifiers == jumpModifier && (key.Key == jumpBack || key.Key == jumpForward))
+            {
+                key.Handled = true;
+                await RunAsync(() => NavigateJumpAsync(key.Key == jumpBack));
+            }
+            else viewModel.RecordUserInteraction();
+        }, RoutingStrategies.Tunnel, handledEventsToo: true);
         // Take the shortcut before AvaloniaEdit's built-in search handler receives it.
         AddHandler(KeyDownEvent, (_, key) =>
         {
@@ -540,6 +553,16 @@ internal sealed partial class MainWindow : Window
 
     private async void FindReferencesClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => FindSymbolAsync(definitions: false));
     private async void FindDefinitionsClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => FindSymbolAsync(definitions: true));
+    private async void JumpBackClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => NavigateJumpAsync(back: true));
+    private async void JumpForwardClicked(object? sender, RoutedEventArgs args) => await RunAsync(() => NavigateJumpAsync(back: false));
+
+    private async Task NavigateJumpAsync(bool back)
+    {
+        var epoch = _viewModel.ViewEpoch;
+        await (back ? _viewModel.JumpBackAsync() : _viewModel.JumpForwardAsync());
+        if (!_closing && _viewModel.HasDocument && _viewModel.ViewEpoch != epoch)
+            this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
+    }
 
     private void ShowSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowSearch);
     private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);

@@ -12,7 +12,7 @@ using CodeView.Operations;
 
 namespace CodeView.Presentation;
 
-internal sealed class GuiSemanticChecks(MainWindow _window, MainWindowViewModel _viewModel, TextEditor _editor,
+internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _viewModel, TextEditor _editor,
     Action<Control, KeyEventArgs> raiseSearchKey)
 {
     internal sealed record Result(int[] ShutdownPids, IReadOnlyList<object> Timings,

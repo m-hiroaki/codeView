@@ -9,6 +9,100 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class DefinitionJumpTests
 {
+    [Test]
+    public void JumpHistoryRestoresTwoHopsAndReopensClosedTabs() => WithView(async (view, folder, body) =>
+    {
+        var target = Path.Combine(folder, "target.cs");
+        var last = Path.Combine(folder, "last.cs");
+        const string targetText = "class Target { object Field = Last; }";
+        await File.WriteAllTextAsync(target, targetText);
+        await File.WriteAllTextAsync(last, "class Last {}");
+        var viewport = (X: 0d, Y: 0d);
+        view.RestoreViewport += (x, y, _) => viewport = (x, y);
+
+        view.SetPosition(1, 27);
+        view.SetViewport(12, 34);
+        await Find(view);
+        Assert.That(view.FilePath, Is.EqualTo(target));
+        var lastOffset = targetText.IndexOf("Last", StringComparison.Ordinal);
+        view.SetPosition(1, lastOffset + 1);
+        view.SetViewport(56, 78);
+        await view.FindDefinitionsAsync(lastOffset, lastOffset, 0);
+        Assert.That(view.FilePath, Is.EqualTo(last));
+        view.CloseFile();
+
+        await view.JumpBackAsync();
+        Assert.That(view.FilePath, Is.EqualTo(target));
+        Assert.That(view.Position, Is.EqualTo($"行 1, 列 {lastOffset + 1}"));
+        Assert.That(viewport, Is.EqualTo((56d, 78d)));
+        await view.JumpBackAsync();
+        Assert.That(view.FilePath, Is.EqualTo(body));
+        Assert.That(view.Position, Is.EqualTo("行 1, 列 27"));
+        Assert.That(viewport, Is.EqualTo((12d, 34d)));
+        Assert.That(view.CanJumpBack, Is.False);
+
+        await view.JumpForwardAsync();
+        Assert.That(view.FilePath, Is.EqualTo(target));
+        await view.JumpForwardAsync();
+        Assert.That(view.FilePath, Is.EqualTo(last));
+        Assert.That(view.CanJumpForward, Is.False);
+
+        await view.JumpBackAsync();
+        await view.FindDefinitionsAsync(lastOffset, lastOffset, 0);
+        Assert.That(view.FilePath, Is.EqualTo(last));
+        Assert.That(view.CanJumpForward, Is.False);
+    });
+
+    [Test]
+    public void MissingHistoryFileKeepsCurrentTabAndSwitchingWorkspaceClearsHistory() => WithView(async (view, folder, body) =>
+    {
+        var target = Path.Combine(folder, "target.cs");
+        await File.WriteAllTextAsync(target, "class Target {}");
+        await Find(view);
+        view.CloseTab(view.Tabs.Single(tab => tab.State.Path.FullPath == body));
+        File.Delete(body);
+
+        await view.JumpBackAsync();
+        Assert.That(view.FilePath, Is.EqualTo(target));
+        Assert.That(view.Tabs.Count, Is.EqualTo(1));
+        Assert.That(view.Status, Does.Contain("履歴のファイルを開けません"));
+        Assert.That(view.CanJumpBack, Is.True);
+        Assert.That(view.CanJumpForward, Is.False);
+
+        var other = Directory.CreateDirectory(Path.Combine(folder, "other"));
+        await view.OpenFilesAsync([other.FullName], OpenOrigin.Menu);
+        Assert.That(view.CanJumpBack, Is.False);
+        Assert.That(view.CanJumpForward, Is.False);
+    });
+
+    [Test]
+    public void SearchResultHistoryIsBoundedAndSkipsSamePosition() => WithView(async (view, _, body) =>
+    {
+        view.SearchPanel.Query = "Target";
+        await view.SearchPanel.StartAsync();
+        var row = view.SearchPanel.Rows.Single();
+        Assert.That(row.FullPath, Is.EqualTo(body));
+        await view.ActivateSearchResultAsync(row);
+        await view.JumpBackAsync();
+        Assert.That(view.CanJumpBack, Is.False);
+        await view.JumpForwardAsync();
+        await view.ActivateSearchResultAsync(row);
+        await view.JumpBackAsync();
+        Assert.That(view.CanJumpBack, Is.False);
+
+        for (var step = 0; step <= MainWindowViewModel.JumpHistoryLimit; step++)
+        {
+            view.SetPosition(1, 1);
+            await view.ActivateSearchResultAsync(row);
+        }
+        for (var step = 0; step < MainWindowViewModel.JumpHistoryLimit; step++)
+        {
+            Assert.That(view.CanJumpBack, Is.True);
+            await view.JumpBackAsync();
+        }
+        Assert.That(view.CanJumpBack, Is.False);
+    });
+
     [TestCase(false)]
     [TestCase(true)]
     public void SingleCompleteCandidateNavigatesWithoutChangingPanelVisibility(bool initiallyVisible) => WithView(async (view, folder, _) =>
@@ -109,6 +203,7 @@ internal sealed class DefinitionJumpTests
             await Find(view);
             Assert.That(duringDrain, Is.Null);
             Assert.That(view.FilePath, Is.EqualTo(body));
+            Assert.That(view.CanJumpBack, Is.False);
             if (cancel) Assert.That(view.SearchPanel.Summary, Does.Contain("取り消し"));
             else
             {

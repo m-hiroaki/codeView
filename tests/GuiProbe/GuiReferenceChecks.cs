@@ -145,12 +145,29 @@ internal sealed partial class GuiPerformanceProbe
             _window.FindControl<MenuItem>("FindDefinitionsMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(panel.IsVisible && panel.Rows.Count == 2 && _viewModel.FilePath == body, "definition-menu-multiple-candidates");
+            var beforeJumpCaret = _editor.CaretOffset;
             results.SelectedItem = panel.Rows.Single(x => x.FullPath == duplicate);
             RaiseSearchKey(results, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct); await Frame(ct);
             Require(_viewModel.FilePath == duplicate && _editor.SelectedText == "@Target"
                 && _editor.TextArea.IsFocused, "definition-enter-original-selection");
+            var definitionSelection = (_editor.SelectionStart, _editor.SelectionLength, _editor.CaretOffset);
+            var historyBack = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent,
+                Key = OperatingSystem.IsMacOS() ? Key.OemOpenBrackets : Key.Left,
+                KeyModifiers = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt };
+            RaiseSearchKey(_editor.TextArea, historyBack);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            Require(historyBack.Handled && _viewModel.FilePath == body && _editor.CaretOffset == beforeJumpCaret
+                && _editor.TextArea.IsFocused, "jump-history-shortcut-restores-origin");
+            _window.FindControl<MenuItem>("JumpForwardMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct);
+            Require(_viewModel.FilePath == duplicate && _editor.CaretOffset == _editor.Document.Text.IndexOf("@Target", StringComparison.Ordinal)
+                && !_viewModel.CanJumpForward, "jump-history-menu-restores-destination");
+            _editor.Select(definitionSelection.SelectionStart, definitionSelection.SelectionLength);
+            _editor.CaretOffset = definitionSelection.CaretOffset;
             var findModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
             var query = _window.FindControl<TextBox>("InFileQuery")!;
             var folderQuery = _window.FindControl<TextBox>("SearchQuery")!;

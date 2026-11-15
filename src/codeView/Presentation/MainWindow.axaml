@@ -38,6 +38,10 @@
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
                 <MenuItem x:Name="FindDefinitionsMenu" Header="{Binding DefinitionMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindDefinitionsClicked" />
                 <MenuItem x:Name="FindReferencesMenu" Header="{Binding ReferencesMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
+                <MenuItem Header="ジャンプ履歴">
+                    <MenuItem x:Name="JumpBackMenu" Header="戻る" IsEnabled="{Binding CanJumpBack}" Click="JumpBackClicked" />
+                    <MenuItem x:Name="JumpForwardMenu" Header="進む" IsEnabled="{Binding CanJumpForward}" Click="JumpForwardClicked" />
+                </MenuItem>
                 <MenuItem x:Name="SemanticSettingsMenu" Header="意味解析の設定…" IsEnabled="{Binding CanSearchWorkspace}" Click="EditSemanticNavigationClicked" />
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
             </MenuItem>

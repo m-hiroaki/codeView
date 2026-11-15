@@ -41,6 +41,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private SearchResultRow? _selectionRow;
     private SearchResultMoveRequest? _selectionRequest;
     private SearchResultMove? _selectionMove;
+    internal const int JumpHistoryLimit = 100;
+    private readonly record struct JumpLocation(SourcePath Path, EncodingChoice Encoding, TextPosition Position,
+        double Horizontal, double Vertical);
+    private List<(JumpLocation From, JumpLocation To)>? _jumps;
+    private int _jumpIndex;
+    private bool _restoringJump;
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
     private Task _syntaxFailure = Task.CompletedTask;
@@ -54,6 +60,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool HasDocument => _document is not null;
     public bool CanReopenEncoding => _tabManager.ActiveTab is not null;
     public bool CanReload => _tabManager.ActiveTab is not null;
+    public bool CanJumpBack => !_stopping && !_restoringJump && _jumpIndex > 0;
+    public bool CanJumpForward => !_stopping && !_restoringJump && _jumpIndex < (_jumps?.Count ?? 0);
     public bool HasTabs => Tabs.Count > 0;
     public bool CanSaveSettings => !_stopping && !_pumping && !_savingSettings && _settingsForSave is { CanSave: true };
     public AvaloniaList<TabViewModel> Tabs { get; } = [];
@@ -221,6 +229,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         if (_stopping || _savingSettings || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
         var interaction = _interactionEpoch;
+        var origin = CaptureJumpLocation();
         ClearSearchSelection?.Invoke();
         var navigator = operations.ResultNavigator;
         var request = navigator.Start(source, row.Hit);
@@ -252,6 +261,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         // Restore from the confirmed move, never from notification-mutated view fields.
         RestoreCaret?.Invoke(checked((int)move.Position.Line), checked((int)move.Position.Column));
         SelectSearchRange?.Invoke(move.Offset, move.SelectionLength);
+        if (move.Warning == DocumentMoveWarning.None && origin is { } from && CaptureJumpLocation() is { } to)
+            RecordJump(from, to with { Position = move.Position });
         SetStatus(move.Warning switch
         {
             DocumentMoveWarning.Stale => "ファイルまたはタブ本文が検索時と異なります。再読み込み・再検索してください。選択は行いません。",
@@ -265,6 +276,83 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             && SearchPanel.CanActivate(row);
         bool OwnsMoveStatus() => (navigator.Current is null || ReferenceEquals(navigator.Current, request))
             && Status == moveStatus;
+    }
+
+    private JumpLocation? CaptureJumpLocation() => !_originalSourceOffsetsAvailable || _displayedTab is not { Status: TabStatus.Ready } tab
+        ? null : new(tab.Path, tab.EncodingChoice, tab.Position, tab.HorizontalOffset, tab.VerticalOffset);
+
+    private void RecordJump(JumpLocation from, JumpLocation to)
+    {
+        if (from.Path.FullPath == to.Path.FullPath && from.Position == to.Position) return;
+        var jumps = _jumps ??= [];
+        jumps.RemoveRange(_jumpIndex, jumps.Count - _jumpIndex);
+        if (jumps.Count == JumpHistoryLimit) jumps.RemoveAt(0);
+        jumps.Add((from, to));
+        _jumpIndex = jumps.Count;
+        Changed(nameof(CanJumpBack), nameof(CanJumpForward));
+    }
+
+    public Task JumpBackAsync() => TrackManualAsync(RestoreJumpAsync(back: true));
+    public Task JumpForwardAsync() => TrackManualAsync(RestoreJumpAsync(back: false));
+
+    private async Task RestoreJumpAsync(bool back)
+    {
+        if (_savingSettings || !(back ? CanJumpBack : CanJumpForward)) return;
+        var cursor = _jumpIndex;
+        var index = back ? cursor - 1 : cursor;
+        var jump = _jumps![index];
+        var destination = back ? jump.From : jump.To;
+        var leaving = CaptureJumpLocation();
+        var workspace = WorkspaceEpoch;
+        var previous = _tabManager.ActiveTab;
+        RecordUserInteraction();
+        var interaction = _interactionEpoch;
+        operations.ResultNavigator.Clear();
+        _restoringJump = true;
+        Changed(nameof(CanJumpBack), nameof(CanJumpForward));
+        try
+        {
+            var existing = _tabManager.Tabs.FirstOrDefault(tab => tab.Path.FullPath == destination.Path.FullPath);
+            var work = _tabManager.OpenAsync(destination.Path, destination.Encoding);
+            var selection = _tabManager.SelectionEpoch;
+            var target = _tabManager.ActiveTab;
+            SyncTabs();
+            DisplayActiveTab();
+            var result = await work;
+            if (_stopping) return;
+            SyncTabs();
+            if (_tabManager.SelectionEpoch != selection || !ReferenceEquals(target, _tabManager.ActiveTab)) return;
+            DisplayActiveTab();
+            if (WorkspaceEpoch != workspace || _interactionEpoch != interaction || _jumpIndex != cursor || _jumps is null || index >= _jumps.Count
+                || _jumps[index] != jump) return;
+            if (result.Status != OperationStatus.Success)
+            {
+                if (existing is null && target is { Status: TabStatus.Failed }) _tabManager.Close(target);
+                if (previous is not null) _tabManager.Select(previous);
+                SyncTabs();
+                DisplayActiveTab();
+                if (result.Status == OperationStatus.Failure)
+                    SetStatus("履歴のファイルを開けません。 " + FileErrorText(result.Error!.Code));
+                return;
+            }
+
+            ViewEpoch = checked(ViewEpoch + 1);
+            var position = destination.Position;
+            ClearSearchSelection?.Invoke();
+            SetPosition((int)Math.Min(position.Line, int.MaxValue), (int)Math.Min(position.Column, int.MaxValue));
+            RestoreCaret?.Invoke(_line, _column);
+            SetViewport(destination.Horizontal, destination.Vertical);
+            RestoreViewport?.Invoke(destination.Horizontal, destination.Vertical, ViewEpoch);
+            var departure = back ? jump.To : jump.From;
+            if (leaving is { } location && location.Path.FullPath == departure.Path.FullPath)
+                _jumps[index] = back ? (jump.From, location) : (location, jump.To);
+            _jumpIndex = back ? index : index + 1;
+        }
+        finally
+        {
+            _restoringJump = false;
+            Changed(nameof(CanJumpBack), nameof(CanJumpForward));
+        }
     }
 
     public async Task InitializeAsync(string[] paths)
@@ -419,6 +507,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         var settings = operations.Startup.Settings?.Snapshot;
         if (settings is null || _stopping) return null;
+        if (WorkspacePath != path.FullPath && _jumps is not null)
+        {
+            _jumps = null;
+            _jumpIndex = 0;
+            Changed(nameof(CanJumpBack), nameof(CanJumpForward));
+        }
         SetStatus("フォルダを読み込み中… " + path.DisplayPath);
         var work = operations.OpenFolderAsync(path, settings);
         var workspace = operations.Workspace;
