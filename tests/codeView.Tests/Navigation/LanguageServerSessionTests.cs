@@ -62,7 +62,7 @@ internal sealed class LanguageServerSessionTests
     public async Task DisposalCancelsOutstandingRequestAndTerminatesUnresponsiveServer()
     {
         using var fixture = await ServerFixture.CreateAsync();
-        var server = fixture.Session("--ignore-shutdown");
+        await using var server = fixture.Session("--ignore-shutdown");
         var pid = (await Request(server, "pid")).GetInt32();
         var held = Request(server, "hold");
         await WaitForLog(fixture.Log, "hold");
@@ -146,7 +146,16 @@ internal sealed class LanguageServerSessionTests
     private static async Task WaitForLog(string path, string line)
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        while (!File.ReadAllLines(path).Contains(line)) await Task.Delay(10, timeout.Token);
+        while (!ContainsLine()) await Task.Delay(10, timeout.Token);
+
+        bool ContainsLine()
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(stream);
+            while (reader.ReadLine() is { } entry)
+                if (entry == line) return true;
+            return false;
+        }
     }
 
     private sealed class ServerFixture(DirectoryInfo root, string python) : IDisposable
