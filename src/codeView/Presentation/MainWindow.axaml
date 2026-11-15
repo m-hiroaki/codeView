@@ -96,6 +96,7 @@
                          SelectionChanged="TabSelectionChanged"
                          Background="#202630" BorderThickness="0" Padding="0"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         ScrollViewer.AllowAutoHide="False"
                          AutomationProperties.Name="開いているファイル">
                     <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
                     <ListBox.Styles>

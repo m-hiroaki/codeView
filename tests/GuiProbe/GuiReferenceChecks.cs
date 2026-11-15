@@ -549,6 +549,32 @@ internal sealed partial class GuiPerformanceProbe
         await PressAsync(Key.W, closeModifier);
         require(!_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
             "tabs-close-shortcut-clears-last-tab");
+
+        var overflowPaths = new List<string>();
+        for (var index = 0; index < 10; index++)
+        {
+            var path = Path.Combine(root, $"Tab-{index:D2}-LongFileNameForHorizontalScrolling.txt");
+            await File.WriteAllTextAsync(path, "tab body", ct);
+            inputs.Add(path, hash(path));
+            overflowPaths.Add(path);
+        }
+        await _viewModel.OpenFilesAsync(overflowPaths, OpenOrigin.Menu);
+        await Frame(ct);
+        var scroll = list.GetVisualDescendants().OfType<ScrollViewer>().Single();
+        var bar = scroll.GetVisualDescendants().OfType<ScrollBar>()
+            .Single(bar => bar.Orientation == Avalonia.Layout.Orientation.Horizontal);
+        var barTop = bar.TranslatePoint(default, list);
+        var items = list.GetVisualDescendants().OfType<ListBoxItem>().Where(item => item.IsEffectivelyVisible).ToArray();
+        require(bar.IsEffectivelyVisible && bar.Bounds.Height > 0 && scroll.Extent.Width > scroll.Viewport.Width
+            && items.Length > 0 && barTop is { } top
+            && items.All(item => item.TranslatePoint(new Point(0, item.Bounds.Height), list) is { } bottom && bottom.Y <= top.Y + 0.5),
+            "tabs-overflow-scrollbar-below-items");
+
+        while (_viewModel.Tabs.Count > 1) _viewModel.CloseFile();
+        await Frame(ct);
+        require(!bar.IsEffectivelyVisible && Math.Abs(list.Bounds.Height - 28) < 1,
+            "tabs-overflow-restores-compact-height");
+        _viewModel.CloseFile();
     }
 
     private async Task CheckTabViewStateAsync(string root, Dictionary<string, string> inputs, Func<string, string> hash,

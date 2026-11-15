@@ -40,6 +40,7 @@ CHECKS = [
     'tabs-selection-attaches-document', 'tabs-repeat-open-reuses-document',
     'tabs-ctrl-tab-wraps-and-focuses-editor', 'tabs-ctrl-shift-tab-wraps-back',
     'tabs-close-button-keeps-active-document', 'tabs-close-shortcut-clears-last-tab',
+    'tabs-overflow-scrollbar-below-items', 'tabs-overflow-restores-compact-height',
     'tab-view-distinct-scroll-offsets', 'tab-view-restores-first-caret-and-scroll',
     'tab-view-restores-first-search-conditions', 'tab-view-restores-second-caret-and-scroll',
     'tab-view-restores-second-search-conditions', 'tab-view-rapid-query-change-then-switch-keeps-current-results',
