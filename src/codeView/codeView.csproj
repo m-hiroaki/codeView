@@ -3,6 +3,7 @@
         <OutputType>WinExe</OutputType>
         <RootNamespace>CodeView</RootNamespace>
         <AssemblyName>codeView</AssemblyName>
+        <ApplicationIcon>../../build/codeView.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
     <PropertyGroup Condition="'$(CodeViewPerformanceProbe)' == 'true'">

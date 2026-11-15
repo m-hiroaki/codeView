@@ -20,6 +20,7 @@ class MacBuildTests(unittest.TestCase):
         shutil.copy2(ROOT / "build-mac.sh", self.repo)
         (self.repo / "build").mkdir()
         shutil.copy2(ROOT / "build/Info.plist", self.repo / "build/Info.plist")
+        shutil.copy2(ROOT / "build/codeView.icns", self.repo / "build/codeView.icns")
         project = self.repo / "src/codeView"
         project.mkdir(parents=True)
         (project / "codeView.csproj").write_text("<Project />")
@@ -67,7 +68,11 @@ if os.environ.get('TEST_MISSING_EXECUTABLE') != '1':
         self.assertTrue((app / "Contents/MacOS/codeView").stat().st_mode & 0o111)
         self.assertTrue((app / "Contents/MacOS/libAvaloniaNative.dylib").exists())
         with (app / "Contents/Info.plist").open('rb') as stream:
-            self.assertEqual(plistlib.load(stream)['CFBundleExecutable'], 'codeView')
+            info = plistlib.load(stream)
+        self.assertEqual(info['CFBundleExecutable'], 'codeView')
+        self.assertEqual(info['CFBundleIconFile'], 'codeView.icns')
+        self.assertEqual((app / 'Contents/Resources' / info['CFBundleIconFile']).read_bytes(),
+                         (self.repo / 'build/codeView.icns').read_bytes())
         self.assertEqual(self.lock.read_bytes(), original)
         self.assertEqual([call[0] for call in self.calls()], ['restore', 'publish'])
         publish = self.calls()[1]

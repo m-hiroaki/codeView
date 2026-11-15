@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/publish-validation.yml
       - build-windows.bat
+      - build/codeView.ico
       - build/licenses/**
       - global.json
       - tools/check_windows_publish.py
@@ -64,7 +65,7 @@ jobs:
         run: |
           python -m unittest discover -s tools -p test_windows_publish.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/check_windows_publish.py --folder artifacts/publish/win-x64/codeView --output artifacts/publish-validation/manifest.json
+          python tools/check_windows_publish.py --folder artifacts/publish/win-x64/codeView --output artifacts/publish-validation/manifest.json --icon build/codeView.ico
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $payload = 'artifacts/publish/win-x64/codeView/licenses'
           $notices = @(

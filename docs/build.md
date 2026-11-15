@@ -65,6 +65,8 @@ dotnet --version
 
 ## 確認した範囲
 
+Windowsの `codeView.exe` には `build/codeView.ico` を埋め込む。macOSのアプリバンドルには、同じアイコンをICNS形式で `Contents/Resources/codeView.icns` に同梱する。
+
 - Mac arm64：実スクリプトでNative AOT（コンパイラー10.0.12）の.app生成に成功。Info.plist、arm64ネイティブ実行ファイル、CoreCLR/アプリDLLが残らないこと、描画ライブラリ、元ロックからの管理対象依存の版/ハッシュ維持を確認。生成済み14,000 bytes/1,001行のテキストをCLIで開き、タブ/本文/UTF-8表示と通常終了0を確認した。全機能/性能・配布署名・別PC起動は未検証。
 - Intel Mac向け：Apple Silicon上で `./build-mac.sh osx-x64` の実発行に成功。実行ファイルと同梱ライブラリにx86_64が含まれることを確認した。Intel実機での起動確認は残る。
 - スクリプト単体：正常、CPU選択、空白/`!`を含むパス、別ディレクトリからの実行、不正RID/余分な引数/未知CPU/非Mac、復元/発行失敗、実行ファイル欠落、前回成果物維持、一時物の解放を7件で確認。

@@ -51,12 +51,30 @@ def inspect_payload(folder):
     return {'schema': 1, 'files': files, 'total_bytes': sum(x['bytes'] for x in files)}
 
 
+def check_icon(executable, icon):
+    """Check that the published EXE contains every image from the application icon."""
+    data = icon.read_bytes()
+    binary = executable.read_bytes()
+    _, kind, count = struct.unpack_from('<HHH', data)
+    if kind != 1 or count == 0:
+        raise ValueError('Expected a nonempty ICO file')
+    for index in range(count):
+        length, offset = struct.unpack_from('<II', data, 6 + index * 16 + 8)
+        image = data[offset:offset + length]
+        if len(image) != length or not image or image not in binary:
+            raise ValueError(f'Missing application icon image {index + 1}')
+    return count
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--folder', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--icon', type=Path)
     args = parser.parse_args()
     report = inspect_payload(args.folder)
+    if args.icon is not None:
+        report['application_icon_images'] = check_icon(args.folder / 'codeView.exe', args.icon)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 

@@ -47,8 +47,10 @@ if [[ ! -x "$codeview_stage/payload/codeView" ]]; then
     exit 1
 fi
 mkdir -p "$codeview_stage/codeView.app/Contents/MacOS"
+mkdir -p "$codeview_stage/codeView.app/Contents/Resources"
 cp -R "$codeview_stage/payload/." "$codeview_stage/codeView.app/Contents/MacOS/"
 cp build/Info.plist "$codeview_stage/codeView.app/Contents/Info.plist"
+cp build/codeView.icns "$codeview_stage/codeView.app/Contents/Resources/codeView.icns"
 # Replace only the generated app, after publish and packaging have succeeded.
 rm -rf "$codeview_output/codeView.app"
 mv "$codeview_stage/codeView.app" "$codeview_output/codeView.app"
