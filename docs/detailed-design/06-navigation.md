@@ -185,3 +185,16 @@ class、struct、interface、enum、record、delegate、プロパティ、複数
 clangdの索引は、利用するコンパイルデータベースをユーザーのキャッシュ領域に用意してそこに保存する方式を検証する。コピー先でも元の翻訳単位と作業ディレクトリを指すようにし、元のコンパイルデータベースの更新を反映する。ユーザーのキャッシュ領域に置けることを確認できない構成では、索引作成を伴う設定を使う前に書込先を検証する。[clangdのコンパイル条件](https://clangd.llvm.org/design/compile-commands)・[索引](https://clangd.llvm.org/design/indexing.html)
 
 影響範囲はNavigationの内部要求・LSP接続、Operationsの探索と資源の寿命、Presentationのフォルダ設定と状態表示、利用手順である。既存の結果一覧、件数上限、操作・ルート世代、取消、タブ移動を利用する。サーバーは対象言語での初回操作に合わせて起動し、フォルダの切替・閉鎖とアプリ終了に合わせて解放する。移行はC#の固定データでプロトコルを確認し、共通通信、両エンジン、原文位置、通常画面の順に接続する。簡易検索を既定として提供する。[Roslyn Language Server](https://github.com/dotnet/roslyn/blob/main/src/LanguageServer/roslyn-language-server/README.md)・[LSP仕様](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/)
+
+### 8.2 Roslynとのプロトコル確認（P5-09-02）
+
+macOS arm64、.NET SDK 10.0.403、Roslyn Language Server 5.13.0-1.26514.10で確認した。一時フォルダに相互参照する2プロジェクトを作り、`solution/open`で選択した`.slnx`を明示的に読み込む。呼び出し位置から別プロジェクトの`Run(int)`に移動し、参照検索が呼び出し2箇所を返すことを期待範囲と照合した。もう一方のオーバーロード、コメント、宣言は参照結果に含まれなかった。呼び出しの前に補助文字を置き、文字位置がUTF-16単位であることを確認した。
+
+初期化応答の`positionEncoding`が省略され、既定のUTF-16を使った。`textDocumentSync.change`は増分同期を示す2だった。今回の定義・参照の応答は`Location`配列で、URIと範囲を含んだが対象テキストの版は含まれなかった。同期した文書の版はクライアントが管理し、移動時にファイルの状態を再確認する。読込時は`$/progress`の開始・更新・終了と、Roslyn固有の`workspace/projectInitializationComplete`を観測した。後者は読込処理の区切りとして使えるが、個々の依存関係の解決や全検索範囲の確定までは通知内容から判定できない。
+
+再現コマンドはリポジトリのルートで実行する。[試験スクリプト](../../tools/check_roslyn_navigation.py)
+
+```bash
+dotnet tool install roslyn-language-server --version 5.13.0-1.26514.10 --tool-path artifacts/semantic-navigation/roslyn
+python3 tools/check_roslyn_navigation.py --server artifacts/semantic-navigation/roslyn/roslyn-language-server
+```
