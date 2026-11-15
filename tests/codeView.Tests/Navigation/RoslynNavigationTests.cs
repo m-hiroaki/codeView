@@ -27,7 +27,9 @@ internal sealed class RoslynNavigationTests
             Assert.That(definition.IsPartial, Is.EqualTo(sharedSource), definition.Status);
             Assert.That(references.IsPartial, Is.EqualTo(sharedSource), references.Status);
             var target = definition.Locations.EnumerateArray().Single();
-            Assert.That(Path.GetFileName(new Uri(target.GetProperty("uri").GetString()!).LocalPath), Is.EqualTo("Api.cs"));
+            var targetUri = target.GetProperty("uri").GetString();
+            Assert.That(LspFilePath.TryFromUri(targetUri, out var targetPath), Is.True, targetUri);
+            Assert.That(targetPath, Is.EqualTo(Path.Combine(root.FullName, "Lib", "Api.cs")).IgnoreCase, targetUri);
             Assert.That(StartLine(target), Is.EqualTo(2), "The enabled C# conditional branch is selected.");
             Assert.That(references.Locations.EnumerateArray().Select(StartLine).Distinct().Order(), Is.EqualTo(new[] { 4, 5 }));
             if (extension == ".slnx" && !sharedSource)

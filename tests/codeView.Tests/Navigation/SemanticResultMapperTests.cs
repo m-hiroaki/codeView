@@ -12,6 +12,18 @@ namespace CodeView.Tests.Navigation;
 
 internal sealed class SemanticResultMapperTests
 {
+    [TestCase(":")]
+    [TestCase("%3A")]
+    [TestCase("%3a")]
+    [Platform("Win")]
+    public void DecodesWindowsDriveAndEscapedFileName(string colon)
+    {
+        Assert.That(LspFilePath.TryFromUri($"file:///c{colon}/source/%E6%BC%A2%20file%23%25.cs", out var path), Is.True);
+        Assert.That(path, Is.EqualTo(@"c:\source\漢 file#%.cs"));
+        Assert.That(LspFilePath.TryFromUri($"file:///c{colon}/source/file.cs#fragment", out _), Is.False);
+        Assert.That(LspFilePath.TryFromUri($"file:///c{colon}/source/file.cs?query", out _), Is.False);
+    }
+
     [TestCase("utf-16", 3)]
     [TestCase("utf-8", 7)]
     [TestCase("utf-32", 2)]

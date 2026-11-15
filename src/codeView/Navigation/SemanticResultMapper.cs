@@ -111,7 +111,6 @@ internal sealed class SemanticResultMapper(FileReader files)
         canonical = "";
         try
         {
-            if (!Path.IsPathFullyQualified(path)) return false;
             canonical = LspFilePath.Resolve(path);
             if (!LspFilePath.IsWithin(root, canonical) || !File.Exists(canonical)) return false;
             var relative = Path.GetRelativePath(root, canonical);
@@ -131,12 +130,10 @@ internal sealed class SemanticResultMapper(FileReader files)
         if (value.ValueKind != JsonValueKind.Object) return false;
         var isLink = value.TryGetProperty("targetUri", out var uri);
         if (!isLink && !value.TryGetProperty("uri", out uri)) return false;
-        if (uri.ValueKind != JsonValueKind.String || !Uri.TryCreate(uri.GetString(), UriKind.Absolute, out var file)
-            || !file.IsFile || !string.IsNullOrEmpty(file.Query) || !string.IsNullOrEmpty(file.Fragment)) return false;
+        if (uri.ValueKind != JsonValueKind.String || !LspFilePath.TryFromUri(uri.GetString(), out path)) return false;
         if (!value.TryGetProperty(isLink ? "targetSelectionRange" : "range", out var span) || span.ValueKind != JsonValueKind.Object
             || !span.TryGetProperty("start", out var start) || !TryReadPosition(start, out var first)
             || !span.TryGetProperty("end", out var end) || !TryReadPosition(end, out var last)) return false;
-        path = file.LocalPath;
         range = new(first, last);
         return true;
     }

@@ -2,6 +2,22 @@ namespace CodeView.Navigation;
 
 internal static class LspFilePath
 {
+    internal static bool TryFromUri(string? value, out string path)
+    {
+        path = "";
+        const string filePrefix = "file:///";
+        var drive = filePrefix.Length;
+        // Roslyn can percent-encode the drive colon. System.Uri needs it literally to recognize a DOS path.
+        if (OperatingSystem.IsWindows() && value is not null && value.Length > drive + 4
+            && value.StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase) && char.IsAsciiLetter(value[drive])
+            && value.AsSpan(drive + 1, 4).Equals("%3A/", StringComparison.OrdinalIgnoreCase))
+            value = string.Concat(value.AsSpan(0, drive + 1), ":", value.AsSpan(drive + 4));
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || !uri.IsFile
+            || uri.Query.Length != 0 || uri.Fragment.Length != 0) return false;
+        path = uri.LocalPath;
+        return Path.IsPathFullyQualified(path);
+    }
+
     // A server may canonicalize parent symlinks, for example /var to /private/var on macOS.
     internal static string Resolve(string path)
     {
