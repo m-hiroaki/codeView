@@ -75,9 +75,11 @@
                         </ListBox.Styles>
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:FileTreeRow">
-                                <Grid ColumnDefinitions="24,*,Auto" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}" AutomationProperties.Name="{Binding AccessibleName}">
+                                <Grid ColumnDefinitions="32,*,Auto" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}" AutomationProperties.Name="{Binding AccessibleName}">
                                     <Button Content="{Binding Disclosure}" IsVisible="{Binding !IsFile}" IsEnabled="{Binding CanExpand}" Click="TreeDisclosureClicked"
                                             Focusable="False" MinHeight="0" Padding="0" Background="Transparent" BorderThickness="0" Foreground="#94D4C3"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                             AutomationProperties.Name="展開または折りたたみ" />
                                     <TextBlock x:Name="TreeFileIcon" Text="{Binding FileIcon}" IsVisible="{Binding IsFile}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"

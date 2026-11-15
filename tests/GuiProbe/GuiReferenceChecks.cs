@@ -458,6 +458,11 @@ internal sealed partial class GuiPerformanceProbe
         require(!emptyTap.Handled && !disclosureTap.Handled && rows.Count == 2
             && !folder.Node.IsExpanded && !empty.Node.IsExpanded, "tree-background-and-disclosure-double-tap-ignored");
 
+        var edge = disclosure.TranslatePoint(new Point(30, 2), _window);
+        var target = edge is { } point ? _window.InputHitTest(point) as Visual : null;
+        require(disclosure.Bounds.Height >= 21 && (ReferenceEquals(target, disclosure)
+            || target?.GetVisualAncestors().Contains(disclosure) == true), "tree-disclosure-edge-hits-button");
+
         await DoubleTapAsync(container, ct);
         require(ReferenceEquals(tree.SelectedItem, empty) && empty.Node.IsExpanded && empty.Detail == "空"
             && !folder.Node.IsExpanded, "tree-double-tap-uses-hit-row-and-shows-empty");
