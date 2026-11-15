@@ -135,6 +135,7 @@
                     </StackPanel>
                 </Border>
         <editor:TextEditor Grid.Row="2" x:Name="Editor"
+                           IsVisible="{Binding HasDocument}"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
                            WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
                            Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"

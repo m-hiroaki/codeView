@@ -238,6 +238,7 @@ internal sealed class MainWindowViewModelTests
             Assert.That(restored, Is.EqualTo((1, 2)));
             await File.WriteAllBytesAsync(file, []);
             await viewModel.ReloadAsync();
+            Assert.That(viewModel.HasDocument, Is.True);
             Assert.That(viewModel.Document.Text, Is.Empty);
             Assert.That(restored, Is.EqualTo((1, 1)));
             viewModel.CloseFile();
@@ -292,6 +293,7 @@ internal sealed class MainWindowViewModelTests
         {
             var file = Path.Combine(root, "source.cs");
             await File.WriteAllTextAsync(file, "class Original { }");
+            Assert.That(viewModel.HasDocument, Is.False);
             await viewModel.InitializeAsync([file]);
             Assert.That(viewModel.HasDocument, Is.True);
             Assert.That(viewModel.Document!.Text, Is.EqualTo("class Original { }"));
@@ -306,6 +308,7 @@ internal sealed class MainWindowViewModelTests
             await viewModel.ReloadAsync();
             Assert.That(viewModel.Document.Text, Is.EqualTo("class Reloaded { }"));
             viewModel.CloseFile();
+            Assert.That(viewModel.HasDocument, Is.False);
             Assert.That(viewModel.Document, Is.Null);
             Assert.That(viewModel.FilePath, Is.Empty);
             Assert.That(operations.CurrentFile, Is.Null);

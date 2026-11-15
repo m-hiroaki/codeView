@@ -585,7 +585,7 @@ internal sealed partial class GuiPerformanceProbe
         _viewModel.SearchPanel.IsVisible = false;
         var lastClose = await PressAsync(Key.W, closeModifier);
         require(lastClose.Handled && _window.IsVisible && !_viewModel.HasTabs && !_viewModel.HasDocument
-            && !list.IsEffectivelyVisible && _window.Title == "codeView",
+            && !_editor.TextArea.IsEffectivelyVisible && !list.IsEffectivelyVisible && _window.Title == "codeView",
             "tabs-close-shortcut-clears-last-tab");
         var openFile = _window.FindControl<Button>("EmptyOpenFileButton")!;
         var openFolder = _window.FindControl<Button>("EmptyOpenFolderButton")!;
@@ -603,7 +603,8 @@ internal sealed partial class GuiPerformanceProbe
         }
         await _viewModel.OpenFilesAsync(overflowPaths, OpenOrigin.Menu);
         await Frame(ct);
-        require(!openFile.IsEffectivelyVisible && !openFolder.IsEffectivelyVisible,
+        require(_editor.TextArea.IsEffectivelyVisible && _editor.ShowLineNumbers
+            && !openFile.IsEffectivelyVisible && !openFolder.IsEffectivelyVisible,
             "document-view-hides-empty-actions");
         var scroll = list.GetVisualDescendants().OfType<ScrollViewer>().Single();
         var bar = scroll.GetVisualDescendants().OfType<ScrollBar>()
@@ -924,12 +925,13 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(sawLoading, "single-file-loading-status-is-bound");
         require(_viewModel.HasDocument && _editor.Document.TextLength == 0 && _editor.IsReadOnly
-            && !status.IsEffectivelyVisible, "single-file-empty-is-readable");
+            && _editor.TextArea.IsEffectivelyVisible && !status.IsEffectivelyVisible, "single-file-empty-is-readable");
 
         await _viewModel.OpenFilesAsync([binary], OpenOrigin.Menu);
         await Frame(ct);
         require(!_viewModel.HasDocument && _viewModel.SelectedTab?.State.Status == TabStatus.Failed
-            && status.IsEffectivelyVisible && status.Text?.Contains("バイナリのため表示できません") == true,
+            && !_editor.TextArea.IsEffectivelyVisible && status.IsEffectivelyVisible
+            && status.Text?.Contains("バイナリのため表示できません") == true,
             "single-file-binary-is-rejected-with-status");
 
         await _viewModel.OpenFilesAsync([text], OpenOrigin.Menu);
