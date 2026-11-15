@@ -8,7 +8,10 @@ namespace CodeView.Search;
 internal sealed record WorkspaceSearchRequest(SourcePath Root, ExclusionPolicy Exclusions, EncodingChoice Encoding,
     string? Query, SearchOptions Options, long RequestId, long WorkspaceEpoch, long SearchEpoch, bool Definitions = false);
 
-internal sealed record SearchHit(long FileScanId, SourcePath Path, TextRange Range, SearchSnippet Snippet, SourceStamp Stamp);
+internal sealed record SemanticOrigin(SourcePath Path, SourceStamp Stamp);
+
+internal sealed record SearchHit(long FileScanId, SourcePath Path, TextRange Range, SearchSnippet Snippet, SourceStamp Stamp,
+    SemanticOrigin? Origin = null);
 
 internal abstract record SearchEvent<T>
 {

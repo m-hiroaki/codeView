@@ -81,6 +81,19 @@ internal sealed class SearchResultNavigator(TabManager tabs, SearchCoordinator s
                 try
                 {
                     if (!Valid(request)) { CompleteCancelled(request); continue; }
+                    if (request.Hit.Origin is { } origin)
+                    {
+                        var sourceStamp = await files.CheckStampAsync(origin.Path, request.Cancellation);
+                        var targetStamp = origin.Path.FullPath == request.Hit.Path.FullPath
+                            ? sourceStamp : await files.CheckStampAsync(request.Hit.Path, request.Cancellation);
+                        if (!Valid(request)) { CompleteCancelled(request); continue; }
+                        if (sourceStamp.Status != OperationStatus.Success || sourceStamp.Value != origin.Stamp
+                            || targetStamp.Status != OperationStatus.Success || targetStamp.Value != request.Hit.Stamp)
+                        {
+                            RejectStale(request);
+                            continue;
+                        }
+                    }
                     var load = tabs.OpenAsync(request.Hit.Path);
                     var target = tabs.ActiveTab;
                     if (target is null || target.Path.FullPath != request.Hit.Path.FullPath)
@@ -106,7 +119,15 @@ internal sealed class SearchResultNavigator(TabManager tabs, SearchCoordinator s
                     var file = target.File!;
                     var version = target.DocumentVersion;
                     var stamp = await files.CheckStampAsync(request.Hit.Path, request.Cancellation);
+                    var originStamp = request.Hit.Origin is { } checkOrigin && checkOrigin.Path.FullPath != request.Hit.Path.FullPath
+                        ? await files.CheckStampAsync(checkOrigin.Path, request.Cancellation) : stamp;
                     if (!CanAdoptTarget(request, target, version, loadEpoch, selection)) { CompleteCancelled(request); continue; }
+                    if (request.Hit.Origin is { } semanticOrigin
+                        && (originStamp.Status != OperationStatus.Success || originStamp.Value != semanticOrigin.Stamp))
+                    {
+                        RejectStale(request);
+                        continue;
+                    }
                     if (stamp.Status != OperationStatus.Success)
                     { request.CompletionSource.TrySetResult(OperationResult<SearchResultMove>.Failure(stamp.Error!)); continue; }
                     var snippet = request.Hit.Snippet;
@@ -119,6 +140,11 @@ internal sealed class SearchResultNavigator(TabManager tabs, SearchCoordinator s
                     }
                     catch (OverflowException)
                     { request.CompletionSource.TrySetResult(OperationResult<SearchResultMove>.Failure(new(ErrorCode.UnsupportedSize, request.Hit.Path.DisplayPath))); continue; }
+                    if (request.Hit.Origin is not null && move.Warning != DocumentMoveWarning.None)
+                    {
+                        RejectStale(request);
+                        continue;
+                    }
                     request.CompletionSource.TrySetResult(OperationResult<SearchResultMove>.Success(new(target, version, loadEpoch, selection, move)));
                 }
                 catch (OperationCanceledException cancelled) when (request.Cancellation.IsCancellationRequested && cancelled.CancellationToken == request.Cancellation)
@@ -149,6 +175,10 @@ internal sealed class SearchResultNavigator(TabManager tabs, SearchCoordinator s
         request.StartedSource.TrySetResult(null);
         request.CompletionSource.TrySetResult(OperationResult<SearchResultMove>.Cancelled());
     }
+
+    private static void RejectStale(SearchResultMoveRequest request) =>
+        request.CompletionSource.TrySetResult(OperationResult<SearchResultMove>.Failure(
+            new(ErrorCode.ChangedDuringRead, request.Hit.Path.DisplayPath, CanRetry: true)));
 
     private async Task ObserveAsync() { await _pump; _failure?.Throw(); }
 
