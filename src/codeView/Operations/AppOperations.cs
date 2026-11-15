@@ -9,7 +9,8 @@ namespace CodeView.Operations;
 
 internal sealed record LoadedFile(SourcePath Path, SourceStamp Stamp, string EncodingName, DocumentHandle Document);
 
-internal sealed class AppOperations(FileReader reader, IDocumentAdapter documents, DirectoryReader directories) : IDisposable
+internal sealed class AppOperations(FileReader reader, IDocumentAdapter documents, DirectoryReader directories,
+    string? semanticCacheDirectory = null) : IDisposable
 {
     private readonly SemaphoreSlim _loadSlot = new(1, 1);
     private bool _stopping;
@@ -27,6 +28,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private SearchResultNavigator? _resultNavigator;
     private Dictionary<SemanticLanguage, LanguageServerSession>? _languageServers;
     private Task _retiredLanguageServers = Task.CompletedTask;
+    private RoslynNavigation? _roslyn;
+    private ClangdNavigation? _clangd;
+    internal SemanticWorkspaceOptions? SemanticOptions { get; private set; }
     private StartupOpenQueue? _startup;
 
     public StartupOpenQueue Startup => _startup ??= new(_requestIds);
@@ -101,6 +105,73 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         if (servers is not null)
             _retiredLanguageServers = Task.WhenAll(
                 servers.Values.Select(server => server.DisposeAsync().AsTask()).Append(_retiredLanguageServers));
+    }
+
+    internal void ConfigureSemanticNavigation(SemanticWorkspaceOptions? options)
+    {
+        RetireLanguageServers();
+        _roslyn = null;
+        _clangd = null;
+        SemanticOptions = options;
+    }
+
+    internal bool UsesSemanticNavigation(string path) =>
+        LanguageOf(path) is { } language && SemanticOptions?.Executable(language) is not null;
+
+    internal Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? PrepareSemanticSearch(
+        LoadedFile file, int offset, long revision, bool definitions)
+    {
+        if (Workspace is not { CanSearch: true, ResolvedPath: { } root } owner
+            || LanguageOf(file.Path.FullPath) is not { } language || SemanticOptions is not { } options
+            || options.Executable(language) is not { } executable) return null;
+        var operation = definitions ? SemanticOperation.Definition : SemanticOperation.References;
+        var uri = new Uri(file.Path.FullPath).AbsoluteUri;
+        var origin = new SemanticOrigin(file.Path, file.Stamp);
+        var previousServers = _retiredLanguageServers;
+        Func<string, Func<string, LspPosition>, CancellationToken, Task<SemanticReply>> query;
+        if (language == SemanticLanguage.CSharp)
+        {
+            var project = options.CSharpProject ?? FindProject(root.FullPath);
+            if (project is null) return null;
+            var roslyn = _roslyn ??= new(root.FullPath, project);
+            var session = GetLanguageServer(owner, language, () => roslyn.CreateSession(executable));
+            query = (text, position, ct) => roslyn.SearchAsync(session, operation, uri, revision, text, position, ct);
+        }
+        else
+        {
+            var cache = OperatingSystem.IsMacOS()
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Caches")
+                : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var clangd = _clangd ??= new(root.FullPath, options.CompilationDatabase,
+                semanticCacheDirectory ?? Path.Combine(cache, "codeView", "clangd"));
+            var session = GetLanguageServer(owner, language, () => clangd.CreateSession(executable));
+            var languageId = Path.GetExtension(file.Path.FullPath) is ".c" or ".i" ? "c" : "cpp";
+            query = (text, position, ct) => clangd.SearchAsync(session, operation, uri, languageId, revision, text, position, ct);
+        }
+        return (request, ct) => new SemanticSearchWorker(reader, documents).Start(request, origin, file.Document, offset, ct,
+            async (text, position, token) =>
+            {
+                await previousServers.WaitAsync(token).ConfigureAwait(false);
+                return await query(text, position, token).ConfigureAwait(false);
+            });
+    }
+
+    private static SemanticLanguage? LanguageOf(string path)
+    {
+        if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase)) return SemanticLanguage.CSharp;
+        return CppDeclarationScanner.IncludesPath(path) ? SemanticLanguage.Cpp : null;
+    }
+
+    private static string? FindProject(string root)
+    {
+        try
+        {
+            var candidates = Directory.EnumerateFiles(root).Where(RoslynNavigation.SupportsProject).ToArray();
+            var solutions = candidates.Where(path => !Path.GetExtension(path).Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+                .Take(2).ToArray();
+            return solutions.Length == 1 ? solutions[0] : solutions.Length == 0 && candidates.Length == 1 ? candidates[0] : null;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
     }
     public SearchResultNavigator ResultNavigator => !_stopping ? _resultNavigator ??= new(Tabs, Searches, reader)
         : throw new ObjectDisposedException(nameof(AppOperations));
@@ -179,7 +250,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private void CancelWorkspace()
     {
         List<Exception>? failures = null;
-        RetireLanguageServers();
+        ConfigureSemanticNavigation(null);
         if (Workspace?.Tree is { } tree)
         {
             try { tree.Dispose(); }

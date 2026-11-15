@@ -69,15 +69,19 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
         StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
             definitions: true, findCppDefinitions ?? throw new InvalidOperationException());
 
+    internal OperationResult<WorkspaceSearchOperation> StartSemantic(bool definitions,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker) =>
+        StartCore(null, default, EncodingChoice.Auto, definitions, startWorker, semantic: true);
+
     private OperationResult<WorkspaceSearchOperation> StartCore(string? query, SearchOptions options,
         EncodingChoice encoding, bool definitions,
-        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker)
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker, bool semantic = false)
     {
         if (!CanStart) return OperationResult<WorkspaceSearchOperation>.Cancelled();
         if (!Enum.IsDefined(encoding)) throw new ArgumentOutOfRangeException(nameof(encoding));
         var owner = workspace()!;
         var request = new WorkspaceSearchRequest(owner.ResolvedPath!, owner.Policy, encoding, query, options,
-            requestIds.Advance(), owner.Epoch, epoch.Advance(), definitions);
+            requestIds.Advance(), owner.Epoch, epoch.Advance(), definitions, semantic);
         if (Current is { } previous) Stop(previous, SearchCancellationCause.Replaced);
         var operation = new WorkspaceSearchOperation(owner, request, startWorker);
         Current = _waiting = operation;

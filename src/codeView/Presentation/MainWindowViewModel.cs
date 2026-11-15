@@ -75,6 +75,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public string Position => _position;
     public bool HasWorkspace => operations.Workspace is not null;
     public bool CanSearchWorkspace => operations.Workspace?.CanSearch == true;
+    public string DefinitionMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "定義へジャンプ（意味解析）" : "定義へジャンプ（簡易）";
+    public string ReferencesMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "参照を検索（意味解析）" : "参照を検索（名前一致）";
+    internal SemanticWorkspaceOptions? SemanticOptions => operations.SemanticOptions;
     public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
     internal long? WorkspaceEpoch => operations.Workspace?.Epoch;
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
@@ -99,6 +102,28 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public Task FindDefinitionsAsync(int caret, int selectionStart, int selectionLength)
         => TrackManualAsync(FindSymbolAsync(caret, selectionStart, selectionLength, definitions: true));
 
+    internal bool ConfigureSemanticNavigation(long? rootEpoch, SemanticWorkspaceOptions? options)
+    {
+        if (_stopping || rootEpoch != WorkspaceEpoch || !CanSearchWorkspace) return false;
+        if (options is not null &&
+            (!ValidExecutable(options.RoslynExecutable) || !ValidExecutable(options.ClangdExecutable)
+            || options.RoslynExecutable is null && options.ClangdExecutable is null
+            || options.CSharpProject is { } project && (!Path.IsPathFullyQualified(project) || !RoslynNavigation.SupportsProject(project) || !File.Exists(project))
+            || options.CompilationDatabase is { } database && (!Path.IsPathFullyQualified(database) || !File.Exists(database))))
+        {
+            SetStatus("言語サーバーの実行ファイルと、指定したプロジェクト設定の絶対パスを確認してください。");
+            return false;
+        }
+        RecordUserInteraction();
+        SearchPanel.Clear();
+        operations.ConfigureSemanticNavigation(options);
+        Changed(nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel));
+        SetStatus(options is null ? "このフォルダでは簡易検索を使用します。" : "このフォルダの意味解析を有効にしました。");
+        return true;
+
+        static bool ValidExecutable(string? path) => path is null || Path.IsPathFullyQualified(path) && File.Exists(path);
+    }
+
     private async Task FindSymbolAsync(int caret, int selectionStart, int selectionLength, bool definitions)
     {
         if (_stopping) return;
@@ -110,9 +135,27 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (document is null) { SetStatus("探索するファイルを開いてください。"); return; }
         if (!CanSearchWorkspace) { SetStatus("探索するフォルダを開いてください。"); return; }
         if ((uint)caret > document.TextLength || (uint)selectionStart > document.TextLength || selectionLength < 0
-            || selectionLength > document.TextLength - selectionStart || selectionLength > IdentifierExtractor.MaximumChars + 1)
+            || selectionLength > document.TextLength - selectionStart)
         { SetStatus("4,096文字以内の識別子を1つ選択してください。"); return; }
         var center = selectionLength > 0 ? selectionStart : caret;
+        if (operations.UsesSemanticNavigation(FilePath) && operations.CurrentFile is { } file)
+        {
+            if (operations.PrepareSemanticSearch(file, center, ViewEpoch, definitions) is not { } worker)
+            {
+                SetStatus("意味解析の設定で、対象のC#ソリューションまたはプロジェクトを指定してください。");
+                return;
+            }
+            const string searching = "意味解析で検索しています…";
+            SetStatus(searching);
+            if (definitions)
+                await StartDefinitionAsync(() => SearchPanel.StartSemanticAsync(true, worker));
+            else
+                await SearchPanel.StartSemanticAsync(false, worker);
+            if (Status == searching) SetStatus("");
+            return;
+        }
+        if (selectionLength > IdentifierExtractor.MaximumChars + 1)
+        { SetStatus("4,096文字以内の識別子を1つ選択してください。"); return; }
         var origin = Math.Max(0, center - IdentifierExtractor.MaximumChars - 2);
         var end = (int)Math.Min(document.TextLength, (long)center + IdentifierExtractor.MaximumChars + 2);
         var context = document.GetText(origin, end - origin);
@@ -133,10 +176,15 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
 
         SetStatus("定義を検索しています（簡易・名前一致）。");
+        await StartDefinitionAsync(() => SearchPanel.StartDefinitionsAsync(name, cpp));
+    }
+
+    private async Task StartDefinitionAsync(Func<Task> startSearch)
+    {
         var interaction = _interactionEpoch;
         var view = ViewEpoch;
         var previous = SearchPanel.CurrentOperation;
-        var work = SearchPanel.StartDefinitionsAsync(name, cpp);
+        var work = startSearch();
         var operation = SearchPanel.CurrentOperation;
         await work;
         if (_stopping || interaction != _interactionEpoch || view != ViewEpoch
@@ -459,7 +507,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private void WorkspaceChanged()
     {
         SearchPanel.RefreshWorkspace();
-        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible));
+        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible),
+            nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel));
     }
 
     private static string ErrorText(ErrorCode code) => code switch
@@ -577,7 +626,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                     _ => ""
                 });
             if (changedDocument) Changed(nameof(Document), nameof(HasDocument));
-            Changed(nameof(FilePath), nameof(WindowTitle), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
+            Changed(nameof(FilePath), nameof(WindowTitle), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding),
+                nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel));
         }
         finally { _attaching = false; }
         var canSearchOriginal = _originalSourceOffsetsAvailable;

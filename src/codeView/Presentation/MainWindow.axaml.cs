@@ -15,6 +15,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using CodeView.Contracts;
 using CodeView.Files;
+using CodeView.Navigation;
 using CodeView.Operations;
 
 namespace CodeView.Presentation;
@@ -650,6 +651,85 @@ internal sealed partial class MainWindow : Window
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
     private async void OpenFolderClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFolderAsync);
+
+    private async void EditSemanticNavigationClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(async () =>
+        {
+            if (!_viewModel.CanSearchWorkspace) return;
+            var epoch = _viewModel.WorkspaceEpoch;
+            var current = _viewModel.SemanticOptions;
+            var roslyn = new TextBox { Name = "RoslynExecutable", Text = current?.RoslynExecutable };
+            var project = new TextBox { Name = "RoslynProject", Text = current?.CSharpProject, PlaceholderText = "空欄の場合は作業フォルダ直下から選択" };
+            var clangd = new TextBox { Name = "ClangdExecutable", Text = current?.ClangdExecutable };
+            var database = new TextBox { Name = "ClangdDatabase", Text = current?.CompilationDatabase, PlaceholderText = "空欄の場合は作業フォルダと build から検出" };
+            var apply = new Button { Name = "EnableSemanticNavigation", Content = "有効にする" };
+            var disable = new Button { Name = "DisableSemanticNavigation", Content = "簡易検索に戻す" };
+            var cancel = new Button { Content = "キャンセル", IsCancel = true };
+            var error = new TextBlock { TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+            var dialog = new Window
+            {
+                Title = "意味解析の設定",
+                Width = 560,
+                MaxHeight = 680,
+                SizeToContent = SizeToContent.Height,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            dialog.Content = new ScrollViewer
+            {
+                Content = new StackPanel
+                {
+                    Margin = new Thickness(16), Spacing = 10, Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = "信頼できる作業フォルダで有効にしてください。Roslyn のプロジェクト読込では、プロジェクト由来の処理が実行される場合があります。",
+                            TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                        },
+                        PathField("C# の Roslyn Language Server", roslyn),
+                        PathField("C# のソリューションまたはプロジェクト", project),
+                        PathField("C/C++ の clangd", clangd),
+                        PathField("C/C++ の compile_commands.json", database),
+                        error,
+                        new StackPanel
+                        {
+                            Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8,
+                            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                            Children = { cancel, disable, apply }
+                        }
+                    }
+                }
+            };
+            cancel.Click += (_, _) => dialog.Close();
+            disable.Click += (_, _) =>
+            {
+                if (_viewModel.ConfigureSemanticNavigation(epoch, null)) dialog.Close();
+            };
+            apply.Click += (_, _) =>
+            {
+                var options = new SemanticWorkspaceOptions(Input(roslyn), Input(project), Input(clangd), Input(database));
+                if (_viewModel.ConfigureSemanticNavigation(epoch, options)) dialog.Close();
+                else error.Text = _viewModel.Status;
+            };
+            await dialog.ShowDialog(this);
+
+            Control PathField(string label, TextBox input)
+            {
+                Avalonia.Automation.AutomationProperties.SetName(input, label);
+                var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
+                var browse = new Button { Content = "参照…" };
+                Avalonia.Automation.AutomationProperties.SetName(browse, label + "を選ぶ");
+                Grid.SetColumn(browse, 1);
+                row.Children.Add(input);
+                row.Children.Add(browse);
+                browse.Click += async (_, _) => await RunAsync(async () =>
+                {
+                    var paths = await dialog.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = label });
+                    if (paths.FirstOrDefault()?.TryGetLocalPath() is { } path) input.Text = path;
+                });
+                return new StackPanel { Spacing = 4, Children = { new TextBlock { Text = label }, row } };
+            }
+            static string? Input(TextBox box) => box.Text?.Trim() is { Length: > 0 } value ? value : null;
+        });
 
     private async void EditExcludedFoldersClicked(object? sender, RoutedEventArgs args) =>
         await RunAsync(async () =>

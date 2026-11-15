@@ -6,7 +6,10 @@ using CodeView.Files;
 namespace CodeView.Search;
 
 internal sealed record WorkspaceSearchRequest(SourcePath Root, ExclusionPolicy Exclusions, EncodingChoice Encoding,
-    string? Query, SearchOptions Options, long RequestId, long WorkspaceEpoch, long SearchEpoch, bool Definitions = false);
+    string? Query, SearchOptions Options, long RequestId, long WorkspaceEpoch, long SearchEpoch, bool Definitions = false,
+    bool Semantic = false);
+
+internal sealed record SemanticSearchSummary(string Configuration, bool IsPartial, string? Status);
 
 internal sealed record SemanticOrigin(SourcePath Path, SourceStamp Stamp);
 
@@ -28,10 +31,11 @@ internal enum SearchEndReason { Completed, Cancelled, LimitReached, Failed }
 
 internal sealed record SearchCompletion(SearchEndReason Reason, OperationError? Error, long? UncommittedFileScanId,
     long GeneratedHits, long ReturnedHits, long CommittedHits, SearchProgress Progress,
-    IReadOnlyDictionary<ErrorCode, long> ErrorCounts, IReadOnlyList<OperationError> ErrorSamples)
+    IReadOnlyDictionary<ErrorCode, long> ErrorCounts, IReadOnlyList<OperationError> ErrorSamples,
+    SemanticSearchSummary? Semantic = null)
 {
     public bool IsPartial => Reason != SearchEndReason.Completed || Progress.FailedEntries > 0
-        || Progress.SkippedLongLines > 0 || Progress.SkippedScalarMatches > 0;
+        || Progress.SkippedLongLines > 0 || Progress.SkippedScalarMatches > 0 || Semantic?.IsPartial == true;
 }
 
 internal sealed class SearchWorkerException(SearchCompletion completion, Exception inner)
@@ -56,6 +60,9 @@ internal sealed class WorkspaceSearchSession
 
     internal WorkspaceSearchSession(Func<WorkspaceSearchSession, SearchCompletion> run)
         => Completion = Task.Run(() => run(this)); // Run even for an already-cancelled request, to close the writer.
+
+    internal WorkspaceSearchSession(Func<WorkspaceSearchSession, Task<SearchCompletion>> run)
+        => Completion = Task.Run(() => run(this));
 
     internal void Publish(SearchProgress progress) => Volatile.Write(ref _progress, progress);
     internal void Finish(SearchCompletion terminal) => Volatile.Write(ref _terminal, terminal);

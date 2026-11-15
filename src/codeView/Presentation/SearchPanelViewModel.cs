@@ -28,7 +28,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     public bool WholeWord { get => _wholeWord; set { _wholeWord = value; Changed(nameof(WholeWord), nameof(HasUnappliedConditions)); } }
     public bool UseRegex { get => _regex; set { _regex = value; Changed(nameof(UseRegex), nameof(HasUnappliedConditions)); } }
     public bool HasUnappliedConditions => _operation is { Request: var request }
-        && (request.Query != Query || request.Options != new SearchOptions(MatchCase, WholeWord, UseRegex));
+        && !request.Semantic && (request.Query != Query || request.Options != new SearchOptions(MatchCase, WholeWord, UseRegex));
     public string AppliedConditions { get; private set; } = "";
     public bool HasAppliedConditions => AppliedConditions.Length > 0;
     public bool IsVisible { get => _visible; set { _visible = value; Changed(nameof(IsVisible)); } }
@@ -81,6 +81,14 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
 
     public Task StartAsync() => StartCoreAsync("フォルダ内のテキスト検索", definitions: false);
 
+    internal Task StartSemanticAsync(bool definitions, Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> worker)
+    {
+        if (_stopping || workspace()?.CanSearch != true) return Task.CompletedTask;
+        _coordinator ??= coordinator();
+        return Adopt(_coordinator.StartSemantic(definitions, worker),
+            definitions ? "定義へジャンプ（意味解析）" : "参照検索（意味解析）", definitions);
+    }
+
     internal SearchResultRow? SingleCompleteDefinition(WorkspaceSearchOperation? operation)
     {
         if (operation is null || !operation.Request.Definitions || !IsCurrent(operation)
@@ -99,6 +107,11 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         var accepted = references ? _coordinator.StartReferences(Query)
             : cpp ? _coordinator.StartCppDefinitions(Query!)
             : _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
+        return Adopt(accepted, description, definitions);
+    }
+
+    private Task Adopt(OperationResult<WorkspaceSearchOperation> accepted, string description, bool definitions)
+    {
         if (accepted.Status != OperationStatus.Success) return Task.CompletedTask;
         _operation = accepted.Value;
         SetAppliedConditions();
@@ -275,7 +288,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         if (end.Reason == SearchEndReason.LimitReached) _results.MarkIncomplete();
         else if (end.IsPartial) _results.RemoveProvisional();
         if (SelectedRow?.File.IsInvalidated == true) { SelectedRow = null; Changed(nameof(SelectedRow)); }
-        _notice = end.Reason switch
+        _notice = end.Semantic is { } semantic ? SemanticNotice(end, semantic, request.Definitions) : end.Reason switch
         {
             SearchEndReason.LimitReached => "結果は10,000件で打ち切りました。未完了の結果には移動できません。",
             SearchEndReason.Cancelled => "検索を取り消しました。部分結果です。",
@@ -293,6 +306,22 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         };
         if (end.Progress.FailedEntries > 0 || end.Progress.SkippedLongLines > 0 || end.Progress.SkippedScalarMatches > 0)
             _notice += $" 読取等の失敗 {end.Progress.FailedEntries:N0}件、長行未評価 {end.Progress.SkippedLongLines:N0}行、スカラー境界での除外 {end.Progress.SkippedScalarMatches:N0}件。";
+    }
+
+    private string SemanticNotice(SearchCompletion end, SemanticSearchSummary semantic, bool definitions)
+    {
+        var notice = end.Reason switch
+        {
+            SearchEndReason.Cancelled => "意味解析を取り消しました。部分結果です。",
+            SearchEndReason.LimitReached => "意味解析の結果は10,000件で打ち切りました。",
+            SearchEndReason.Failed => "意味解析を完了できませんでした。",
+            _ when end.IsPartial => "意味解析の部分結果です。",
+            _ when _results.CommittedCount == 0 => definitions ? "定義が見つかりません。" : "参照が見つかりません。",
+            _ => definitions ? "意味解析による定義候補です。" : "意味解析による参照です。"
+        };
+        if (semantic.Status is not null) notice += " " + semantic.Status;
+        if (semantic.Configuration.Length > 0) notice += $" 解析構成 {semantic.Configuration}";
+        return notice;
     }
 
     private bool IsCurrent(WorkspaceSearchOperation operation) => !_stopping && ReferenceEquals(_operation, operation);
