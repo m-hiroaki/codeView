@@ -64,6 +64,20 @@ dotnet --version
 
 中間生成物は`artifacts/build/<RID>`、一時発行はその下の一意なステージへ出す。発行成功と実行ファイルの存在を確認してから、同じRIDの既存の生成済みアプリを置き換える。失敗時は非0の終了コードを返す。`artifacts`はGit対象外。設定や閲覧対象のソースを成果物へコピーしない。
 
+初回の言語サーバー取得にはNuGetとGitHub Releasesへの通信が必要である。取得済みのアーカイブは `artifacts/language-servers/downloads` に置き、毎回 `build/language-servers.json` のSHA-256と照合する。配布物はRoslynとclangdを含む。[意味解析の利用条件](../README.md#定義ジャンプ参照検索意味解析)
+
+### 同梱版の検証
+
+[同梱版のCI](https://github.com/m-hiroaki/codeView/actions/runs/43721593587)は、実際の発行スクリプトで操作確認用コードを加えたNative AOTの配布物を `artifacts/semantic-probe/` に作る。別の場所へコピーして実行し、サーバーのパス指定なしでC#・C・C++の定義ジャンプと参照検索を確認する。通常起動と有効化の直後のサーバー起動数は0件で、作業フォルダの切替とアプリ終了時にサーバーが停止した。通常発行の `artifacts/publish/` には操作確認用コードが入らない。
+
+以下はCIの検証用配布物のファイルサイズ合計で、圧縮前の10進MBである。発行ステージでの同梱処理の直前・直後を比較し、シンボリックリンクは重複計上から外した。
+
+| 対象 | 同梱前 | 同梱後 | 増加 |
+| --- | ---: | ---: | ---: |
+| Windows x64 | 260.9 MB | 484.6 MB | 223.7 MB |
+| macOS arm64 | 129.8 MB | 403.3 MB | 273.5 MB |
+| macOS x64 | 133.8 MB | 394.5 MB | 260.6 MB |
+
 ## 確認した範囲
 
 Windowsの `codeView.exe` には `build/codeView.ico` を埋め込む。macOSのアプリバンドルには、同じアイコンをICNS形式で `Contents/Resources/codeView.icns` に同梱する。
