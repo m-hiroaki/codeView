@@ -53,6 +53,13 @@ internal sealed partial class GuiPerformanceProbe
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_sampling.Token);
             deadline.CancelAfter(TimeSpan.FromSeconds(45));
             var ct = deadline.Token;
+            if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_ROOT") is { } semanticRoot)
+            {
+                var semantic = await CheckSemanticAsync(semanticRoot, Require, ct);
+                _referenceResults = new { Passed = true, Checks = checks, Semantic = semantic };
+                Finish();
+                return;
+            }
             await CheckStartupArgumentsAsync(Require, ct);
             await CheckSettingsDialogAsync(Require, ct);
             var root = _output + ".inputs";

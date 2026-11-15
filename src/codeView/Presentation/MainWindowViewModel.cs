@@ -78,6 +78,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public string DefinitionMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "定義へジャンプ（意味解析）" : "定義へジャンプ（簡易）";
     public string ReferencesMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "参照を検索（意味解析）" : "参照を検索（名前一致）";
     internal SemanticWorkspaceOptions? SemanticOptions => operations.SemanticOptions;
+#if CODEVIEW_PERFORMANCE_PROBE
+    internal int[] SemanticServerProcessIds => operations.SemanticServerProcessIds;
+#endif
     public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
     internal long? WorkspaceEpoch => operations.Workspace?.Epoch;
     public InFileSearchViewModel InFileSearch { get; } = new(operations);

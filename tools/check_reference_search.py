@@ -78,16 +78,83 @@ CHECKS = [
 ]
 
 
-def validate(report, commit):
+SEMANTIC_CHECKS = [
+    'semantic-startup-uses-simple-search', 'semantic-unavailable-server-leaves-simple-search',
+    'semantic-enable-defers-server-launch',
+    'semantic-cs-f12-selects-original-definition', 'semantic-cs-shift-f12-finds-symbol-reference',
+    'semantic-workspace-switch-stops-server',
+    'semantic-c-f12-selects-original-definition', 'semantic-c-shift-f12-finds-symbol-reference',
+    'semantic-cpp-f12-selects-original-definition', 'semantic-cpp-shift-f12-finds-symbol-reference',
+    'semantic-restarts-after-server-crash', 'semantic-switches-back-to-name-search',
+    'semantic-server-active-before-app-exit',
+]
+
+
+def validate(report, commit, checks=CHECKS):
     if (report.get('Scenario') != 'native-reference-search' or report.get('Failure') is not None
             or commit not in report.get('ProductInformationalVersion', '')
             or report.get('DisplayMode') != 'full-document-candidate'
             or report.get('ReferenceChecks', {}).get('Passed') is not True
-            or report['ReferenceChecks'].get('Checks') != CHECKS):
+            or report['ReferenceChecks'].get('Checks') != checks):
         raise ValueError('Missing/failed native reference-search checks or wrong build')
 
 
-def collect(app, output, commit, rounds=3):
+def create_semantic_fixture(root):
+    managed = root / "managed"
+    native = root / "native"
+    managed.mkdir(parents=True)
+    native.mkdir()
+    sources = {
+        managed / "Demo.csproj": (
+            '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0'
+            '</TargetFramework></PropertyGroup></Project>'
+        ),
+        managed / "Caller.cs": "class Caller { int Call() => Library.Run(1); /* Run */ }",
+        managed / "Target.cs": "public class Library { public static int Run(int n) => n; }",
+        native / "library.h": "int RunC(int);\nint RunCpp(int);\n",
+    }
+    commands = []
+    for extension, compiler, symbol in (("c", "clang", "RunC"), ("cpp", "clang++", "RunCpp")):
+        for title, text in (
+            ("Caller", f'int use_{extension}() {{ return {symbol}(1); }}'),
+            ("Target", f'int {symbol}(int n) {{ return n; }}'),
+        ):
+            file = native / f"{title}.{extension}"
+            sources[file] = '#include "library.h"\n' + text + "\n"
+            commands.append(dict(directory=str(native), file=file.name, arguments=[compiler, "-c", file.name]))
+    sources[native / "compile_commands.json"] = json.dumps(commands)
+    for file, text in sources.items():
+        file.write_text(text, encoding="utf-8")
+    subprocess.run(["dotnet", "restore", str(managed / "Demo.csproj"), "--ignore-failed-sources"], check=True, timeout=45)
+    return list(sources)
+
+
+def process_is_running(pid):
+    if os.name != 'nt':
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        return True
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE
+    if not handle:
+        if ctypes.get_last_error() == 87:  # ERROR_INVALID_PARAMETER, no such process
+            return False
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        return kernel.WaitForSingleObject(handle, 0) == 0x102  # WAIT_TIMEOUT
+    finally:
+        kernel.CloseHandle(handle)
+
+
+def collect(app, output, commit, rounds=3, semantic=False):
     if not 1 <= rounds <= 10:
         raise ValueError('Use 1..10 isolated processes')
     output.mkdir(parents=True, exist_ok=False)
@@ -108,6 +175,14 @@ def collect(app, output, commit, rounds=3):
             first_file.write_bytes('最初の本文'.encode('utf-8'))
             last_file.write_bytes('日本語の本文'.encode('cp932'))
             inputs = [first_file, last_file]
+            checks = SEMANTIC_CHECKS if semantic else CHECKS
+            if semantic:
+                root = output / f'semantic-{number}'
+                inputs.extend(create_semantic_fixture(root))
+                env.update(CODEVIEW_GUI_SEMANTIC_ROOT=str(root), CODEVIEW_GUI_SEMANTIC_CACHE=str(output / 'clangd-cache'))
+                for key in ('CODEVIEW_TEST_ROSLYN', 'CODEVIEW_TEST_CLANGD'):
+                    if not env.get(key) or not Path(env[key]).is_file():
+                        raise ValueError(f'{key} must point to a real executable')
             original_hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs]
             row = {'round': number}; record['runs'].append(row)
             with target.with_suffix('.log').open('wb') as log:
@@ -119,11 +194,15 @@ def collect(app, output, commit, rounds=3):
             if child.returncode != 0:
                 failure = row.get('report', {}).get('Failure') or f'exit code {child.returncode}'
                 raise RuntimeError(f'Native reference search failed: {failure}')
-            validate(row.get('report', {}), commit)
+            validate(row.get('report', {}), commit, checks)
+            if semantic:
+                stopped = row['report']['ReferenceChecks']['Semantic']['ShutdownPids']
+                if not stopped or any(process_is_running(pid) for pid in stopped):
+                    raise ValueError('A language server survived application shutdown')
             if [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs] != original_hashes:
                 raise ValueError('CLI source changed during native validation')
             row['validated'] = True
-            print(f'reference-{number}: {len(CHECKS)} checks passed', flush=True)
+            print(f'reference-{number}: {len(checks)} checks passed', flush=True)
         record['passed'] = True
     finally:
         (output / 'runs.json').write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
@@ -134,5 +213,7 @@ if __name__ == '__main__':
     parser.add_argument('--app', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--commit', required=True)
+    parser.add_argument('--rounds', type=int, default=3)
+    parser.add_argument('--semantic', action='store_true')
     args = parser.parse_args()
-    collect(args.app.resolve(), args.output.resolve(), args.commit)
+    collect(args.app.resolve(), args.output.resolve(), args.commit, args.rounds, args.semantic)
