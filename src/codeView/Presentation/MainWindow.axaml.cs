@@ -56,6 +56,13 @@ internal sealed partial class MainWindow : Window
             key.Handled = true;
             Run(ShowInFileSearch);
         }, RoutingStrategies.Tunnel);
+        // Keep the shortcut at window scope even when a focused control handles the key.
+        AddHandler(KeyDownEvent, (_, key) =>
+        {
+            if (key.Key != Key.W || key.KeyModifiers != modifier) return;
+            key.Handled = true;
+            Run(viewModel.CloseFile);
+        }, RoutingStrategies.Tunnel, handledEventsToo: true);
         // Ctrl+Tab belongs to the open files, even when the focused control handles Tab.
         AddHandler(KeyDownEvent, (_, key) =>
         {
@@ -86,11 +93,6 @@ internal sealed partial class MainWindow : Window
             {
                 key.Handled = true;
                 await RunAsync(OpenFilesAsync);
-            }
-            else if (key.Key == Key.W)
-            {
-                key.Handled = true;
-                Run(viewModel.CloseFile);
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;

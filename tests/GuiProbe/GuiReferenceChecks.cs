@@ -555,9 +555,27 @@ internal sealed partial class GuiPerformanceProbe
         require(_viewModel.Tabs.Count == 1 && ReferenceEquals(list.SelectedItem, second)
             && ReferenceEquals(_editor.Document, secondDocument), "tabs-close-button-keeps-active-document");
         var closeModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
-        await PressAsync(Key.W, closeModifier);
-        require(!_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
+        await _viewModel.OpenFilesAsync([firstPath], OpenOrigin.Menu);
+        await Frame(ct);
+        var search = _window.FindControl<TextBox>("SearchQuery")!;
+        _viewModel.SearchPanel.IsVisible = true;
+        await Frame(ct);
+        search.Focus();
+        var searchFocused = search.IsFocused;
+        var closeKey = new KeyEventArgs
+        {
+            RoutedEvent = InputElement.KeyDownEvent, Key = Key.W, KeyModifiers = closeModifier, Handled = true
+        };
+        RaiseSearchKey(search, closeKey);
+        await Frame(ct);
+        require(searchFocused && _window.IsVisible && _viewModel.Tabs.Count == 1 && _viewModel.FilePath == secondPath,
+            "tabs-close-shortcut-from-search-closes-only-active-tab");
+        _viewModel.SearchPanel.IsVisible = false;
+        var lastClose = await PressAsync(Key.W, closeModifier);
+        require(lastClose.Handled && _window.IsVisible && !_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
             "tabs-close-shortcut-clears-last-tab");
+        var emptyClose = await PressAsync(Key.W, closeModifier);
+        require(emptyClose.Handled && _window.IsVisible && !_viewModel.HasTabs, "tabs-close-shortcut-keeps-empty-window");
 
         var overflowPaths = new List<string>();
         for (var index = 0; index < 10; index++)
