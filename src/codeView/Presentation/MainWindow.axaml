@@ -153,7 +153,10 @@
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
-            <Button Content="ファイルを開く" Click="OpenClicked" HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                <Button x:Name="EmptyOpenFileButton" Content="ファイルを開く" Click="OpenClicked" />
+                <Button x:Name="EmptyOpenFolderButton" Content="フォルダを開く" Click="OpenFolderClicked" />
+            </StackPanel>
         </StackPanel>
             </Grid>
         </Grid>

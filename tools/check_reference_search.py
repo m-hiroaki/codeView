@@ -42,6 +42,7 @@ CHECKS = [
     'tabs-ctrl-tab-wraps-and-focuses-editor', 'tabs-ctrl-shift-tab-wraps-back',
     'tabs-close-button-keeps-active-document', 'tabs-close-shortcut-from-search-closes-only-active-tab',
     'tabs-close-shortcut-clears-last-tab', 'tabs-close-shortcut-keeps-empty-window',
+    'empty-view-offers-file-and-folder', 'document-view-hides-empty-actions',
     'tabs-overflow-scrollbar-below-items', 'tabs-overflow-restores-compact-height',
     'tab-view-distinct-scroll-offsets', 'tab-view-restores-first-caret-and-scroll',
     'tab-view-restores-first-search-conditions', 'tab-view-restores-second-caret-and-scroll',

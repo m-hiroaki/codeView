@@ -576,6 +576,11 @@ internal sealed partial class GuiPerformanceProbe
             "tabs-close-shortcut-clears-last-tab");
         var emptyClose = await PressAsync(Key.W, closeModifier);
         require(emptyClose.Handled && _window.IsVisible && !_viewModel.HasTabs, "tabs-close-shortcut-keeps-empty-window");
+        var openFile = _window.FindControl<Button>("EmptyOpenFileButton")!;
+        var openFolder = _window.FindControl<Button>("EmptyOpenFolderButton")!;
+        require(openFile is { IsEffectivelyVisible: true, IsEnabled: true, Content: "ファイルを開く" }
+            && openFolder is { IsEffectivelyVisible: true, IsEnabled: true, Content: "フォルダを開く" },
+            "empty-view-offers-file-and-folder");
 
         var overflowPaths = new List<string>();
         for (var index = 0; index < 10; index++)
@@ -587,6 +592,8 @@ internal sealed partial class GuiPerformanceProbe
         }
         await _viewModel.OpenFilesAsync(overflowPaths, OpenOrigin.Menu);
         await Frame(ct);
+        require(!openFile.IsEffectivelyVisible && !openFolder.IsEffectivelyVisible,
+            "document-view-hides-empty-actions");
         var scroll = list.GetVisualDescendants().OfType<ScrollViewer>().Single();
         var bar = scroll.GetVisualDescendants().OfType<ScrollBar>()
             .Single(bar => bar.Orientation == Avalonia.Layout.Orientation.Horizontal);
