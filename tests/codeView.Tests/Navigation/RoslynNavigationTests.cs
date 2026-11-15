@@ -60,6 +60,8 @@ internal sealed class RoslynNavigationTests
         try
         {
             var project = Path.Combine(root.FullName, "Broken.csproj");
+            await File.WriteAllTextAsync(Path.Combine(root.FullName, "NuGet.Config"),
+                "<configuration><packageSources><clear /></packageSources></configuration>");
             await File.WriteAllTextAsync(project, "<Project Sdk=\"Nonexistent.CodeView.Demo.Sdk\"></Project>");
             var path = Path.Combine(root.FullName, "Code.cs");
             const string text = "class Code { void Method() {} }";
@@ -80,7 +82,7 @@ internal sealed class RoslynNavigationTests
         for (var attempt = 0; ; attempt++)
         {
             try { root.Delete(recursive: true); return; }
-            catch (IOException) when (OperatingSystem.IsWindows() && attempt < 15) { await Task.Delay(200); }
+            catch (IOException) when (OperatingSystem.IsWindows() && attempt < 50) { await Task.Delay(200); }
         }
     }
 

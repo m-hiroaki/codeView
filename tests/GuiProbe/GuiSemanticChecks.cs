@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using CodeView.Operations;
@@ -126,12 +127,13 @@ internal sealed class GuiSemanticChecks(MainWindow _window, MainWindowViewModel 
                 if (first == 0) first = watch.Elapsed.TotalMilliseconds;
                 if (_viewModel.FilePath != caller) break;
                 if (!panel.Summary.Contains("部分結果"))
-                    throw new InvalidOperationException("Unexpected semantic definition result: " + panel.Summary);
+                    throw new InvalidOperationException($"Unexpected definition result for {caller}: {panel.Summary} / {_viewModel.Status}");
                 await Task.Delay(50, ct);
             }
             if (_viewModel.FilePath != target || panel.IsVisible
                 || _editor.SelectionStart != _editor.Document.Text.LastIndexOf(symbol, StringComparison.Ordinal))
-                throw new InvalidOperationException("Definition did not directly select the expected source range.");
+                throw new InvalidOperationException($"Definition for {caller} expected {target}, opened {_viewModel.FilePath}; " +
+                    $"selection={_editor.SelectionStart}/{_editor.SelectedText}; visible={panel.IsVisible}; {panel.Summary} / {_viewModel.Status}");
             return (first, watch.Elapsed.TotalMilliseconds);
         }
 
@@ -165,7 +167,8 @@ internal sealed class GuiSemanticChecks(MainWindow _window, MainWindowViewModel 
             }
             await pending.WaitAsync(ct);
             await Frame(ct);
-            await Frame(ct);
+            // The result selection is dispatched at Loaded priority after the search updates the tab.
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background, ct);
             if (!key.Handled) throw new InvalidOperationException("F12 was not handled.");
         }
 
