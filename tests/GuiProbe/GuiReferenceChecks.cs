@@ -673,13 +673,11 @@ internal sealed partial class GuiPerformanceProbe
             && secondOffset.Y > firstOffset.Y, "tab-view-distinct-scroll-offsets");
         var area = _editor.TextArea;
         var numbers = area.LeftMargins.OfType<LineNumberMargin>().Single();
-        var separator = area.LeftMargins.Single(DottedLineMargin.IsDottedLineMargin);
-        require(numbers.TranslatePoint(new Point(numbers.Bounds.Width, 0), area) is { } numbersEnd
-            && separator.TranslatePoint(default, area) is { } separatorStart
-            && separator.TranslatePoint(new Point(separator.Bounds.Width, 0), area) is { } separatorEnd
+        require(!area.LeftMargins.Any(DottedLineMargin.IsDottedLineMargin)
+            && numbers.TranslatePoint(new Point(numbers.Bounds.Width, 0), area) is { } numbersEnd
             && area.TextView.TranslatePoint(default, area) is { } textStart
-            && separatorStart.X - numbersEnd.X >= 5 && textStart.X - separatorEnd.X >= 9,
-            "line-number-spacing-after-horizontal-scroll");
+            && Math.Abs(textStart.X - numbersEnd.X - 16) <= 1,
+            "line-number-gap-without-separator-after-horizontal-scroll");
 
         static bool SameOffset(Vector left, Vector right) => Math.Abs(left.X - right.X) <= 1
             && Math.Abs(left.Y - right.Y) <= 1;

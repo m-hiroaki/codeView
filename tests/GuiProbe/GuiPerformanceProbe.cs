@@ -103,7 +103,7 @@ internal sealed partial class GuiPerformanceProbe
         {
             var margins = editor.TextArea.LeftMargins;
             var original = margins.OfType<LineNumberMargin>().Single();
-            _sourceLineNumbers = new SourceLineNumberMargin();
+            _sourceLineNumbers = new SourceLineNumberMargin { Margin = original.Margin };
             _sourceLineNumbers.SetValue(TextBlock.ForegroundProperty, original.GetValue(TextBlock.ForegroundProperty));
             margins[margins.IndexOf(original)] = _sourceLineNumbers;
         }

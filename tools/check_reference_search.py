@@ -46,7 +46,7 @@ CHECKS = [
     'tabs-close-shortcut-clears-last-tab',
     'empty-view-offers-file-and-folder', 'document-view-hides-empty-actions',
     'tabs-overflow-scrollbar-below-items', 'tabs-overflow-restores-compact-height',
-    'tab-view-distinct-scroll-offsets', 'line-number-spacing-after-horizontal-scroll',
+    'tab-view-distinct-scroll-offsets', 'line-number-gap-without-separator-after-horizontal-scroll',
     'tab-view-restores-first-caret-and-scroll',
     'tab-view-restores-first-search-conditions', 'tab-view-restores-second-caret-and-scroll',
     'tab-view-restores-second-search-conditions', 'tab-view-rapid-query-change-then-switch-keeps-current-results',

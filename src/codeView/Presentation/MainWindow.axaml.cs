@@ -101,8 +101,9 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
-        var lineNumberSeparator = editor.TextArea.LeftMargins.Single(DottedLineMargin.IsDottedLineMargin);
-        lineNumberSeparator.Margin = new Thickness(6, 0, 10, 0);
+        var leftMargins = editor.TextArea.LeftMargins;
+        leftMargins.Remove(leftMargins.Single(DottedLineMargin.IsDottedLineMargin));
+        leftMargins.OfType<LineNumberMargin>().Single().Margin = new Thickness(0, 0, 16, 0);
         AddHandler(KeyDownEvent, async (_, key) =>
         {
             if (_closing || key.Key != Key.C || key.KeyModifiers != modifier || !editor.TextArea.IsKeyboardFocusWithin
