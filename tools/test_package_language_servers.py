@@ -44,6 +44,8 @@ class PackageLanguageServersTests(unittest.TestCase):
         with ZipFile(native, 'w') as package:
             package.writestr('clangd_23.1.0/bin/clangd.exe', pe_image())
             package.writestr('clangd_23.1.0/lib/clang/23/include/stddef.h', b'header')
+            package.writestr('clangd_23.1.0/lib/clang/23/share/ignorelist.txt', b'compiler config')
+            package.writestr('clangd_23.1.0/lib/clang/23/lib/runtime.lib', b'compiler link runtime')
             package.writestr('clangd_23.1.0/LICENSE.TXT', b'license')
         settings = {'version': '23.1.0', 'resourceVersion': '23'}
         with self.assertRaisesRegex(ValueError, 'Missing language server dependency'):
@@ -54,6 +56,8 @@ class PackageLanguageServersTests(unittest.TestCase):
         stage_windows(output, managed, native, settings)
         self.assertEqual((output / 'language-servers/roslyn' / host).read_bytes(), b'build host')
         self.assertEqual((output / 'language-servers/clangd/lib/clang/23/include/stddef.h').read_bytes(), b'header')
+        self.assertEqual((output / 'language-servers/clangd/lib/clang/23/share/ignorelist.txt').read_bytes(), b'compiler config')
+        self.assertFalse((output / 'language-servers/clangd/lib/clang/23/lib').exists())
 
 
 if __name__ == '__main__':

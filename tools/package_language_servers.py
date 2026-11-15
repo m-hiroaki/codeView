@@ -71,7 +71,9 @@ def stage_clangd(clangd, executable, resources, notices, configuration, system):
     with ZipFile(clangd) as package:
         binary = 'clangd.exe' if system == 'windows' else 'clangd'
         copy_entry(package, prefix + 'bin/' + binary, executable)
-        copy_tree(package, prefix + 'lib/clang/' + configuration['resourceVersion'] + '/', resources)
+        resource_prefix = prefix + 'lib/clang/' + configuration['resourceVersion'] + '/'
+        copy_tree(package, resource_prefix + 'include/', resources / 'include')
+        copy_tree(package, resource_prefix + 'share/', resources / 'share')
         copy_entry(package, prefix + 'LICENSE.TXT', notices / 'LICENSE.TXT')
     require_files(resources / 'include/stddef.h')
 
@@ -98,6 +100,12 @@ def sign(path):
     subprocess.run(['codesign', '--force', '--sign', '-', '--timestamp=none', path], check=True)
 
 
+def verify_macos_architecture(path, arch):
+    architectures = subprocess.check_output(['lipo', '-archs', path], text=True).split()
+    if arch not in architectures:
+        raise ValueError(f'{path} requires {arch}, found {" ".join(architectures)}')
+
+
 def stage_macos(root, rid, roslyn, clangd, configuration):
     arch = 'arm64' if rid == 'osx-arm64' else 'x86_64'
     contents = root / 'Contents'
@@ -121,7 +129,7 @@ def stage_macos(root, rid, roslyn, clangd, configuration):
     for entry in managed.iterdir():
         if entry.name in (ROSLYN_EXECUTABLE, 'roslyn-language-server') or entry.suffix == '.dylib':
             entry.chmod(0o755)
-            subprocess.run(['lipo', '-verify_arch', arch, entry], check=True)
+            verify_macos_architecture(entry, arch)
             if entry.name != ROSLYN_EXECUTABLE:
                 sign(entry)
         else:
@@ -136,7 +144,7 @@ def stage_macos(root, rid, roslyn, clangd, configuration):
         binary = helpers / 'clangd'
         subprocess.run(['lipo', universal, '-thin', arch, '-output', binary], check=True)
         binary.chmod(0o755)
-        subprocess.run(['lipo', '-verify_arch', arch, binary], check=True)
+        verify_macos_architecture(binary, arch)
         sign(binary)
 
     sign(root)
