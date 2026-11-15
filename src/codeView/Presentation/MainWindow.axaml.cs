@@ -320,7 +320,7 @@ internal sealed partial class MainWindow : Window
         const double MinimumTreeWidth = 160;
         const double MinimumResultsHeight = 155;
         var tree = this.FindControl<Grid>("DocumentLayout")!.ColumnDefinitions[0];
-        var results = this.FindControl<Grid>("MainLayout")!.RowDefinitions[3];
+        var results = this.FindControl<Grid>("MainLayout")!.RowDefinitions[2];
         var savedTreeWidth = 280d;
         var savedResultsHeight = 280d;
 

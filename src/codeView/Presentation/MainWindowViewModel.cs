@@ -68,6 +68,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
     }
     public string FilePath => _filePath;
+    public string WindowTitle => FilePath.Length == 0 ? "codeView" : $"{FilePath} — codeView";
     public string Status => _status;
     public string EncodingName => _encodingName;
     public string EncodingLabel => HasDocument ? _encodingName : "文字コードを指定…";
@@ -76,12 +77,6 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool CanSearchWorkspace => operations.Workspace?.CanSearch == true;
     public string WorkspacePath => operations.Workspace?.RequestedPath.FullPath ?? "";
     internal long? WorkspaceEpoch => operations.Workspace?.Epoch;
-    public string WorkspaceSummary => operations.Workspace is not { } workspace ? "" : workspace.Status switch
-    {
-        WorkspaceStatus.Loading => "フォルダを確認中…",
-        WorkspaceStatus.Failed => "フォルダを読み込めません。再読み込みできます。",
-        _ => $"フォルダ: {workspace.RootListing!.Entries.Count:N0}項目"
-    };
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
     public string SyntaxStatus { get; private set; } = "";
     public event Action<SyntaxHighlighting?>? SyntaxChanged;
@@ -233,7 +228,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         // Keep the fallback notice visible after queued files finish loading instead
         // of immediately replacing it with their loading/completion status.
         if (!_stopping && settings.Warning is not null)
-            SetStatus(Status + " 設定を読み込めないため、既定値を使用します。");
+            SetStatus((Status + " 設定を読み込めないため、既定値を使用します。").TrimStart());
     }
 
     private async Task ObserveLateSettingsAsync(Task<SettingsLoadResult> task)
@@ -321,7 +316,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                             notice = $"開けなかった項目 {failedPaths:N0}件。 {firstFailure}";
                         if (skippedFolders > 0)
                             notice += $" 後続のフォルダ{skippedFolders}件は開いていません。";
-                        if (notice != Status) SetStatus(notice);
+                        if (notice != Status) SetStatus(notice.TrimStart());
                     }
                 }
                 finally { operations.Startup.CompleteOpen(request!.Id); }
@@ -463,7 +458,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private void WorkspaceChanged()
     {
         SearchPanel.RefreshWorkspace();
-        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(WorkspaceSummary), nameof(IsTreeVisible));
+        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible));
     }
 
     private static string ErrorText(ErrorCode code) => code switch
@@ -578,10 +573,10 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                     TabStatus.Reloading => "再読み込み中… " + tab.Path.DisplayPath,
                     _ when tab.Error is not null => FileErrorText(tab.Error.Code),
                     _ when tab.WasCancelled => "読込を取り消しました。",
-                    _ => "読み取り専用"
+                    _ => ""
                 });
             if (changedDocument) Changed(nameof(Document), nameof(HasDocument));
-            Changed(nameof(FilePath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
+            Changed(nameof(FilePath), nameof(WindowTitle), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding));
         }
         finally { _attaching = false; }
         var canSearchOriginal = _originalSourceOffsetsAvailable;

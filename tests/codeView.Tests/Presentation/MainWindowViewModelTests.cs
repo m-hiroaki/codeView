@@ -131,7 +131,8 @@ internal sealed class MainWindowViewModelTests
             Assert.That(viewModel.Document, Is.SameAs(document));
             await viewModel.OpenFilesAsync([Path.Combine(root, "second")], OpenOrigin.Menu);
             Assert.That(viewModel.WorkspacePath, Is.EqualTo(Path.Combine(root, "second")));
-            Assert.That(viewModel.WorkspaceSummary, Is.EqualTo("フォルダ: 0項目"));
+            Assert.That(viewModel.CanSearchWorkspace, Is.True);
+            Assert.That(viewModel.FileTree.Rows, Is.Empty);
             viewModel.CloseWorkspace();
             Assert.That(viewModel.HasWorkspace, Is.False);
             Assert.That(viewModel.FileTree.Rows, Is.Empty);
@@ -171,7 +172,7 @@ internal sealed class MainWindowViewModelTests
                 .And.Contain("後続のフォルダ1件"));
 
             await view.OpenFilesAsync([valid], OpenOrigin.Menu);
-            Assert.That(view.Status, Is.EqualTo("読み取り専用"));
+            Assert.That(view.Status, Is.Empty);
         }
         finally
         {

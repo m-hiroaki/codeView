@@ -257,7 +257,7 @@ internal sealed partial class GuiPerformanceProbe
             panel.IsVisible = false;
             await Frame(ct);
             Require(!resultsSplitter.IsEffectivelyVisible && panel.Rows.Count == 3
-                && _window.FindControl<Grid>("MainLayout")!.RowDefinitions[3].ActualHeight == 0, "folder-hide-releases-row");
+                && _window.FindControl<Grid>("MainLayout")!.RowDefinitions[2].ActualHeight == 0, "folder-hide-releases-row");
             panel.IsVisible = true;
             await Frame(ct);
             Require(Math.Abs(resultsPane.Bounds.Height - resizedHeight) < 1, "folder-show-restores-height");
@@ -335,7 +335,7 @@ internal sealed partial class GuiPerformanceProbe
             && status.Text.Contains("後続のフォルダ1件"), "cli-status-reports-missing-and-skipped-folder");
         _editor.CaretOffset = 3;
         await Frame(ct);
-        require(_window.FindControl<TextBlock>("ActiveFilePath")!.Text == last
+        require(_window.Title == $"{last} — codeView"
             && _window.FindControl<TextBlock>("CaretPositionStatus")!.Text == "行 1, 列 4"
             && _window.FindControl<Button>("ActiveEncoding")!.Content is string encoding && encoding.Contains("CP932"),
             "cli-original-path-position-and-encoding-visible");
@@ -539,7 +539,8 @@ internal sealed partial class GuiPerformanceProbe
 
         list.SelectedItem = first;
         await Frame(ct);
-        require(_viewModel.FilePath == firstPath && _editor.Document.Text == "first body", "tabs-selection-attaches-document");
+        require(_viewModel.FilePath == firstPath && _editor.Document.Text == "first body"
+            && _window.Title == $"{firstPath} — codeView", "tabs-selection-attaches-document");
         await _viewModel.OpenFilesAsync([secondPath], OpenOrigin.Menu);
         await Frame(ct);
         require(_viewModel.Tabs.Count == 2 && ReferenceEquals(_editor.Document, secondDocument), "tabs-repeat-open-reuses-document");
@@ -583,7 +584,8 @@ internal sealed partial class GuiPerformanceProbe
             "tabs-close-shortcut-from-search-closes-only-active-tab");
         _viewModel.SearchPanel.IsVisible = false;
         var lastClose = await PressAsync(Key.W, closeModifier);
-        require(lastClose.Handled && _window.IsVisible && !_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
+        require(lastClose.Handled && _window.IsVisible && !_viewModel.HasTabs && !_viewModel.HasDocument
+            && !list.IsEffectivelyVisible && _window.Title == "codeView",
             "tabs-close-shortcut-clears-last-tab");
         var openFile = _window.FindControl<Button>("EmptyOpenFileButton")!;
         var openFolder = _window.FindControl<Button>("EmptyOpenFolderButton")!;
@@ -922,17 +924,21 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         require(sawLoading, "single-file-loading-status-is-bound");
         require(_viewModel.HasDocument && _editor.Document.TextLength == 0 && _editor.IsReadOnly
-            && status.Text == "読み取り専用", "single-file-empty-is-readable");
+            && !status.IsEffectivelyVisible, "single-file-empty-is-readable");
 
         await _viewModel.OpenFilesAsync([binary], OpenOrigin.Menu);
         await Frame(ct);
         require(!_viewModel.HasDocument && _viewModel.SelectedTab?.State.Status == TabStatus.Failed
-            && status.Text?.Contains("バイナリのため表示できません") == true, "single-file-binary-is-rejected-with-status");
+            && status.IsEffectivelyVisible && status.Text?.Contains("バイナリのため表示できません") == true,
+            "single-file-binary-is-rejected-with-status");
 
         await _viewModel.OpenFilesAsync([text], OpenOrigin.Menu);
         await Frame(ct);
+        var readOnly = _window.FindControl<TextBlock>("ReadOnlyStatus")!;
         require(!_viewModel.HasWorkspace && _viewModel.FilePath == text && _editor.Document.Text == content
-            && _editor.IsReadOnly && status.Text == "読み取り専用", "single-file-valid-open-recovers-after-failure");
+            && _editor.IsReadOnly && !status.IsEffectivelyVisible
+            && readOnly.IsEffectivelyVisible && readOnly.Text == "読み取り専用",
+            "single-file-valid-open-recovers-after-failure");
     }
 
     private async Task CheckLargePlainDocumentAsync(string root, Dictionary<string, string> inputs,

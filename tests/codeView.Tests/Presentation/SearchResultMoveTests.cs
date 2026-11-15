@@ -183,7 +183,7 @@ internal sealed class SearchResultMoveTests
             Assert.That(f.View.Position, Is.EqualTo("行 2, 列 2"));
             Assert.That(f.View.Status, Is.EqualTo("新しい操作の通知"));
         }
-        if (action == "clear") Assert.That(f.View.Status, Is.EqualTo("読み取り専用"));
+        if (action == "clear") Assert.That(f.View.Status, Is.Empty);
     });
 
     [Test]
