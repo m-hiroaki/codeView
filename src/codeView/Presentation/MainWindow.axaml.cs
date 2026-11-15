@@ -61,7 +61,11 @@ internal sealed partial class MainWindow : Window
         {
             if (key.Key != Key.W || key.KeyModifiers != modifier) return;
             key.Handled = true;
-            Run(viewModel.CloseFile);
+            if (_closing) return;
+            if (viewModel.HasTabs)
+                Run(viewModel.CloseFile);
+            else
+                Close();
         }, RoutingStrategies.Tunnel, handledEventsToo: true);
         // Ctrl+Tab belongs to the open files, even when the focused control handles Tab.
         AddHandler(KeyDownEvent, (_, key) =>

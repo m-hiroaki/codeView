@@ -574,8 +574,6 @@ internal sealed partial class GuiPerformanceProbe
         var lastClose = await PressAsync(Key.W, closeModifier);
         require(lastClose.Handled && _window.IsVisible && !_viewModel.HasTabs && !_viewModel.HasDocument && !list.IsEffectivelyVisible,
             "tabs-close-shortcut-clears-last-tab");
-        var emptyClose = await PressAsync(Key.W, closeModifier);
-        require(emptyClose.Handled && _window.IsVisible && !_viewModel.HasTabs, "tabs-close-shortcut-keeps-empty-window");
         var openFile = _window.FindControl<Button>("EmptyOpenFileButton")!;
         var openFolder = _window.FindControl<Button>("EmptyOpenFolderButton")!;
         require(openFile is { IsEffectivelyVisible: true, IsEnabled: true, Content: "ファイルを開く" }

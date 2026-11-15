@@ -98,6 +98,8 @@ jobs:
             if ($source.Hash -ne $published.Hash) { throw "Notice content differs: $name" }
           }
           ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile artifacts/publish-validation/起動確認.cs -Output artifacts/publish-validation/launch.json
+      - name: Check Ctrl+W exits from an empty window
+        run: ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -EmptyCloseShortcut -Output artifacts/publish-validation/empty-close.json
       - name: Verify the native Windows file and folder pickers
         shell: powershell
         run: |
