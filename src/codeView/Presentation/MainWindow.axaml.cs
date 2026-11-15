@@ -45,10 +45,8 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("FindDefinitionsMenu")!.InputGesture = new KeyGesture(Key.F12);
         this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F12, KeyModifiers.Shift);
         var jumpModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt;
-        var jumpBack = OperatingSystem.IsMacOS() ? Key.OemOpenBrackets : Key.Left;
-        var jumpForward = OperatingSystem.IsMacOS() ? Key.OemCloseBrackets : Key.Right;
-        this.FindControl<MenuItem>("JumpBackMenu")!.InputGesture = new KeyGesture(jumpBack, jumpModifier);
-        this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(jumpForward, jumpModifier);
+        this.FindControl<MenuItem>("JumpBackMenu")!.InputGesture = new KeyGesture(Key.Left, jumpModifier);
+        this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(Key.Right, jumpModifier);
         this.FindControl<MenuItem>("InFileSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
@@ -57,10 +55,10 @@ internal sealed partial class MainWindow : Window
         this.FindControl<ListBox>("FileTreeList")!.AddHandler(KeyDownEvent, TreeKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyDownEvent, async (_, key) =>
         {
-            if (key.KeyModifiers == jumpModifier && (key.Key == jumpBack || key.Key == jumpForward))
+            if (key.KeyModifiers == jumpModifier && key.Key is Key.Left or Key.Right)
             {
                 key.Handled = true;
-                await RunAsync(() => NavigateJumpAsync(key.Key == jumpBack));
+                await RunAsync(() => NavigateJumpAsync(key.Key == Key.Left));
             }
             else viewModel.RecordUserInteraction();
         }, RoutingStrategies.Tunnel, handledEventsToo: true);

@@ -498,6 +498,8 @@ F-06・F-07の拡張として、C#はRoslyn Language Server、C/C++はclangdをL
 
   完了（2026-11-15）。関連単体試験46件とWindows・macOSの画面回帰（各139項目を3回）に成功した。2段のジャンプ、閉じたタブ、同じ位置への移動、最大100件、削除済みファイル、フォルダ切替、ショートカットで戻る操作とメニューで進む操作を確認した。[画面試験CI](https://github.com/m-hiroaki/codeView/actions/runs/43727264172)・[詳細設計](detailed-design/06-navigation.md#9-ジャンプ履歴)
 
+  - [x] **P5-10-01：macOSの戻る・進むをCmd＋左右矢印に割り当てる**（2026-11-16）。両方向のショートカットとメニュー操作を含むmacOSの画面回帰140項目に成功した。
+
 ## 9. Phase 6：最適化・配布・最終受け入れ
 
 参照：[詳細設計07](detailed-design/07-settings-distribution.md)、[08](detailed-design/08-validation.md)、要件9章。

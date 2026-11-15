@@ -153,14 +153,20 @@ internal sealed partial class GuiPerformanceProbe
             Require(_viewModel.FilePath == duplicate && _editor.SelectedText == "@Target"
                 && _editor.TextArea.IsFocused, "definition-enter-original-selection");
             var definitionSelection = (_editor.SelectionStart, _editor.SelectionLength, _editor.CaretOffset);
-            var historyBack = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent,
-                Key = OperatingSystem.IsMacOS() ? Key.OemOpenBrackets : Key.Left,
-                KeyModifiers = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt };
+            var historyModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt;
+            KeyEventArgs HistoryKey(Key key) => new() { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = historyModifier };
+            var historyBack = HistoryKey(Key.Left);
             RaiseSearchKey(_editor.TextArea, historyBack);
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct);
             Require(historyBack.Handled && _viewModel.FilePath == body && _editor.CaretOffset == beforeJumpCaret
                 && _editor.TextArea.IsFocused, "jump-history-shortcut-restores-origin");
+            var historyForward = HistoryKey(Key.Right);
+            RaiseSearchKey(_editor.TextArea, historyForward);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            Require(historyForward.Handled && _viewModel.FilePath == duplicate, "jump-history-shortcut-restores-destination");
+            RaiseSearchKey(_editor.TextArea, HistoryKey(Key.Left));
+            await _viewModel.PendingWork.WaitAsync(ct);
             _window.FindControl<MenuItem>("JumpForwardMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct);
