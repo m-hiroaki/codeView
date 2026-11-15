@@ -467,6 +467,8 @@ flowchart LR
 
   - [x] **P6-03-07：WindowsとmacOSの配布物にアプリアイコンを設定する**（2026-11-15）。Windows x64のNative AOT実行ファイルに添付ICOの全7画像が埋め込まれ、通常起動することを確認した。macOSのarm64・x64は発行したアプリバンドルにICNSとその参照が入ることを確認した。[Windowsの発行・検査結果](https://github.com/m-hiroaki/codeView/actions/runs/43684270813)
 
+  - [x] **P6-03-08：Windows・macOS・READMEのアプリアイコンを更新する**（2026-11-15）。添付のICOとICNSを差し替え、ICNS内の256ピクセル画像をREADMEに使用した。ICOの7サイズと、macOS arm64のNative AOTアプリに同梱したICNSおよび`Info.plist`の参照を確認した。
+
 - [ ] **P6-04：発行形式と起動・資源使用量を比較し最適化する**
   依存：P6-03、P6-02。完了条件：単一ファイル/最小フォルダ・ReadyToRun有無の起動/容量/展開/メモリを比較。UI・メモリを悪化させず選定し、変更箇所の回帰試験を通す。
 
