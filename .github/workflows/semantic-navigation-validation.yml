@@ -49,11 +49,15 @@ jobs:
           $toolDirectory = Join-Path $artifacts 'tools'
           dotnet tool install roslyn-language-server --version 5.13.0-1.26514.10 --tool-path $toolDirectory
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $roslyn = Join-Path $toolDirectory $(if ($IsWindows) { 'roslyn-language-server.exe' } else { 'roslyn-language-server' })
+          $roslyn = if ($IsWindows) {
+            # The generated tool shim is not necessarily an executable. Use the package's native entry point.
+            (Get-ChildItem (Join-Path $toolDirectory '.store') -Recurse -Force -File -Filter 'roslyn-language-server.exe' |
+              Select-Object -First 1).FullName
+          } else { Join-Path $toolDirectory 'roslyn-language-server' }
           $clangd = (Get-Command clangd -ErrorAction SilentlyContinue).Source
           if (!$clangd -and $IsWindows) { $clangd = Join-Path $env:ProgramFiles 'LLVM/bin/clangd.exe' }
           if (!$clangd -or !(Test-Path -LiteralPath $clangd -PathType Leaf)) { throw 'clangd is missing' }
-          if (!(Test-Path -LiteralPath $roslyn -PathType Leaf)) { throw 'Roslyn executable is missing' }
+          if (!$roslyn -or !(Test-Path -LiteralPath $roslyn -PathType Leaf)) { throw 'Roslyn executable is missing' }
           "CODEVIEW_TEST_ROSLYN=$roslyn" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "CODEVIEW_TEST_CLANGD=$clangd" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           dotnet --info | Out-File (Join-Path $artifacts 'environment.txt')
