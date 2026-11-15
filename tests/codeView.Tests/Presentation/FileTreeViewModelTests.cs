@@ -15,6 +15,28 @@ internal sealed class FileTreeViewModelTests
             new(PathOf("root"), Enumerable.Range(0, roots).Select(i => Folder($"root-{i:D4}")).ToArray(), null), queue);
     private static async Task YieldAsync() => await Task.Yield();
 
+    [TestCase("Program.CS", "C#")]
+    [TestCase("main.c", "C")]
+    [TestCase("main.cpp", "C++")]
+    [TestCase("header.h", "C++")]
+    [TestCase("data.json", "{}")]
+    [TestCase("view.xaml", "<>")]
+    [TestCase("README.markdown", "M↓")]
+    [TestCase("README", "▤")]
+    [TestCase("data.unknown", "▤")]
+    public void FileIconsUseTheBundledLanguageMappings(string name, string icon)
+    {
+        using var source = new Source();
+        using var slot = new SemaphoreSlim(1);
+        using var tree = Create(source, slot);
+        var file = new FileTreeRow(new TreeNodeState(tree, new(PathOf(name), name, SourceEntryKind.FileCandidate, true)), null);
+        var folder = new FileTreeRow(new TreeNodeState(tree, Folder(name)), null);
+        Assert.That(file.FileIcon, Is.EqualTo(icon));
+        Assert.That(file.Detail, Is.EqualTo("リンク"));
+        Assert.That(folder.FileIcon, Is.Empty);
+        Assert.That(folder.Disclosure, Is.EqualTo("›"));
+    }
+
     [Test]
     public void RootProjectionIsBatchedAndOldBindingCannotReappear() => SingleThreadTestContext.Run(async () =>
     {

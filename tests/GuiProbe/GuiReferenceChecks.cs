@@ -408,6 +408,9 @@ internal sealed partial class GuiPerformanceProbe
         var path = Path.Combine(branch.FullName, "nested.txt");
         await File.WriteAllTextAsync(path, "tree body", ct);
         inputs.Add(path, hash(path));
+        var codePath = Path.Combine(branch.FullName, "language.cs");
+        await File.WriteAllTextAsync(codePath, "class Language {}", ct);
+        inputs.Add(codePath, hash(codePath));
         var existing = _editor.Document;
         await _viewModel.OpenFilesAsync([workspace], OpenOrigin.Menu);
         await Frame(ct);
@@ -429,6 +432,12 @@ internal sealed partial class GuiPerformanceProbe
         await PressAsync(Key.Right);
         var file = rows.Single(row => row.Name == "nested.txt");
         require(ReferenceEquals(file.Parent, folder), "tree-right-expands-selected-folder");
+        var code = rows.Single(row => row.Name == "language.cs");
+        var codeItem = (ListBoxItem)tree.ContainerFromItem(code)!;
+        var icon = codeItem.GetVisualDescendants().OfType<TextBlock>().Single(block => block.Name == "TreeFileIcon");
+        require(icon.IsEffectivelyVisible && icon.Text == "C#" && !icon.IsHitTestVisible
+            && !codeItem.GetVisualDescendants().OfType<Button>().Single().IsEffectivelyVisible,
+            "tree-language-icon-visible-without-disclosure-button");
         tree.SelectedItem = file;
         await PressAsync(Key.Left);
         require(ReferenceEquals(tree.SelectedItem, folder), "tree-left-selects-parent");
@@ -480,7 +489,7 @@ internal sealed partial class GuiPerformanceProbe
         tree.SelectedItem = folder;
         tree.Focus();
         await PressAsync(Key.F5);
-        require(rows.Count == extraFiles + 3 && rows[1].Name == "item-000.txt"
+        require(rows.Count == extraFiles + 4 && rows[1].Name == "item-000.txt"
             && _editor.Document.Text == "tree body", "tree-f5-refreshes-branch-and-keeps-document");
         var lastFile = rows[^2];
         var realized = tree.GetVisualDescendants().OfType<ListBoxItem>().Count();

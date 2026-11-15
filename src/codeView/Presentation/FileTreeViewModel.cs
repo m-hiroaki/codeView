@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Threading;
 using CodeView.Contracts;
+using CodeView.Documents;
 using CodeView.Files;
 using CodeView.Operations;
 
@@ -19,6 +20,16 @@ internal sealed class FileTreeRow(TreeNodeState node, FileTreeRow? parent) : INo
     public string Path => Node.Entry.Path.DisplayPath;
     public bool CanExpand => Node.CanExpand;
     public bool IsFile => Node.Entry.Kind == SourceEntryKind.FileCandidate;
+    public string FileIcon => !IsFile ? "" : BundledGrammars.ScopeForPath(Name) switch
+    {
+        "source.cs" => "C#",
+        "source.c" => "C",
+        "source.cpp" => "C++",
+        "source.json" => "{}",
+        "text.xml" => "<>",
+        "text.html.markdown" => "M↓",
+        _ => "▤"
+    };
     public string Disclosure => CanExpand ? Node.IsExpanded ? "⌄" : "›" : Node.Entry.IsLink ? "↗" : "·";
     public string Detail => Node.Entry.IsLink ? "リンク" : !CanExpand ? "" : Node.Status switch
     {
