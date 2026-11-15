@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+import time
 
 CHECKS = [
     'cli-first-folder-and-both-files-open', 'cli-status-reports-missing-and-skipped-folder',
@@ -99,7 +101,7 @@ def validate(report, commit, checks=CHECKS):
         raise ValueError('Missing/failed native reference-search checks or wrong build')
 
 
-def create_semantic_fixture(root):
+def create_semantic_fixture(root, measure=False):
     managed = root / "managed"
     native = root / "native"
     managed.mkdir(parents=True)
@@ -123,6 +125,8 @@ def create_semantic_fixture(root):
             sources[file] = '#include "library.h"\n' + text + "\n"
             commands.append(dict(directory=str(native), file=file.name, arguments=[compiler, "-c", file.name]))
     sources[native / "compile_commands.json"] = json.dumps(commands)
+    if measure:
+        sources[managed / "Caller.cs"] += "\n" + "// Scroll while the language server loads the project.\n" * 600
     for file, text in sources.items():
         file.write_text(text, encoding="utf-8")
     subprocess.run(["dotnet", "restore", str(managed / "Demo.csproj"), "--ignore-failed-sources"], check=True, timeout=45)
@@ -154,7 +158,58 @@ def process_is_running(pid):
         kernel.CloseHandle(handle)
 
 
-def collect(app, output, commit, rounds=3, semantic=False):
+def measure_processes(args, env, log):
+    """Sample the app and its descendants on macOS during an ordinary semantic GUI run."""
+    samples = []
+    with subprocess.Popen(args, env=env, stdout=log, stderr=subprocess.STDOUT) as child:
+        deadline = time.monotonic() + 90
+        try:
+            while child.poll() is None:
+                if time.monotonic() > deadline:
+                    raise subprocess.TimeoutExpired(args, 90)
+                rows = {}
+                processes = subprocess.check_output(
+                    ['ps', '-axo', 'pid=,ppid=,rss=,time='], text=True, timeout=5,
+                )
+                for line in processes.splitlines():
+                    pid, parent, rss, cpu = line.split()
+                    seconds = 0.0
+                    for component in cpu.split(':'):
+                        seconds = seconds * 60 + float(component)
+                    rows[int(pid)] = (int(parent), int(rss), seconds)
+                included = {child.pid}
+                while True:
+                    descendants = {pid for pid, (parent, _, _) in rows.items() if parent in included}
+                    if descendants <= included:
+                        break
+                    included |= descendants
+                if child.pid in rows:
+                    samples.append({pid: rows[pid][1:] for pid in included if pid in rows})
+                time.sleep(0.10)
+        finally:
+            if child.poll() is None:
+                child.kill()
+                child.wait()
+    active = [sample for sample in samples if len(sample) > 1]
+    if len(active) < 2:
+        raise ValueError('No active language server was sampled')
+    child_cpu = {}
+    for sample in active:
+        for pid, (_, cpu) in sample.items():
+            if pid != child.pid:
+                child_cpu[pid] = max(cpu, child_cpu.get(pid, 0))
+    resources = {
+        'ActiveSamples': len(active),
+        'AppPeakResidentKiB': max(sample[child.pid][0] for sample in active),
+        'DescendantsPeakResidentKiB': max(sum(rss for pid, (rss, _) in sample.items() if pid != child.pid) for sample in active),
+        'CombinedPeakResidentKiB': max(sum(rss for rss, _ in sample.values()) for sample in active),
+        'AppCpuSecondsDuringSampledActivity': active[-1][child.pid][1] - active[0][child.pid][1],
+        'DescendantsObservedCpuSeconds': sum(child_cpu.values()),
+    }
+    return child.returncode, resources
+
+
+def collect(app, output, commit, rounds=3, semantic=False, measure=False):
     if not 1 <= rounds <= 10:
         raise ValueError('Use 1..10 isolated processes')
     output.mkdir(parents=True, exist_ok=False)
@@ -178,21 +233,27 @@ def collect(app, output, commit, rounds=3, semantic=False):
             checks = SEMANTIC_CHECKS if semantic else CHECKS
             if semantic:
                 root = output / f'semantic-{number}'
-                inputs.extend(create_semantic_fixture(root))
+                inputs.extend(create_semantic_fixture(root, measure))
                 env.update(CODEVIEW_GUI_SEMANTIC_ROOT=str(root), CODEVIEW_GUI_SEMANTIC_CACHE=str(output / 'clangd-cache'))
+                if measure:
+                    env.update(CODEVIEW_GUI_SEMANTIC_MEASURE='1')
                 for key in ('CODEVIEW_TEST_ROSLYN', 'CODEVIEW_TEST_CLANGD'):
                     if not env.get(key) or not Path(env[key]).is_file():
                         raise ValueError(f'{key} must point to a real executable')
             original_hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs]
             row = {'round': number}; record['runs'].append(row)
+            args = [str(app), str(first), str(first_file), str(fixture / 'missing.txt'), str(second), str(last_file)]
             with target.with_suffix('.log').open('wb') as log:
-                child = subprocess.run([str(app), str(first), str(first_file), str(fixture / 'missing.txt'),
-                                        str(second), str(last_file)], env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90)
-            row['exitCode'] = child.returncode
+                if measure:
+                    row['exitCode'], row['Resources'] = measure_processes(args, env, log)
+                else:
+                    row['exitCode'] = subprocess.run(
+                        args, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=90,
+                    ).returncode
             if target.exists():
                 row['report'] = json.loads(target.read_text(encoding='utf-8-sig'))
-            if child.returncode != 0:
-                failure = row.get('report', {}).get('Failure') or f'exit code {child.returncode}'
+            if row['exitCode'] != 0:
+                failure = row.get('report', {}).get('Failure') or f"exit code {row['exitCode']}"
                 raise RuntimeError(f'Native reference search failed: {failure}')
             validate(row.get('report', {}), commit, checks)
             if semantic:
@@ -215,5 +276,8 @@ if __name__ == '__main__':
     parser.add_argument('--commit', required=True)
     parser.add_argument('--rounds', type=int, default=3)
     parser.add_argument('--semantic', action='store_true')
+    parser.add_argument('--measure', action='store_true')
     args = parser.parse_args()
-    collect(args.app.resolve(), args.output.resolve(), args.commit, args.rounds, args.semantic)
+    if args.measure and (not args.semantic or sys.platform != 'darwin'):
+        parser.error('--measure requires --semantic on macOS')
+    collect(args.app.resolve(), args.output.resolve(), args.commit, args.rounds, args.semantic, args.measure)

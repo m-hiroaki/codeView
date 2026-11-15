@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -17,6 +18,9 @@ internal sealed partial class GuiPerformanceProbe
         var desktop = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
         var panel = _viewModel.SearchPanel;
         var timings = new List<object>();
+        var measure = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_MEASURE") == "1";
+        var managedFirstScroll = new List<double>();
+        var movedFrames = 0;
         require(_viewModel.SemanticServerProcessIds.Length == 0 && _viewModel.DefinitionMenuLabel.Contains("簡易"),
             "semantic-startup-uses-simple-search");
         var managed = Path.Combine(root, "managed");
@@ -75,7 +79,8 @@ internal sealed partial class GuiPerformanceProbe
         await JumpAsync(Path.Combine(native, "Caller.cpp"), Path.Combine(native, "Target.cpp"), "RunCpp");
         var shutdownPids = _viewModel.SemanticServerProcessIds;
         require(shutdownPids.Length == 1, "semantic-server-active-before-app-exit");
-        return new { Timings = timings, ShutdownPids = shutdownPids };
+        if (measure && movedFrames < 2) throw new InvalidOperationException("No scrolling was observed during analysis.");
+        return new { Timings = timings, ShutdownPids = shutdownPids, ManagedFirstScroll = managedFirstScroll, MovedFrames = movedFrames };
 
         async Task<Window> OpenOptionsAsync()
         {
@@ -92,9 +97,10 @@ internal sealed partial class GuiPerformanceProbe
         {
             var caller = Path.Combine(workspace, "Caller." + extension);
             var target = Path.Combine(workspace, "Target." + extension);
-            var elapsed = await JumpAsync(caller, target, symbol);
+            var elapsed = await JumpAsync(caller, target, symbol, measure && extension == "cs");
             require(_editor.SelectedText == symbol && _editor.TextArea.IsFocused,
                 $"semantic-{extension}-f12-selects-original-definition");
+            var repeatedDefinition = measure ? (await JumpAsync(caller, target, symbol)).Total : (double?)null;
             await OpenAndSelectAsync(caller, symbol);
             var watch = Stopwatch.StartNew();
             await SendKeyAsync(KeyModifiers.Shift);
@@ -102,10 +108,11 @@ internal sealed partial class GuiPerformanceProbe
             require(panel.IsVisible && panel.Description.Contains("意味解析") && panel.Rows.Count == 1
                 && panel.Rows[0].FullPath == caller && panel.CanActivate(panel.Rows[0]),
                 $"semantic-{extension}-shift-f12-finds-symbol-reference");
-            timings.Add(new { Language = extension, elapsed.First, elapsed.Total, ReferencesMilliseconds = repeats });
+            timings.Add(new { Language = extension, elapsed.First, elapsed.Total,
+                RepeatedDefinitionMilliseconds = repeatedDefinition, ReferencesMilliseconds = repeats });
         }
 
-        async Task<(double First, double Total)> JumpAsync(string caller, string target, string symbol)
+        async Task<(double First, double Total)> JumpAsync(string caller, string target, string symbol, bool scroll = false)
         {
             await OpenAndSelectAsync(caller, symbol);
             var watch = Stopwatch.StartNew();
@@ -113,7 +120,7 @@ internal sealed partial class GuiPerformanceProbe
             while (_viewModel.FilePath == caller)
             {
                 panel.IsVisible = false;
-                await SendKeyAsync(KeyModifiers.None);
+                await SendKeyAsync(KeyModifiers.None, scroll && first == 0);
                 if (first == 0) first = watch.Elapsed.TotalMilliseconds;
                 if (_viewModel.FilePath != caller) break;
                 if (!panel.Summary.Contains("部分結果"))
@@ -134,11 +141,27 @@ internal sealed partial class GuiPerformanceProbe
             _editor.Select(offset + 1, 0);
         }
 
-        async Task SendKeyAsync(KeyModifiers modifiers)
+        async Task SendKeyAsync(KeyModifiers modifiers, bool scroll = false)
         {
             var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers };
             RaiseSearchKey(_editor.TextArea, key);
-            await _viewModel.PendingWork.WaitAsync(ct);
+            var pending = _viewModel.PendingWork;
+            if (scroll)
+            {
+                var view = (IScrollable)_editor.TextArea.TextView;
+                var watch = Stopwatch.StartNew();
+                while (!pending.IsCompleted)
+                {
+                    var previous = view.Offset.Y;
+                    var maximum = view.Extent.Height - view.Viewport.Height;
+                    view.Offset = new Vector(0, maximum > 0 ? (previous + 48) % maximum : 0);
+                    await Frame(ct);
+                    if (view.Offset.Y != previous) movedFrames++;
+                    managedFirstScroll.Add(watch.Elapsed.TotalMilliseconds);
+                    watch.Restart();
+                }
+            }
+            await pending.WaitAsync(ct);
             await Frame(ct);
             await Frame(ct);
             if (!key.Handled) throw new InvalidOperationException("F12 was not handled.");
