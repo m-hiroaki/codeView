@@ -62,7 +62,10 @@ internal sealed partial class GuiPerformanceProbe
         await _viewModel.OpenFilesAsync([longPath], OpenOrigin.Menu);
         var normalWidth = _window.Width;
         var normalHeight = _window.Height;
-        _window.PlatformImpl!.Resize(new Size(_window.MinWidth, _window.MinHeight), WindowResizeReason.Application);
+        var maximumWidth = _window.MaxWidth;
+        var maximumHeight = _window.MaxHeight;
+        _window.MaxWidth = _window.Width = _window.MinWidth;
+        _window.MaxHeight = _window.Height = _window.MinHeight;
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
@@ -70,6 +73,8 @@ internal sealed partial class GuiPerformanceProbe
         if (minimum.Width > _window.MinWidth + 16 || minimum.Height > _window.MinHeight + 48)
             throw new InvalidOperationException($"Did not reach the minimum window size: {minimum}.");
         Save("minimum");
+        _window.MaxWidth = maximumWidth;
+        _window.MaxHeight = maximumHeight;
         _window.WindowState = WindowState.Maximized;
         await Frame(ct);
         await Frame(ct);
