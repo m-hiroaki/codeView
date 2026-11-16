@@ -17,6 +17,7 @@ public static class CodeViewPublishWindow {
     public struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr window);
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
     [DllImport("user32.dll")] public static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extraInfo);
@@ -36,7 +37,7 @@ function Wait-MenuVisibility($Element, [bool]$Visible) {
 $appPath = (Resolve-Path -LiteralPath $App).Path
 $inputPath = if (!$EmptyCloseShortcut) { (Resolve-Path -LiteralPath $InputFile).Path }
 $before = if ($inputPath) { (Get-FileHash -LiteralPath $inputPath -Algorithm SHA256).Hash }
-$scope = if ($EmptyCloseShortcut) { 'empty window, Alt/Escape menu and Ctrl+W exit' } else { 'visible native window and Alt+F4 exit' }
+$scope = if ($EmptyCloseShortcut) { 'empty window, Alt/Escape menu and Ctrl+W exit' } else { 'visible native window, Windows Snap and Alt+F4 exit' }
 $report = [ordered]@{ schema = 1; commit = $env:GITHUB_SHA; app = $appPath; input = $inputPath;
     input_sha256_before = $before; passed = $false; scope = $scope }
 $process = $null
@@ -89,6 +90,32 @@ try {
         $report.alt_menu = $true
         [System.Windows.Forms.SendKeys]::SendWait('^w')
     } else {
+        $desktop = [System.Windows.Forms.Screen]::FromHandle($window).WorkingArea
+        $beforeSnap = [CodeViewPublishWindow+Rect]::new()
+        if (![CodeViewPublishWindow]::GetWindowRect($window, [ref]$beforeSnap)) { throw 'GetWindowRect failed' }
+        # Win+Left asks the Windows shell to snap the foreground window.
+        try {
+            [CodeViewPublishWindow]::keybd_event(0x5B, 0, 1, [UIntPtr]::Zero)
+            [CodeViewPublishWindow]::keybd_event(0x25, 0, 1, [UIntPtr]::Zero)
+        } finally {
+            [CodeViewPublishWindow]::keybd_event(0x25, 0, 3, [UIntPtr]::Zero)
+            [CodeViewPublishWindow]::keybd_event(0x5B, 0, 3, [UIntPtr]::Zero)
+        }
+        $snapped = [CodeViewPublishWindow+Rect]::new()
+        $deadline = [DateTime]::UtcNow.AddSeconds(5)
+        do {
+            if (![CodeViewPublishWindow]::GetWindowRect($window, [ref]$snapped)) { throw 'GetWindowRect failed after Win+Left' }
+            $changed = ($snapped.Right - $snapped.Left) -lt ($beforeSnap.Right - $beforeSnap.Left)
+            $atLeft = [Math]::Abs($snapped.Left - $desktop.Left) -le 24
+            if ($changed -and $atLeft) { break }
+            Start-Sleep -Milliseconds 50
+        } while ([DateTime]::UtcNow -lt $deadline)
+        if (!$changed -or !$atLeft) { throw "Win+Left did not snap the codeView window (left=$($snapped.Left), right=$($snapped.Right))" }
+        $report.snap = @{ left = $snapped.Left; top = $snapped.Top; right = $snapped.Right; bottom = $snapped.Bottom }
+        $null = $shell.AppActivate($process.Id)
+        if ([CodeViewPublishWindow]::GetForegroundWindow() -ne $window) {
+            throw 'Could not restore focus to the snapped codeView window'
+        }
         [System.Windows.Forms.SendKeys]::SendWait('%{F4}')
     }
     if (!$process.WaitForExit(15000)) { throw 'Normal close timed out' }
