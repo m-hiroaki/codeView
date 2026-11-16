@@ -147,7 +147,13 @@ try {
     $report.checks += 'native-file-picker-cancel-keeps-tabs-and-active-file'
 
     $dialog = Open-Picker 'フォルダを開く'
-    Set-PickerPath $dialog $folder
+    [System.Windows.Forms.SendKeys]::SendWait('%d')
+    [System.Windows.Forms.Clipboard]::SetText($folder)
+    [System.Windows.Forms.SendKeys]::SendWait('^a^v{ENTER}')
+    $null = Wait-For 'target folder contents' {
+        Find-Named $dialog (Split-Path $files[0] -Leaf)
+    }
+    Invoke-Control (Wait-For 'native select folder button' { Find-ById $dialog '1' })
     $tree = Wait-For 'file tree' { Find-Named $window 'ファイルツリー' }
     foreach ($file in $files) {
         $name = Split-Path $file -Leaf
