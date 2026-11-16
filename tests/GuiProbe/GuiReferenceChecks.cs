@@ -340,6 +340,8 @@ internal sealed partial class GuiPerformanceProbe
             await CheckCppNavigationAsync(root, before, Hash, Require, ct);
             await CheckOriginalCopyAsync(root, before, Hash, Require, ct);
             Require(before.All(pair => Hash(pair.Key) == pair.Value), "all-input-sha256-unchanged");
+            if (Environment.GetEnvironmentVariable("CODEVIEW_CHROME_CAPTURE") == "1")
+                await CaptureChromeAsync(ct);
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };
             Finish();
         }
