@@ -168,7 +168,7 @@ internal sealed partial class GuiPerformanceProbe
         {
             if (probe._finished || (probe._interactive && !probe._rowChecks) ||
                 ReferenceEquals(args, probe._scriptedSearchKey) || ReferenceEquals(args, probe._scriptedRowKey) ||
-                ReferenceEquals(args, probe._scriptedRowPointer)) return;
+                ReferenceEquals(args, probe._scriptedRowPointer) || (args is KeyEventArgs && probe._dispatchingAppKitFixture)) return;
             args.Handled = true;
             if (probe._inputInterrupted) return;
             probe._inputInterrupted = true;

@@ -33,6 +33,7 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         Save("document");
+        bool? appKitOption = OperatingSystem.IsMacOS() ? CheckAppKitOption() : null;
 
         var frameTimes = new double[48];
         var movement = 0;
@@ -91,6 +92,7 @@ internal sealed partial class GuiPerformanceProbe
             WindowWidth = viewport.Width, WindowHeight = viewport.Height, RenderScaling = renderScaling,
             MinimumWidth = minimum.Width, MinimumHeight = minimum.Height,
             MaximizedWidth = maximized.Width, MaximizedHeight = maximized.Height,
+            AppKitOption = appKitOption,
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement
         }), ct);

@@ -577,6 +577,8 @@ F-06・F-07の拡張として、C#はRoslyn Language Server、C/C++はclangdをL
 
     Windowsの変更後は各回の中央値が16.67〜31.75 ms。別のCI実行では16.94 msだった。CIのアニメーション間隔から実機での描画性能は確定できない。README、要件、基本設計と詳細設計に現在のメニューと画面構成を反映した。[比較用のWindows CI実行](https://github.com/m-hiroaki/codeView/actions/runs/43874167697/job/133322742325)
 
+    macOSの追加検証では、検証用プロセスのAppKitに左右修飾キーのうち左Optionの押下・解放イベントを送り、解放時のメニュー表示、先頭項目のフォーカス、閉じた後の本文へのフォーカス復帰を3回確認した。キーボード機器からの物理入力の確認は未実施。[AppKitの修飾キーイベント](https://developer.apple.com/documentation/appkit/nsresponder/flagschanged%28with%3A%29)
+
 ## 9. Phase 6：最適化・配布・最終受け入れ
 
 参照：[詳細設計07](detailed-design/07-settings-distribution.md)、[08](detailed-design/08-validation.md)、要件9章。
