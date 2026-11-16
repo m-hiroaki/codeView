@@ -2,10 +2,42 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CodeView.Presentation"
         xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:rendering="clr-namespace:AvaloniaEdit.Rendering;assembly=AvaloniaEdit"
         x:Class="CodeView.Presentation.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}" Width="1180" Height="800" MinWidth="680" MinHeight="460"
-        Background="#14181F" ExtendClientAreaToDecorationsHint="True" ExtendClientAreaTitleBarHeightHint="40">
+        Background="{StaticResource ReadingBackground}" ExtendClientAreaToDecorationsHint="True" ExtendClientAreaTitleBarHeightHint="40">
+    <Window.Resources>
+        <SolidColorBrush x:Key="ReadingBackground" Color="#101216" />
+        <SolidColorBrush x:Key="PanelBackground" Color="#171B21" />
+        <SolidColorBrush x:Key="ReadingForeground" Color="#E5E8EE" />
+        <SolidColorBrush x:Key="MutedForeground" Color="#AAB4C2" />
+        <SolidColorBrush x:Key="ReadingAccent" Color="#91AAFF" />
+        <SolidColorBrush x:Key="WarningForeground" Color="#E6C88C" />
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#262C36" />
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#303744" />
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#363F4D" />
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="GridSplitter.reading-splitter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="GridSplitter.reading-splitter:pointerover, GridSplitter.reading-splitter:focus-visible">
+            <Setter Property="Background" Value="{StaticResource ReadingAccent}" />
+        </Style>
+        <Style Selector="rendering|TextView">
+            <Setter Property="CurrentLineBackground">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="2,0">
+                    <GradientStop Offset="0" Color="#91AAFF" />
+                    <GradientStop Offset="0.95" Color="#91AAFF" />
+                    <GradientStop Offset="1" Color="#1B2236" />
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="CurrentLineBorder">
+                <Pen Brush="Transparent" Thickness="1" />
+            </Setter>
+        </Style>
+    </Window.Styles>
     <Window.WindowDecorationsTheme>
         <ControlTheme TargetType="WindowDrawnDecorations" BasedOn="{StaticResource {x:Type WindowDrawnDecorations}}">
             <Style Selector="^ /template/ Panel#PART_TitleTextPanel">
@@ -13,22 +45,23 @@
             </Style>
         </ControlTheme>
     </Window.WindowDecorationsTheme>
-    <Grid x:Name="MainLayout" RowDefinitions="Auto,*,0,Auto,Auto">
+    <Grid x:Name="MainLayout" Background="{StaticResource ReadingBackground}" RowDefinitions="Auto,*,0,Auto,Auto">
         <StackPanel x:Name="ChromeStack">
-        <Grid x:Name="ChromeHeader" Height="40" ColumnDefinitions="Auto,*,Auto" Background="#14181F"
+        <Grid x:Name="ChromeHeader" Height="40" ColumnDefinitions="Auto,*,Auto" Background="{StaticResource ReadingBackground}"
               WindowDecorationProperties.ElementRole="TitleBar">
             <Button x:Name="ChromeMenuButton" Content="☰" AutomationProperties.Name="メニュー" ToolTip.Tip="メニュー"
                     Width="32" Height="28" Padding="0" Margin="4,0" WindowDecorationProperties.ElementRole="User"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center"
                     Background="Transparent" BorderThickness="0" />
             <TextBlock x:Name="BreadcrumbText" Grid.Column="1" Text="{Binding Breadcrumb}" ToolTip.Tip="{Binding BreadcrumbPath}"
-                       VerticalAlignment="Center" Margin="4,0,8,0" TextTrimming="LeadingCharacterEllipsis"
+                       HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,8,0" TextTrimming="LeadingCharacterEllipsis"
+                       WindowDecorationProperties.ElementRole="User"
                        FontSize="12" FontWeight="Medium" />
             <Button x:Name="ChromeSearch" Grid.Column="2" Content="検索" Click="ToggleChromeSearchClicked"
                     IsEnabled="{Binding CanSearchWorkspace}" WindowDecorationProperties.ElementRole="User"
                     Background="Transparent" BorderThickness="0" Margin="0,0,6,0" FontSize="12" />
         </Grid>
-        <Menu x:Name="MainMenu" Background="#191E26" IsVisible="False" AutomationProperties.Name="メインメニュー">
+        <Menu x:Name="MainMenu" Background="{StaticResource PanelBackground}" IsVisible="False" AutomationProperties.Name="メインメニュー">
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
                 <MenuItem Header="フォルダを開く…" Click="OpenFolderClicked" />
@@ -69,13 +102,13 @@
         </Menu>
         </StackPanel>
         <Grid x:Name="DocumentLayout" Grid.Row="1" ColumnDefinitions="0,*">
-            <Border x:Name="FileTreePane" Margin="0,0,6,0" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,0,1,0" IsVisible="{Binding IsTreeVisible}">
+            <Border x:Name="FileTreePane" Margin="0,0,6,0" Background="{StaticResource PanelBackground}" IsVisible="{Binding IsTreeVisible}">
                 <Grid RowDefinitions="Auto,Auto,*">
                     <Grid Margin="12,8" ColumnDefinitions="*,Auto">
-                        <TextBlock Text="ファイル" FontSize="12" Foreground="#A9B9CD" VerticalAlignment="Center" />
+                        <TextBlock Text="ファイル" FontSize="12" Foreground="{StaticResource MutedForeground}" VerticalAlignment="Center" />
                         <Button Grid.Column="1" Content="再読込" FontSize="11" Padding="7,3" Click="RefreshTreeClicked" ToolTip.Tip="選択フォルダを再読込（F5）。未選択ならルートを再読込" />
                     </Grid>
-                    <TextBlock Grid.Row="1" Text="{Binding FileTree.Notice}" TextWrapping="Wrap" Margin="10,0,10,3" FontSize="11" Foreground="#E6C88C" />
+                    <TextBlock Grid.Row="1" Text="{Binding FileTree.Notice}" TextWrapping="Wrap" Margin="10,0,10,3" FontSize="11" Foreground="{StaticResource WarningForeground}" />
                     <ListBox Grid.Row="2" x:Name="FileTreeList" ItemsSource="{Binding FileTree.Rows}"
                              SelectedItem="{Binding FileTree.SelectedRow, Mode=TwoWay}" SelectionMode="Single"
                              Background="Transparent" BorderThickness="0" Padding="0"
@@ -95,54 +128,65 @@
                             <DataTemplate x:DataType="vm:FileTreeRow">
                                 <Grid ColumnDefinitions="32,*,Auto" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}" AutomationProperties.Name="{Binding AccessibleName}">
                                     <Button Content="{Binding Disclosure}" IsVisible="{Binding !IsFile}" IsEnabled="{Binding CanExpand}" Click="TreeDisclosureClicked"
-                                            Focusable="False" MinHeight="0" Padding="0" Background="Transparent" BorderThickness="0" Foreground="#94D4C3"
+                                            Focusable="False" MinHeight="0" Padding="0" Background="Transparent" BorderThickness="0" Foreground="{StaticResource MutedForeground}"
                                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                             AutomationProperties.Name="展開または折りたたみ" />
                                     <TextBlock x:Name="TreeFileIcon" Text="{Binding FileIcon}" IsVisible="{Binding IsFile}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
-                                               FontSize="10" FontWeight="SemiBold" Foreground="#94D4C3" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" Foreground="#CBD3DF" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10" Margin="6,0,4,0" VerticalAlignment="Center" Foreground="#A9B9CD" />
+                                               FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource MutedForeground}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource ReadingForeground}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10" Margin="6,0,4,0" VerticalAlignment="Center" Foreground="{StaticResource MutedForeground}" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </Grid>
             </Border>
-            <GridSplitter x:Name="FileTreeSplitter" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                          ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" Focusable="True" Background="#303A48"
+            <GridSplitter x:Name="FileTreeSplitter" Classes="reading-splitter" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                          ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" Focusable="True"
                           IsVisible="{Binding IsTreeVisible}" AutomationProperties.Name="ファイルツリーの幅を調整" />
             <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
-                <ListBox x:Name="TabList" MinHeight="28" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
+                <ListBox x:Name="TabList" Foreground="{StaticResource MutedForeground}" MinHeight="28" IsVisible="{Binding HasTabs}" ItemsSource="{Binding Tabs}"
                          SelectedItem="{Binding SelectedTab, Mode=TwoWay}" SelectionMode="Single"
                          SelectionChanged="TabSelectionChanged"
-                         Background="#202630" BorderThickness="0" Padding="0"
+                         Background="Transparent" BorderThickness="0" Padding="0"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          ScrollViewer.AllowAutoHide="False"
                          AutomationProperties.Name="開いているファイル">
+                    <ListBox.Resources>
+                        <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="Transparent" />
+                    </ListBox.Resources>
                     <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem">
                             <Setter Property="MinHeight" Value="28" />
                             <Setter Property="Padding" Value="10,0" />
                         </Style>
+                        <Style Selector="ListBoxItem:selected Border.tab-indicator">
+                            <Setter Property="IsVisible" Value="True" />
+                        </Style>
+                        <Style Selector="ListBoxItem:not(:selected) Border.tab-indicator">
+                            <Setter Property="IsVisible" Value="False" />
+                        </Style>
                     </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TabViewModel">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ToolTip.Tip="{Binding FullPath}" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ToolTip.Tip="{Binding FullPath}" MinHeight="28">
                                 <TextBlock Text="{Binding Label}" MaxWidth="230" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" />
-                                <TextBlock Grid.Column="1" Text="{Binding StatusText}" Margin="6,0" Foreground="#E6C88C" FontSize="10" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding StatusText}" Margin="6,0" Foreground="{StaticResource WarningForeground}" FontSize="10" VerticalAlignment="Center" />
                                 <Button Grid.Column="2" Content="×" Click="CloseTabClicked" Focusable="False"
                                         Width="24" Height="24" MinWidth="0" MinHeight="0" VerticalAlignment="Center"
                                         Background="Transparent" BorderThickness="0" Padding="0"
                                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                         AutomationProperties.Name="タブを閉じる" />
+                                <Border Classes="tab-indicator" Grid.ColumnSpan="3" Height="2" VerticalAlignment="Bottom"
+                                        IsHitTestVisible="False" Background="{StaticResource ReadingAccent}" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <Border x:Name="InFileSearchBar" Grid.Row="1" Background="#202630" Padding="8,5" IsVisible="{Binding InFileSearch.IsVisible}">
+                <Border x:Name="InFileSearchBar" Grid.Row="1" Background="{StaticResource PanelBackground}" Padding="8,5" IsVisible="{Binding InFileSearch.IsVisible}">
                     <StackPanel Spacing="4">
                         <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                             <TextBox x:Name="InFileQuery" Text="{Binding InFileSearch.Query, Mode=TwoWay}"
@@ -157,7 +201,7 @@
                             <CheckBox Content="正規表現" IsChecked="{Binding InFileSearch.UseRegex, Mode=TwoWay}" />
                         </StackPanel>
                         <TextBlock Text="{x:Static vm:SearchMessages.RegexLimits}" IsVisible="{Binding InFileSearch.UseRegex}"
-                                   Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
+                                   Foreground="{StaticResource WarningForeground}" FontSize="10" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding InFileSearch.Summary}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -165,15 +209,15 @@
                            IsVisible="{Binding HasDocument}"
                            Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
                            WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
-                           Background="#14181F" Foreground="#CBD3DF" LineNumbersForeground="#718198"
+                           Background="{StaticResource ReadingBackground}" Foreground="{StaticResource ReadingForeground}" LineNumbersForeground="{StaticResource MutedForeground}"
                            HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <editor:TextEditor.Options>
-                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" />
+                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" HighlightCurrentLine="True" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
-            <TextBlock Text="codeView" FontSize="28" Foreground="#94D4C3" HorizontalAlignment="Center" />
+            <TextBlock Text="codeView" FontSize="28" Foreground="{StaticResource MutedForeground}" HorizontalAlignment="Center" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
                 <Button x:Name="EmptyOpenFileButton" Content="ファイルを開く" Click="OpenClicked" />
                 <Button x:Name="EmptyOpenFolderButton" Content="フォルダを開く" Click="OpenFolderClicked" />
@@ -181,11 +225,11 @@
         </StackPanel>
             </Grid>
         </Grid>
-        <Border x:Name="SearchResultsPane" Grid.Row="2" Margin="0,6,0,0" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,1,0,0"
+        <Border x:Name="SearchResultsPane" Grid.Row="2" Margin="0,6,0,0" Background="{StaticResource PanelBackground}"
                 IsVisible="{Binding SearchPanel.IsVisible}" Padding="10,8">
             <Grid RowDefinitions="Auto,Auto,Auto,*">
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
-                    <TextBlock Text="フォルダ検索" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#94D4C3" />
+                    <TextBlock Text="フォルダ検索" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{StaticResource MutedForeground}" />
                     <TextBox x:Name="SearchQuery" Grid.Column="1" Text="{Binding SearchPanel.Query, Mode=TwoWay}" PlaceholderText="検索語（前後の空白も検索）"
                              AutomationProperties.Name="フォルダ検索の検索語" MinWidth="120" />
                     <Button Grid.Column="2" Content="検索" Click="StartSearchClicked" IsEnabled="{Binding SearchPanel.CanStart}" Margin="6,0,0,0" />
@@ -197,22 +241,22 @@
                     <CheckBox Content="大小文字を区別" IsChecked="{Binding SearchPanel.MatchCase, Mode=TwoWay}" />
                     <CheckBox Content="単語単位" IsChecked="{Binding SearchPanel.WholeWord, Mode=TwoWay}" />
                     <CheckBox Content="正規表現" IsChecked="{Binding SearchPanel.UseRegex, Mode=TwoWay}" />
-                    <TextBlock Text="正規化なし" VerticalAlignment="Center" FontSize="10" Foreground="#A9B9CD" ToolTip.Tip="Unicode結合文字の正規化や幅の同一視は行いません。" />
+                    <TextBlock Text="正規化なし" VerticalAlignment="Center" FontSize="10" Foreground="{StaticResource MutedForeground}" ToolTip.Tip="Unicode結合文字の正規化や幅の同一視は行いません。" />
                 </StackPanel>
                 <StackPanel Grid.Row="2" Spacing="2" Margin="0,3,0,5">
-                    <TextBlock Text="{x:Static vm:SearchMessages.RegexLimits}" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="#E6C88C" FontSize="10" TextWrapping="Wrap" />
-                    <TextBlock x:Name="SearchDescription" Text="{Binding SearchPanel.Description}" Foreground="#94D4C3" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Text="{x:Static vm:SearchMessages.RegexLimits}" IsVisible="{Binding SearchPanel.UseRegex}" Foreground="{StaticResource WarningForeground}" FontSize="10" TextWrapping="Wrap" />
+                    <TextBlock x:Name="SearchDescription" Text="{Binding SearchPanel.Description}" Foreground="{StaticResource MutedForeground}" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock x:Name="AppliedSearchConditions" Text="{Binding SearchPanel.AppliedConditions}" IsVisible="{Binding SearchPanel.HasAppliedConditions}"
                                TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SearchPanel.AppliedConditions}"
-                               Foreground="#A9B9CD" FontSize="10" />
+                               Foreground="{StaticResource MutedForeground}" FontSize="10" />
                     <TextBlock x:Name="UnappliedSearchConditions" Text="入力が変わりました。Enterまたは検索ボタンで反映します。"
-                               IsVisible="{Binding SearchPanel.HasUnappliedConditions}" TextWrapping="Wrap" Foreground="#E6C88C" FontSize="10" />
-                    <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="#CBD3DF" FontSize="11" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="#A9B9CD" FontSize="10" />
+                               IsVisible="{Binding SearchPanel.HasUnappliedConditions}" TextWrapping="Wrap" Foreground="{StaticResource WarningForeground}" FontSize="10" />
+                    <TextBlock Text="{Binding SearchPanel.Summary}" Foreground="{StaticResource ReadingForeground}" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SearchPanel.Progress}" Foreground="{StaticResource MutedForeground}" FontSize="10" />
                 </StackPanel>
                 <ListBox x:Name="SearchResultsList" Grid.Row="3" ItemsSource="{Binding SearchPanel.Rows}" SelectedItem="{Binding SearchPanel.SelectedRow, Mode=TwoWay}"
                          DoubleTapped="SearchResultDoubleTapped"
-                         Background="#14181F" BorderThickness="0" Padding="0" SelectionMode="Single"
+                         Background="{StaticResource ReadingBackground}" BorderThickness="0" Padding="0" SelectionMode="Single"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          AutomationProperties.Name="フォルダ検索結果">
                     <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
@@ -220,10 +264,10 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:SearchResultRow">
                             <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Height="42" ToolTip.Tip="{Binding FullPath}" AutomationProperties.Name="{Binding Location}">
-                                <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" Foreground="#A9B9CD" FontSize="11" />
-                                <TextBlock Grid.Column="1" Text="{Binding File.Status}" Foreground="#E6C88C" FontSize="10" Margin="10,0,0,0" />
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextTrimming="CharacterEllipsis" FontFamily="Menlo,Consolas,monospace" FontSize="12" Foreground="#CBD3DF">
-                                    <Run Text="{Binding Before}" /><Run Text="{Binding Match}" Foreground="#94D4C3" FontWeight="Bold" /><Run Text="{Binding After}" />
+                                <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource MutedForeground}" FontSize="11" />
+                                <TextBlock Grid.Column="1" Text="{Binding File.Status}" Foreground="{StaticResource WarningForeground}" FontSize="10" Margin="10,0,0,0" />
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextTrimming="CharacterEllipsis" FontFamily="Menlo,Consolas,monospace" FontSize="12" Foreground="{StaticResource ReadingForeground}">
+                                    <Run Text="{Binding Before}" /><Run Text="{Binding Match}" Foreground="{StaticResource ReadingAccent}" FontWeight="Bold" /><Run Text="{Binding After}" />
                                 </TextBlock>
                             </Grid>
                         </DataTemplate>
@@ -231,21 +275,21 @@
                 </ListBox>
             </Grid>
         </Border>
-        <GridSplitter x:Name="SearchResultsSplitter" Grid.Row="2" Height="6" VerticalAlignment="Top" HorizontalAlignment="Stretch"
-                      ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent" Focusable="True" Background="#303A48"
+        <GridSplitter x:Name="SearchResultsSplitter" Classes="reading-splitter" Grid.Row="2" Height="6" VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                      ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent" Focusable="True"
                       IsVisible="{Binding SearchPanel.IsVisible}" AutomationProperties.Name="検索結果パネルの高さを調整" />
-        <Border Grid.Row="3" Background="#191E26" Padding="12,5"
+        <Border Grid.Row="3" Background="{StaticResource PanelBackground}" Padding="12,5"
                 IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock x:Name="DocumentStatus" Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="#A9B9CD" />
+            <TextBlock x:Name="DocumentStatus" Text="{Binding Status}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedForeground}" />
         </Border>
-        <Border Grid.Row="4" Background="#202A31" Padding="12,6">
+        <Border Grid.Row="4" Background="{StaticResource ReadingBackground}" Padding="12,6">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock x:Name="ReadOnlyStatus" Text="読み取り専用" FontSize="11" Foreground="#B0D8C9" />
-                    <TextBlock Text="{Binding SyntaxStatus}" FontSize="11" Foreground="#E6C88C" />
+                    <TextBlock x:Name="ReadOnlyStatus" Text="読み取り専用" FontSize="11" Foreground="{StaticResource MutedForeground}" />
+                    <TextBlock Text="{Binding SyntaxStatus}" FontSize="11" Foreground="{StaticResource WarningForeground}" />
                 </StackPanel>
-                <TextBlock x:Name="CaretPositionStatus" Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
-                <Button x:Name="ActiveEncoding" Grid.Column="2" Content="{Binding EncodingLabel}" FontSize="11" Padding="6,1"
+                <TextBlock x:Name="CaretPositionStatus" Foreground="{StaticResource MutedForeground}" Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
+                <Button x:Name="ActiveEncoding" Background="Transparent" BorderThickness="0" Foreground="{StaticResource MutedForeground}" Grid.Column="2" Content="{Binding EncodingLabel}" FontSize="11" Padding="6,1"
                         IsEnabled="{Binding CanReopenEncoding}" ToolTip.Tip="文字コードを指定して開き直す">
                     <Button.Flyout>
                         <MenuFlyout Placement="TopEdgeAlignedRight">

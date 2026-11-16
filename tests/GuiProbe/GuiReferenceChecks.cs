@@ -117,6 +117,8 @@ internal sealed partial class GuiPerformanceProbe
             var panel = _viewModel.SearchPanel;
             var textView = _editor.TextArea.TextView;
             textView.EnsureVisualLines();
+            Require(_editor.Options.HighlightCurrentLine && textView.CurrentLineBackground is Avalonia.Media.LinearGradientBrush,
+                "reading-current-line-uses-editor-layer");
             Require(textView.LineTransformers.OfType<SyntaxColorizer>().Count() == 1
                 && textView.VisualLines.SelectMany(line => line.Elements)
                     .Select(element => element.TextRunProperties.ForegroundBrush?.ToString()).Distinct().Count() > 1,
@@ -520,6 +522,8 @@ internal sealed partial class GuiPerformanceProbe
         require(!emptyTap.Handled && !disclosureTap.Handled && rows.Count == 2
             && !folder.Node.IsExpanded && !empty.Node.IsExpanded, "tree-background-and-disclosure-double-tap-ignored");
 
+        // Wait for the compositor to publish the new hit-test geometry of the recycled row.
+        await Frame(ct);
         var edge = disclosure.TranslatePoint(new Point(30, 2), _window);
         var target = edge is { } point ? _window.InputHitTest(point) as Visual : null;
         require(disclosure.Bounds.Height >= 21 && (ReferenceEquals(target, disclosure)
@@ -597,6 +601,10 @@ internal sealed partial class GuiPerformanceProbe
         require(Math.Abs(list.Bounds.Height - 28) < 1 && close.Bounds.Height >= 23
             && closeOrigin is { Y: >= 0 } origin && origin.Y + close.Bounds.Height <= item.Bounds.Height + 0.5,
             "tabs-compact-height-and-close-button");
+        var visibleIndicators = list.GetVisualDescendants().OfType<Border>()
+            .Where(border => border.Classes.Contains("tab-indicator") && border.IsEffectivelyVisible).ToArray();
+        require(visibleIndicators.Length == 1 && visibleIndicators[0].GetVisualAncestors().Contains(item)
+            && visibleIndicators[0].Bounds.Height == 2, "reading-only-selected-tab-has-underline");
         var secondDocument = _editor.Document;
 
         list.SelectedItem = first;
