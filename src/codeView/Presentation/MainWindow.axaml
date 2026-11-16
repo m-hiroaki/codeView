@@ -159,6 +159,8 @@
                          AutomationProperties.Name="開いているファイル">
                     <ListBox.Resources>
                         <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="Transparent" />
+                        <x:Double x:Key="ScrollBarSize">8</x:Double>
+                        <x:Double x:Key="ScrollBarButtonArrowIconFontSize">6</x:Double>
                     </ListBox.Resources>
                     <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
                     <ListBox.Styles>

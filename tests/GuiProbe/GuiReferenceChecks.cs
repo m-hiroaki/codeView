@@ -685,10 +685,14 @@ internal sealed partial class GuiPerformanceProbe
             .Single(bar => bar.Orientation == Avalonia.Layout.Orientation.Horizontal);
         var barTop = bar.TranslatePoint(default, list);
         var items = list.GetVisualDescendants().OfType<ListBoxItem>().Where(item => item.IsEffectivelyVisible).ToArray();
-        require(bar.IsEffectivelyVisible && bar.Bounds.Height > 0 && scroll.Extent.Width > scroll.Viewport.Width
+        require(bar.IsEffectivelyVisible && Math.Abs(bar.Bounds.Height - 8) < 0.5 && scroll.Extent.Width > scroll.Viewport.Width
             && items.Length > 0 && barTop is { } top
             && items.All(item => item.TranslatePoint(new Point(0, item.Bounds.Height), list) is { } bottom && bottom.Y <= top.Y + 0.5),
             "tabs-overflow-scrollbar-below-items");
+        var offsetBeforeScroll = scroll.Offset.X;
+        if (offsetBeforeScroll > bar.Maximum / 2) bar.ScrollToHome();
+        else bar.ScrollToEnd();
+        require(Math.Abs(scroll.Offset.X - offsetBeforeScroll) > 0.5, "tabs-overflow-compact-bar-scrolls");
 
         while (_viewModel.Tabs.Count > 1) _viewModel.CloseFile();
         await Frame(ct);
