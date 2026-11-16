@@ -136,12 +136,14 @@ internal sealed partial class GuiPerformanceProbe
                 || search.Bounds.Right > header.Bounds.Width + 0.5 || !search.IsEffectivelyVisible)
                 throw new InvalidOperationException("Window header controls overlap or lose the source path.");
             if (!OperatingSystem.IsWindows()) return;
-            var caption = _window.GetVisualDescendants().OfType<Button>()
+            // Avalonia hosts the client window and its drawn decorations as siblings.
+            var host = _window.GetVisualParent() ?? throw new InvalidOperationException("Missing native window host.");
+            var caption = host.GetVisualDescendants().OfType<Button>()
                 .Where(button => button.Name is "PART_MinimizeButton" or "PART_MaximizeButton" or "PART_CloseButton"
                     && button.IsEffectivelyVisible)
-                .Select(button => button.TranslatePoint(default, _window))
+                .Select(button => button.TranslatePoint(default, host))
                 .OfType<Point>().ToArray();
-            var searchEdge = search.TranslatePoint(new Point(search.Bounds.Width, 0), _window);
+            var searchEdge = search.TranslatePoint(new Point(search.Bounds.Width, 0), host);
             if (caption.Length != 3 || searchEdge is null || caption.Any(point => point.X < searchEdge.Value.X))
                 throw new InvalidOperationException("Windows caption buttons overlap the search button or are unavailable.");
         }
