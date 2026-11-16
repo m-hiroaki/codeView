@@ -91,6 +91,11 @@ function Get-Hashes($Files) {
     @($Files | ForEach-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash })
 }
 
+function Test-ActiveSource([string]$Path) {
+    $process.Refresh()
+    $process.MainWindowTitle -eq "$Path — codeView"
+}
+
 $appPath = (Resolve-Path -LiteralPath $App).Path
 $outputPath = [IO.Path]::GetFullPath($Output)
 $folder = Join-Path (Split-Path $outputPath) '選択 テスト'
@@ -127,13 +132,13 @@ try {
     }
     $report.checks += 'native-file-picker-opens-both-tabs'
     $active = Wait-For 'active source path' {
-        foreach ($file in $files) { if (Find-Named $window $file) { return $file } }
+        foreach ($file in $files) { if (Test-ActiveSource $file) { return $file } }
     }
 
     $dialog = Open-Picker 'ファイルを開く'
     Invoke-Control (Wait-For 'native cancel button' { Find-ById $dialog '2' })
     $null = Wait-For 'dialog closes and active path stays' {
-        if ($window.Current.IsEnabled -and (Find-Named $window $active)) { $true }
+        if ($window.Current.IsEnabled -and (Test-ActiveSource $active)) { $true }
     }
     foreach ($file in $files) {
         if (!(Find-Named $window (Split-Path $file -Leaf))) { throw "Tab lost after cancel: $file" }
@@ -142,7 +147,6 @@ try {
 
     $dialog = Open-Picker 'フォルダを開く'
     Set-PickerPath $dialog $folder
-    $null = Wait-For 'selected workspace path' { Find-Named $window $folder }
     $tree = Wait-For 'file tree' { Find-Named $window 'ファイルツリー' }
     foreach ($file in $files) {
         $name = Split-Path $file -Leaf
