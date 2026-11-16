@@ -12,6 +12,7 @@ on:
     paths:
       - .github/workflows/reference-search-validation.yml
       - global.json
+      - src/codeView/App.axaml
       - src/codeView/Navigation/**
       - src/codeView/Presentation/MainWindow*
       - src/codeView/Presentation/SearchPanelViewModel.cs

@@ -59,14 +59,15 @@ function Invoke-Control($Control) {
     }
 }
 function Open-Picker([string]$Title) {
-    Click-Control (Wait-For 'menu button' { Find-Named $window 'メニュー' })
-    $menu = Wait-For 'File menu' { Find-Named $window 'ファイル' }
-    Click-Control $menu
-    $item = Wait-For $Title {
+    Invoke-Control (Wait-For 'menu button' { Find-Named $window 'メニュー' })
+    $null = Wait-For 'File menu' { Find-Named $window 'ファイル' }
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    $null = Wait-For $Title {
         $item = Find-Named $window ($Title + '…')
         if ($item -and !$item.Current.BoundingRectangle.IsEmpty) { $item }
     }
-    Click-Control $item
+    if ($Title -eq 'フォルダを開く') { [System.Windows.Forms.SendKeys]::SendWait('{DOWN}') }
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
     Wait-For "$Title native dialog" {
         $dialog = Find-Named ([System.Windows.Automation.AutomationElement]::RootElement) $Title
         if ($dialog -and $dialog.Current.ProcessId -eq $process.Id -and $dialog.Current.ClassName -eq '#32770') { $dialog }

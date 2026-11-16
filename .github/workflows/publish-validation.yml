@@ -18,9 +18,11 @@ on:
       - tools/check_windows_launch.ps1
       - tools/check_windows_picker.ps1
       - src/codeView/Presentation/MainWindow.axaml.cs
+      - src/codeView/Presentation/MainWindow.axaml
       - src/codeView/codeView.csproj
       - src/codeView/Program.cs
       - src/codeView/App.axaml.cs
+      - src/codeView/App.axaml
 
 permissions:
   contents: read
