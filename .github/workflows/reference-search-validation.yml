@@ -2,6 +2,11 @@ name: Reference search GUI validation
 
 on:
   workflow_dispatch:
+    inputs:
+      compare_chrome:
+        description: Collect the pre-redesign window comparison on both OSes
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -49,12 +54,47 @@ jobs:
           dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/reference-search/app -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run three independent native reference-search checks
+        env:
+          CODEVIEW_CHROME_CAPTURE: '1'
         run: |
           $app = if ($IsWindows) { 'artifacts/reference-search/app/codeView.exe' } else { 'artifacts/reference-search/app/codeView' }
           python -m unittest discover -s tools -p test_reference_search.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/check_reference_search.py --app $app --output artifacts/reference-search/results --commit $env:GITHUB_SHA
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check out the pre-redesign window and its matching probe
+        if: inputs.compare_chrome || github.event_name == 'push'
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: 4b2282aaeaee82b4bf21232491f8277c849e531e
+          path: chrome-baseline
+          persist-credentials: false
+      - name: Collect pre-redesign window samples
+        if: inputs.compare_chrome || github.event_name == 'push'
+        working-directory: chrome-baseline
+        env:
+          CODEVIEW_CHROME_CAPTURE: '1'
+        run: |
+          $commit = git rev-parse HEAD
+          dotnet restore src/codeView/codeView.csproj --locked-mode -p:PublishAot=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output ../artifacts/reference-search/baseline-app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $app = if ($IsWindows) { '../artifacts/reference-search/baseline-app/codeView.exe' } else { '../artifacts/reference-search/baseline-app/codeView' }
+          python tools/check_reference_search.py --app $app --output ../artifacts/reference-search/baseline --commit $commit
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Print and summarize window samples
+        if: always()
+        run: |
+          foreach ($set in @('baseline', 'results')) {
+            $samples = Get-ChildItem "artifacts/reference-search/$set/*.chrome.json" -ErrorAction SilentlyContinue
+            if ($samples) {
+              "### $set" | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+              foreach ($sample in $samples) {
+                Get-Content -LiteralPath $sample.FullName | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+              }
+            }
+          }
       - name: Upload native search evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -65,3 +105,4 @@ jobs:
           path: |
             artifacts/reference-search/environment.txt
             artifacts/reference-search/results/
+            artifacts/reference-search/baseline/

@@ -28,10 +28,12 @@ internal sealed partial class GuiPerformanceProbe
         var other = Path.Combine(nested, "Other.cs");
         await File.WriteAllTextAsync(other, "class Other {}\n", ct);
         await _viewModel.OpenFilesAsync([folder, other, body], OpenOrigin.Menu);
+        var view = (IScrollable)_editor.TextArea.TextView;
+        view.Offset = default;
+        await Frame(ct);
         await Frame(ct);
         Save("document");
 
-        var view = (IScrollable)_editor.TextArea.TextView;
         var frameTimes = new double[48];
         var movement = 0;
         var watch = Stopwatch.StartNew();
@@ -52,12 +54,50 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         Save("search");
         Array.Sort(frameTimes);
+        var viewport = _window.Bounds.Size;
+        var renderScaling = _window.RenderScaling;
+        var longFolder = Directory.CreateDirectory(Path.Combine(nested, new string('長', 48))).FullName;
+        var longPath = Path.Combine(longFolder, "Source.cs");
+        File.Copy(body, longPath);
+        await _viewModel.OpenFilesAsync([longPath], OpenOrigin.Menu);
+        var normalWidth = _window.Width;
+        var normalHeight = _window.Height;
+        _window.Width = _window.MinWidth;
+        _window.Height = _window.MinHeight;
+        await Frame(ct);
+        await Frame(ct);
+        CheckHeader(longPath);
+        var minimum = _window.Bounds.Size;
+        Save("minimum");
+        _window.WindowState = WindowState.Maximized;
+        await Frame(ct);
+        await Frame(ct);
+        CheckHeader(longPath);
+        var maximized = _window.Bounds.Size;
+        Save("maximized");
+        _window.WindowState = WindowState.Normal;
+        _window.Width = normalWidth;
+        _window.Height = normalHeight;
         await File.WriteAllTextAsync(_output + ".chrome.json", JsonSerializer.Serialize(new
         {
-            WindowWidth = _window.Bounds.Width, WindowHeight = _window.Bounds.Height, _window.RenderScaling,
+            WindowWidth = viewport.Width, WindowHeight = viewport.Height, RenderScaling = renderScaling,
+            MinimumWidth = minimum.Width, MinimumHeight = minimum.Height,
+            MaximizedWidth = maximized.Width, MaximizedHeight = maximized.Height,
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement
         }), ct);
+
+        void CheckHeader(string path)
+        {
+            var header = _window.FindControl<Grid>("ChromeHeader")!;
+            var breadcrumb = _window.FindControl<TextBlock>("BreadcrumbText")!;
+            var menu = _window.FindControl<Button>("ChromeMenuButton")!;
+            var search = _window.FindControl<Button>("ChromeSearch")!;
+            if (ToolTip.GetTip(breadcrumb) is not string tip || tip != path
+                || menu.Bounds.Right > breadcrumb.Bounds.Left || breadcrumb.Bounds.Right > search.Bounds.Left
+                || search.Bounds.Right > header.Bounds.Width + 0.5 || !search.IsEffectivelyVisible)
+                throw new InvalidOperationException("Window header controls overlap or lose the source path.");
+        }
 
         void Save(string state)
         {
