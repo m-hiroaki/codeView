@@ -11,6 +11,59 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class SemanticNavigationViewModelTests
 {
+    [TestCase("Demo.csproj", "", "Demo.csproj")]
+    [TestCase("Demo.sln", "Child.csproj", "Demo.sln")]
+    [TestCase("Demo.slnx", "", "Demo.slnx")]
+    [TestCase("Demo.sln", "Other.slnx", null)]
+    [TestCase("Demo.csproj", "Other.csproj", null)]
+    [TestCase("nested/Demo.csproj", "assets.csproj/placeholder.txt", null)]
+    public void OpeningFolderSelectsOnlyUnambiguousRootProjects(string first, string second, string? expected)
+        => SingleThreadTestContext.Run(async () =>
+    {
+        if (!OperatingSystem.IsMacOS() && !OperatingSystem.IsWindows()) Assert.Ignore("Bundled Roslyn is supported on Windows and macOS.");
+        var temporary = Directory.CreateTempSubdirectory("codeview-auto-roslyn-");
+        try
+        {
+            var root = temporary.CreateSubdirectory("workspace").FullName;
+            var empty = temporary.CreateSubdirectory("next").FullName;
+            var source = Path.Combine(root, "Source.cs");
+            await File.WriteAllTextAsync(source, "class Source {}");
+            foreach (var candidate in new[] { first, second }.Where(path => path.Length > 0))
+            {
+                var fullPath = Path.Combine(root, candidate);
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                await File.WriteAllTextAsync(fullPath, "");
+            }
+            var app = temporary.CreateSubdirectory(OperatingSystem.IsMacOS() ? "CodeView.app/Contents/MacOS" : "distribution").FullName;
+            var executable = Path.GetFullPath(Path.Combine(app, OperatingSystem.IsMacOS()
+                ? "../Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer"
+                : "language-servers/roslyn/Microsoft.CodeAnalysis.LanguageServer.exe"));
+            var access = new SourceAccess();
+            using var operations = new AppOperations(new(access), new AvaloniaEditDocumentAdapter(), new(access), semanticAppDirectory: app);
+            var view = new MainWindowViewModel(operations,
+                new SettingsStore(new(Path.Combine(temporary.FullName, "portable.json"), Path.Combine(temporary.FullName, "user.json"))));
+            try
+            {
+                await view.InitializeAsync([root, source]);
+                Assert.That(view.SemanticOptions, Is.Null, "No bundled executable");
+                Directory.CreateDirectory(Path.GetDirectoryName(executable)!);
+                await File.WriteAllTextAsync(executable, "not an executable");
+                await view.RefreshWorkspaceAsync();
+                Assert.That(view.SemanticOptions?.CSharpProject, Is.EqualTo(expected is null ? null : Path.Combine(root, expected)));
+                Assert.That(view.DefinitionMenuLabel, Does.Contain(expected is null ? "簡易" : "意味解析"));
+                Assert.That(view.SemanticOptions?.ClangdExecutable, Is.Null);
+                await view.OpenFilesAsync([empty], OpenOrigin.Menu);
+                Assert.That(view.SemanticOptions, Is.Null);
+            }
+            finally
+            {
+                view.Stop();
+                await view.PendingWork;
+            }
+        }
+        finally { temporary.Delete(recursive: true); }
+    });
+
     [Test]
     public void ResolvesBundledServersInRelocatedApplicationAndKeepsSimpleSearchAvailable() => SingleThreadTestContext.Run(async () =>
     {

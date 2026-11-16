@@ -31,21 +31,21 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
         var managed = Path.Combine(root, "managed");
         var managedCaller = Path.Combine(managed, "Caller.cs");
         await _viewModel.OpenFilesAsync([managed, managedCaller], OpenOrigin.Menu);
+        require(_viewModel.SemanticOptions?.CSharpProject == Path.Combine(managed, "Demo.csproj")
+            && Equals(_window.FindControl<MenuItem>("FindDefinitionsMenu")!.Header, "定義へジャンプ（意味解析）"),
+            "semantic-folder-open-enables-roslyn");
+        while (_viewModel.SemanticServerProcessIds.Length == 0 && !_viewModel.PendingWork.IsCompleted) await Frame(ct);
+        require(_viewModel.SemanticServerProcessIds.Length == 1, "semantic-folder-open-starts-roslyn-before-f12");
+        await CheckLanguageAsync(managed, "cs", "Run");
+        var roslyn = _viewModel.SemanticServerProcessIds.Single();
         var config = await OpenOptionsAsync();
         require(config.GetVisualDescendants().OfType<TextBox>().Count() == 2, "semantic-dialog-omits-server-paths");
         Set(config, "RoslynProject", Path.Combine(managed, "missing.csproj"));
         Click(config, "EnableSemanticNavigation");
         await Frame(ct);
-        require(config.IsVisible && _viewModel.SemanticServerProcessIds.Length == 0
-            && _viewModel.Status.Contains("絶対パス"), "semantic-invalid-project-leaves-simple-search");
-        Set(config, "RoslynProject", "");
-        Click(config, "EnableSemanticNavigation");
-        while (config.IsVisible) await Frame(ct);
-        require(_viewModel.SemanticServerProcessIds.Length == 0
-            && Equals(_window.FindControl<MenuItem>("FindDefinitionsMenu")!.Header, "定義へジャンプ（意味解析）"),
-            "semantic-enable-defers-server-launch");
-        await CheckLanguageAsync(managed, "cs", "Run");
-        var roslyn = _viewModel.SemanticServerProcessIds.Single();
+        require(config.IsVisible && _viewModel.SemanticServerProcessIds.SequenceEqual(new[] { roslyn })
+            && _viewModel.Status.Contains("絶対パス"), "semantic-invalid-project-keeps-existing-session");
+        config.Close();
         var native = Path.Combine(root, "native");
         await _viewModel.OpenFilesAsync([native, Path.Combine(native, "Caller.c")], OpenOrigin.Menu);
         await _viewModel.PendingWork.WaitAsync(ct);
@@ -56,6 +56,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
         Set(config, "ClangdDatabase", Path.Combine(native, "compile_commands.json"));
         Click(config, "EnableSemanticNavigation");
         while (config.IsVisible) await Frame(ct);
+        require(_viewModel.SemanticServerProcessIds.Length == 0, "semantic-manual-enable-defers-server-launch");
         await CheckLanguageAsync(native, "c", "RunC");
         await CheckLanguageAsync(native, "cpp", "RunCpp");
         var clangd = _viewModel.SemanticServerProcessIds.Single();
@@ -100,7 +101,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
         {
             var caller = Path.Combine(workspace, "Caller." + extension);
             var target = Path.Combine(workspace, "Target." + extension);
-            var elapsed = await JumpAsync(caller, target, symbol, measure && extension == "cs");
+            var elapsed = await JumpAsync(caller, target, symbol, measure && extension == "cs", retry: extension != "cs");
             require(_editor.SelectedText == symbol && _editor.TextArea.IsFocused,
                 $"semantic-{extension}-f12-selects-original-definition");
             var repeatedDefinition = measure ? (await JumpAsync(caller, target, symbol)).Total : (double?)null;
@@ -115,7 +116,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
                 RepeatedDefinitionMilliseconds = repeatedDefinition, ReferencesMilliseconds = repeats });
         }
 
-        async Task<(double First, double Total)> JumpAsync(string caller, string target, string symbol, bool scroll = false)
+        async Task<(double First, double Total)> JumpAsync(string caller, string target, string symbol, bool scroll = false, bool retry = true)
         {
             await OpenAndSelectAsync(caller, symbol);
             var watch = Stopwatch.StartNew();
@@ -125,7 +126,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
                 panel.IsVisible = false;
                 await SendKeyAsync(KeyModifiers.None, scroll && first == 0);
                 if (first == 0) first = watch.Elapsed.TotalMilliseconds;
-                if (_viewModel.FilePath != caller) break;
+                if (_viewModel.FilePath != caller || !retry) break;
                 if (!panel.Summary.Contains("部分結果"))
                     throw new InvalidOperationException($"Unexpected definition result for {caller}: {panel.Summary} / {_viewModel.Status}");
                 await Task.Delay(50, ct);

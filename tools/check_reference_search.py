@@ -89,10 +89,10 @@ CHECKS = [
 
 
 SEMANTIC_CHECKS = [
-    'semantic-startup-uses-simple-search', 'semantic-dialog-omits-server-paths', 'semantic-invalid-project-leaves-simple-search',
-    'semantic-enable-defers-server-launch',
+    'semantic-startup-uses-simple-search', 'semantic-folder-open-enables-roslyn', 'semantic-folder-open-starts-roslyn-before-f12',
     'semantic-cs-f12-selects-original-definition', 'semantic-cs-shift-f12-finds-symbol-reference',
-    'semantic-workspace-switch-stops-server',
+    'semantic-dialog-omits-server-paths', 'semantic-invalid-project-keeps-existing-session',
+    'semantic-workspace-switch-stops-server', 'semantic-manual-enable-defers-server-launch',
     'semantic-c-f12-selects-original-definition', 'semantic-c-shift-f12-finds-symbol-reference',
     'semantic-cpp-f12-selects-original-definition', 'semantic-cpp-shift-f12-finds-symbol-reference',
     'semantic-restarts-after-server-crash', 'semantic-switches-back-to-name-search',

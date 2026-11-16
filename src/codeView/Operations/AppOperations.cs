@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Text.Json;
 using CodeView.Contracts;
 using CodeView.Documents;
 using CodeView.Files;
@@ -10,7 +12,7 @@ namespace CodeView.Operations;
 internal sealed record LoadedFile(SourcePath Path, SourceStamp Stamp, string EncodingName, DocumentHandle Document);
 
 internal sealed class AppOperations(FileReader reader, IDocumentAdapter documents, DirectoryReader directories,
-    string? semanticCacheDirectory = null) : IDisposable
+    string? semanticCacheDirectory = null, string? semanticAppDirectory = null) : IDisposable
 {
     private readonly SemaphoreSlim _loadSlot = new(1, 1);
     private bool _stopping;
@@ -28,6 +30,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private SearchResultNavigator? _resultNavigator;
     private Dictionary<SemanticLanguage, LanguageServerSession>? _languageServers;
     private Task _retiredLanguageServers = Task.CompletedTask;
+    private Task _roslynPreparation = Task.CompletedTask;
     private RoslynNavigation? _roslyn;
     private ClangdNavigation? _clangd;
     internal SemanticWorkspaceOptions? SemanticOptions { get; private set; }
@@ -86,9 +89,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         finally { slot.Release(); }
     }
 
-    public Task PendingSearchWork => _retiredLanguageServers.IsCompletedSuccessfully
+    public Task PendingSearchWork => _retiredLanguageServers.IsCompletedSuccessfully && _roslynPreparation.IsCompletedSuccessfully
         ? _searches?.PendingWork ?? Task.CompletedTask
-        : Task.WhenAll(_searches?.PendingWork ?? Task.CompletedTask, _retiredLanguageServers);
+        : Task.WhenAll(_searches?.PendingWork ?? Task.CompletedTask, _retiredLanguageServers, _roslynPreparation);
 
     // Register on the same serialized context that owns Workspace, before starting a search worker.
     internal LanguageServerSession GetLanguageServer(WorkspaceState owner, SemanticLanguage language,
@@ -108,7 +111,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         _languageServers = null;
         if (servers is not null)
             _retiredLanguageServers = Task.WhenAll(
-                servers.Values.Select(server => server.DisposeAsync().AsTask()).Append(_retiredLanguageServers));
+                servers.Values.Select(server => server.DisposeAsync().AsTask())
+                    .Append(_retiredLanguageServers).Append(_roslynPreparation));
+        _roslynPreparation = Task.CompletedTask;
     }
 
     internal void ConfigureSemanticNavigation(SemanticWorkspaceOptions? options)
@@ -139,7 +144,12 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
             if (project is null) return null;
             var roslyn = _roslyn ??= new(root.FullPath, project);
             var session = GetLanguageServer(owner, language, () => roslyn.CreateSession(executable));
-            query = (text, position, ct) => roslyn.SearchAsync(session, operation, uri, revision, text, position, ct);
+            var preparation = _roslynPreparation;
+            query = async (text, position, ct) =>
+            {
+                await preparation.WaitAsync(ct).ConfigureAwait(false);
+                return await roslyn.SearchAsync(session, operation, uri, revision, text, position, ct).ConfigureAwait(false);
+            };
         }
         else
         {
@@ -168,14 +178,51 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
 
     private static string? FindProject(string root)
     {
-        try
-        {
-            var candidates = Directory.EnumerateFiles(root).Where(RoslynNavigation.SupportsProject).ToArray();
-            var solutions = candidates.Where(path => !Path.GetExtension(path).Equals(".csproj", StringComparison.OrdinalIgnoreCase))
-                .Take(2).ToArray();
-            return solutions.Length == 1 ? solutions[0] : solutions.Length == 0 && candidates.Length == 1 ? candidates[0] : null;
-        }
+        try { return SelectProject(Directory.EnumerateFiles(root)); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
+    }
+
+    private static string? SelectProject(IEnumerable<string> paths)
+    {
+        string? solution = null;
+        string? project = null;
+        var ambiguousProjects = false;
+        foreach (var path in paths)
+        {
+            if (!RoslynNavigation.SupportsProject(path)) continue;
+            if (Path.GetExtension(path).Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+            {
+                ambiguousProjects |= project is not null;
+                project ??= path;
+            }
+            else
+            {
+                if (solution is not null) return null;
+                solution = path;
+            }
+        }
+        return solution ?? (ambiguousProjects ? null : project);
+    }
+
+    private void PrepareAutomaticCSharp(WorkspaceState workspace, DirectoryListing listing)
+    {
+        var project = SelectProject(listing.Entries.Where(workspace.Policy.IsSearchTarget).Select(entry => entry.Path.FullPath));
+        if (project is null || BundledLanguageServers.Resolve(semanticAppDirectory ?? AppContext.BaseDirectory).Roslyn is not { } executable)
+            return;
+
+        ConfigureSemanticNavigation(new(executable, project, null, null));
+        var roslyn = _roslyn = new(listing.Path.FullPath, project);
+        var session = GetLanguageServer(workspace, SemanticLanguage.CSharp, () => roslyn.CreateSession(executable));
+        var cancellation = workspace.Token;
+        _roslynPreparation = Task.Run(async () =>
+        {
+            try { await session.UseAsync(static (_, _) => Task.FromResult(true), cancellation).ConfigureAwait(false); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or TimeoutException
+                or Win32Exception or JsonException or OperationCanceledException)
+            {
+                // Keep the configuration. The first search can retry and use the normal diagnostic path.
+            }
+        });
     }
     public SearchResultNavigator ResultNavigator => !_stopping ? _resultNavigator ??= new(Tabs, Searches, reader)
         : throw new ObjectDisposedException(nameof(AppOperations));
@@ -219,6 +266,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
             if (!CanAdopt()) return OperationResult<WorkspaceState>.Cancelled();
             workspace.Complete(listing);
             workspace.Tree = new TreeSession(directories, _treeSlot, workspace.Policy, workspace.Token, listing);
+            if (listing.IsComplete) PrepareAutomaticCSharp(workspace, listing);
             return listing.IsComplete ? OperationResult<WorkspaceState>.Success(workspace)
                 : OperationResult<WorkspaceState>.Failure(listing.Error!);
         }
