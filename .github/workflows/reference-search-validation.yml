@@ -64,14 +64,14 @@ jobs:
           python tools/check_reference_search.py --app $app --output artifacts/reference-search/results --commit $env:GITHUB_SHA
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check out the pre-redesign window and its matching probe
-        if: inputs.compare_chrome || github.event_name == 'push'
+        if: inputs.compare_chrome
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: 4b2282aaeaee82b4bf21232491f8277c849e531e
           path: chrome-baseline
           persist-credentials: false
       - name: Collect pre-redesign window samples
-        if: inputs.compare_chrome || github.event_name == 'push'
+        if: inputs.compare_chrome
         working-directory: chrome-baseline
         env:
           CODEVIEW_CHROME_CAPTURE: '1'
