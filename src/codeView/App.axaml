@@ -9,5 +9,6 @@
             </FluentTheme.Palettes>
         </FluentTheme>
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://codeView/Presentation/ButtonStyles.axaml" />
     </Application.Styles>
 </Application>

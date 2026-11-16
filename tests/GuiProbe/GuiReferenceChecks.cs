@@ -666,6 +666,15 @@ internal sealed partial class GuiPerformanceProbe
         require(openFile is { IsEffectivelyVisible: true, IsEnabled: true, Content: "ファイルを開く" }
             && openFolder is { IsEffectivelyVisible: true, IsEnabled: true, Content: "フォルダを開く" },
             "empty-view-offers-file-and-folder");
+        var fileRing = openFile.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "FocusRing");
+        var folderRing = openFolder.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "FocusRing");
+        require(openFile.Background is Avalonia.Media.ISolidColorBrush { Color: var fill }
+            && fill == Avalonia.Media.Color.Parse("#91AAFF") && openFile.BorderThickness == default
+            && openFolder.BorderThickness == new Thickness(1) && !fileRing.IsVisible && !folderRing.IsVisible,
+            "ink-open-buttons-show-primary-and-secondary");
+        require(openFile.Focus(NavigationMethod.Tab) && fileRing.IsVisible
+            && openFolder.Focus(NavigationMethod.Tab) && folderRing.IsVisible && !fileRing.IsVisible,
+            "ink-button-ring-follows-keyboard-focus");
 
         var overflowPaths = new List<string>();
         for (var index = 0; index < 10; index++)

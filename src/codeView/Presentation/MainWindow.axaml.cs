@@ -789,9 +789,9 @@ internal sealed partial class MainWindow : Window
             var current = _viewModel.SemanticOptions;
             var project = new TextBox { Name = "RoslynProject", Text = current?.CSharpProject, PlaceholderText = "空欄の場合は作業フォルダ直下から選択" };
             var database = new TextBox { Name = "ClangdDatabase", Text = current?.CompilationDatabase, PlaceholderText = "空欄の場合は作業フォルダと build から検出" };
-            var apply = new Button { Name = "EnableSemanticNavigation", Content = "有効にする" };
-            var disable = new Button { Name = "DisableSemanticNavigation", Content = "簡易検索に戻す" };
-            var cancel = new Button { Content = "キャンセル", IsCancel = true };
+            var apply = new Button { Name = "EnableSemanticNavigation", Content = "有効にする", Classes = { "ink", "primary" } };
+            var disable = new Button { Name = "DisableSemanticNavigation", Content = "簡易検索に戻す", Classes = { "ink" } };
+            var cancel = new Button { Content = "キャンセル", IsCancel = true, Classes = { "ink" } };
             var error = new TextBlock { TextWrapping = Avalonia.Media.TextWrapping.Wrap };
             var dialog = new Window
             {
@@ -840,7 +840,7 @@ internal sealed partial class MainWindow : Window
             {
                 Avalonia.Automation.AutomationProperties.SetName(input, label);
                 var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
-                var browse = new Button { Content = "参照…" };
+                var browse = new Button { Content = "参照…", Classes = { "ink" } };
                 Avalonia.Automation.AutomationProperties.SetName(browse, label + "を選ぶ");
                 Grid.SetColumn(browse, 1);
                 row.Children.Add(input);
@@ -869,8 +869,8 @@ internal sealed partial class MainWindow : Window
                 Text = string.Join(Environment.NewLine, settings.ExcludedDirectoryNames)
             };
             Avalonia.Automation.AutomationProperties.SetName(names, "除外フォルダ名");
-            var cancel = new Button { Name = "CancelExcludedFolders", Content = "キャンセル", IsCancel = true };
-            var save = new Button { Name = "SaveExcludedFolders", Content = "保存" };
+            var cancel = new Button { Name = "CancelExcludedFolders", Content = "キャンセル", IsCancel = true, Classes = { "ink" } };
+            var save = new Button { Name = "SaveExcludedFolders", Content = "保存", Classes = { "ink", "primary" } };
             var dialog = new Window
             {
                 Title = "除外フォルダの設定",
