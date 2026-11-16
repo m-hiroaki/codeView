@@ -366,8 +366,34 @@ internal sealed partial class MainWindow : Window
         host.Children.Remove(menu);
         IInputElement? returnFocus = null;
         var closeOnClick = false;
+        Key? pressedAlt = null;
+        var altPressedAlone = false;
+        AddHandler(KeyDownEvent, (_, args) =>
+        {
+            if (pressedAlt == args.Key) return;
+            if (pressedAlt is null && args.Key is Key.LeftAlt or Key.RightAlt)
+            {
+                pressedAlt = args.Key;
+                altPressedAlone = args.KeyModifiers == KeyModifiers.Alt && !menu.IsOpen;
+            }
+            else altPressedAlone = false;
+        }, RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(KeyUpEvent, (_, args) =>
+        {
+            if (pressedAlt != args.Key) return;
+            pressedAlt = null;
+            if (!altPressedAlone || (args.KeyModifiers & ~KeyModifiers.Alt) != KeyModifiers.None || menu.IsOpen) return;
+            ToggleMenu();
+            args.Handled = true;
+        }, RoutingStrategies.Tunnel, handledEventsToo: true);
+        Deactivated += (_, _) =>
+        {
+            pressedAlt = null;
+            menu.Close();
+        };
         AddHandler(PointerPressedEvent, (_, args) =>
         {
+            altPressedAlone = false;
             if (args.Source != button && (args.Source is not ILogical logical || !button.IsLogicalAncestorOf(logical))) return;
             closeOnClick = menu.IsOpen;
             if (!closeOnClick) returnFocus = FocusManager?.GetFocusedElement();
@@ -399,6 +425,7 @@ internal sealed partial class MainWindow : Window
             returnFocus ??= FocusManager?.GetFocusedElement();
             host.Children.Add(menu);
             menu.IsVisible = true;
+            UpdateLayout();
             menu.Open();
         }
     }

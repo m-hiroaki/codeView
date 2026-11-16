@@ -62,17 +62,14 @@ internal sealed partial class GuiPerformanceProbe
                 return;
             }
             await CheckStartupArgumentsAsync(Require, ct);
-            var chromeMenu = _window.FindControl<Menu>("MainMenu");
-            if (chromeMenu is not null)
-            {
-                var menuButton = _window.FindControl<Button>("ChromeMenuButton")!;
-                Require(!chromeMenu.IsVisible && menuButton.IsVisible, "chrome-menu-hidden-until-requested");
-                menuButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                await Frame(ct);
-                Require(chromeMenu.IsVisible && chromeMenu.IsOpen && chromeMenu.Items.OfType<MenuItem>()
-                    .Select(item => item.Header).SequenceEqual(new[] { "ファイル", "表示", "検索", "移動" }), "chrome-menu-shared-groups");
-                chromeMenu.Close();
-            }
+            var chromeMenu = _window.FindControl<Menu>("MainMenu")!;
+            var menuButton = _window.FindControl<Button>("ChromeMenuButton")!;
+            Require(!chromeMenu.IsVisible && menuButton.IsVisible, "chrome-menu-hidden-until-requested");
+            menuButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Frame(ct);
+            Require(chromeMenu.IsVisible && chromeMenu.IsOpen && chromeMenu.Items.OfType<MenuItem>()
+                .Select(item => item.Header).SequenceEqual(new[] { "ファイル", "表示", "検索", "移動" }), "chrome-menu-shared-groups");
+            chromeMenu.Close();
             await CheckSettingsDialogAsync(Require, ct);
             var root = _output + ".inputs";
             Directory.CreateDirectory(root);
@@ -90,6 +87,25 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             var original = _editor.Document;
             Require(ReferenceEquals(original, _viewModel.Document) && original.Text == text && _editor.IsReadOnly, "original-readonly-document");
+            _editor.TextArea.Focus();
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftAlt, KeyModifiers = KeyModifiers.Alt });
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftAlt, KeyModifiers = KeyModifiers.Alt });
+            Require(!chromeMenu.IsOpen, "chrome-menu-alt-repeat-waits-for-release");
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyUpEvent, Key = Key.LeftAlt });
+            var fileMenu = (MenuItem)chromeMenu.Items[0]!;
+            var viewMenu = (MenuItem)chromeMenu.Items[1]!;
+            Require(chromeMenu.IsOpen && fileMenu.IsFocused, "chrome-menu-alt-releases-and-focuses-menu");
+            RaiseSearchKey(fileMenu, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Right });
+            Require(viewMenu.IsFocused, "chrome-menu-arrow-selects-group");
+            RaiseSearchKey(viewMenu, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            Require(viewMenu.IsSubMenuOpen && _window.FocusManager?.GetFocusedElement() is MenuItem, "chrome-menu-enter-opens-group");
+            RaiseSearchKey((Control)_window.FocusManager!.GetFocusedElement()!, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
+            RaiseSearchKey(viewMenu, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
+            Require(!chromeMenu.IsOpen && _editor.TextArea.IsFocused, "chrome-menu-escape-restores-editor-focus");
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftAlt, KeyModifiers = KeyModifiers.Alt });
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.A, KeyModifiers = KeyModifiers.Alt });
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyUpEvent, Key = Key.LeftAlt });
+            Require(!chromeMenu.IsOpen && _editor.TextArea.IsFocused, "chrome-menu-alt-combination-keeps-editor-focus");
             _editor.Select(8, 0);
             _viewModel.SearchPanel.MatchCase = false;
             _viewModel.SearchPanel.WholeWord = false;
