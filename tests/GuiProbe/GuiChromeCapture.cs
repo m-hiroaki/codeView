@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media.Imaging;
+using Avalonia.VisualTree;
 using AvaloniaEdit;
 using CodeView.Operations;
 
@@ -85,6 +86,32 @@ internal sealed partial class GuiPerformanceProbe
             throw new InvalidOperationException($"Window did not maximize: {maximized}.");
         Save("maximized");
         _window.WindowState = WindowState.Normal;
+        await Frame(ct);
+        double? windowsDpiScale = null;
+        if (OperatingSystem.IsWindows())
+        {
+            var hwnd = _window.TryGetPlatformHandle()?.Handle ?? throw new InvalidOperationException("Missing Win32 window.");
+            if (!ChromeWin32.GetWindowRect(hwnd, out var originalRect))
+                throw new InvalidOperationException("Could not read window bounds for DPI validation.");
+            var originalDpi = ChromeWin32.GetDpiForWindow(hwnd);
+            if (originalDpi == 0) throw new InvalidOperationException("Could not read the window DPI.");
+            const uint ProbeDpi = 120;
+            const double ProbeScale = 1.25;
+            // Keep the outer frame inside the standard CI desktop while leaving 680 DIPs for content.
+            var scaledRect = new ChromeWin32.Rect { Left = 32, Top = 32, Right = 936, Bottom = 672 };
+            try
+            {
+                ChromeWin32.ChangeDpi(hwnd, ProbeDpi, ref scaledRect);
+                await Frame(ct);
+                await Frame(ct);
+                if (Math.Abs(_window.RenderScaling - ProbeScale) > 0.001)
+                    throw new InvalidOperationException("The native DPI event did not set the expected render scale.");
+                CheckHeader(longPath);
+                Save("windows-125dpi", ProbeScale);
+                windowsDpiScale = _window.RenderScaling;
+            }
+            finally { ChromeWin32.ChangeDpi(hwnd, originalDpi, ref originalRect); }
+        }
         _window.Width = normalWidth;
         _window.Height = normalHeight;
         await File.WriteAllTextAsync(_output + ".chrome.json", JsonSerializer.Serialize(new
@@ -93,6 +120,7 @@ internal sealed partial class GuiPerformanceProbe
             MinimumWidth = minimum.Width, MinimumHeight = minimum.Height,
             MaximizedWidth = maximized.Width, MaximizedHeight = maximized.Height,
             AppKitOption = appKitOption,
+            WindowsDpiEventScale = windowsDpiScale,
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement
         }), ct);
@@ -107,13 +135,22 @@ internal sealed partial class GuiPerformanceProbe
                 || menu.Bounds.Right > breadcrumb.Bounds.Left || breadcrumb.Bounds.Right > search.Bounds.Left
                 || search.Bounds.Right > header.Bounds.Width + 0.5 || !search.IsEffectivelyVisible)
                 throw new InvalidOperationException("Window header controls overlap or lose the source path.");
+            if (!OperatingSystem.IsWindows()) return;
+            var caption = _window.GetVisualDescendants().OfType<Button>()
+                .Where(button => button.Name is "PART_MinimizeButton" or "PART_MaximizeButton" or "PART_CloseButton"
+                    && button.IsEffectivelyVisible)
+                .Select(button => button.TranslatePoint(default, _window))
+                .OfType<Point>().ToArray();
+            var searchEdge = search.TranslatePoint(new Point(search.Bounds.Width, 0), _window);
+            if (caption.Length != 3 || searchEdge is null || caption.Any(point => point.X < searchEdge.Value.X))
+                throw new InvalidOperationException("Windows caption buttons overlap the search button or are unavailable.");
         }
 
-        void Save(string state)
+        void Save(string state, double rasterScale = 1)
         {
             var host = _window.FindControl<Grid>("MainLayout")!;
-            using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(host.Bounds.Width),
-                (int)Math.Ceiling(host.Bounds.Height)), new Vector(96, 96));
+            using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(host.Bounds.Width * rasterScale),
+                (int)Math.Ceiling(host.Bounds.Height * rasterScale)), new Vector(96 * rasterScale, 96 * rasterScale));
             bitmap.Render(host);
             bitmap.Save($"{_output}.chrome-{state}.png", PngBitmapEncoderOptions.Default);
         }
