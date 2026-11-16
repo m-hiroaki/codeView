@@ -566,7 +566,7 @@ F-06・F-07の拡張として、C#はRoslyn Language Server、C/C++はclangdをL
   - [ ] **P5-12-07：両OSで表示・操作を検証し、文書を更新する**
     依存：P5-12-02〜P5-12-05。完了条件：両OSで空画面、長いパス、多数タブ、本文と検索の同時表示を確認する。最小ウィンドウ幅、最大化、高DPI、キーボードのみの操作とフォーカスを検証する。通常起動と代表ファイルのスクロールは変更前後の同条件で確認し、表示サイズとパネルの有無を記録する。README・基本設計・詳細設計と操作図を実際の画面に合わせる。検索とTrailの同時表示はP5-12-06で確認する。
 
-    検証記録（2026-11-16）。WindowsとmacOSで各150項目を3回確認した。対象は共通メニューとキーボード操作、空画面、長い日本語パス、同名タブ、多数タブ、本文と検索の同時表示、最小幅680 DIPと最大化。macOSのNative AOT版で☰、矢印・Enter・Esc、ウィンドウの拡大を確認した。WindowsのNative AOT版ではAlt／Esc、Ctrl+WとAlt+F4を確認した。macOSのOption単独はAvaloniaのキーイベントで検証した。Windowsの実機高DPIとスナップの確認は未実施。[Windowsの画面検証](https://github.com/m-hiroaki/codeView/actions/runs/43875370917/job/133326909213)
+    検証記録（2026-11-16）。WindowsとmacOSで各150項目を3回確認した。対象は共通メニューとキーボード操作、空画面、長い日本語パス、同名タブ、多数タブ、本文と検索の同時表示、最小幅680 DIPと最大化。macOSのNative AOT版で☰、矢印・Enter・Esc、ウィンドウの拡大を確認した。WindowsのNative AOT版ではAlt／Esc、Ctrl+W、Alt+F4、ファイルの複数選択とキャンセル、フォルダ選択を確認した。macOSのOption単独はAvaloniaのキーイベントで検証した。Windowsの実機高DPIとスナップの確認は未実施。[Windowsの画面検証](https://github.com/m-hiroaki/codeView/actions/runs/43875370917/job/133326909213)・[Windows Native AOTの操作検証](https://github.com/m-hiroaki/codeView/actions/runs/43875966939)
 
     変更前後を各3回計測した。1,200行の本文とツリーを表示し、検索パネルを閉じて48フレーム分スクロールした。起動はプロセス開始の計測点からウィンドウのOpenedまで、スクロールはアニメーションコールバック間隔の中央値。表は3回分の中央値を示す。
 
