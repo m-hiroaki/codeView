@@ -5,9 +5,26 @@
         x:Class="CodeView.Presentation.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}" Width="1180" Height="800" MinWidth="680" MinHeight="460"
-        Background="#14181F">
+        Background="#14181F" ExtendClientAreaToDecorationsHint="True" ExtendClientAreaTitleBarHeightHint="40">
+    <Window.WindowDecorationsTheme>
+        <ControlTheme TargetType="WindowDrawnDecorations" BasedOn="{StaticResource {x:Type WindowDrawnDecorations}}">
+            <Style Selector="^ /template/ Panel#PART_TitleTextPanel">
+                <Setter Property="IsVisible" Value="False" />
+            </Style>
+        </ControlTheme>
+    </Window.WindowDecorationsTheme>
     <Grid x:Name="MainLayout" RowDefinitions="Auto,*,0,Auto,Auto">
-        <Menu Background="#191E26">
+        <StackPanel>
+        <Grid x:Name="ChromeHeader" Height="40" ColumnDefinitions="*,Auto" Background="#14181F"
+              WindowDecorationProperties.ElementRole="TitleBar">
+            <TextBlock x:Name="BreadcrumbText" Text="{Binding Breadcrumb}" ToolTip.Tip="{Binding BreadcrumbPath}"
+                       VerticalAlignment="Center" Margin="12,0,8,0" TextTrimming="LeadingCharacterEllipsis"
+                       FontSize="12" FontWeight="Medium" />
+            <Button x:Name="ChromeSearch" Grid.Column="1" Content="検索" Click="ShowSearchClicked"
+                    IsEnabled="{Binding CanSearchWorkspace}" WindowDecorationProperties.ElementRole="User"
+                    Background="Transparent" BorderThickness="0" Margin="0,0,6,0" FontSize="12" />
+        </Grid>
+        <Menu x:Name="MainMenu" Background="#191E26">
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
                 <MenuItem Header="フォルダを開く…" Click="OpenFolderClicked" />
@@ -46,6 +63,7 @@
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
             </MenuItem>
         </Menu>
+        </StackPanel>
         <Grid x:Name="DocumentLayout" Grid.Row="1" ColumnDefinitions="0,*">
             <Border x:Name="FileTreePane" Margin="0,0,6,0" Background="#191E26" BorderBrush="#303A48" BorderThickness="0,0,1,0" IsVisible="{Binding IsTreeVisible}">
                 <Grid RowDefinitions="Auto,Auto,*">

@@ -38,6 +38,7 @@ internal sealed partial class MainWindow : Window
         GuiPerformanceProbe.Checkpoint("window-xaml-loaded");
 #endif
         DataContext = viewModel;
+        ConfigureChrome();
         ConfigureResizablePanels(viewModel);
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
@@ -332,6 +333,25 @@ internal sealed partial class MainWindow : Window
             Title = "ファイルを開く", AllowMultiple = true
         });
         await OpenPickerSelectionAsync(selected);
+    }
+
+    private void ConfigureChrome()
+    {
+        var root = this.FindControl<Grid>("MainLayout")!;
+        var header = this.FindControl<Grid>("ChromeHeader")!;
+        PropertyChanged += (_, change) =>
+        {
+            if (change.Property == IsExtendedIntoWindowDecorationsProperty || change.Property == WindowStateProperty
+                || change.Property == OffScreenMarginProperty) Update();
+        };
+        Update();
+
+        void Update()
+        {
+            root.Margin = IsExtendedIntoWindowDecorations ? OffScreenMargin : default;
+            header.Margin = !IsExtendedIntoWindowDecorations || WindowState == WindowState.FullScreen ? default
+                : OperatingSystem.IsMacOS() ? new Thickness(76, 0, 0, 0) : new Thickness(0, 0, 188, 0);
+        }
     }
 
     private void ConfigureResizablePanels(MainWindowViewModel viewModel)

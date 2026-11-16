@@ -77,6 +77,25 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     }
     public string FilePath => _filePath;
     public string WindowTitle => FilePath.Length == 0 ? "codeView" : $"{FilePath} — codeView";
+    public string Breadcrumb => FormatBreadcrumb(WorkspacePath, FilePath);
+    public string BreadcrumbPath => FilePath.Length == 0 ? WorkspacePath : FilePath;
+
+    internal static string FormatBreadcrumb(string workspace, string file)
+    {
+        if (workspace.Length != 0)
+        {
+            var name = Path.GetFileName(Path.TrimEndingDirectorySeparator(workspace));
+            if (name.Length == 0) name = workspace;
+            if (file.Length == 0) return name;
+            var relative = Path.GetRelativePath(workspace, file);
+            if (!Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                return name + " / " + relative.Replace(Path.DirectorySeparatorChar.ToString(), " / ");
+        }
+        if (file.Length == 0) return "codeView";
+        var parent = Path.GetDirectoryName(file);
+        var folder = Path.GetFileName(parent);
+        return string.IsNullOrEmpty(folder) ? Path.GetFileName(file) : folder + " / " + Path.GetFileName(file);
+    }
     public string Status => _status;
     public string EncodingName => _encodingName;
     public string EncodingLabel => HasDocument ? _encodingName : "文字コードを指定…";
@@ -621,7 +640,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         SearchPanel.RefreshWorkspace();
         Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible),
-            nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel));
+            nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel), nameof(Breadcrumb), nameof(BreadcrumbPath));
     }
 
     private static string ErrorText(ErrorCode code) => code switch
@@ -739,7 +758,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                     _ => ""
                 });
             if (changedDocument) Changed(nameof(Document), nameof(HasDocument));
-            Changed(nameof(FilePath), nameof(WindowTitle), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding),
+            Changed(nameof(FilePath), nameof(WindowTitle), nameof(Breadcrumb), nameof(BreadcrumbPath), nameof(EncodingName), nameof(EncodingLabel), nameof(CanReopenEncoding),
                 nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel));
         }
         finally { _attaching = false; }
