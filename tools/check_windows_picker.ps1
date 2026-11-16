@@ -101,6 +101,8 @@ $appPath = (Resolve-Path -LiteralPath $App).Path
 $outputPath = [IO.Path]::GetFullPath($Output)
 $folder = Join-Path (Split-Path $outputPath) '選択 テスト'
 New-Item -ItemType Directory -Path $folder -Force | Out-Null
+$folderMarker = 'フォルダ選択確認'
+New-Item -ItemType Directory -Path (Join-Path $folder $folderMarker) -Force | Out-Null
 $files = @((Join-Path $folder '日本語 1.cs'), (Join-Path $folder '日本語 2.cs'))
 Set-Content -LiteralPath $files[0] -Value 'class First {}' -Encoding utf8
 Set-Content -LiteralPath $files[1] -Value 'class Second {}' -Encoding utf8
@@ -151,7 +153,7 @@ try {
     [System.Windows.Forms.Clipboard]::SetText($folder)
     [System.Windows.Forms.SendKeys]::SendWait('^a^v{ENTER}')
     $null = Wait-For 'target folder contents' {
-        Find-Named $dialog (Split-Path $files[0] -Leaf)
+        Find-Named $dialog $folderMarker
     }
     Invoke-Control (Wait-For 'native select folder button' { Find-ById $dialog '1' })
     $tree = Wait-For 'file tree' { Find-Named $window 'ファイルツリー' }
