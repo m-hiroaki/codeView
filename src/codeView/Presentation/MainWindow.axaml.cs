@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
@@ -39,6 +40,7 @@ internal sealed partial class MainWindow : Window
 #endif
         DataContext = viewModel;
         ConfigureChrome();
+        ConfigureMainMenu();
         ConfigureResizablePanels(viewModel);
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
@@ -354,6 +356,53 @@ internal sealed partial class MainWindow : Window
         }
     }
 
+    private void ConfigureMainMenu()
+    {
+        var host = this.FindControl<StackPanel>("ChromeStack")!;
+        var menu = this.FindControl<Menu>("MainMenu")!;
+        var button = this.FindControl<Button>("ChromeMenuButton")!;
+        // A detached Menu cannot receive the framework's global Alt processing.
+        menu.DataContext = _viewModel;
+        host.Children.Remove(menu);
+        IInputElement? returnFocus = null;
+        var closeOnClick = false;
+        AddHandler(PointerPressedEvent, (_, args) =>
+        {
+            if (args.Source != button && (args.Source is not ILogical logical || !button.IsLogicalAncestorOf(logical))) return;
+            closeOnClick = menu.IsOpen;
+            if (!closeOnClick) returnFocus = FocusManager?.GetFocusedElement();
+        }, RoutingStrategies.Tunnel);
+        button.Click += (_, _) =>
+        {
+            if (closeOnClick)
+            {
+                closeOnClick = false;
+                menu.Close();
+            }
+            else ToggleMenu();
+        };
+        menu.Closed += (_, args) =>
+        {
+            if (!ReferenceEquals(args.Source, menu)) return;
+            var focused = FocusManager?.GetFocusedElement();
+            menu.IsVisible = false;
+            host.Children.Remove(menu);
+            if (!_closing && (focused is null || focused == button || (focused is ILogical logical && menu.IsLogicalAncestorOf(logical))))
+                returnFocus?.Focus();
+            returnFocus = null;
+        };
+
+        void ToggleMenu()
+        {
+            if (_closing) return;
+            if (menu.IsOpen) { menu.Close(); return; }
+            returnFocus ??= FocusManager?.GetFocusedElement();
+            host.Children.Add(menu);
+            menu.IsVisible = true;
+            menu.Open();
+        }
+    }
+
     private void ConfigureResizablePanels(MainWindowViewModel viewModel)
     {
         const double MinimumTreeWidth = 160;
@@ -583,6 +632,15 @@ internal sealed partial class MainWindow : Window
     }
 
     private void ShowSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowSearch);
+    private void ToggleChromeSearchClicked(object? sender, RoutedEventArgs args) => Run(() =>
+    {
+        if (!_viewModel.SearchPanel.IsVisible) ShowSearch();
+        else
+        {
+            _viewModel.SearchPanel.IsVisible = false;
+            if (_viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
+        }
+    });
     private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);
     private void CancelSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Cancel);
     private void ClearSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Clear);

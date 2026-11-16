@@ -14,17 +14,21 @@
         </ControlTheme>
     </Window.WindowDecorationsTheme>
     <Grid x:Name="MainLayout" RowDefinitions="Auto,*,0,Auto,Auto">
-        <StackPanel>
-        <Grid x:Name="ChromeHeader" Height="40" ColumnDefinitions="*,Auto" Background="#14181F"
+        <StackPanel x:Name="ChromeStack">
+        <Grid x:Name="ChromeHeader" Height="40" ColumnDefinitions="Auto,*,Auto" Background="#14181F"
               WindowDecorationProperties.ElementRole="TitleBar">
-            <TextBlock x:Name="BreadcrumbText" Text="{Binding Breadcrumb}" ToolTip.Tip="{Binding BreadcrumbPath}"
-                       VerticalAlignment="Center" Margin="12,0,8,0" TextTrimming="LeadingCharacterEllipsis"
+            <Button x:Name="ChromeMenuButton" Content="☰" AutomationProperties.Name="メニュー" ToolTip.Tip="メニュー"
+                    Width="32" Height="28" Padding="0" Margin="4,0" WindowDecorationProperties.ElementRole="User"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center"
+                    Background="Transparent" BorderThickness="0" />
+            <TextBlock x:Name="BreadcrumbText" Grid.Column="1" Text="{Binding Breadcrumb}" ToolTip.Tip="{Binding BreadcrumbPath}"
+                       VerticalAlignment="Center" Margin="4,0,8,0" TextTrimming="LeadingCharacterEllipsis"
                        FontSize="12" FontWeight="Medium" />
-            <Button x:Name="ChromeSearch" Grid.Column="1" Content="検索" Click="ShowSearchClicked"
+            <Button x:Name="ChromeSearch" Grid.Column="2" Content="検索" Click="ToggleChromeSearchClicked"
                     IsEnabled="{Binding CanSearchWorkspace}" WindowDecorationProperties.ElementRole="User"
                     Background="Transparent" BorderThickness="0" Margin="0,0,6,0" FontSize="12" />
         </Grid>
-        <Menu x:Name="MainMenu" Background="#191E26">
+        <Menu x:Name="MainMenu" Background="#191E26" IsVisible="False" AutomationProperties.Name="メインメニュー">
             <MenuItem Header="ファイル">
                 <MenuItem x:Name="OpenMenu" Header="ファイルを開く…" Click="OpenClicked" />
                 <MenuItem Header="フォルダを開く…" Click="OpenFolderClicked" />
@@ -55,12 +59,12 @@
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
                 <MenuItem x:Name="FindDefinitionsMenu" Header="{Binding DefinitionMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindDefinitionsClicked" />
                 <MenuItem x:Name="FindReferencesMenu" Header="{Binding ReferencesMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
-                <MenuItem Header="ジャンプ履歴">
-                    <MenuItem x:Name="JumpBackMenu" Header="戻る" IsEnabled="{Binding CanJumpBack}" Click="JumpBackClicked" />
-                    <MenuItem x:Name="JumpForwardMenu" Header="進む" IsEnabled="{Binding CanJumpForward}" Click="JumpForwardClicked" />
-                </MenuItem>
                 <MenuItem x:Name="SemanticSettingsMenu" Header="意味解析の設定…" IsEnabled="{Binding CanSearchWorkspace}" Click="EditSemanticNavigationClicked" />
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
+            </MenuItem>
+            <MenuItem Header="移動">
+                <MenuItem x:Name="JumpBackMenu" Header="戻る" IsEnabled="{Binding CanJumpBack}" Click="JumpBackClicked" />
+                <MenuItem x:Name="JumpForwardMenu" Header="進む" IsEnabled="{Binding CanJumpForward}" Click="JumpForwardClicked" />
             </MenuItem>
         </Menu>
         </StackPanel>

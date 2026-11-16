@@ -59,6 +59,7 @@ function Invoke-Control($Control) {
     }
 }
 function Open-Picker([string]$Title) {
+    Click-Control (Wait-For 'menu button' { Find-Named $window 'メニュー' })
     $menu = Wait-For 'File menu' { Find-Named $window 'ファイル' }
     Click-Control $menu
     $item = Wait-For $Title {

@@ -62,6 +62,17 @@ internal sealed partial class GuiPerformanceProbe
                 return;
             }
             await CheckStartupArgumentsAsync(Require, ct);
+            var chromeMenu = _window.FindControl<Menu>("MainMenu");
+            if (chromeMenu is not null)
+            {
+                var menuButton = _window.FindControl<Button>("ChromeMenuButton")!;
+                Require(!chromeMenu.IsVisible && menuButton.IsVisible, "chrome-menu-hidden-until-requested");
+                menuButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await Frame(ct);
+                Require(chromeMenu.IsVisible && chromeMenu.IsOpen && chromeMenu.Items.OfType<MenuItem>()
+                    .Select(item => item.Header).SequenceEqual(new[] { "ファイル", "表示", "検索", "移動" }), "chrome-menu-shared-groups");
+                chromeMenu.Close();
+            }
             await CheckSettingsDialogAsync(Require, ct);
             var root = _output + ".inputs";
             Directory.CreateDirectory(root);
