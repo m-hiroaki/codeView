@@ -43,7 +43,7 @@
     </Window.Styles>
     <Window.WindowDecorationsTheme>
         <ControlTheme TargetType="WindowDrawnDecorations" BasedOn="{StaticResource {x:Type WindowDrawnDecorations}}">
-            <Style Selector="^ /template/ Panel#PART_TitleTextPanel">
+            <Style Selector="^:has-titlebar /template/ Panel#PART_TitleTextPanel">
                 <Setter Property="IsVisible" Value="False" />
             </Style>
         </ControlTheme>

@@ -33,6 +33,7 @@ internal sealed partial class GuiPerformanceProbe
         view.Offset = default;
         await Frame(ct);
         await Frame(ct);
+        CheckHeader(body);
         Save("document");
         bool? appKitOption = OperatingSystem.IsMacOS() ? CheckAppKitOption() : null;
 
@@ -107,7 +108,7 @@ internal sealed partial class GuiPerformanceProbe
                 if (Math.Abs(_window.RenderScaling - ProbeScale) > 0.001)
                     throw new InvalidOperationException("The native DPI event did not set the expected render scale.");
                 CheckHeader(longPath);
-                Save("windows-125dpi", ProbeScale);
+                Save("windows-125dpi", ProbeScale, _window.GetVisualParent());
                 windowsDpiScale = _window.RenderScaling;
             }
             finally { ChromeWin32.ChangeDpi(hwnd, originalDpi, ref originalRect); }
@@ -138,6 +139,10 @@ internal sealed partial class GuiPerformanceProbe
             if (!OperatingSystem.IsWindows()) return;
             // Avalonia hosts the client window and its drawn decorations as siblings.
             var host = _window.GetVisualParent() ?? throw new InvalidOperationException("Missing native window host.");
+            var titleText = host.GetVisualDescendants().OfType<Panel>()
+                .Single(panel => panel.Name == "PART_TitleTextPanel");
+            if (titleText.IsEffectivelyVisible || _window.Title != $"{path} — codeView")
+                throw new InvalidOperationException("Windows draws a duplicate title or loses the window name.");
             var caption = host.GetVisualDescendants().OfType<Button>()
                 .Where(button => button.Name is "PART_MinimizeButton" or "PART_MaximizeButton" or "PART_CloseButton"
                     && button.IsEffectivelyVisible)
@@ -148,9 +153,9 @@ internal sealed partial class GuiPerformanceProbe
                 throw new InvalidOperationException("Windows caption buttons overlap the search button or are unavailable.");
         }
 
-        void Save(string state, double rasterScale = 1)
+        void Save(string state, double rasterScale = 1, Visual? decorationsHost = null)
         {
-            var host = _window.FindControl<Grid>("MainLayout")!;
+            var host = decorationsHost ?? _window.FindControl<Grid>("MainLayout")!;
             using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(host.Bounds.Width * rasterScale),
                 (int)Math.Ceiling(host.Bounds.Height * rasterScale)), new Vector(96 * rasterScale, 96 * rasterScale));
             bitmap.Render(host);
