@@ -210,7 +210,7 @@
 | 全文検索       | Ctrl+Shift+F | Cmd+Shift+F |
 | ファイル内検索 | Ctrl+F       | Cmd+F       |
 | 定義へジャンプ | F12          | F12         |
-| 参照を検索     | Shift+F12    | Shift+F12   |
+| 参照を検索     | F1    | F1   |
 | タブを閉じる   | Ctrl+W       | Cmd+W       |
 
 ---

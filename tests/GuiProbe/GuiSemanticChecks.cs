@@ -73,7 +73,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
         Click(config, "DisableSemanticNavigation");
         await _viewModel.PendingWork.WaitAsync(ct);
         await OpenAndSelectAsync(Path.Combine(native, "Caller.cpp"), "RunCpp");
-        await SendKeyAsync(KeyModifiers.Shift);
+        await SendKeyAsync(Key.F1);
         require(!IsRunning(restarted) && _viewModel.ReferencesMenuLabel.Contains("名前一致")
             && panel.Description.Contains("名前一致") && panel.Rows.Count > 1, "semantic-switches-back-to-name-search");
 
@@ -107,11 +107,11 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
             var repeatedDefinition = measure ? (await JumpAsync(caller, target, symbol)).Total : (double?)null;
             await OpenAndSelectAsync(caller, symbol);
             var watch = Stopwatch.StartNew();
-            await SendKeyAsync(KeyModifiers.Shift);
+            await SendKeyAsync(Key.F1);
             var repeats = watch.Elapsed.TotalMilliseconds;
             require(panel.IsVisible && panel.Description.Contains("意味解析") && panel.Rows.Count == 1
                 && panel.Rows[0].FullPath == caller && panel.CanActivate(panel.Rows[0]),
-                $"semantic-{extension}-shift-f12-finds-symbol-reference");
+                $"semantic-{extension}-f1-finds-symbol-reference");
             timings.Add(new { Language = extension, elapsed.First, elapsed.Total,
                 RepeatedDefinitionMilliseconds = repeatedDefinition, ReferencesMilliseconds = repeats });
         }
@@ -124,7 +124,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
             while (_viewModel.FilePath == caller)
             {
                 panel.IsVisible = false;
-                await SendKeyAsync(KeyModifiers.None, scroll && first == 0);
+                await SendKeyAsync(Key.F12, scroll && first == 0);
                 if (first == 0) first = watch.Elapsed.TotalMilliseconds;
                 if (_viewModel.FilePath != caller || !retry) break;
                 if (!panel.Summary.Contains("部分結果"))
@@ -146,9 +146,9 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
             _editor.Select(offset + 1, 0);
         }
 
-        async Task SendKeyAsync(KeyModifiers modifiers, bool scroll = false)
+        async Task SendKeyAsync(Key symbolKey, bool scroll = false)
         {
-            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers };
+            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = symbolKey };
             raiseSearchKey(_editor.TextArea, key);
             var pending = _viewModel.PendingWork;
             if (scroll)
@@ -170,7 +170,7 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
             await Frame(ct);
             // The result selection is dispatched at Loaded priority after the search updates the tab.
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background, ct);
-            if (!key.Handled) throw new InvalidOperationException("F12 was not handled.");
+            if (!key.Handled) throw new InvalidOperationException($"Symbol shortcut {symbolKey} was not handled.");
         }
 
         static void Set(Window window, string control, string value) =>

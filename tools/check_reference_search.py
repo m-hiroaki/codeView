@@ -17,7 +17,7 @@ CHECKS = [
     'chrome-menu-arrow-selects-group', 'chrome-menu-enter-opens-group', 'chrome-menu-escape-restores-editor-focus',
     'chrome-menu-alt-combination-keeps-editor-focus',
     'reading-current-line-uses-editor-layer',
-    'syntax-colors-visible', 'shift-f12-source-identifier', 'fixed-reference-options',
+    'syntax-colors-visible', 'f1-source-identifier', 'fixed-reference-options',
     'all-text-case-sensitive-word-results', 'visible-name-match-disclaimer', 'search-preserves-source',
     'menu-selection-reference-search', 'result-enter-original-cp932-selection',
     'syntax-detaches-for-unsupported-tab', 'result-enter-editor-focus',
@@ -90,11 +90,11 @@ CHECKS = [
 
 SEMANTIC_CHECKS = [
     'semantic-startup-uses-simple-search', 'semantic-folder-open-enables-roslyn', 'semantic-folder-open-starts-roslyn-before-f12',
-    'semantic-cs-f12-selects-original-definition', 'semantic-cs-shift-f12-finds-symbol-reference',
+    'semantic-cs-f12-selects-original-definition', 'semantic-cs-f1-finds-symbol-reference',
     'semantic-dialog-omits-server-paths', 'semantic-invalid-project-keeps-existing-session',
     'semantic-workspace-switch-stops-server', 'semantic-manual-enable-defers-server-launch',
-    'semantic-c-f12-selects-original-definition', 'semantic-c-shift-f12-finds-symbol-reference',
-    'semantic-cpp-f12-selects-original-definition', 'semantic-cpp-shift-f12-finds-symbol-reference',
+    'semantic-c-f12-selects-original-definition', 'semantic-c-f1-finds-symbol-reference',
+    'semantic-cpp-f12-selects-original-definition', 'semantic-cpp-f1-finds-symbol-reference',
     'semantic-restarts-after-server-crash', 'semantic-switches-back-to-name-search',
     'semantic-server-active-before-app-exit',
 ]

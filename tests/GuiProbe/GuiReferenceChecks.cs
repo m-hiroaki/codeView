@@ -110,7 +110,7 @@ internal sealed partial class GuiPerformanceProbe
             _viewModel.SearchPanel.MatchCase = false;
             _viewModel.SearchPanel.WholeWord = false;
             _viewModel.SearchPanel.UseRegex = true;
-            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift };
+            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F1 };
             RaiseSearchKey(_editor.TextArea, key);
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct);
@@ -123,7 +123,9 @@ internal sealed partial class GuiPerformanceProbe
                 && textView.VisualLines.SelectMany(line => line.Elements)
                     .Select(element => element.TextRunProperties.ForegroundBrush?.ToString()).Distinct().Count() > 1,
                 "syntax-colors-visible");
-            Require(key.Handled && panel.Query == "Target", "shift-f12-source-identifier");
+            Require(key.Handled && panel.Query == "Target"
+                && _window.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture is { Key: Key.F1, KeyModifiers: KeyModifiers.None },
+                "f1-source-identifier");
             Require(panel.MatchCase && panel.WholeWord && !panel.UseRegex, "fixed-reference-options");
             Require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate), "all-text-case-sensitive-word-results");
             var description = _window.FindControl<TextBlock>("SearchDescription")!;
@@ -338,7 +340,7 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             Require(Math.Abs(treePane.Bounds.Width - resizedWidth) < 1, "tree-show-restores-width");
             _viewModel.CloseWorkspace();
-            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = KeyModifiers.Shift });
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F1 });
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(_viewModel.Status.Contains("フォルダを開いて"), "missing-workspace-guidance");
             var longLine = Path.Combine(root, "long-line.cs");
@@ -1146,28 +1148,28 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         var panel = _viewModel.SearchPanel;
         var callOffset = call.IndexOf("Compute", StringComparison.Ordinal);
-        async Task PressAsync(KeyModifiers modifiers)
+        async Task PressAsync(Key symbolKey)
         {
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs
-                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers });
+                { RoutedEvent = InputElement.KeyDownEvent, Key = symbolKey });
             await _viewModel.PendingWork.WaitAsync(ct);
             await Frame(ct);
             await Frame(ct);
         }
 
         _editor.Select(callOffset + 1, 0);
-        await PressAsync(KeyModifiers.None);
+        await PressAsync(Key.F12);
         require(panel.Rows.Count == 1 && panel.Rows[0].FullPath == declaration && panel.CanActivate(panel.Rows[0])
             && panel.Summary.Contains("部分結果") && _viewModel.FilePath == caller && _editor.SelectionLength == 0,
             "method-definition-partial-search-does-not-auto-jump");
         File.Delete(incomplete);
-        await PressAsync(KeyModifiers.None);
+        await PressAsync(Key.F12);
         var expected = method.LastIndexOf("Compute", StringComparison.Ordinal);
         require(panel.Rows.Count == 1 && panel.Rows[0].After.Contains("メソッド")
             && _viewModel.FilePath == declaration && _editor.SelectionStart == expected && _editor.SelectedText == "Compute",
             "method-definition-excludes-comment-and-string");
 
-        await PressAsync(KeyModifiers.Shift);
+        await PressAsync(Key.F1);
         require(panel.Rows.Count == 4 && panel.Rows.All(panel.CanActivate)
             && panel.Rows.Count(row => row.FullPath == declaration) == 3
             && panel.Rows.Count(row => row.FullPath == caller) == 1, "method-reference-includes-comment-and-string");
@@ -1182,7 +1184,7 @@ internal sealed partial class GuiPerformanceProbe
             await _viewModel.OpenFilesAsync([caller], OpenOrigin.Menu);
             await Frame(ct);
             _editor.Select(call.IndexOf(name, StringComparison.Ordinal) + 1, 0);
-            await PressAsync(KeyModifiers.None);
+            await PressAsync(Key.F12);
             var offset = method.LastIndexOf(name, StringComparison.Ordinal);
             require(panel.Rows.Count == 1 && panel.CanActivate(panel.Rows[0]) && panel.Rows[0].After.Contains(kind)
                 && _viewModel.FilePath == declaration && _editor.SelectionStart == offset
@@ -1193,7 +1195,7 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         var missing = call.IndexOf("MissingTarget", StringComparison.Ordinal) + 1;
         _editor.Select(missing, 0);
-        await PressAsync(KeyModifiers.None);
+        await PressAsync(Key.F12);
         require(panel.Rows.Count == 0 && panel.Summary.Contains("定義が見つかりません")
             && _viewModel.FilePath == caller && _editor.SelectionStart == missing && _editor.SelectionLength == 0,
             "basic-definition-missing-keeps-source");

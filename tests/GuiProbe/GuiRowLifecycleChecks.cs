@@ -137,12 +137,12 @@ internal sealed partial class GuiPerformanceProbe
             const string name = "LONG_MATCH";
             var definition = Path.Combine(Path.GetDirectoryName(primaryPath)!, "definition.cs");
             TrySelectOriginal(reference + 1, name.Length);
-            await SendSymbolKeyAsync(KeyModifiers.Shift);
+            await SendSymbolKeyAsync(Key.F1);
             var hit = panel.Rows.SingleOrDefault(row => row.FullPath == primaryPath && row.Hit.Range.Offset == reference + 1);
             Check("contextual-reference-search-uses-original-selection", panel.Query == name &&
                 hit is not null && panel.CanActivate(hit) && panel.Rows.Any(row => row.FullPath == definition));
 
-            await SendSymbolKeyAsync(KeyModifiers.None);
+            await SendSymbolKeyAsync(Key.F12);
             var candidate = panel.Rows.SingleOrDefault(row => row.FullPath == definition && row.Hit.Range.Offset == "class ".Length);
             RequireRows(panel.Query == name && candidate is not null && panel.CanActivate(candidate),
                 "Definition search did not report the original declaration.");
@@ -177,9 +177,9 @@ internal sealed partial class GuiPerformanceProbe
         return new { Checks = checks, SearchOutcome = scalarLength == 0 ? "empty" : "hit", WorkloadStarts = _rowWorkStarts,
             History = "weak handle keys, scalar values only" };
 
-        async Task SendSymbolKeyAsync(KeyModifiers modifiers)
+        async Task SendSymbolKeyAsync(Key symbolKey)
         {
-            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12, KeyModifiers = modifiers };
+            var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = symbolKey };
             _scriptedRowKey = key;
             try { _editor.TextArea.RaiseEvent(key); }
             finally { _scriptedRowKey = null; }

@@ -46,7 +46,7 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("OpenMenu")!.InputGesture = new KeyGesture(Key.O, modifier);
         this.FindControl<MenuItem>("CloseMenu")!.InputGesture = new KeyGesture(Key.W, modifier);
         this.FindControl<MenuItem>("FindDefinitionsMenu")!.InputGesture = new KeyGesture(Key.F12);
-        this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F12, KeyModifiers.Shift);
+        this.FindControl<MenuItem>("FindReferencesMenu")!.InputGesture = new KeyGesture(Key.F1);
         var jumpModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Alt;
         this.FindControl<MenuItem>("JumpBackMenu")!.InputGesture = new KeyGesture(Key.Left, jumpModifier);
         this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(Key.Right, jumpModifier);
@@ -99,10 +99,10 @@ internal sealed partial class MainWindow : Window
         AddHandler(PointerWheelChangedEvent, (_, _) => viewModel.RecordUserInteraction(), RoutingStrategies.Tunnel, handledEventsToo: true);
         KeyDown += async (_, key) =>
         {
-            if (key.Key == Key.F12 && key.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift)
+            if (key.KeyModifiers == KeyModifiers.None && key.Key is Key.F1 or Key.F12)
             {
                 key.Handled = true;
-                await RunAsync(() => FindSymbolAsync(definitions: key.KeyModifiers == KeyModifiers.None));
+                await RunAsync(() => FindSymbolAsync(definitions: key.Key == Key.F12));
                 return;
             }
             if (key.Key is Key.Enter or Key.Escape && await HandleSearchKeyAsync(key)) return;
