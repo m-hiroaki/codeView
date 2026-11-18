@@ -2,8 +2,10 @@ using System.ComponentModel;
 using System.Threading.Channels;
 using CodeView.Contracts;
 using CodeView.Documents;
+using CodeView.Navigation;
 using CodeView.Operations;
 using CodeView.Search;
+using AvaloniaEdit.Document;
 
 namespace CodeView.Presentation;
 
@@ -16,6 +18,10 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
     private CancellationTokenSource? _request;
     private bool _visible, _stopped, _running, _navigating;
     private string? _navigationNotice;
+    private readonly List<TextRange> _identifierMatches = [];
+    private string? _identifier;
+    private CancellationTokenSource? _identifierRequest;
+    private bool _identifierComplete;
 
     private sealed class State(DocumentHandle? document)
     {
@@ -29,10 +35,110 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? MatchesChanged;
+    internal event Action? IdentifierMatchesChanged;
     public event Action? FatalFailure;
     internal long Revision { get; private set; }
     public Task PendingWork => Task.WhenAll(_work.Append(_failure));
     public IReadOnlyList<TextRange> Matches => _active is { } active && IsVisible ? active.Matches : Array.Empty<TextRange>();
+    internal IReadOnlyList<TextRange> IdentifierMatches => _identifierMatches;
+
+    internal void HighlightIdentifier(TextDocument document, int offset, bool isCSharp)
+    {
+        if (_active?.Document is null || offset < 0 || offset >= document.TextLength)
+        {
+            ClearIdentifier();
+            return;
+        }
+        var start = Math.Max(0, offset - IdentifierExtractor.MaximumChars - 2);
+        var end = (int)Math.Min(document.TextLength, (long)offset + IdentifierExtractor.MaximumChars + 2);
+        var localOffset = offset - start;
+        if (!IdentifierExtractor.TryExtract(document.GetText(start, end - start), localOffset, localOffset, 0,
+                isCSharp, out var identifier, out var wordStart, out var wordLength)
+            || localOffset < wordStart || localOffset >= wordStart + wordLength)
+        {
+            ClearIdentifier();
+            return;
+        }
+        if (_identifier == identifier) return;
+        ClearIdentifier();
+        _identifier = identifier;
+        ResumeIdentifier();
+    }
+
+    internal bool ClearIdentifier()
+    {
+        if (_identifier is null) return false;
+        SuspendIdentifier();
+        _identifier = null;
+        _identifierComplete = false;
+        _identifierMatches.Clear();
+        IdentifierMatchesChanged?.Invoke();
+        return true;
+    }
+
+    private void SuspendIdentifier()
+    {
+        var request = _identifierRequest;
+        _identifierRequest = null;
+        request?.Cancel();
+    }
+
+    private void ResumeIdentifier()
+    {
+        if (_stopped || _request is not null || _identifierRequest is not null || _identifierComplete
+            || _identifier is not { } identifier || _active?.Document is not { } document) return;
+        var request = _identifierRequest = new();
+        var retained = _identifierMatches.Count;
+        Track(ScanIdentifierAsync(), notifyFailure: true);
+
+        async Task ScanIdentifierAsync()
+        {
+            var ct = request.Token;
+            try
+            {
+                await Task.Delay(100, ct);
+                var channel = Channel.CreateBounded<TextRange[]>(new BoundedChannelOptions(2)
+                    { SingleReader = true, SingleWriter = true });
+                var worker = RunProducerAsync();
+                var drained = false;
+                try
+                {
+                    await foreach (var batch in channel.Reader.ReadAllAsync(ct))
+                    {
+                        if (!ReferenceEquals(_identifierRequest, request)) break;
+                        _identifierMatches.AddRange(batch);
+                        IdentifierMatchesChanged?.Invoke();
+                    }
+                    drained = ReferenceEquals(_identifierRequest, request);
+                    if (drained) _identifierComplete = true;
+                }
+                finally
+                {
+                    if (!drained) request.Cancel();
+                    try { await worker; }
+                    catch (OperationCanceledException error) when (!drained && ct.IsCancellationRequested
+                        && error.CancellationToken == ct) { }
+                }
+
+                async Task RunProducerAsync()
+                {
+                    try
+                    {
+                        await operations.RunInFileSearchAsync(document,
+                            lease => Produce(lease, identifier, new(MatchCase: true, WholeWord: true),
+                                retained, channel.Writer, ct), ct);
+                    }
+                    finally { channel.Writer.TryComplete(); }
+                }
+            }
+            catch (OperationCanceledException error) when (ct.IsCancellationRequested && error.CancellationToken == ct) { }
+            finally
+            {
+                if (ReferenceEquals(_identifierRequest, request)) _identifierRequest = null;
+                request.Dispose();
+            }
+        }
+    }
 
     public bool CanOpen => _active?.Document is not null;
 
@@ -106,6 +212,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         if (tab is null)
         {
             if (_active is null) return;
+            ClearIdentifier();
             Cancel();
             _active = null;
             Notify();
@@ -116,6 +223,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
         if (!_tabs.TryGetValue(tab, out var state))
             _tabs.Add(tab, state = new(document));
         if (ReferenceEquals(_active, state) && ReferenceEquals(state.Document, document)) return;
+        ClearIdentifier();
         Cancel();
         _active = state;
         if (!ReferenceEquals(state.Document, document))
@@ -317,6 +425,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
 
     private CancellationTokenSource BeginRequest(bool preserveNavigation = false)
     {
+        SuspendIdentifier();
         // A scan resumed by navigation must preserve the move's revision and notice.
         if (!preserveNavigation) Cancel();
         _running = true;
@@ -350,6 +459,7 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
     public void Stop()
     {
         _stopped = true;
+        ClearIdentifier();
         Cancel();
         _tabs.Clear();
         _active = null;
@@ -384,5 +494,6 @@ internal sealed class InFileSearchViewModel(AppOperations operations) : INotifyP
     {
         PropertyChanged?.Invoke(this, new(nameof(Summary)));
         MatchesChanged?.Invoke();
+        ResumeIdentifier();
     }
 }

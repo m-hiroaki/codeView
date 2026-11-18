@@ -10,6 +10,45 @@ namespace CodeView.Tests.Presentation;
 internal sealed class InFileSearchTests
 {
     [Test]
+    public void IdentifierHighlightsUseWholeWordsAndPreserveTheSearchQuery() =>
+        WithView("日本語 日本語列 日本語\r\nCount count @count", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.Query = "列";
+            search.HighlightIdentifier(view.Document!, 0, isCSharp: true);
+            // The explicit search owns the shared worker first.
+            await search.PendingWork;
+            await search.PendingWork;
+            Assert.That(search.IdentifierMatches.Select(match => match.Offset), Is.EqualTo(new long[] { 0, 9 }));
+            Assert.That(search.Query, Is.EqualTo("列"));
+            search.HighlightIdentifier(view.Document!, view.Document!.Text.LastIndexOf('@'), isCSharp: true);
+            await search.PendingWork;
+            Assert.That(search.IdentifierMatches.Count, Is.EqualTo(2));
+            search.HighlightIdentifier(view.Document!, 3, isCSharp: true);
+            Assert.That(search.IdentifierMatches, Is.Empty);
+        });
+
+    [Test]
+    public void IdentifierScanKeepsLatestClickCapsResultsAndClearsOnTabChanges() =>
+        WithView("other " + string.Concat(Enumerable.Repeat("word ", SearchLimits.ResultLimit + 1)), async (view, first, second) =>
+        {
+            var search = view.InFileSearch;
+            search.HighlightIdentifier(view.Document!, 0, isCSharp: false);
+            search.HighlightIdentifier(view.Document!, 6, isCSharp: false);
+            await search.PendingWork;
+            Assert.That(search.IdentifierMatches.Count, Is.EqualTo(SearchLimits.ResultLimit));
+            Assert.That(search.IdentifierMatches[0].Offset, Is.EqualTo(6));
+            view.SelectedTab = view.Tabs.Single(tab => tab.FullPath == second);
+            Assert.That(search.IdentifierMatches, Is.Empty);
+            view.SelectedTab = view.Tabs.Single(tab => tab.FullPath == first);
+            search.HighlightIdentifier(view.Document!, 6, isCSharp: false);
+            await view.ReloadAsync();
+            await search.PendingWork;
+            Assert.That(search.IdentifierMatches, Is.Empty);
+        });
+
+    [Test]
     public void FindsNextPreviousAndWrapsUsingOriginalOffsets() => WithView("foo\r\nfood Foo foo", async (view, _, _) =>
     {
         var search = view.InFileSearch;

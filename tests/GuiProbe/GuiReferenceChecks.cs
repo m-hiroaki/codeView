@@ -87,6 +87,7 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             var original = _editor.Document;
             Require(ReferenceEquals(original, _viewModel.Document) && original.Text == text && _editor.IsReadOnly, "original-readonly-document");
+            await CheckIdentifierClicksAsync(Require, ct);
             _editor.TextArea.Focus();
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftAlt, KeyModifiers = KeyModifiers.Alt });
             RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.LeftAlt, KeyModifiers = KeyModifiers.Alt });

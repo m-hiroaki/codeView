@@ -116,6 +116,7 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        ConfigureIdentifierClicks(editor);
         var leftMargins = editor.TextArea.LeftMargins;
         leftMargins.Remove(leftMargins.Single(DottedLineMargin.IsDottedLineMargin));
         leftMargins.OfType<LineNumberMargin>().Single().Margin = new Thickness(0, 0, 16, 0);
@@ -531,6 +532,11 @@ internal sealed partial class MainWindow : Window
         {
             key.Handled = true;
             Run(HideInFileSearch);
+            return true;
+        }
+        if (editor.TextArea.IsKeyboardFocusWithin && _viewModel.InFileSearch.ClearIdentifier())
+        {
+            key.Handled = true;
             return true;
         }
         return false;
