@@ -117,6 +117,14 @@ internal sealed partial class MainWindow : Window
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
         ConfigureIdentifierClicks(editor);
+        // AvaloniaEdit can consume Escape even without a selection.
+        AddHandler(KeyDownEvent, (_, key) =>
+        {
+            if (key.Key == Key.Escape && key.KeyModifiers == KeyModifiers.None && editor.TextArea.IsKeyboardFocusWithin
+                && editor.TextArea.Selection.IsEmpty && !viewModel.InFileSearch.IsVisible
+                && viewModel.InFileSearch.ClearIdentifier())
+                key.Handled = true;
+        }, RoutingStrategies.Tunnel);
         var leftMargins = editor.TextArea.LeftMargins;
         leftMargins.Remove(leftMargins.Single(DottedLineMargin.IsDottedLineMargin));
         leftMargins.OfType<LineNumberMargin>().Single().Margin = new Thickness(0, 0, 16, 0);
@@ -149,13 +157,26 @@ internal sealed partial class MainWindow : Window
             textView.Redraw();
         };
         InFileMatchRenderer? searchRenderer = null;
+        var identifierMarkers = this.FindControl<IdentifierScrollMarkers>("IdentifierMarkers")!;
+        var identifierStatus = this.FindControl<TextBlock>("IdentifierStatus")!;
+        viewModel.InFileSearch.IdentifierMatchesChanged += () =>
+        {
+            var matches = viewModel.InFileSearch.IdentifierMatches;
+            identifierMarkers.Update(editor, viewModel.Document, matches);
+            identifierStatus.IsVisible = matches.Count == Search.SearchLimits.ResultLimit;
+            UpdateSearchRenderer();
+        };
         viewModel.InFileSearch.MatchesChanged += () =>
         {
 #if CODEVIEW_PERFORMANCE_PROBE
             if (GuiPerformanceProbe.TryApplyContextualMatches(viewModel.InFileSearch)) return;
 #endif
+            UpdateSearchRenderer();
+        };
+        void UpdateSearchRenderer()
+        {
             var textView = editor.TextArea.TextView;
-            if (viewModel.InFileSearch.IsVisible)
+            if (viewModel.InFileSearch.IsVisible || viewModel.InFileSearch.IdentifierMatches.Count != 0)
             {
                 if (searchRenderer is null)
                 {
@@ -170,7 +191,7 @@ internal sealed partial class MainWindow : Window
                 textView.InvalidateLayer(existing.Layer);
                 searchRenderer = null;
             }
-        };
+        }
         viewModel.InFileSearch.FatalFailure += FailAndClose;
         // Text drag/drop is disabled in editor options. Its detach handler sets a local false,
         // so explicitly allow file drops to bubble from the text area to this window.

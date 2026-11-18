@@ -216,6 +216,7 @@
                 <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" HighlightCurrentLine="True" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
+        <vm:IdentifierScrollMarkers Grid.Row="2" x:Name="IdentifierMarkers" IsHitTestVisible="False" />
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
             <TextBlock Text="codeView" FontSize="28" Foreground="{StaticResource MutedForeground}" HorizontalAlignment="Center" />
@@ -288,6 +289,8 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock x:Name="ReadOnlyStatus" Text="読み取り専用" FontSize="11" Foreground="{StaticResource MutedForeground}" />
                     <TextBlock Text="{Binding SyntaxStatus}" FontSize="11" Foreground="{StaticResource WarningForeground}" />
+                    <TextBlock x:Name="IdentifierStatus" IsVisible="False" Text="同じ識別子: 少なくとも10,000件"
+                               FontSize="11" Foreground="{StaticResource MutedForeground}" />
                 </StackPanel>
                 <TextBlock x:Name="CaretPositionStatus" Foreground="{StaticResource MutedForeground}" Grid.Column="1" Text="{Binding Position}" FontSize="11" Margin="0,0,20,0" />
                 <Button Classes="ink quiet" x:Name="ActiveEncoding" MinHeight="20" Grid.Column="2" Content="{Binding EncodingLabel}" FontSize="11" Padding="6,1"

@@ -9,6 +9,14 @@ namespace CodeView.Tests.Presentation;
 
 internal sealed class InFileSearchTests
 {
+    [TestCase(1, 1, 0)]
+    [TestCase(1, 101, 0)]
+    [TestCase(51, 101, 127)]
+    [TestCase(101, 101, 255)]
+    [TestCase(int.MaxValue, int.MaxValue, 255)]
+    public void IdentifierMarkersMapDocumentLinesToBoundedBuckets(int line, int lines, int expected)
+        => Assert.That(IdentifierScrollMarkers.BucketForLine(line, lines), Is.EqualTo(expected));
+
     [Test]
     public void IdentifierHighlightsUseWholeWordsAndPreserveTheSearchQuery() =>
         WithView("日本語 日本語列 日本語\r\nCount count @count", async (view, _, _) =>

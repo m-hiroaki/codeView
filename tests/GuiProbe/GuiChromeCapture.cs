@@ -63,6 +63,11 @@ internal sealed partial class GuiPerformanceProbe
         var longPath = Path.Combine(longFolder, "Source.cs");
         File.Copy(body, longPath);
         await _viewModel.OpenFilesAsync([longPath], OpenOrigin.Menu);
+        var inFile = _viewModel.InFileSearch;
+        inFile.HighlightIdentifier(_editor.Document, _editor.Document.Text.IndexOf("chrome", StringComparison.Ordinal), true);
+        await inFile.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        var originalRail = CheckIdentifierRail();
         var normalWidth = _window.Width;
         var normalHeight = _window.Height;
         var maximumWidth = _window.MaxWidth;
@@ -72,6 +77,8 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
+        if (CheckIdentifierRail().Height >= originalRail.Height)
+            throw new InvalidOperationException("Identifier markers did not follow the minimum window size.");
         var minimum = _window.Bounds.Size;
         if (minimum.Width > _window.MinWidth + 16 || minimum.Height > _window.MinHeight + 48)
             throw new InvalidOperationException($"Did not reach the minimum window size: {minimum}.");
@@ -82,6 +89,8 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
+        if (CheckIdentifierRail().Height <= originalRail.Height)
+            throw new InvalidOperationException("Identifier markers did not follow the maximized window size.");
         var maximized = _window.Bounds.Size;
         if (maximized.Width <= minimum.Width || maximized.Height <= minimum.Height)
             throw new InvalidOperationException($"Window did not maximize: {maximized}.");
@@ -108,6 +117,7 @@ internal sealed partial class GuiPerformanceProbe
                 if (Math.Abs(_window.RenderScaling - ProbeScale) > 0.001)
                     throw new InvalidOperationException("The native DPI event did not set the expected render scale.");
                 CheckHeader(longPath);
+                CheckIdentifierRail();
                 Save("windows-125dpi", ProbeScale, _window.GetVisualParent());
                 windowsDpiScale = _window.RenderScaling;
             }
@@ -115,6 +125,7 @@ internal sealed partial class GuiPerformanceProbe
         }
         _window.Width = normalWidth;
         _window.Height = normalHeight;
+        inFile.ClearIdentifier();
         await File.WriteAllTextAsync(_output + ".chrome.json", JsonSerializer.Serialize(new
         {
             WindowWidth = viewport.Width, WindowHeight = viewport.Height, RenderScaling = renderScaling,
@@ -125,6 +136,16 @@ internal sealed partial class GuiPerformanceProbe
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement
         }), ct);
+
+        Rect CheckIdentifierRail()
+        {
+            var rail = _window.FindControl<IdentifierScrollMarkers>("IdentifierMarkers")!;
+            if (rail.TrackBounds is not { Height: > 2, Width: >= 2 } bounds
+                || bounds.Bottom > rail.Bounds.Height + 0.5 || bounds.Right > rail.Bounds.Width + 0.5
+                || !rail.HasMarkerAt(1202, _editor.Document.LineCount))
+                throw new InvalidOperationException("Identifier markers are outside the editor's scrollbar.");
+            return bounds;
+        }
 
         void CheckHeader(string path)
         {
