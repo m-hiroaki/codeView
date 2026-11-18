@@ -1101,6 +1101,40 @@ internal sealed partial class GuiPerformanceProbe
             && _editor.IsReadOnly && !status.IsEffectivelyVisible
             && readOnly.IsEffectivelyVisible && readOnly.Text == "読み取り専用",
             "single-file-valid-open-recovers-after-failure");
+
+        var statusBar = _window.FindControl<Border>("StatusBar")!;
+        var footerHeight = statusBar.Bounds.Height;
+        var editorHeight = _editor.Bounds.Height;
+        _viewModel.SetStatus("検索結果へ移動しました。");
+        await Frame(ct);
+        require(status.IsEffectivelyVisible && status.Text == "検索結果へ移動しました。"
+            && status.TranslatePoint(new Point(0, status.Bounds.Height / 2), statusBar) is { } messageCenter
+            && readOnly.TranslatePoint(new Point(0, readOnly.Bounds.Height / 2), statusBar) is { } readOnlyCenter
+            && Math.Abs(messageCenter.Y - readOnlyCenter.Y) < 1
+            && statusBar.Bounds.Height == footerHeight && _editor.Bounds.Height == editorHeight,
+            "status-message-shares-single-row-with-readonly");
+
+        var longMessage = new string('長', 180) + "\n再読み込みしてください。";
+        _viewModel.SetStatus(longMessage);
+        await Frame(ct);
+        ToolTip.SetIsOpen(status, true);
+        try
+        {
+            await Frame(ct);
+            var position = _window.FindControl<TextBlock>("CaretPositionStatus")!;
+            var encoding = _window.FindControl<Button>("ActiveEncoding")!;
+            require(statusBar.Bounds.Height == footerHeight && _editor.Bounds.Height == editorHeight
+                && status.Text == longMessage && ToolTip.GetTip(status) is TextBlock tip && tip.Text == longMessage
+                && status.TranslatePoint(new Point(status.Bounds.Width, 0), statusBar) is { } messageEnd
+                && position.TranslatePoint(default, statusBar) is { } positionStart && messageEnd.X <= positionStart.X
+                && encoding.IsEffectivelyVisible && encoding.IsEnabled,
+                "status-long-message-preserves-editor-and-tooltip");
+        }
+        finally
+        {
+            ToolTip.SetIsOpen(status, false);
+            _viewModel.SetStatus("");
+        }
     }
 
     private async Task CheckLargePlainDocumentAsync(string root, Dictionary<string, string> inputs,

@@ -85,6 +85,7 @@ internal sealed partial class GuiPerformanceProbe
         var maximumHeight = _window.MaxHeight;
         _window.MaxWidth = _window.Width = _window.MinWidth;
         _window.MaxHeight = _window.Height = _window.MinHeight;
+        _viewModel.SetStatus($"検索結果へ移動しました。 {longPath}");
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
@@ -140,6 +141,7 @@ internal sealed partial class GuiPerformanceProbe
         }
         _window.Width = normalWidth;
         _window.Height = normalHeight;
+        _viewModel.SetStatus("");
         inFile.ClearIdentifier();
         await File.WriteAllTextAsync(_output + ".chrome.json", JsonSerializer.Serialize(new
         {
