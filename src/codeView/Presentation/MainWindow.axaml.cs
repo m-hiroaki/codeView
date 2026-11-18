@@ -455,20 +455,32 @@ internal sealed partial class MainWindow : Window
     private void ConfigureResizablePanels(MainWindowViewModel viewModel)
     {
         const double MinimumTreeWidth = 160;
-        const double MinimumResultsHeight = 155;
-        var tree = this.FindControl<Grid>("DocumentLayout")!.ColumnDefinitions[0];
-        var results = this.FindControl<Grid>("MainLayout")!.RowDefinitions[2];
+        const double MinimumResultsWidth = 252;
+        const double MinimumDocumentWidth = 224;
+        var columns = this.FindControl<Grid>("DocumentLayout")!.ColumnDefinitions;
+        var tree = columns[0];
+        var results = columns[2];
         var savedTreeWidth = 280d;
-        var savedResultsHeight = 280d;
+        var savedResultsWidth = 336d;
 
         void UpdateLimits()
         {
-            tree.MaxWidth = Math.Max(MinimumTreeWidth, (Bounds.Width > 0 ? Bounds.Width : Width) * 0.48);
-            results.MaxHeight = Math.Max(MinimumResultsHeight, (Bounds.Height > 0 ? Bounds.Height : Height) * 0.55);
+            var width = Bounds.Width > 0 ? Bounds.Width : Width;
+            if (viewModel.IsTreeVisible && viewModel.SearchPanel.IsVisible)
+            {
+                tree.MaxWidth = Math.Max(MinimumTreeWidth, Math.Min(width * 0.30, width - MinimumResultsWidth - MinimumDocumentWidth));
+                results.MaxWidth = Math.Max(MinimumResultsWidth, Math.Min(width * 0.40, width - tree.MaxWidth - MinimumDocumentWidth));
+            }
+            else
+            {
+                tree.MaxWidth = Math.Max(MinimumTreeWidth, width * 0.48);
+                results.MaxWidth = Math.Max(MinimumResultsWidth, width * 0.55);
+            }
         }
 
         void UpdateTree()
         {
+            UpdateLimits();
             if (viewModel.IsTreeVisible)
             {
                 tree.MinWidth = MinimumTreeWidth;
@@ -484,16 +496,17 @@ internal sealed partial class MainWindow : Window
 
         void UpdateResults()
         {
+            UpdateLimits();
             if (viewModel.SearchPanel.IsVisible)
             {
-                results.MinHeight = MinimumResultsHeight;
-                if (results.Height.Value == 0) results.Height = new GridLength(savedResultsHeight);
+                results.MinWidth = MinimumResultsWidth;
+                if (results.Width.Value == 0) results.Width = new GridLength(savedResultsWidth);
             }
             else
             {
-                if (results.Height.Value > 0) savedResultsHeight = results.Height.Value;
-                results.MinHeight = 0;
-                results.Height = new GridLength(0);
+                if (results.Width.Value > 0) savedResultsWidth = results.Width.Value;
+                results.MinWidth = 0;
+                results.Width = new GridLength(0);
             }
         }
 
@@ -506,7 +519,6 @@ internal sealed partial class MainWindow : Window
         {
             if (change.PropertyName == nameof(SearchPanelViewModel.IsVisible)) UpdateResults();
         };
-        UpdateLimits();
         UpdateTree();
         UpdateResults();
     }

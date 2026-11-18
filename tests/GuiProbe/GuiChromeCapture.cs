@@ -76,6 +76,7 @@ internal sealed partial class GuiPerformanceProbe
         var inFile = _viewModel.InFileSearch;
         inFile.HighlightIdentifier(_editor.Document, _editor.Document.Text.IndexOf("chrome", StringComparison.Ordinal), true);
         await inFile.PendingWork.WaitAsync(ct);
+        _viewModel.SearchPanel.IsVisible = true;
         await Frame(ct);
         var originalRail = CheckIdentifierRail();
         var normalWidth = _window.Width;
@@ -87,6 +88,7 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
+        CheckSearchDock();
         var minimumRail = CheckIdentifierRail();
         if (minimumRail.Height >= originalRail.Height)
             throw new InvalidOperationException("Identifier markers did not follow the minimum window size.");
@@ -100,6 +102,7 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
+        CheckSearchDock();
         if (CheckIdentifierRail().Height <= minimumRail.Height)
             throw new InvalidOperationException("Identifier markers did not follow the maximized window size.");
         var maximized = _window.Bounds.Size;
@@ -128,6 +131,7 @@ internal sealed partial class GuiPerformanceProbe
                 if (Math.Abs(_window.RenderScaling - ProbeScale) > 0.001)
                     throw new InvalidOperationException("The native DPI event did not set the expected render scale.");
                 CheckHeader(longPath);
+                CheckSearchDock();
                 CheckIdentifierRail();
                 Save("windows-125dpi", ProbeScale, _window.GetVisualParent());
                 windowsDpiScale = _window.RenderScaling;
@@ -147,6 +151,18 @@ internal sealed partial class GuiPerformanceProbe
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement, IdentifierSamples = _identifierSamples
         }), ct);
+
+        void CheckSearchDock()
+        {
+            var layout = _window.FindControl<Grid>("DocumentLayout")!;
+            var pane = _window.FindControl<Border>("SearchResultsPane")!;
+            var list = _window.FindControl<ListBox>("SearchResultsList")!;
+            var main = layout.ColumnDefinitions[1];
+            var right = pane.TranslatePoint(new Point(pane.Bounds.Width, 0), layout);
+            if (main.ActualWidth < 223.5 || pane.Bounds.Width < 245.5 || list.Bounds.Height < 80
+                || right is not { } edge || Math.Abs(edge.X - layout.Bounds.Width) > 1)
+                throw new InvalidOperationException("The search sidebar clipped the editor or results at this window size.");
+        }
 
         Rect CheckIdentifierRail()
         {

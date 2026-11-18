@@ -31,9 +31,24 @@ internal sealed class SearchResultRow
     public SearchResultFile File { get; }
     public string Location { get; }
     public string FullPath => Hit.Path.FullPath;
+    public string FileName => Path.GetFileName(FullPath);
+    public string? ParentFolder => Path.GetFileName(Path.GetDirectoryName(FullPath));
+    public string Coordinates => $"{Hit.Range.Start.Line}:{Hit.Range.Start.Column}";
     public string Before { get; }
     public string Match { get; }
     public string After { get; }
+    public string PreviewBefore
+    {
+        get
+        {
+            const int ContextLength = 6;
+            var context = Before.TrimStart();
+            if (context.Length <= ContextLength) return context.Replace('\t', ' ');
+            var start = context.Length - ContextLength;
+            if (char.IsLowSurrogate(context[start])) start++;
+            return "…" + context[start..].Replace('\t', ' ');
+        }
+    }
 
     internal SearchResultRow(SearchHit hit, SearchResultFile file, string root, object generation)
     {

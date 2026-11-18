@@ -36,6 +36,35 @@ internal sealed class SearchResultsTests
         Assert.That(results.Rows[0].Location, Is.EqualTo("example.cs : 1:1"));
     }
 
+    [TestCase("", "")]
+    [TestCase("    \t", "")]
+    [TestCase("  a\tbc", "a bc")]
+    [TestCase("abcdef", "abcdef")]
+    [TestCase("abcdefg", "…bcdefg")]
+    [TestCase("😀12345", "…12345")]
+    public void SidebarPreviewKeepsShortContextBeforeTheMatch(string before, string expected)
+    {
+        var hit = Hit(1, 12) with
+        {
+            Path = SourcePath.Create(Path.Combine("src", "example.cs"), Root),
+            Snippet = new(before + "FOO suffix", before.Length, 3)
+        };
+        var results = new SearchResults();
+        results.Stage(hit, Root);
+        results.Publish();
+        var row = results.Rows.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(row.FileName, Is.EqualTo("example.cs"));
+            Assert.That(row.ParentFolder, Is.EqualTo("src"));
+            Assert.That(row.Coordinates, Is.EqualTo("1:13"));
+            Assert.That(row.PreviewBefore, Is.EqualTo(expected));
+            Assert.That(row.Before, Is.EqualTo(before));
+            Assert.That(row.Match, Is.EqualTo("FOO"));
+            Assert.That(row.After, Is.EqualTo(" suffix"));
+        });
+    }
+
     [TestCase(0)]
     [TestCase(1)]
     [TestCase(2)]

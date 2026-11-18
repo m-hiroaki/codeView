@@ -316,18 +316,39 @@ internal sealed partial class GuiPerformanceProbe
                 "folder-run-updates-applied-conditions");
             var resultsPane = _window.FindControl<Border>("SearchResultsPane")!;
             var resultsSplitter = _window.FindControl<GridSplitter>("SearchResultsSplitter")!;
-            var initialHeight = resultsPane.Bounds.Height;
-            DragSplitter(resultsSplitter, new Vector(0, 24));
+            var documentLayout = _window.FindControl<Grid>("DocumentLayout")!;
+            var columns = documentLayout.ColumnDefinitions;
+            var initialWidthOfResults = resultsPane.Bounds.Width;
+            var documentWidth = columns[1].ActualWidth;
+            var editorEnd = _editor.TranslatePoint(new Point(_editor.Bounds.Width, 0), documentLayout);
+            var panelStart = resultsPane.TranslatePoint(default, documentLayout);
+            Require(editorEnd is { } edge && panelStart is { } start && start.X >= edge.X + 5
+                && resultsPane.Bounds.Height == documentLayout.Bounds.Height, "folder-results-docked-right");
+            DragSplitter(resultsSplitter, new Vector(24, 0));
             await Frame(ct);
-            var resizedHeight = resultsPane.Bounds.Height;
-            Require(resizedHeight < initialHeight - 8 && panel.Rows.Count == 3, "folder-drag-resizes-results");
+            var resizedWidthOfResults = resultsPane.Bounds.Width;
+            Require(resizedWidthOfResults < initialWidthOfResults - 8 && columns[1].ActualWidth > documentWidth + 8
+                && panel.Rows.Count == 3, "folder-drag-resizes-results");
+            DragSplitter(resultsSplitter, new Vector(800, 0));
+            await Frame(ct);
+            var narrowWidth = resultsPane.Bounds.Width;
+            var firstResult = (ListBoxItem)results.ContainerFromItem(panel.Rows[0])!;
+            var captions = firstResult.GetVisualDescendants().OfType<TextBlock>().ToArray();
+            Require(Math.Abs(narrowWidth - 246) < 1 && folderQuery.Bounds.Width > 80
+                && captions.Any(x => x.Name == "ResultFileName" && x.Text == panel.Rows[0].FileName)
+                && captions.Any(x => x.Name == "ResultCoordinates" && x.Text == panel.Rows[0].Coordinates)
+                && captions.Any(x => x.Name == "ResultPreview" && x.Bounds.Width > 100
+                    && x.Inlines?.OfType<Avalonia.Controls.Documents.Run>().Any(run => run.Text == "日本語") == true),
+                "folder-narrow-result-shows-file-position-and-match");
+            DragSplitter(resultsSplitter, new Vector(narrowWidth - resizedWidthOfResults, 0));
+            await Frame(ct);
             panel.IsVisible = false;
             await Frame(ct);
             Require(!resultsSplitter.IsEffectivelyVisible && panel.Rows.Count == 3
-                && _window.FindControl<Grid>("MainLayout")!.RowDefinitions[2].ActualHeight == 0, "folder-hide-releases-row");
+                && columns[2].ActualWidth == 0, "folder-hide-releases-column");
             panel.IsVisible = true;
             await Frame(ct);
-            Require(Math.Abs(resultsPane.Bounds.Height - resizedHeight) < 1, "folder-show-restores-height");
+            Require(Math.Abs(resultsPane.Bounds.Width - resizedWidthOfResults) < 1, "folder-show-restores-width");
 
             var treePane = _window.FindControl<Border>("FileTreePane")!;
             var treeSplitter = _window.FindControl<GridSplitter>("FileTreeSplitter")!;
