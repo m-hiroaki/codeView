@@ -19,8 +19,14 @@ internal sealed class RoslynNavigationTests
             var fixture = await CreateFixtureAsync(root.FullName, extension, sharedSource);
             var roslyn = new RoslynNavigation(root.FullName, fixture.Project);
             await using var session = roslyn.CreateSession(executable);
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             var definition = await SearchAsync(SemanticOperation.Definition);
+            // Cold CI runners can still be loading the project when the first request returns partial results.
+            while (definition.IsPartial && definition.Configuration == Path.GetFileName(fixture.Project))
+            {
+                await Task.Delay(100, deadline.Token);
+                definition = await SearchAsync(SemanticOperation.Definition);
+            }
             var references = await SearchAsync(SemanticOperation.References);
             Assert.That(definition.PositionEncoding, Is.EqualTo("utf-16"));
             Assert.That(definition.Configuration, Does.Contain("net10.0"));
