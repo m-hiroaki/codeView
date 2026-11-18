@@ -105,7 +105,7 @@ internal sealed class DefinitionJumpTests
 
     [TestCase(false)]
     [TestCase(true)]
-    public void SingleCompleteCandidateNavigatesWithoutChangingPanelVisibility(bool initiallyVisible) => WithView(async (view, folder, _) =>
+    public void SingleCompleteCandidateNavigatesWithPanelClosed(bool initiallyVisible) => WithView(async (view, folder, _) =>
     {
         var target = Path.Combine(folder, "target.cs");
         await File.WriteAllTextAsync(target, "namespace A { class @Target {} }");
@@ -124,10 +124,33 @@ internal sealed class DefinitionJumpTests
 
         Assert.That(view.FilePath, Is.EqualTo(target));
         Assert.That(selection, Is.EqualTo(new[] { (20L, 7) }));
-        Assert.That(view.SearchPanel.IsVisible, Is.EqualTo(initiallyVisible));
-        Assert.That(visibilityChanges, Is.Empty);
+        Assert.That(view.SearchPanel.IsVisible, Is.False);
+        Assert.That(visibilityChanges, Is.EqualTo(initiallyVisible ? new[] { false } : Array.Empty<bool>()));
         Assert.That(view.SearchPanel.Description, Does.Contain("簡易").And.Contain("名前一致"));
         Assert.That(view.SearchPanel.Rows.Single().After, Does.Contain("型"));
+    });
+
+    [Test]
+    public void ChangedSingleCandidateKeepsTheExistingPanelOpen() => WithView(async (view, folder, _) =>
+    {
+        var target = Path.Combine(folder, "target.cs");
+        await File.WriteAllTextAsync(target, "class Target {}");
+        view.SearchPanel.IsVisible = true;
+        var updated = false;
+        view.SearchPanel.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName != nameof(SearchPanelViewModel.IsRunning) || view.SearchPanel.IsRunning || updated) return;
+            updated = true;
+            File.WriteAllText(target, "class RenamedTarget {}");
+        };
+
+        await Find(view);
+
+        Assert.That(updated, Is.True);
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
+        Assert.That(view.SearchPanel.Rows, Has.Count.EqualTo(1));
+        Assert.That(view.Status, Does.Contain("再検索"));
+        Assert.That(view.CanJumpBack, Is.False);
     });
 
     [Test]
@@ -143,6 +166,7 @@ internal sealed class DefinitionJumpTests
         Assert.That(view.SearchPanel.IsVisible, Is.True);
         await view.ActivateSearchResultAsync(view.SearchPanel.Rows.Single(row => row.FullPath == target));
         Assert.That(view.FilePath, Is.EqualTo(target));
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
     });
 
     [TestCase(false)]

@@ -186,9 +186,9 @@ internal sealed class SemanticNavigationViewModelTests
                 var caret = text.IndexOf("Run", StringComparison.Ordinal);
                 using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
                 string? lastSummary = null;
+                view.SearchPanel.IsVisible = true;
                 do
                 {
-                    view.SearchPanel.IsVisible = false;
                     try { await view.FindDefinitionsAsync(caret, caret, 0).WaitAsync(deadline.Token); }
                     catch (OperationCanceledException) when (deadline.IsCancellationRequested)
                     {

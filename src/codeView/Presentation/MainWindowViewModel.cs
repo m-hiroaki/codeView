@@ -237,14 +237,14 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             || operation is null || ReferenceEquals(previous, operation)
             || !ReferenceEquals(SearchPanel.CurrentOperation, operation)) return;
         if (SearchPanel.SingleCompleteDefinition(operation) is { } row)
-            await ActivateSearchResultCoreAsync(row);
+            await ActivateSearchResultCoreAsync(row, hidePanelOnSuccess: true);
         else
             SearchPanel.IsVisible = true;
     }
 
     public Task ActivateSearchResultAsync(SearchResultRow row) => TrackManualAsync(ActivateSearchResultCoreAsync(row));
 
-    private async Task ActivateSearchResultCoreAsync(SearchResultRow row)
+    private async Task ActivateSearchResultCoreAsync(SearchResultRow row, bool hidePanelOnSuccess = false)
     {
         if (_stopping || _savingSettings || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
         var interaction = _interactionEpoch;
@@ -273,6 +273,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         { SetStatus(FileErrorText(result.Error!.Code) + " 再読み込み・再検索してください。"); return; }
         if (result.Status != OperationStatus.Success || !navigator.CanAdopt(request, result.Value)) return;
         var move = result.Value.Move;
+        if (hidePanelOnSuccess && move.Warning == DocumentMoveWarning.None && SearchPanel.IsVisible)
+            SearchPanel.IsVisible = false;
         (_selectionRow, _selectionRequest, _selectionMove, _selectionInteractionEpoch) = (row, request, result.Value, interaction);
         ViewEpoch = checked(ViewEpoch + 1); // Supersede a deferred viewport restoration from document attachment.
         SetPosition(checked((int)move.Position.Line), checked((int)move.Position.Column));

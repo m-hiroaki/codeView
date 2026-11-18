@@ -174,6 +174,16 @@ internal sealed partial class GuiPerformanceProbe
                 && panel.Description.Contains("簡易") && panel.Rows.Count == 1
                 && _editor.SelectedText == "Target" && _editor.SelectionStart == 6, "f12-single-definition-auto-selection");
 
+            panel.IsVisible = true;
+            await Frame(ct);
+            var wasOpen = results.IsEffectivelyVisible;
+            var repeatDefinitionKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12 };
+            RaiseSearchKey(_editor.TextArea, repeatDefinitionKey);
+            await _viewModel.PendingWork.WaitAsync(ct);
+            await Frame(ct); await Frame(ct);
+            Require(wasOpen && repeatDefinitionKey.Handled && !panel.IsVisible && !results.IsEffectivelyVisible
+                && _editor.SelectedText == "Target" && _editor.TextArea.IsFocused, "f12-single-definition-closes-open-panel");
+
             var duplicate = Path.Combine(root, "duplicate.cs");
             await File.WriteAllTextAsync(duplicate, "namespace Other { class @Target {} }", ct);
             before.Add(duplicate, Hash(duplicate));
