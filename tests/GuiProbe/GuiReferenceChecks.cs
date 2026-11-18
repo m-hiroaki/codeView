@@ -640,10 +640,16 @@ internal sealed partial class GuiPerformanceProbe
         var second = _viewModel.Tabs[1];
         require(list.IsEffectivelyVisible && first.Label.Contains("first") && second.Label.Contains("second")
             && _viewModel.Tabs.Count == 2 && _editor.Document.Text == "second body", "tabs-same-name-distinct-labels");
+        list.ScrollIntoView(second);
+        await Frame(ct);
         var item = (ListBoxItem)list.ContainerFromItem(second)!;
         var close = item.GetVisualDescendants().OfType<Button>().Single();
         var closeOrigin = close.TranslatePoint(default, item);
-        require(Math.Abs(list.Bounds.Height - 28) < 1 && close.Bounds.Height >= 23
+        var tabScrollBar = list.GetVisualDescendants().OfType<ScrollBar>()
+            .Single(scrollBar => scrollBar.Orientation == Avalonia.Layout.Orientation.Horizontal);
+        var tabScrollHeight = tabScrollBar.IsEffectivelyVisible ? tabScrollBar.Bounds.Height : 0;
+        require(Math.Abs(list.Bounds.Height - 28 - tabScrollHeight) < 1 && tabScrollHeight <= 8.5
+            && close.Bounds.Height >= 23
             && closeOrigin is { Y: >= 0 } origin && origin.Y + close.Bounds.Height <= item.Bounds.Height + 0.5,
             "tabs-compact-height-and-close-button");
         var visibleIndicators = list.GetVisualDescendants().OfType<Border>()
@@ -676,6 +682,8 @@ internal sealed partial class GuiPerformanceProbe
         require(previous.Handled && ReferenceEquals(list.SelectedItem, second)
             && ReferenceEquals(_editor.Document, secondDocument), "tabs-ctrl-shift-tab-wraps-back");
 
+        list.ScrollIntoView(first);
+        await Frame(ct);
         var container = (ListBoxItem)list.ContainerFromItem(first)!;
         container.GetVisualDescendants().OfType<Button>().Single().RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await Frame(ct);
