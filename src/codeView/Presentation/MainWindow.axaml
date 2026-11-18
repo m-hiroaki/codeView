@@ -87,6 +87,7 @@
             <MenuItem Header="表示">
                 <MenuItem Header="ファイルツリー" ToggleType="CheckBox" IsChecked="{Binding IsTreeVisible, Mode=TwoWay}" IsEnabled="{Binding HasWorkspace}" />
                 <MenuItem Header="検索結果パネル" ToggleType="CheckBox" IsChecked="{Binding SearchPanel.IsVisible, Mode=TwoWay}" />
+                <MenuItem x:Name="HideSearchMenu" Header="検索結果パネルを閉じる" IsEnabled="{Binding SearchPanel.IsVisible}" Click="HideSearchClicked" />
             </MenuItem>
             <MenuItem Header="検索">
                 <MenuItem x:Name="InFileSearchMenu" Header="ファイル内を検索" IsEnabled="{Binding InFileSearch.CanOpen}" Click="ShowInFileSearchClicked" />
@@ -231,8 +232,8 @@
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="検索結果" FontSize="12" Foreground="{StaticResource MutedForeground}" VerticalAlignment="Center" />
-                        <Button Classes="ink quiet icon" Grid.Column="1" Content="×" Width="28" Height="28" Click="HideSearchClicked"
-                                ToolTip.Tip="パネルを隠す（検索は継続）" AutomationProperties.Name="検索パネルを隠す" />
+                        <Button x:Name="HideSearchButton" Classes="ink quiet icon" Grid.Column="1" Content="×" Width="28" Height="28"
+                                Click="HideSearchClicked" AutomationProperties.Name="検索パネルを隠す" />
                     </Grid>
                     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,4,0,0">
                         <TextBox x:Name="SearchQuery" Text="{Binding SearchPanel.Query, Mode=TwoWay}" PlaceholderText="フォルダ内を検索"

@@ -309,8 +309,17 @@ internal sealed partial class GuiPerformanceProbe
             await _viewModel.PendingWork.WaitAsync(ct);
             Require(panel.IsVisible && panel.Summary.Contains("取り消し"), "folder-escape-cancels-with-panel-visible");
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            var activeOperation = panel.CurrentOperation;
+            KeyEventArgs HideResultsKey() => new()
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.H, KeyModifiers = findModifier | KeyModifiers.Shift };
+            var hideFromQuery = HideResultsKey();
+            RaiseSearchKey(folderQuery, hideFromQuery);
+            Require(hideFromQuery.Handled && !panel.IsVisible && panel.IsRunning && _editor.TextArea.IsFocused
+                && ReferenceEquals(activeOperation, panel.CurrentOperation), "folder-close-shortcut-keeps-running-search");
             await _viewModel.PendingWork.WaitAsync(ct);
-            Require(panel.Rows.Count == 3 && panel.Rows.All(panel.CanActivate), "folder-enter-retries-committed-query");
+            Require(!panel.IsVisible && panel.Rows.Count == 3 && panel.Rows.All(panel.CanActivate), "folder-enter-retries-committed-query");
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = findModifier | KeyModifiers.Shift });
             await Frame(ct);
             Require(!pending.IsEffectivelyVisible && applied.Text?.Contains("「日本語」") == true,
                 "folder-run-updates-applied-conditions");
@@ -342,10 +351,15 @@ internal sealed partial class GuiPerformanceProbe
                 "folder-narrow-result-shows-file-position-and-match");
             DragSplitter(resultsSplitter, new Vector(narrowWidth - resizedWidthOfResults, 0));
             await Frame(ct);
-            panel.IsVisible = false;
+            _editor.TextArea.Focus();
+            var hideFromEditor = HideResultsKey();
+            RaiseSearchKey(_editor.TextArea, hideFromEditor);
             await Frame(ct);
-            Require(!resultsSplitter.IsEffectivelyVisible && panel.Rows.Count == 3
+            Require(hideFromEditor.Handled && !panel.IsVisible && _editor.TextArea.IsFocused
+                && !resultsSplitter.IsEffectivelyVisible && panel.Rows.Count == 3
                 && columns[2].ActualWidth == 0, "folder-hide-releases-column");
+            RaiseSearchKey(_editor.TextArea, HideResultsKey());
+            Require(!panel.IsVisible && panel.Rows.Count == 3, "folder-close-shortcut-does-not-reopen");
             panel.IsVisible = true;
             await Frame(ct);
             Require(Math.Abs(resultsPane.Bounds.Width - resizedWidthOfResults) < 1, "folder-show-restores-width");

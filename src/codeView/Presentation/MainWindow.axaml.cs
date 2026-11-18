@@ -52,6 +52,10 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(Key.Right, jumpModifier);
         this.FindControl<MenuItem>("InFileSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
+        var hideSearchGesture = new KeyGesture(Key.H, modifier | KeyModifiers.Shift);
+        this.FindControl<MenuItem>("HideSearchMenu")!.InputGesture = hideSearchGesture;
+        ToolTip.SetTip(this.FindControl<Button>("HideSearchButton")!,
+            $"パネルを閉じる（{(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+Shift+H）。検索は継続します。");
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
         // The list's directional navigation may consume arrows before they bubble.
@@ -71,6 +75,12 @@ internal sealed partial class MainWindow : Window
             if (key.Key != Key.F || key.KeyModifiers != modifier) return;
             key.Handled = true;
             Run(ShowInFileSearch);
+        }, RoutingStrategies.Tunnel);
+        AddHandler(KeyDownEvent, (_, key) =>
+        {
+            if (!viewModel.SearchPanel.IsVisible || !hideSearchGesture.Matches(key)) return;
+            key.Handled = true;
+            Run(HideSearch);
         }, RoutingStrategies.Tunnel);
         // Keep the shortcut at window scope even when a focused control handles the key.
         AddHandler(KeyDownEvent, (_, key) =>
@@ -701,16 +711,18 @@ internal sealed partial class MainWindow : Window
     private void ToggleChromeSearchClicked(object? sender, RoutedEventArgs args) => Run(() =>
     {
         if (!_viewModel.SearchPanel.IsVisible) ShowSearch();
-        else
-        {
-            _viewModel.SearchPanel.IsVisible = false;
-            if (_viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
-        }
+        else HideSearch();
     });
     private async void StartSearchClicked(object? sender, RoutedEventArgs args) => await RunAsync(_viewModel.SearchPanel.StartAsync);
     private void CancelSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Cancel);
     private void ClearSearchClicked(object? sender, RoutedEventArgs args) => Run(_viewModel.SearchPanel.Clear);
-    private void HideSearchClicked(object? sender, RoutedEventArgs args) => Run(() => _viewModel.SearchPanel.IsVisible = false);
+    private void HideSearchClicked(object? sender, RoutedEventArgs args) => Run(HideSearch);
+    private void HideSearch()
+    {
+        _viewModel.SearchPanel.IsVisible = false;
+        if (_viewModel.HasDocument) this.FindControl<TextEditor>("Editor")!.TextArea.Focus();
+        else this.FindControl<Button>("EmptyOpenFileButton")!.Focus();
+    }
     private async void SearchResultDoubleTapped(object? sender, TappedEventArgs args)
     {
         for (var current = args.Source as Visual; current is not null && !ReferenceEquals(current, sender);
