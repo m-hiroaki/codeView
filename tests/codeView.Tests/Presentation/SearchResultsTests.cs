@@ -11,6 +11,32 @@ internal sealed class SearchResultsTests
     private static SearchHit Hit(long id, long offset = 0) => new(id, SourcePath.Create("example.cs", Root),
         new(offset, 3, new(1, offset + 1)), new("aFOOb", 1, 3), new(100, DateTime.UnixEpoch));
 
+    [TestCase("commit", "確定", true)]
+    [TestCase("incomplete", "未完了・移動不可", false)]
+    [TestCase("invalidate", "無効", false)]
+    public void FileStatusUpdatesArePublishedToResultRows(string transition, string status, bool canActivate)
+    {
+        var results = new SearchResults();
+        results.Stage(Hit(1), Root);
+        results.Publish();
+        var row = results.Rows.Single();
+        var notifications = new List<(string? Property, string Status)>();
+        row.File.PropertyChanged += (_, args) => notifications.Add((args.PropertyName, row.File.Status));
+        Assert.That(row.File.Status, Is.EqualTo("検証中"));
+        Assert.That(results.CanActivate(row), Is.False);
+
+        switch (transition)
+        {
+            case "commit": results.Commit(1); break;
+            case "incomplete": results.MarkIncomplete(); break;
+            case "invalidate": results.Invalidate(1); break;
+        }
+
+        Assert.That(notifications, Is.EqualTo(new[] { ("IsCommitted", status), ("Status", status) }));
+        Assert.That(row.File.Status, Is.EqualTo(status));
+        Assert.That(results.CanActivate(row), Is.EqualTo(canActivate));
+    }
+
     [Test]
     public void SeveralFilesPublishOneRangeNotificationAndShareCommitState()
     {

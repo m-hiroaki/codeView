@@ -5,6 +5,102 @@ namespace CodeView.Tests.Navigation;
 
 internal sealed class ClangdNavigationTests
 {
+    [TestCase("null")]
+    [TestCase("""{"file":"entry.c","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":42,"file":"entry.c","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":" ","file":"entry.c","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":".","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":".","file":42,"command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":".","file":" ","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":".","file":"bad\u0000name.c","command":"clang -c entry.c"}""")]
+    [TestCase("""{"directory":".","file":"entry.c","arguments":["clang",42],"command":" "}""")]
+    [TestCase("""{"directory":".","file":"entry.c","arguments":[]}""")]
+    [TestCase("""{"directory":".","file":"missing.c","command":"clang -c missing.c"}""")]
+    [TestCase("""{"directory":".","file":"../outside.c","command":"clang -c ../outside.c"}""")]
+    public async Task InvalidCompilationEntryKeepsValidCommandsButMarksConfigurationPartial(string invalidEntry)
+    {
+        var temporary = Directory.CreateTempSubdirectory("codeview-clangd-database-");
+        try
+        {
+            var workspace = Directory.CreateDirectory(Path.Combine(temporary.FullName, "source")).FullName;
+            var source = Path.Combine(workspace, "entry.c");
+            await File.WriteAllTextAsync(source, "int value;");
+            await File.WriteAllTextAsync(Path.Combine(temporary.FullName, "outside.c"), "int outside;");
+            await File.WriteAllTextAsync(Path.Combine(workspace, "compile_commands.json"),
+                $$"""[{"directory":".","file":"entry.c","command":"clang -c entry.c","output":"entry.o"},{{invalidEntry}}]""");
+
+            var database = new ClangdCompilationDatabase(workspace, null, Path.Combine(temporary.FullName, "cache"));
+            Assert.That(database.Description, Is.EqualTo("コンパイル条件未設定"));
+            await database.RefreshAsync(default);
+            Assert.That(database.Description, Is.EqualTo("compile_commands.json"));
+            Assert.That(database.IsComplete, Is.False);
+            Assert.That(database.HasCommand(LspFilePath.Resolve(source)), Is.True);
+            using var cached = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(database.CacheDirectory, "compile_commands.json")));
+            var command = cached.RootElement.EnumerateArray().Single();
+            Assert.That(command.GetProperty("file").GetString(), Is.EqualTo(LspFilePath.Resolve(source)));
+            Assert.That(command.GetProperty("output").GetString(), Is.EqualTo("entry.o"));
+        }
+        finally { temporary.Delete(recursive: true); }
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ChangedCompilationDatabaseUpdatesCacheAndDetectsDuplicateCommands(bool selectExplicitly)
+    {
+        var temporary = Directory.CreateTempSubdirectory("codeview-clangd-cache-");
+        try
+        {
+            var workspace = Directory.CreateDirectory(Path.Combine(temporary.FullName, "source")).FullName;
+            var build = Directory.CreateDirectory(Path.Combine(workspace, "build")).FullName;
+            var source = Path.Combine(workspace, "entry.c");
+            var configuration = Path.Combine(build, "compile_commands.json");
+            await File.WriteAllTextAsync(source, "int value;");
+            if (selectExplicitly)
+                await File.WriteAllTextAsync(Path.Combine(workspace, "compile_commands.json"), "[]");
+            var database = new ClangdCompilationDatabase(workspace, selectExplicitly ? configuration : null,
+                Path.Combine(temporary.FullName, "cache"));
+            const string command = """{"directory":"..","file":"entry.c","arguments":["clang","-c","entry.c"]}""";
+            await File.WriteAllTextAsync(configuration, $"[{command}]");
+            await database.RefreshAsync(default);
+            Assert.That(database.Description, Is.EqualTo(Path.Combine("build", "compile_commands.json")));
+            Assert.That(database.IsComplete, Is.True);
+            Assert.That(database.HasCommand(LspFilePath.Resolve(source)), Is.True);
+            var previous = database.CacheDirectory;
+            Assert.That(await database.RefreshAsync(default), Is.False);
+            Assert.That(database.CacheDirectory, Is.EqualTo(previous));
+
+            await File.WriteAllTextAsync(configuration, $"[{command},{command}]");
+            Assert.That(await database.RefreshAsync(default), Is.True);
+            Assert.That(database.CacheDirectory, Is.Not.EqualTo(previous));
+            Assert.That(database.IsComplete, Is.False);
+            Assert.That(database.HasCommand(LspFilePath.Resolve(source)), Is.True);
+
+            File.Delete(configuration);
+            Assert.That(await database.RefreshAsync(default), Is.True);
+            Assert.That(database.Description, Is.EqualTo("コンパイル条件未設定"));
+            Assert.That(database.HasCommand(LspFilePath.Resolve(source)), Is.False);
+        }
+        finally { temporary.Delete(recursive: true); }
+    }
+
+    [Test]
+    public async Task InvalidCompilationDatabaseShapeDoesNotPublishAnIncompleteCacheFile()
+    {
+        var temporary = Directory.CreateTempSubdirectory("codeview-clangd-invalid-db-");
+        try
+        {
+            var workspace = Directory.CreateDirectory(Path.Combine(temporary.FullName, "source")).FullName;
+            var configuration = Path.Combine(workspace, "compile_commands.json");
+            var cache = Path.Combine(temporary.FullName, "cache");
+            await File.WriteAllTextAsync(configuration, """{"commands":[]}""");
+            var database = new ClangdCompilationDatabase(workspace, configuration, cache);
+            Assert.ThrowsAsync<InvalidDataException>(async () => await database.RefreshAsync(default));
+            Assert.That(database.CacheDirectory, Is.Empty);
+            Assert.That(Directory.EnumerateFiles(cache, "*", SearchOption.AllDirectories), Is.Empty);
+        }
+        finally { temporary.Delete(recursive: true); }
+    }
+
     [TestCase("c")]
     [TestCase("cpp")]
     public async Task RealClangdUsesCompilationConditionsAndAnOutOfTreeIndex(string language)

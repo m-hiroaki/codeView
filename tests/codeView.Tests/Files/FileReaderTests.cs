@@ -88,6 +88,50 @@ public sealed class FileReaderTests
             Is.EqualTo(ErrorCode.DecodeFailed));
     }
 
+    [Test]
+    public void AutomaticDecodingRejectsInputInvalidAsBothUtf8AndCp932()
+    {
+        var reader = new FileReader(_access);
+        var path = Put(new byte[] { 0x82 });
+        var result = reader.Prepare(path, EncodingChoice.Auto, default);
+        Assert.That(result.Error?.Code, Is.EqualTo(ErrorCode.DecodeFailed));
+        File.Delete(path.FullPath);
+    }
+
+    [TestCase(1, false)]
+    [TestCase(2, true)]
+    public void AutomaticBinaryDetectionUsesControlCharacterThreshold(int controlCount, bool binary)
+    {
+        var bytes = Enumerable.Repeat((byte)'a', 100).ToArray();
+        bytes.AsSpan(0, controlCount).Fill(0x01);
+        bytes[10] = (byte)'\t';
+        bytes[11] = (byte)'\n';
+        bytes[12] = (byte)'\r';
+        bytes[13] = (byte)'\f';
+        var result = new FileReader(_access).Prepare(Put(bytes), EncodingChoice.Auto, default);
+        if (binary)
+            Assert.That(result.Error?.Code, Is.EqualTo(ErrorCode.Binary));
+        else
+        {
+            using var prepared = result.Value;
+            Assert.That(prepared.Encoding.CodePage, Is.EqualTo(65001));
+        }
+    }
+
+    [Test]
+    public void RejectsContentWhenFileStampChangesDuringPreparation()
+    {
+        var path = Put("plain text"u8.ToArray());
+        var firstStamp = _access.GetStamp(path);
+        var stampReads = 0;
+        var source = new OneByteSource(_ => ++stampReads == 1
+            ? firstStamp : firstStamp with { LastWriteUtc = firstStamp.LastWriteUtc.AddSeconds(1) });
+        var result = new FileReader(source).Prepare(path, EncodingChoice.Auto, default);
+        Assert.That(result.Error?.Code, Is.EqualTo(ErrorCode.ChangedDuringRead));
+        Assert.That(stampReads, Is.EqualTo(2));
+        File.Delete(path.FullPath);
+    }
+
     [TestCase(64)]
     [TestCase(128)]
     [TestCase(8188)]
@@ -253,12 +297,12 @@ public sealed class FileReaderTests
         Assert.That(reader.Prepare(path, EncodingChoice.Auto, default).Error!.Code, Is.EqualTo(ErrorCode.NotFound));
     }
 
-    private sealed class OneByteSource : ISourceAccess
+    private sealed class OneByteSource(Func<SourcePath, SourceStamp>? getStamp = null) : ISourceAccess
     {
         private readonly SourceAccess _source = new();
         public OperationResult<FileStream> OpenRead(SourcePath path, CancellationToken ct) =>
             OperationResult<FileStream>.Success(new OneByteStream(path.FullPath));
-        public SourceStamp GetStamp(SourcePath path) => _source.GetStamp(path);
+        public SourceStamp GetStamp(SourcePath path) => getStamp is null ? _source.GetStamp(path) : getStamp(path);
         public OperationResult<SourceEntry> InspectPath(SourcePath path, CancellationToken ct) => throw new NotSupportedException();
         public OperationResult<SourcePath> ResolveDirectory(SourcePath path, CancellationToken ct) => throw new NotSupportedException();
         public IEnumerable<SourceEntry> EnumerateChildren(SourcePath path, CancellationToken ct) => throw new NotSupportedException();

@@ -57,6 +57,29 @@ internal sealed class InFileSearchTests
         });
 
     [Test]
+    public void RepeatedIdentifierClickKeepsHighlightsAndClickPastTextClearsThem() =>
+        WithView("word word", async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            var document = view.Document!;
+            var changes = 0;
+            search.IdentifierMatchesChanged += () => changes++;
+            search.HighlightIdentifier(document, 0, isCSharp: false);
+            await search.PendingWork;
+            Assert.That(search.IdentifierMatches.Count, Is.EqualTo(2));
+            var publishedChanges = changes;
+
+            search.HighlightIdentifier(document, 5, isCSharp: false);
+            await search.PendingWork;
+            Assert.That(changes, Is.EqualTo(publishedChanges));
+            Assert.That(search.IdentifierMatches.Count, Is.EqualTo(2));
+
+            search.HighlightIdentifier(document, document.TextLength, isCSharp: false);
+            Assert.That(search.IdentifierMatches, Is.Empty);
+            Assert.That(changes, Is.EqualTo(publishedChanges + 1));
+        });
+
+    [Test]
     public void FindsNextPreviousAndWrapsUsingOriginalOffsets() => WithView("foo\r\nfood Foo foo", async (view, _, _) =>
     {
         var search = view.InFileSearch;
@@ -297,6 +320,25 @@ internal sealed class InFileSearchTests
             Assert.That(search.Matches.Single().Offset, Is.EqualTo(SearchLimits.RegexLineChars + 2));
             Assert.That(search.Summary, Does.Contain("長行未評価 1行"));
         });
+
+    [TestCase(false, "見つかりません。")]
+    [TestCase(true, "見つかりませんでした。未評価あり。")]
+    public void MovingInAnEmptyResultDistinguishesCompleteAndPartialSearches(bool hasSkippedLine, string expected)
+    {
+        var text = hasSkippedLine ? new string('x', SearchLimits.RegexLineChars + 1) + "\nbar" : "bar";
+        WithView(text, async (view, _, _) =>
+        {
+            var search = view.InFileSearch;
+            search.IsVisible = true;
+            search.UseRegex = true;
+            search.Query = "^foo$";
+            await search.PendingWork;
+            Assert.That(search.Matches, Is.Empty);
+            Assert.That(await search.MoveAsync(0, 0, 0, false), Is.Null);
+            Assert.That(search.Summary, Does.StartWith(expected));
+            if (hasSkippedLine) Assert.That(search.Summary, Does.Contain("長行未評価 1行"));
+        });
+    }
 
     [TestCase(false, "通常の検索語に改行は指定できません")]
     [TestCase(true, "不正なUnicode文字列")]
