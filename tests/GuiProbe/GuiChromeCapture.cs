@@ -59,6 +59,16 @@ internal sealed partial class GuiPerformanceProbe
         Array.Sort(frameTimes);
         var viewport = _window.Bounds.Size;
         var renderScaling = _window.RenderScaling;
+        _viewModel.SearchPanel.IsVisible = false;
+        await Frame(ct);
+        await MeasureIdentifierAsync("normal", _editor.Document.Text.IndexOf("chrome", StringComparison.Ordinal), horizontal: false, ct);
+        var longLine = Path.Combine(nested, "long-line.txt");
+        var denseLine = string.Concat(Enumerable.Repeat("needle ", 4681)) + "\n";
+        await File.WriteAllTextAsync(longLine, string.Concat(Enumerable.Repeat(denseLine, 3)) + new string('\n', 120), ct);
+        await _viewModel.OpenFilesAsync([longLine], OpenOrigin.Menu);
+        await Frame(ct);
+        await MeasureIdentifierAsync("32767-column", offset: 1, horizontal: true, ct);
+        _viewModel.CloseFile();
         var longFolder = Directory.CreateDirectory(Path.Combine(nested, new string('長', 48))).FullName;
         var longPath = Path.Combine(longFolder, "Source.cs");
         File.Copy(body, longPath);
@@ -77,7 +87,8 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
-        if (CheckIdentifierRail().Height >= originalRail.Height)
+        var minimumRail = CheckIdentifierRail();
+        if (minimumRail.Height >= originalRail.Height)
             throw new InvalidOperationException("Identifier markers did not follow the minimum window size.");
         var minimum = _window.Bounds.Size;
         if (minimum.Width > _window.MinWidth + 16 || minimum.Height > _window.MinHeight + 48)
@@ -89,7 +100,7 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         await Frame(ct);
         CheckHeader(longPath);
-        if (CheckIdentifierRail().Height <= originalRail.Height)
+        if (CheckIdentifierRail().Height <= minimumRail.Height)
             throw new InvalidOperationException("Identifier markers did not follow the maximized window size.");
         var maximized = _window.Bounds.Size;
         if (maximized.Width <= minimum.Width || maximized.Height <= minimum.Height)
@@ -134,7 +145,7 @@ internal sealed partial class GuiPerformanceProbe
             AppKitOption = appKitOption,
             WindowsDpiEventScale = windowsDpiScale,
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
-            FrameMaxMilliseconds = frameTimes[^1], Movement = movement
+            FrameMaxMilliseconds = frameTimes[^1], Movement = movement, IdentifierSamples = _identifierSamples
         }), ct);
 
         Rect CheckIdentifierRail()

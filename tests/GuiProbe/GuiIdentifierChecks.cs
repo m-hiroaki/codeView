@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -18,26 +19,8 @@ internal sealed partial class GuiPerformanceProbe
         var view = area.TextView;
         var search = _viewModel.InFileSearch;
         view.EnsureVisualLines();
-        using var pointer = new Pointer(100009, PointerType.Mouse, true);
-        Point At(int offset) => view.GetVisualPosition(new TextViewPosition(_editor.Document.GetLocation(offset)),
-            VisualYPosition.LineMiddle) - view.ScrollOffset;
-        Point Root(Point point) => view.TranslatePoint(point, _window)!.Value;
-        void Raise(PointerEventArgs args)
-        {
-            _scriptedRowPointer = args;
-            try { view.RaiseEvent(args); }
-            finally { _scriptedRowPointer = null; }
-        }
-        void Click(Point start, Point end)
-        {
-            Raise(new PointerPressedEventArgs(view, pointer, _window, Root(start), 0,
-                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
-            if (start != end)
-                Raise(new PointerEventArgs(InputElement.PointerMovedEvent, view, pointer, _window, Root(end), 0,
-                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None));
-            Raise(new PointerReleasedEventArgs(view, pointer, _window, Root(end), 0,
-                new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
-        }
+        Point At(int offset) => EditorPointAt(offset);
+        void Click(Point start, Point end) => RaiseIdentifierGesture(start, end);
 
         var inside = At(7) + new Vector(1, 0);
         Click(inside, inside);
@@ -102,4 +85,136 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
         }
     }
+    private readonly List<object> _identifierSamples = [];
+
+    private async Task MeasureIdentifierAsync(string scenario, int offset, bool horizontal, CancellationToken ct)
+    {
+        var search = _viewModel.InFileSearch;
+        var view = (IScrollable)_editor.TextArea.TextView;
+        using var process = Process.GetCurrentProcess();
+        int Count() => search.IdentifierMatches.Count;
+        void Reset()
+        {
+            search.ClearIdentifier();
+            view.Offset = default;
+        }
+
+        Reset();
+        await Frame(ct);
+        try
+        {
+            var inactive = await ScrollAsync();
+            view.Offset = default;
+            await Frame(ct);
+            var point = EditorPointAt(offset) + new Vector(1, 0);
+            var watch = Stopwatch.StartNew();
+            var first = new TaskCompletionSource<double>(TaskCreationOptions.RunContinuationsAsynchronously);
+            void OnMatches()
+            {
+                if (Count() > 0) first.TrySetResult(watch.Elapsed.TotalMilliseconds);
+            }
+
+            process.Refresh();
+            var cpu = process.TotalProcessorTime;
+            var managedBefore = GC.GetTotalMemory(false);
+            var residentBefore = ResidentBytes();
+            search.IdentifierMatchesChanged += OnMatches;
+            double firstUpdate;
+            try
+            {
+                RaiseIdentifierGesture(point, point);
+                await search.PendingWork.WaitAsync(ct);
+                if (Count() == 0) throw new InvalidOperationException($"No identifier matches in {scenario}.");
+                firstUpdate = await first.Task.WaitAsync(ct);
+            }
+            finally { search.IdentifierMatchesChanged -= OnMatches; }
+            await Frame(ct);
+            var scan = new
+            {
+                FirstUpdateMilliseconds = firstUpdate,
+                SettledMilliseconds = watch.Elapsed.TotalMilliseconds,
+                CpuMilliseconds = CpuElapsed(cpu),
+                ManagedDeltaBytes = GC.GetTotalMemory(false) - managedBefore,
+                ResidentDeltaBytes = ResidentBytes() - residentBefore
+            };
+            var capped = _window.FindControl<TextBlock>("IdentifierStatus")!.IsEffectivelyVisible;
+            if (capped != (Count() == CodeView.Search.SearchLimits.ResultLimit))
+                throw new InvalidOperationException($"Incorrect identifier limit status in {scenario}.");
+            var active = await ScrollAsync();
+            _identifierSamples.Add(new
+            {
+                Scenario = scenario, DocumentLength = _editor.Document.TextLength, Matches = Count(),
+                Scan = scan, InactiveScroll = inactive, ActiveScroll = active
+            });
+        }
+        finally { Reset(); }
+
+        double CpuElapsed(TimeSpan start)
+        {
+            process.Refresh();
+            return (process.TotalProcessorTime - start).TotalMilliseconds;
+        }
+
+        long ResidentBytes()
+        {
+            process.Refresh();
+            return process.WorkingSet64;
+        }
+
+        async Task<object> ScrollAsync()
+        {
+            var samples = new double[24];
+            var watch = Stopwatch.StartNew();
+            process.Refresh();
+            var cpu = process.TotalProcessorTime;
+            var movement = 0;
+            for (var i = 1; i <= samples.Length; i++)
+            {
+                var before = view.Offset;
+                view.Offset = horizontal ? new Vector(i * 120, 0) : new Vector(0, i * 24);
+                await Frame(ct);
+                samples[i - 1] = watch.Elapsed.TotalMilliseconds;
+                watch.Restart();
+                if (view.Offset != before) movement++;
+            }
+            if (movement != samples.Length)
+                throw new InvalidOperationException($"Identifier scrolling did not reach all positions in {scenario}.");
+            Array.Sort(samples);
+            return new
+            {
+                FrameMedianMilliseconds = samples[samples.Length / 2], FrameMaxMilliseconds = samples[^1],
+                CpuMilliseconds = CpuElapsed(cpu), ResidentBytes = ResidentBytes()
+            };
+        }
+    }
+
+    private Point EditorPointAt(int offset)
+    {
+        var view = _editor.TextArea.TextView;
+        view.EnsureVisualLines();
+        return view.GetVisualPosition(new TextViewPosition(_editor.Document.GetLocation(offset)), VisualYPosition.LineMiddle)
+            - view.ScrollOffset;
+    }
+
+    private void RaiseIdentifierGesture(Point start, Point end)
+    {
+        var view = _editor.TextArea.TextView;
+        using var pointer = new Pointer(100009, PointerType.Mouse, true);
+        Point Root(Point point) => view.TranslatePoint(point, _window)!.Value;
+        void Raise(PointerEventArgs args)
+        {
+            _scriptedRowPointer = args;
+            try { view.RaiseEvent(args); }
+            finally { _scriptedRowPointer = null; }
+        }
+
+        Raise(new PointerPressedEventArgs(view, pointer, _window, Root(start), 0,
+            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
+        if (start != end)
+            Raise(new PointerEventArgs(InputElement.PointerMovedEvent, view, pointer, _window, Root(end), 0,
+                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None));
+        Raise(new PointerReleasedEventArgs(view, pointer, _window, Root(end), 0,
+            new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
+    }
+
 }

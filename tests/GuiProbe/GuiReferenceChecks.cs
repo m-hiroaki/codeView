@@ -162,7 +162,10 @@ internal sealed partial class GuiPerformanceProbe
             await Frame(ct);
             panel.IsVisible = false;
             await Frame(ct);
-            _editor.Select(8, 0);
+            var symbolPoint = EditorPointAt(8) + new Vector(1, 0);
+            RaiseIdentifierGesture(symbolPoint, symbolPoint);
+            await _viewModel.InFileSearch.PendingWork.WaitAsync(ct);
+            Require(_viewModel.InFileSearch.IdentifierMatches.Count == 3, "identifier-before-f12-definition");
             var definitionKey = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F12 };
             RaiseSearchKey(_editor.TextArea, definitionKey);
             await _viewModel.PendingWork.WaitAsync(ct);
@@ -1048,7 +1051,9 @@ internal sealed partial class GuiPerformanceProbe
         var workspace = Directory.CreateDirectory(Path.Combine(root, "large-search")).FullName;
         var path = Path.Combine(workspace, "large-source.cs");
         var row = "//" + new string('a', 509) + "\n";
-        var content = string.Concat(Enumerable.Repeat(row, size / row.Length)) + marker;
+        var matchRow = "// needle " + new string('a', 501) + "\n";
+        var content = string.Concat(Enumerable.Range(0, size / row.Length)
+            .Select(index => index % 16 == 0 ? matchRow : row)) + marker;
         await File.WriteAllTextAsync(path, content, ct);
         inputs.Add(path, hash(path));
 
@@ -1059,6 +1064,8 @@ internal sealed partial class GuiPerformanceProbe
             && _viewModel.SyntaxStatus.Contains("本文上限")
             && !_editor.TextArea.TextView.LineTransformers.OfType<SyntaxColorizer>().Any(),
             "syntax-large-source-visible-without-color");
+        if (Environment.GetEnvironmentVariable("CODEVIEW_CHROME_CAPTURE") == "1")
+            await MeasureIdentifierAsync("10-MiB", offset: 4, horizontal: false, ct);
 
         var modifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
         RaiseSearchKey(_editor.TextArea, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F, KeyModifiers = modifier });
@@ -1280,6 +1287,9 @@ internal sealed partial class GuiPerformanceProbe
         try
         {
             _editor.TextArea.Focus();
+            var prefix = EditorPointAt(1) + new Vector(1, 0);
+            RaiseIdentifierGesture(prefix, prefix);
+            await _viewModel.InFileSearch.PendingWork.WaitAsync(ct);
             _editor.Select(7, selection.Length);
             var copy = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.C, KeyModifiers = modifier };
             RaiseSearchKey(_editor.TextArea, copy);
@@ -1290,7 +1300,8 @@ internal sealed partial class GuiPerformanceProbe
                 if (actual == selection) break;
                 await Task.Delay(20, ct);
             }
-            require(copy.Handled && actual == selection && _editor.Document.Text == content,
+            require(copy.Handled && actual == selection && _editor.Document.Text == content
+                && _viewModel.InFileSearch.IdentifierMatches.Count == 1,
                 "original-copy-keeps-mixed-newlines-and-unicode");
             _editor.Select(content.Length, 0);
             _editor.CaretOffset = content.Length;
