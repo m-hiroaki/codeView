@@ -27,6 +27,19 @@ goto run
 :performance
 set "CODEVIEW_FILTER=TestCategory=Performance"
 :run
+set "CODEVIEW_PAYLOAD=%CD%\artifacts\publish\win-x64\codeView"
+set "CODEVIEW_TEST_ROSLYN=%CODEVIEW_PAYLOAD%\language-servers\roslyn\Microsoft.CodeAnalysis.LanguageServer.exe"
+set "CODEVIEW_TEST_CLANGD=%CODEVIEW_PAYLOAD%\language-servers\clangd\bin\clangd.exe"
+call :has_bundle
+if not errorlevel 1 goto bundle_ready
+echo Publishing win-x64 for language server tests.
+set "CODEVIEW_SEMANTIC_PROBE="
+call "%~dp0build-windows.bat"
+if errorlevel 1 goto failed
+call :has_bundle
+if errorlevel 1 goto bundle_missing
+:bundle_ready
+echo Using bundled language servers: "%CODEVIEW_PAYLOAD%"
 set "CODEVIEW_RESULTS=%CD%\artifacts\test-results\windows"
 if not "%CODEVIEW_MODE%"=="coverage" goto results_ready
 set "CODEVIEW_HTML=%CODEVIEW_RESULTS%\coverage\html"
@@ -63,6 +76,9 @@ set "CODEVIEW_EXIT=%ERRORLEVEL%"
 if "%CODEVIEW_EXIT%"=="0" set "CODEVIEW_EXIT=1"
 echo ERROR: Tests failed. Check the output above. 1>&2
 goto finish
+:bundle_missing
+echo ERROR: Published app or language servers are missing from "%CODEVIEW_PAYLOAD%". 1>&2
+goto finish
 :html_missing
 echo ERROR: HTML coverage report was not generated. 1>&2
 set "CODEVIEW_EXIT=1"
@@ -78,3 +94,8 @@ endlocal & exit /b %CODEVIEW_EXIT%
 :usage
 echo Usage: test-windows.bat [--performance ^| --coverage] 1>&2
 endlocal & exit /b 2
+:has_bundle
+if not exist "%CODEVIEW_PAYLOAD%\codeView.exe" exit /b 1
+if not exist "%CODEVIEW_TEST_ROSLYN%" exit /b 1
+if not exist "%CODEVIEW_TEST_CLANGD%" exit /b 1
+exit /b 0

@@ -33,8 +33,8 @@ Windows / macOS向けの、コードリーディングに特化したソース�
 
 - .NET SDK 10.0.403（許容パッチ版は[global.json](global.json)に従う）
 - Python 3（通常テスト・カバレッジ計測・Native AOT発行用。macOSは`python3`、Windowsは`py`ランチャー）
-- Xcode Command Line ToolsまたはXcode（macOSのNative AOT発行用）
-- Visual Studio 2022以降または対応するBuild Toolsの「C++によるデスクトップ開発」（WindowsのNative AOT発行用。MSVC・Windows SDKを含む）
+- Xcode Command Line ToolsまたはXcode（macOSのNative AOT発行用。テストスクリプトも、配布物がなければ発行します）
+- Visual Studio 2022以降または対応するBuild Toolsの「C++によるデスクトップ開発」（WindowsのNative AOT発行用。MSVC・Windows SDKを含み、テストスクリプトも配布物がなければ発行します）
 - VS CodeとMicrosoft C#拡張機能 `ms-dotnettools.csharp`（[VS Codeでデバッグする場合](docs/build.md#vs-codeでのデバッグ)）
 
 ## ビルド・起動

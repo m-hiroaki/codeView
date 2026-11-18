@@ -23,6 +23,30 @@ if [[ "$codeview_mode" != performance ]]; then
 else
     codeview_filter='TestCategory=Performance'
 fi
+
+case "$(uname -m)" in
+    arm64) codeview_rid=osx-arm64 ;;
+    x86_64) codeview_rid=osx-x64 ;;
+    *) echo 'ERROR: Unsupported host architecture.' >&2; exit 2 ;;
+esac
+codeview_app="$codeview_root/artifacts/publish/$codeview_rid/codeView.app"
+export CODEVIEW_TEST_ROSLYN="$codeview_app/Contents/Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer"
+export CODEVIEW_TEST_CLANGD="$codeview_app/Contents/Helpers/clangd"
+codeview_has_bundle() {
+    [[ -f "$codeview_app/Contents/MacOS/codeView" && -x "$codeview_app/Contents/MacOS/codeView" &&
+        -f "$CODEVIEW_TEST_ROSLYN" && -x "$CODEVIEW_TEST_ROSLYN" &&
+        -f "$CODEVIEW_TEST_CLANGD" && -x "$CODEVIEW_TEST_CLANGD" ]]
+}
+if ! codeview_has_bundle; then
+    echo "Publishing $codeview_rid for language server tests."
+    CODEVIEW_SEMANTIC_PROBE= ./build-mac.sh "$codeview_rid"
+    if ! codeview_has_bundle; then
+        echo "ERROR: Published app or language servers are missing from $codeview_app." >&2
+        exit 1
+    fi
+fi
+echo "Using bundled language servers: $codeview_app"
+
 codeview_results="$codeview_root/artifacts/test-results/macos"
 if [[ "$codeview_mode" == coverage ]]; then
     codeview_html="$codeview_results/coverage/html"

@@ -22,14 +22,26 @@ class TestRunnerTests(unittest.TestCase):
         self.bin.mkdir()
         self.log = self.repo / 'calls.jsonl'
         uname = self.bin / 'uname'
-        uname.write_text('#!/bin/sh\necho "${TEST_OS:-Darwin}"\n')
+        uname.write_text('#!/bin/sh\nif [ "$1" = "-m" ]; then echo "${TEST_ARCH:-arm64}"; else echo "${TEST_OS:-Darwin}"; fi\n')
         uname.chmod(0o755)
         stub = '#!' + sys.executable + '\n' + '''import json, os, pathlib, sys
 name = pathlib.Path(__file__).name
 args = sys.argv[1:]
 with open(os.environ['TEST_LOG'], 'a') as stream:
-    stream.write(json.dumps(dict(tool=name, args=args, cwd=os.getcwd())) + '\\n')
-if name == 'dotnet' and args[:2] == ['tool', 'restore']:
+    stream.write(json.dumps(dict(tool=name, args=args, cwd=os.getcwd(),
+                                 servers=[os.environ.get(key) for key in ['CODEVIEW_TEST_ROSLYN', 'CODEVIEW_TEST_CLANGD']],
+                                 semantic_probe=os.environ.get('CODEVIEW_SEMANTIC_PROBE'))) + '\\n')
+if name == 'build-mac.sh':
+    key = 'TEST_BUILD_EXIT'
+    if os.environ.get(key, '0') == '0' and not os.environ.get('TEST_INCOMPLETE_BUNDLE'):
+        app = pathlib.Path('artifacts/publish') / args[0] / 'codeView.app'
+        for executable in [app / 'Contents/MacOS/codeView',
+                           pathlib.Path(os.environ['CODEVIEW_TEST_ROSLYN']),
+                           pathlib.Path(os.environ['CODEVIEW_TEST_CLANGD'])]:
+            executable.parent.mkdir(parents=True, exist_ok=True)
+            executable.touch()
+            executable.chmod(0o755)
+elif name == 'dotnet' and args[:2] == ['tool', 'restore']:
     key = 'TEST_TOOL_RESTORE_EXIT'
 elif name == 'dotnet' and args[:3] == ['tool', 'run', 'reportgenerator']:
     key = 'TEST_REPORT_EXIT'
@@ -45,7 +57,20 @@ sys.exit(int(os.environ.get(key, '0')))
             tool = self.bin / name
             tool.write_text(stub)
             tool.chmod(0o755)
+        builder = self.repo / 'build-mac.sh'
+        builder.write_text(stub)
+        builder.chmod(0o755)
+        for executable in self.bundle_paths():
+            executable.parent.mkdir(parents=True, exist_ok=True)
+            executable.touch()
+            executable.chmod(0o755)
         self.env = dict(os.environ, PATH=str(self.bin) + os.pathsep + os.environ['PATH'], TEST_LOG=str(self.log))
+
+    def bundle_paths(self, rid='osx-arm64'):
+        app = self.repo / 'artifacts' / 'publish' / rid / 'codeView.app'
+        return (app / 'Contents/MacOS/codeView',
+                app / 'Contents/Helpers/Roslyn.app/Contents/MacOS/Microsoft.CodeAnalysis.LanguageServer',
+                app / 'Contents/Helpers/clangd')
 
     def run_script(self, *args, **env):
         return subprocess.run([str(self.repo / 'test-mac.sh'), *args], cwd=self.repo.parent,
@@ -62,11 +87,48 @@ sys.exit(int(os.environ.get(key, '0')))
         self.assertTrue(all(Path(call['cwd']).samefile(self.repo) for call in calls))
         self.assertIn('--locked-mode', calls[0]['args'])
         args = calls[1]['args']
+        self.assertEqual(calls[1]['servers'], list(map(str, self.bundle_paths()[1:])))
         self.assertEqual(args[args.index('--filter') + 1], 'TestCategory!=Performance')
         self.assertIn('trx;LogFileName=unit.trx', args)
         self.assertIn('-p:PublishAot=false', args)
         self.assertNotIn('--collect', args)
         self.assertEqual(calls[2]['args'], ['-m', 'unittest', 'discover', '-s', 'tools', '-v'])
+
+    def test_missing_native_bundle_is_built_before_coverage(self):
+        result = self.run_script('--coverage', TEST_ARCH='x86_64', CODEVIEW_SEMANTIC_PROBE='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        build, restore, test, *_ = self.calls()
+        self.assertEqual((build['tool'], build['args']), ('build-mac.sh', ['osx-x64']))
+        self.assertEqual(build['semantic_probe'], '')
+        self.assertEqual(restore['args'][0], 'restore')
+        self.assertEqual(test['args'][0], 'test')
+        self.assertEqual(test['servers'], list(map(str, self.bundle_paths('osx-x64')[1:])))
+
+    def test_missing_or_nonexecutable_helper_causes_rebuild(self):
+        self.bundle_paths()[1].unlink()
+        self.bundle_paths()[2].chmod(0o644)
+        result = self.run_script(CODEVIEW_TEST_ROSLYN='/ignored', CODEVIEW_TEST_CLANGD='/ignored')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        build, _, test, _ = self.calls()
+        self.assertEqual((build['tool'], build['args']), ('build-mac.sh', ['osx-arm64']))
+        self.assertEqual(test['servers'], list(map(str, self.bundle_paths()[1:])))
+
+    def test_publish_failure_stops_before_tests_and_keeps_previous_coverage(self):
+        self.bundle_paths()[0].unlink()
+        html = self.repo / 'artifacts/test-results/macos/coverage/html/index.html'
+        html.parent.mkdir(parents=True)
+        html.write_text('previous report')
+        result = self.run_script('--coverage', TEST_BUILD_EXIT='29')
+        self.assertEqual(result.returncode, 29)
+        self.assertEqual([call['tool'] for call in self.calls()], ['build-mac.sh'])
+        self.assertEqual(html.read_text(), 'previous report')
+
+    def test_incomplete_publish_stops_before_tests(self):
+        self.bundle_paths()[0].unlink()
+        result = self.run_script(TEST_INCOMPLETE_BUNDLE='1')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('Published app or language servers are missing', result.stderr)
+        self.assertEqual([call['tool'] for call in self.calls()], ['build-mac.sh'])
 
     def test_performance_mode_runs_only_performance_and_no_python(self):
         result = self.run_script('--performance')

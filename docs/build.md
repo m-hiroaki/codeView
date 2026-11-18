@@ -105,7 +105,11 @@ Native AOT発行では、対象OS用のSkiaSharp、HarfBuzzSharp、Onigwrap、Wi
 
 ## テスト実行
 
-リポジトリのルートに以下の入口を用意している。どちらもglobal.jsonの.NET SDKが必要。通常モードではPython補助ツールも試すため、Macはpython3、WindowsはPython 3とpyランチャー（`py -3`）を用意する。C++ビルドツールは単体テストの実行には不要。
+リポジトリのルートに以下の入口を用意している。どちらもglobal.jsonの.NET SDKが必要。通常・カバレッジモードではPython補助ツールも試すため、Macはpython3、WindowsはPython 3とpyランチャー（`py -3`）を用意する。
+
+テストスクリプトは対象CPUの `artifacts/publish/<RID>/` にあるアプリと同梱Roslyn・clangdを確認する。そろっていれば再利用し、欠けていれば `build-mac.sh` または `build-windows.bat` で通常のNative AOT配布物を発行する。初回発行にはPythonとOSのビルドツールが必要。発行に失敗した場合や同梱物が揃わない場合はテストの前に停止する。
+
+スクリプトは確認済みの実行ファイルを `CODEVIEW_TEST_ROSLYN` と `CODEVIEW_TEST_CLANGD` に設定する。通常・カバレッジモードでは既存の意味解析結合テストも実行する。性能モードは同じ準備を行い、試験対象は引き続きPerformanceカテゴリに限定する。
 
 ```sh
 # macOS：通常単体テストとPython試験
@@ -125,7 +129,7 @@ test-windows.bat --performance
 
 スクリプトの場所を基準に実行するため、別CWDや空白を含むパスにも対応する。通常モードは`TestCategory!=Performance`、性能モードは`TestCategory=Performance`で選別する。依存をlocked-modeで復元してからReleaseでビルド・試験する。製品の性能計測用GUI試作とAOT/トリミングを無効にし、通常の.NET/NUnitランナーで単体試験を実行する。AOT配布物の受入試験は別途行う。
 
-.NETの結果は`artifacts/test-results/macos/`または`artifacts/test-results/windows/`にTRX形式で保存する。通常はunit.trx、性能はperformance.trx。同じモードの再実行で結果を上書きする。Pythonの結果はコンソールへ表示する。復元・.NET試験・Python試験のいずれかが失敗するとそこで停止し、元の非0終了コードを返す。不正引数は2、前提ツール不足は1。
+.NETの結果は`artifacts/test-results/macos/`または`artifacts/test-results/windows/`にTRX形式で保存する。通常はunit.trx、性能はperformance.trx。同じモードの再実行で結果を上書きする。Pythonの結果はコンソールへ表示する。発行・復元・.NET試験・Python試験のいずれかが失敗するとそこで停止し、元の非0終了コードを返す。不正引数は2、前提ツール不足は1。
 
 Performanceカテゴリには生成入力やCODEVIEW_PERF_*環境変数が必要な試験が含まれる。[性能計画](performance-plan.md)に従って準備する。未準備の試験はスキップされるため、終了0だけで性能受入を完了扱いにせず、TRXの実行/スキップ件数と個々の結果を確認する。性能モードはPython試験を実行しない。通常のWindows実行ではmacOS用シェルの模擬試験がスキップされる。
 
@@ -137,13 +141,13 @@ Macではtest-mac.shを通じて.NET590件・Python19件合格、終了0を確�
 
 Actionは確認したリリースのコミットSHAへ固定し、リポジトリの権限はcontents:read、checkoutの資格情報永続化は無効にする。片方のOSが失敗しても他方の試験は実行する。復元・ビルド・単体試験の失敗はジョブ失敗とし、失敗時も環境情報と生成済みTRXをtest-results-<OS>のArtifactへ14日間保存する。スキップ件数もTRXで確認する。後続pushで同じブランチの古い実行は取り消す。
 
-対象は通常のReleaseビルド・.NET単体/I/O結合・Python補助ツール試験。カバレッジ/性能データ生成/GUI操作/Native AOT発行/別PC/署名/完全オフライン/長時間受入は含めない。CI成功をG0〜G6全体の完了や両OSの実機受入へ読み替えない。
+対象は言語サーバーを含むNative AOT配布物の準備、通常のReleaseビルド、.NET単体・I/O結合・意味解析結合、Python補助ツール試験。カバレッジ、性能データ生成、GUI操作、別PC、配布用署名、完全オフライン、長時間受入は各専用手順で確認する。
 
 [初回結果と証跡](validation-results/2026-11-06-ci-build/README.md)：Windowsは.NET627合格/3スキップ・Python5合格/20スキップ、macOSは.NET630/Python25合格。SDKは許容パッチの10.0.403を選択した。Windowsのpy -3はPATHのPython 3.12とは別に3.15.2を選ぶため、Pythonマイナー版を共通固定した試験とはしない。
 
 ## コードカバレッジ
 
-通常単体テストと同じSDK/Pythonを用意し、次を実行する。
+通常テストと同じ前提で次を実行する。配布物の準備と同梱サーバーの指定も通常テストと同じ。
 
 ```sh
 # macOS
