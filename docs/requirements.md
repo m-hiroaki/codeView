@@ -202,7 +202,7 @@
 | ファイルを開く | Ctrl+O       | Cmd+O       |
 | フォルダを開く | Ctrl+Shift+O | Cmd+Shift+O |
 | 全文検索       | Ctrl+Shift+F | Cmd+Shift+F |
-| 検索結果を閉じる | Ctrl+Shift+H | Cmd+Shift+H |
+| 検索結果を閉じる | Ctrl+J | Cmd+J |
 | ファイル内検索 | Ctrl+F       | Cmd+F       |
 | 定義へジャンプ | F12          | F12         |
 | 参照を検索     | F1    | F1   |

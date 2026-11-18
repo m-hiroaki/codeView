@@ -52,10 +52,10 @@ internal sealed partial class MainWindow : Window
         this.FindControl<MenuItem>("JumpForwardMenu")!.InputGesture = new KeyGesture(Key.Right, jumpModifier);
         this.FindControl<MenuItem>("InFileSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier);
         this.FindControl<MenuItem>("WorkspaceSearchMenu")!.InputGesture = new KeyGesture(Key.F, modifier | KeyModifiers.Shift);
-        var hideSearchGesture = new KeyGesture(Key.H, modifier | KeyModifiers.Shift);
+        var hideSearchGesture = new KeyGesture(Key.J, modifier);
         this.FindControl<MenuItem>("HideSearchMenu")!.InputGesture = hideSearchGesture;
         ToolTip.SetTip(this.FindControl<Button>("HideSearchButton")!,
-            $"パネルを閉じる（{(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+Shift+H）。検索は継続します。");
+            $"パネルを閉じる（{(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+J）。検索は継続します。");
         this.FindControl<ListBox>("SearchResultsList")!.AddHandler(KeyDownEvent, SearchResultKeyDown,
             RoutingStrategies.Tunnel, handledEventsToo: true);
         // The list's directional navigation may consume arrows before they bubble.

@@ -311,7 +311,7 @@ internal sealed partial class GuiPerformanceProbe
             RaiseSearchKey(folderQuery, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             var activeOperation = panel.CurrentOperation;
             KeyEventArgs HideResultsKey() => new()
-                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.H, KeyModifiers = findModifier | KeyModifiers.Shift };
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.J, KeyModifiers = findModifier };
             var hideFromQuery = HideResultsKey();
             RaiseSearchKey(folderQuery, hideFromQuery);
             Require(hideFromQuery.Handled && !panel.IsVisible && panel.IsRunning && _editor.TextArea.IsFocused
@@ -352,6 +352,13 @@ internal sealed partial class GuiPerformanceProbe
             DragSplitter(resultsSplitter, new Vector(narrowWidth - resizedWidthOfResults, 0));
             await Frame(ct);
             _editor.TextArea.Focus();
+            RaiseSearchKey(_editor.TextArea, new KeyEventArgs
+                { RoutedEvent = InputElement.KeyDownEvent, Key = Key.H, KeyModifiers = findModifier | KeyModifiers.Shift });
+            var hideMenu = _window.FindControl<MenuItem>("HideSearchMenu")!;
+            var hideButton = _window.FindControl<Button>("HideSearchButton")!;
+            Require(panel.IsVisible && hideMenu.InputGesture is { Key: Key.J } gesture && gesture.KeyModifiers == findModifier
+                && ToolTip.GetTip(hideButton) is string tip && tip.Contains(OperatingSystem.IsMacOS() ? "Cmd+J" : "Ctrl+J"),
+                "folder-close-shortcut-uses-two-keys-and-updates-labels");
             var hideFromEditor = HideResultsKey();
             RaiseSearchKey(_editor.TextArea, hideFromEditor);
             await Frame(ct);
