@@ -266,6 +266,7 @@ internal sealed partial class MainWindow : Window
 #endif
             if (viewModel.HasDocument) editor.Select(editor.CaretOffset, 0);
         };
+        var recentStartupGate = args.Length == 0 ? null : new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Opened += async (_, _) =>
         {
             // Let the welcome actions paint before measuring and drawing the history rows.
@@ -273,7 +274,9 @@ internal sealed partial class MainWindow : Window
             {
                 if (!_closing) this.FindControl<Grid>("RecentHistoryHost")!.IsVisible = true;
             }));
-            await RunAsync(() => viewModel.InitializeAsync(args));
+            await RunAsync(() => viewModel.InitializeAsync(args, recentStartupGate?.Task));
+            if (recentStartupGate is not null)
+                RequestAnimationFrame(_ => RequestAnimationFrame(_ => recentStartupGate.TrySetResult()));
             if (!_closing) ConfigureWelcomeBackground();
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.InitializationFinished(viewModel.HasDocument);
@@ -289,6 +292,7 @@ internal sealed partial class MainWindow : Window
             eventArgs.Cancel = true;
             if (_closing) return;
             _closing = true;
+            recentStartupGate?.TrySetResult();
             await StopAndWaitAsync(() =>
             {
                 try { _copies?.Dispose(); }

@@ -381,12 +381,13 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
     }
 
-    public async Task InitializeAsync(string[] paths)
+    public async Task InitializeAsync(string[] paths, Task? recentStartupGate = null)
     {
         if (_initialized || _stopping) return;
         _initialized = true;
         if (recentHistory is not null)
-            _recentWork = UpdateRecentAsync(Task.CompletedTask, () => recentHistory.LoadAsync(_lifetime.Token), reportFailure: false);
+            _recentWork = UpdateRecentAsync(recentStartupGate ?? Task.CompletedTask,
+                () => recentHistory.LoadAsync(_lifetime.Token), reportFailure: false);
         if (paths.Length > 0) Submit(paths, OpenOrigin.CommandLine);
         var settingsTask = Task.Run(() => settingsStore.LoadAsync(_lifetime.Token), _lifetime.Token);
         _lateSettings = ObserveLateSettingsAsync(settingsTask);

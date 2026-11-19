@@ -22,13 +22,14 @@ internal sealed class MainWindowViewModelTests
         await File.WriteAllTextAsync(source, "class Source {}");
         try
         {
+            var firstFrames = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             await WithWindowAsync([workspace, missing, source], view =>
             {
                 Assert.That(view.RecentItems.Select(item => item.FullPath), Is.EqualTo(new[] { source, workspace }));
                 Assert.That(view.RecentItems.Select(item => item.IsFolder), Is.EqualTo(new[] { false, true }));
                 Assert.That(view.IsWelcomeVisible, Is.False);
                 return Task.CompletedTask;
-            });
+            }, firstFrames);
             await WithWindowAsync([], async view =>
             {
                 Assert.That(view.IsWelcomeVisible, Is.True);
@@ -52,7 +53,8 @@ internal sealed class MainWindowViewModelTests
         }
         finally { root.Delete(recursive: true); }
 
-        async Task WithWindowAsync(string[] args, Func<MainWindowViewModel, Task> verify)
+        async Task WithWindowAsync(string[] args, Func<MainWindowViewModel, Task> verify,
+            TaskCompletionSource? firstFrames = null)
         {
             var access = new SourceAccess();
             using var operations = new AppOperations(new(access), new AvaloniaEditDocumentAdapter(), new(access));
@@ -61,13 +63,20 @@ internal sealed class MainWindowViewModelTests
             var view = new MainWindowViewModel(operations, settings, YieldTreeAsync, recentHistory: history);
             try
             {
-                await view.InitializeAsync(args);
+                await view.InitializeAsync(args, firstFrames?.Task);
+                if (firstFrames is not null)
+                {
+                    Assert.That(view.HasDocument, Is.True);
+                    Assert.That(view.RecentWork.IsCompleted, Is.False);
+                    firstFrames.SetResult();
+                }
                 await view.PendingWork;
                 await verify(view);
             }
             finally
             {
                 view.Stop();
+                firstFrames?.TrySetResult();
                 await view.PendingWork;
             }
         }
