@@ -20,6 +20,7 @@
         <Compile Include="../../tests/GuiProbe/BundledSemanticProbe.cs;../../tests/GuiProbe/GuiSemanticChecks.cs" />
     </ItemGroup>
     <ItemGroup>
+        <AvaloniaResource Include="Assets/welcome-background.png" />
         <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
         <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />

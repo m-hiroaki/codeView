@@ -63,6 +63,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool CanJumpBack => !_stopping && !_restoringJump && _jumpIndex > 0;
     public bool CanJumpForward => !_stopping && !_restoringJump && _jumpIndex < (_jumps?.Count ?? 0);
     public bool HasTabs => Tabs.Count > 0;
+    public bool IsWelcomeVisible => !HasTabs && !HasWorkspace;
     public bool CanSaveSettings => !_stopping && !_pumping && !_savingSettings && _settingsForSave is { CanSave: true };
     public AvaloniaList<TabViewModel> Tabs { get; } = [];
     public long ViewEpoch { get; private set; }
@@ -641,7 +642,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private void WorkspaceChanged()
     {
         SearchPanel.RefreshWorkspace();
-        Changed(nameof(HasWorkspace), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible),
+        Changed(nameof(HasWorkspace), nameof(IsWelcomeVisible), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible),
             nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel), nameof(Breadcrumb), nameof(BreadcrumbPath));
     }
 
@@ -707,7 +708,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                 .Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var row in Tabs) row.Refresh(duplicateNames.Contains(row.Name));
             _selectedTab = Tabs.FirstOrDefault(row => ReferenceEquals(row.State, _tabManager.ActiveTab));
-            Changed(nameof(SelectedTab), nameof(HasTabs), nameof(CanReload), nameof(CanReopenEncoding));
+            Changed(nameof(SelectedTab), nameof(HasTabs), nameof(IsWelcomeVisible), nameof(CanReload), nameof(CanReopenEncoding));
         }
         finally { _syncingTabs = false; }
     }

@@ -3,6 +3,8 @@ using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Documents;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
@@ -18,8 +20,28 @@ internal sealed partial class GuiPerformanceProbe
         _viewModel.InFileSearch.IsVisible = false;
         _viewModel.CloseWorkspace();
         foreach (var tab in _viewModel.Tabs.ToArray()) _viewModel.CloseTab(tab);
+        var welcome = _window.FindControl<Border>("WelcomeBackground")!;
+        var title = _window.FindControl<TextBlock>("WelcomeTitle")!;
+        for (var frame = 0; frame < 12 && welcome.Background is null; frame++) await Frame(ct);
         await Frame(ct);
+        CheckWelcome();
         Save("empty");
+
+        var normalWidth = _window.Width;
+        var normalHeight = _window.Height;
+        var maximumWidth = _window.MaxWidth;
+        var maximumHeight = _window.MaxHeight;
+        _window.MaxWidth = _window.Width = _window.MinWidth;
+        _window.MaxHeight = _window.Height = _window.MinHeight;
+        await Frame(ct);
+        await Frame(ct);
+        CheckWelcome();
+        Save("welcome-minimum");
+        _window.MaxWidth = maximumWidth;
+        _window.MaxHeight = maximumHeight;
+        _window.Width = normalWidth;
+        _window.Height = normalHeight;
+        await Frame(ct);
 
         var folder = Directory.CreateDirectory(Path.Combine(_output + ".chrome-input", "shop")).FullName;
         var nested = Directory.CreateDirectory(Path.Combine(folder, "長い名前のフォルダ")).FullName;
@@ -33,6 +55,8 @@ internal sealed partial class GuiPerformanceProbe
         view.Offset = default;
         await Frame(ct);
         await Frame(ct);
+        if (welcome.IsEffectivelyVisible || title.IsEffectivelyVisible)
+            throw new InvalidOperationException("Welcome artwork is visible with a document open.");
         CheckHeader(body);
         Save("document");
         bool? appKitOption = OperatingSystem.IsMacOS() ? CheckAppKitOption() : null;
@@ -79,10 +103,6 @@ internal sealed partial class GuiPerformanceProbe
         _viewModel.SearchPanel.IsVisible = true;
         await Frame(ct);
         var originalRail = CheckIdentifierRail();
-        var normalWidth = _window.Width;
-        var normalHeight = _window.Height;
-        var maximumWidth = _window.MaxWidth;
-        var maximumHeight = _window.MaxHeight;
         _window.MaxWidth = _window.Width = _window.MinWidth;
         _window.MaxHeight = _window.Height = _window.MinHeight;
         _viewModel.SetStatus($"検索結果へ移動しました。 {longPath}");
@@ -135,6 +155,13 @@ internal sealed partial class GuiPerformanceProbe
                 CheckSearchDock();
                 CheckIdentifierRail();
                 Save("windows-125dpi", ProbeScale, _window.GetVisualParent());
+                _viewModel.SearchPanel.IsVisible = false;
+                _viewModel.CloseWorkspace();
+                foreach (var tab in _viewModel.Tabs.ToArray()) _viewModel.CloseTab(tab);
+                await Frame(ct);
+                await Frame(ct);
+                CheckWelcome();
+                Save("welcome-windows-125dpi", ProbeScale, _window.GetVisualParent());
                 windowsDpiScale = _window.RenderScaling;
             }
             finally { ChromeWin32.ChangeDpi(hwnd, originalDpi, ref originalRect); }
@@ -153,6 +180,20 @@ internal sealed partial class GuiPerformanceProbe
             StartupMilliseconds = _openedMilliseconds, FrameMedianMilliseconds = frameTimes[frameTimes.Length / 2],
             FrameMaxMilliseconds = frameTimes[^1], Movement = movement, IdentifierSamples = _identifierSamples
         }), ct);
+
+        void CheckWelcome()
+        {
+            var runs = title.Inlines!.OfType<Run>().ToArray();
+            var folderButton = _window.FindControl<Button>("EmptyOpenFolderButton")!;
+            if (!welcome.IsEffectivelyVisible || welcome.IsHitTestVisible
+                || welcome.Background is not ImageBrush { Source: Bitmap bitmap } || bitmap.PixelSize != new PixelSize(1152, 768)
+                || !title.IsEffectivelyVisible || runs.Length != 2
+                || runs[0] is not { Text: "code", FontWeight: FontWeight.Light }
+                || runs[1] is not { Text: "View", FontWeight: FontWeight.Bold, Foreground: ISolidColorBrush }
+                || folderButton.TranslatePoint(new Point(folderButton.Bounds.Width, folderButton.Bounds.Height), welcome) is not { } edge
+                || !new Rect(welcome.Bounds.Size).Contains(edge))
+                throw new InvalidOperationException("Welcome background, title or actions are unavailable.");
+        }
 
         void CheckSearchDock()
         {

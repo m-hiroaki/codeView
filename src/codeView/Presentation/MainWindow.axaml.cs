@@ -10,6 +10,9 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
@@ -265,6 +268,7 @@ internal sealed partial class MainWindow : Window
         Opened += async (_, _) =>
         {
             await RunAsync(() => viewModel.InitializeAsync(args));
+            if (!_closing) ConfigureWelcomeBackground();
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.InitializationFinished(viewModel.HasDocument);
 #endif
@@ -367,6 +371,46 @@ internal sealed partial class MainWindow : Window
             Title = "ファイルを開く", AllowMultiple = true
         });
         await OpenPickerSelectionAsync(selected);
+    }
+
+    private void ConfigureWelcomeBackground()
+    {
+        var background = this.FindControl<Border>("WelcomeBackground")!;
+        Bitmap? bitmap = null;
+        var attempted = false;
+        _viewModel.PropertyChanged += OnPropertyChanged;
+        Closed += (_, _) =>
+        {
+            _viewModel.PropertyChanged -= OnPropertyChanged;
+            background.Background = null;
+            bitmap?.Dispose();
+        };
+        ScheduleLoad();
+
+        void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs change)
+        {
+            if (change.PropertyName == nameof(MainWindowViewModel.IsWelcomeVisible)) ScheduleLoad();
+        }
+
+        void ScheduleLoad()
+        {
+            if (attempted || !_viewModel.IsWelcomeVisible) return;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_closing || attempted || !_viewModel.IsWelcomeVisible) return;
+                attempted = true;
+                try
+                {
+                    using var stream = AssetLoader.Open(new Uri("avares://codeView/Assets/welcome-background.png"));
+                    bitmap = new Bitmap(stream);
+                    background.Background = new ImageBrush(bitmap) { Stretch = Stretch.Fill };
+                }
+                catch (Exception error) when (error is IOException or ArgumentException or InvalidOperationException)
+                {
+                    System.Diagnostics.Debug.WriteLine(error.Message);
+                }
+            }, DispatcherPriority.Background);
+        }
     }
 
     private void ConfigureChrome()

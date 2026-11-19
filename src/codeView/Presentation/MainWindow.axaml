@@ -28,6 +28,9 @@
         <Style Selector="GridSplitter.reading-splitter:pointerover, GridSplitter.reading-splitter:focus-visible">
             <Setter Property="Background" Value="{StaticResource ReadingAccent}" />
         </Style>
+        <Style Selector="Button.ink.welcome-action">
+            <Setter Property="Padding" Value="16,8" />
+        </Style>
         <Style Selector="rendering|TextView">
             <Setter Property="CurrentLineBackground">
                 <LinearGradientBrush StartPoint="0,0" EndPoint="2,0">
@@ -218,12 +221,18 @@
             </editor:TextEditor.Options>
         </editor:TextEditor>
         <vm:IdentifierScrollMarkers Grid.Row="2" x:Name="IdentifierMarkers" IsHitTestVisible="False" />
+        <Border Grid.Row="2" x:Name="WelcomeBackground" IsVisible="{Binding IsWelcomeVisible}" IsHitTestVisible="False" />
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
-            <TextBlock Text="codeView" FontSize="28" Foreground="{StaticResource MutedForeground}" HorizontalAlignment="Center" />
+            <TextBlock x:Name="WelcomeTitle" IsVisible="{Binding IsWelcomeVisible}" FontSize="60" Margin="0,0,0,8"
+                       Foreground="{StaticResource ReadingForeground}" HorizontalAlignment="Center" AutomationProperties.Name="codeView"><Run Text="code" FontWeight="Light" /><Run Text="View" FontWeight="Bold" Foreground="{StaticResource ReadingAccent}" /></TextBlock>
+            <TextBlock IsVisible="{Binding !IsWelcomeVisible}" Text="codeView" FontSize="28"
+                       Foreground="{StaticResource MutedForeground}" HorizontalAlignment="Center" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                <Button Classes="ink" Classes.primary="{Binding !SearchPanel.IsVisible}" x:Name="EmptyOpenFileButton" Content="ファイルを開く" Click="OpenClicked" />
-                <Button Classes="ink" x:Name="EmptyOpenFolderButton" Content="フォルダを開く" Click="OpenFolderClicked" />
+                <Button Classes="ink" Classes.primary="{Binding !SearchPanel.IsVisible}" Classes.welcome-action="{Binding IsWelcomeVisible}"
+                        x:Name="EmptyOpenFileButton" Content="ファイルを開く" Click="OpenClicked" />
+                <Button Classes="ink" Classes.welcome-action="{Binding IsWelcomeVisible}" x:Name="EmptyOpenFolderButton"
+                        Content="フォルダを開く" Click="OpenFolderClicked" />
             </StackPanel>
         </StackPanel>
             </Grid>

@@ -12,6 +12,43 @@ internal sealed class MainWindowViewModelTests
     private static async Task YieldTreeAsync() => await Task.Yield();
 
     [Test]
+    public void WelcomeIsVisibleOnlyWithoutTabsOrWorkspace() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-welcome-");
+        var access = new SourceAccess();
+        using var operations = new AppOperations(new(access), new AvaloniaEditDocumentAdapter(), new(access));
+        var view = new MainWindowViewModel(operations, new SettingsStore(new(
+            Path.Combine(root.FullName, "portable.json"), Path.Combine(root.FullName, "user.json"))),
+            YieldTreeAsync);
+        try
+        {
+            await view.InitializeAsync([]);
+            Assert.That(view.IsWelcomeVisible, Is.True);
+
+            await view.OpenFilesAsync([root.FullName], OpenOrigin.Menu);
+            Assert.That(view.HasDocument, Is.False);
+            Assert.That(view.IsWelcomeVisible, Is.False);
+            view.CloseWorkspace();
+            Assert.That(view.IsWelcomeVisible, Is.True);
+
+            var binary = Path.Combine(root.FullName, "binary.dat");
+            await File.WriteAllBytesAsync(binary, [0, 1, 0, 2]);
+            await view.OpenFilesAsync([binary], OpenOrigin.Menu);
+            Assert.That(view.HasTabs, Is.True);
+            Assert.That(view.HasDocument, Is.False);
+            Assert.That(view.IsWelcomeVisible, Is.False);
+            view.CloseFile();
+            Assert.That(view.IsWelcomeVisible, Is.True);
+        }
+        finally
+        {
+            view.Stop();
+            await view.PendingWork;
+            root.Delete(recursive: true);
+        }
+    });
+
+    [Test]
     public void SavedExclusionsApplyOnNextStartupAndUnchangedSettingsDoNotWrite() => SingleThreadTestContext.Run(async () =>
     {
         var root = Directory.CreateTempSubdirectory("codeview-save-restart-").FullName;
