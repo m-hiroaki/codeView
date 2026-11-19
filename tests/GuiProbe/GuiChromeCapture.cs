@@ -4,11 +4,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using CodeView.Operations;
+using CodeView.Settings;
 
 namespace CodeView.Presentation;
 
@@ -22,10 +25,27 @@ internal sealed partial class GuiPerformanceProbe
         foreach (var tab in _viewModel.Tabs.ToArray()) _viewModel.CloseTab(tab);
         var welcome = _window.FindControl<Border>("WelcomeBackground")!;
         var title = _window.FindControl<TextBlock>("WelcomeTitle")!;
+        await _viewModel.RecentWork.WaitAsync(ct);
         for (var frame = 0; frame < 12 && welcome.Background is null; frame++) await Frame(ct);
         await Frame(ct);
         CheckWelcome();
-        Save("empty");
+        var history = _window.FindControl<StackPanel>("RecentHistoryPanel")!;
+        if (history.IsEffectivelyVisible)
+        {
+            Save("welcome-history");
+            var recent = history.GetVisualDescendants().OfType<Button>()
+                .First(button => button.DataContext is RecentItem { IsFolder: false } && button.Content is Grid);
+            var item = (RecentItem)recent.DataContext!;
+            recent.Focus();
+            RaiseSearchKey(recent, new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            RaiseSearchKey(recent, new KeyEventArgs { RoutedEvent = InputElement.KeyUpEvent, Key = Key.Enter });
+            for (var frame = 0; frame < 30 && _viewModel.SelectedTab?.FullPath != item.FullPath; frame++) await Frame(ct);
+            if (_viewModel.SelectedTab?.FullPath != item.FullPath)
+                throw new InvalidOperationException("Enter did not reopen the selected recent file.");
+            _viewModel.CloseFile();
+            await _viewModel.RecentWork.WaitAsync(ct);
+            await Frame(ct);
+        }
 
         var normalWidth = _window.Width;
         var normalHeight = _window.Height;
@@ -37,6 +57,16 @@ internal sealed partial class GuiPerformanceProbe
         await Frame(ct);
         CheckWelcome();
         Save("welcome-minimum");
+        if (history.IsEffectivelyVisible)
+        {
+            history.GetVisualDescendants().OfType<Button>().Single(button => Equals(button.Content, "履歴を消去"))
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await _viewModel.RecentWork.WaitAsync(ct);
+            await Frame(ct);
+            if (history.IsEffectivelyVisible)
+                throw new InvalidOperationException("Clearing recent history did not hide the panel.");
+        }
+        Save("empty");
         _window.MaxWidth = maximumWidth;
         _window.MaxHeight = maximumHeight;
         _window.Width = normalWidth;
@@ -193,6 +223,11 @@ internal sealed partial class GuiPerformanceProbe
                 || folderButton.TranslatePoint(new Point(folderButton.Bounds.Width, folderButton.Bounds.Height), welcome) is not { } edge
                 || !new Rect(welcome.Bounds.Size).Contains(edge))
                 throw new InvalidOperationException("Welcome background, title or actions are unavailable.");
+            var panel = _window.FindControl<StackPanel>("RecentHistoryPanel")!;
+            if (panel.IsEffectivelyVisible
+                && (panel.TranslatePoint(new Point(panel.Bounds.Width, panel.Bounds.Height), welcome) is not { } historyEdge
+                    || !new Rect(welcome.Bounds.Size).Contains(historyEdge)))
+                throw new InvalidOperationException("Recent history is clipped by the welcome area.");
         }
 
         void CheckSearchDock()

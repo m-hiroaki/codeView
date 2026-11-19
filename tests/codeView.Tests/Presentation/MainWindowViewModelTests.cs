@@ -12,6 +12,68 @@ internal sealed class MainWindowViewModelTests
     private static async Task YieldTreeAsync() => await Task.Yield();
 
     [Test]
+    public void RecentHistoryRecordsSuccessfulOpensAndReopensAfterRestart() => SingleThreadTestContext.Run(async () =>
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-recent-window-");
+        var workspace = root.CreateSubdirectory("workspace").FullName;
+        var source = Path.Combine(workspace, "Source.cs");
+        var missing = Path.Combine(workspace, "Missing.cs");
+        var history = new RecentHistoryStore(Path.Combine(root.FullName, "user", "codeview.recent.json"));
+        await File.WriteAllTextAsync(source, "class Source {}");
+        try
+        {
+            await WithWindowAsync([workspace, missing, source], view =>
+            {
+                Assert.That(view.RecentItems.Select(item => item.FullPath), Is.EqualTo(new[] { source, workspace }));
+                Assert.That(view.RecentItems.Select(item => item.IsFolder), Is.EqualTo(new[] { false, true }));
+                Assert.That(view.IsWelcomeVisible, Is.False);
+                return Task.CompletedTask;
+            });
+            await WithWindowAsync([], async view =>
+            {
+                Assert.That(view.IsWelcomeVisible, Is.True);
+                Assert.That(view.HasRecentItems, Is.True);
+                await view.ReopenRecentAsync(view.RecentItems[0]);
+                await view.PendingWork;
+                Assert.That(view.HasDocument, Is.True);
+                view.CloseFile();
+                File.Delete(source);
+                await view.ReopenRecentAsync(view.RecentItems[0]);
+                await view.PendingWork;
+                Assert.That(view.HasDocument, Is.False);
+                Assert.That(view.RecentItems.Select(item => item.FullPath), Does.Contain(source));
+                view.CloseFile();
+                await view.RemoveRecentAsync(source);
+                Assert.That(view.RecentItems.Select(item => item.FullPath), Is.EqualTo(new[] { workspace }));
+                await view.RemoveRecentAsync(null);
+                Assert.That(view.HasRecentItems, Is.False);
+                Assert.That(await history.LoadAsync(default), Is.Empty);
+            });
+        }
+        finally { root.Delete(recursive: true); }
+
+        async Task WithWindowAsync(string[] args, Func<MainWindowViewModel, Task> verify)
+        {
+            var access = new SourceAccess();
+            using var operations = new AppOperations(new(access), new AvaloniaEditDocumentAdapter(), new(access));
+            var settings = new SettingsStore(new(Path.Combine(root.FullName, "portable.json"),
+                Path.Combine(root.FullName, "user.json")));
+            var view = new MainWindowViewModel(operations, settings, YieldTreeAsync, recentHistory: history);
+            try
+            {
+                await view.InitializeAsync(args);
+                await view.PendingWork;
+                await verify(view);
+            }
+            finally
+            {
+                view.Stop();
+                await view.PendingWork;
+            }
+        }
+    });
+
+    [Test]
     public void WelcomeIsVisibleOnlyWithoutTabsOrWorkspace() => SingleThreadTestContext.Run(async () =>
     {
         var root = Directory.CreateTempSubdirectory("codeview-welcome-");

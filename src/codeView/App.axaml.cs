@@ -53,7 +53,15 @@ internal sealed partial class App : Application
 #endif
             var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source), semanticCacheDirectory);
             var settings = new SettingsStore(locations);
-            desktop.MainWindow = new MainWindow(new MainWindowViewModel(operations, settings), desktop.Args ?? []);
+#if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
+            var recentHistory = (Environment.GetEnvironmentVariable("CODEVIEW_CHROME_CAPTURE") == "1"
+                || Environment.GetEnvironmentVariable("CODEVIEW_WELCOME_STARTUP") == "1")
+                && Environment.GetEnvironmentVariable("CODEVIEW_GUI_PERF_REPORT") is { } historyReport
+                ? new RecentHistoryStore(historyReport + ".recent.json") : null;
+#else
+            var recentHistory = new RecentHistoryStore(Path.Combine(Path.GetDirectoryName(locations.UserFile)!, "codeview.recent.json"));
+#endif
+            desktop.MainWindow = new MainWindow(new MainWindowViewModel(operations, settings, recentHistory: recentHistory), desktop.Args ?? []);
         }
 
         base.OnFrameworkInitializationCompleted();

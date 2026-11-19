@@ -186,7 +186,7 @@ internal sealed class SettingsStore(SettingsLocations locations, ISourceAccess? 
             loaded.LoadedHash == Convert.ToHexString(SHA256.HashData(content.AsSpan(0, count)));
     }
 
-    private static void EnsurePlainDirectories(string path)
+    internal static void EnsurePlainDirectories(string path)
     {
         for (var directory = new DirectoryInfo(path); directory is not null; directory = directory.Parent)
         {
@@ -196,7 +196,7 @@ internal sealed class SettingsStore(SettingsLocations locations, ISourceAccess? 
         }
     }
 
-    private static string ResolveExistingLinks(string path)
+    internal static string ResolveExistingLinks(string path)
     {
         path = NormalizeSystemPath(Path.GetFullPath(path));
         var root = Path.GetPathRoot(path)!;
@@ -212,14 +212,14 @@ internal sealed class SettingsStore(SettingsLocations locations, ISourceAccess? 
         return NormalizeSystemPath(root);
     }
 
-    private static string NormalizeSystemPath(string path) =>
+    internal static string NormalizeSystemPath(string path) =>
         OperatingSystem.IsMacOS() && (path.StartsWith("/var/", StringComparison.Ordinal) ||
             path.StartsWith("/tmp/", StringComparison.Ordinal) || path is "/var" or "/tmp") ? "/private" + path : path;
 
     private static OperationResult<SettingsLoadResult> SaveFailure(ErrorCode code, string? path) =>
         OperationResult<SettingsLoadResult>.Failure(new(code, path));
 
-    private static bool Exists(string path)
+    internal static bool Exists(string path)
     {
         try { _ = File.GetAttributes(path); return true; }
         catch (FileNotFoundException) { return false; }

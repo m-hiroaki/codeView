@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CodeView.Presentation"
+        xmlns:settings="using:CodeView.Settings"
         xmlns:editor="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:rendering="clr-namespace:AvaloniaEdit.Rendering;assembly=AvaloniaEdit"
         x:Class="CodeView.Presentation.MainWindow"
@@ -234,6 +235,38 @@
                 <Button Classes="ink" Classes.welcome-action="{Binding IsWelcomeVisible}" x:Name="EmptyOpenFolderButton"
                         Content="フォルダを開く" Click="OpenFolderClicked" />
             </StackPanel>
+            <Grid IsVisible="{Binding IsWelcomeVisible}">
+                <StackPanel x:Name="RecentHistoryPanel" IsVisible="{Binding HasRecentItems}" MinWidth="280" MaxWidth="460" Margin="0,12,0,0">
+                    <Grid ColumnDefinitions="*,Auto" Margin="8,0,0,4">
+                        <TextBlock Text="最近開いたもの" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource MutedForeground}" />
+                        <Button Classes="ink quiet" Grid.Column="1" Content="履歴を消去" FontSize="11" Padding="6,3" Click="ClearRecentClicked" />
+                    </Grid>
+                    <ItemsControl x:Name="RecentItemsList" ItemsSource="{Binding RecentItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="settings:RecentItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Button Classes="ink quiet" MinHeight="28" Padding="8,3" HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch" ToolTip.Tip="{Binding FullPath}"
+                                            AutomationProperties.Name="{Binding FullPath}" Click="OpenRecentClicked">
+                                        <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                                            <TextBlock Text="{Binding Kind}" FontSize="10" Foreground="{StaticResource MutedForeground}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                       MaxWidth="140" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding ShortPath}" FontSize="11"
+                                                       Foreground="{StaticResource MutedForeground}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{Binding DateLabel}" FontSize="11"
+                                                       Foreground="{StaticResource MutedForeground}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button>
+                                    <Button Grid.Column="1" Classes="ink quiet icon" Content="×" Width="28" Height="28"
+                                            ToolTip.Tip="履歴から削除" AutomationProperties.Name="履歴から削除" Click="RemoveRecentClicked" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
         </StackPanel>
             </Grid>
             <Border x:Name="SearchResultsPane" Grid.Column="2" Margin="6,0,0,0" Background="{StaticResource PanelBackground}"

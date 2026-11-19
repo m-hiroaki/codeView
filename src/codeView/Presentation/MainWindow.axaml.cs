@@ -21,6 +21,7 @@ using CodeView.Contracts;
 using CodeView.Files;
 using CodeView.Navigation;
 using CodeView.Operations;
+using CodeView.Settings;
 
 namespace CodeView.Presentation;
 
@@ -875,6 +876,16 @@ internal sealed partial class MainWindow : Window
 
     private async void OpenClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFilesAsync);
     private async void OpenFolderClicked(object? sender, RoutedEventArgs args) => await RunAsync(OpenFolderAsync);
+    private async void OpenRecentClicked(object? sender, RoutedEventArgs args)
+    {
+        if (sender is Button { DataContext: RecentItem item }) await RunAsync(() => _viewModel.ReopenRecentAsync(item));
+    }
+    private async void RemoveRecentClicked(object? sender, RoutedEventArgs args)
+    {
+        if (sender is Button { DataContext: RecentItem item }) await RunAsync(() => _viewModel.RemoveRecentAsync(item.FullPath));
+    }
+    private async void ClearRecentClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(() => _viewModel.RemoveRecentAsync(null));
 
     private async void EditSemanticNavigationClicked(object? sender, RoutedEventArgs args) =>
         await RunAsync(async () =>

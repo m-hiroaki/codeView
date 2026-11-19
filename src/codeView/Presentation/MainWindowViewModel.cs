@@ -12,7 +12,7 @@ using CodeView.Navigation;
 namespace CodeView.Presentation;
 
 internal sealed class MainWindowViewModel(AppOperations operations, SettingsStore settingsStore, Func<Task>? treeYield = null,
-    TimeProvider? timeProvider = null) : INotifyPropertyChanged
+    TimeProvider? timeProvider = null, RecentHistoryStore? recentHistory = null) : INotifyPropertyChanged
 {
     private readonly string _baseDirectory = Environment.CurrentDirectory;
     private readonly CancellationTokenSource _lifetime = new();
@@ -50,6 +50,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private Task _pump = Task.CompletedTask;
     private Task _lateSettings = Task.CompletedTask;
     private Task _syntaxFailure = Task.CompletedTask;
+    private Task _recentWork = Task.CompletedTask;
     private readonly HashSet<Task> _manualWork = [];
     private bool _isTreeVisible = true;
     public FileTreeViewModel FileTree { get; } = new(treeYield);
@@ -64,6 +65,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool CanJumpForward => !_stopping && !_restoringJump && _jumpIndex < (_jumps?.Count ?? 0);
     public bool HasTabs => Tabs.Count > 0;
     public bool IsWelcomeVisible => !HasTabs && !HasWorkspace;
+    public IReadOnlyList<RecentItem> RecentItems { get; private set; } = [];
+    public bool HasRecentItems => RecentItems.Count > 0;
+    internal Task RecentWork => _recentWork;
     public bool CanSaveSettings => !_stopping && !_pumping && !_savingSettings && _settingsForSave is { CanSave: true };
     public AvaloniaList<TabViewModel> Tabs { get; } = [];
     public long ViewEpoch { get; private set; }
@@ -114,7 +118,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
     public string SyntaxStatus { get; private set; } = "";
     public event Action<SyntaxHighlighting?>? SyntaxChanged;
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, _syntaxFailure, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, _syntaxFailure, _recentWork, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -381,6 +385,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         if (_initialized || _stopping) return;
         _initialized = true;
+        if (recentHistory is not null)
+            _recentWork = UpdateRecentAsync(Task.CompletedTask, () => recentHistory.LoadAsync(_lifetime.Token), reportFailure: false);
         if (paths.Length > 0) Submit(paths, OpenOrigin.CommandLine);
         var settingsTask = Task.Run(() => settingsStore.LoadAsync(_lifetime.Token), _lifetime.Token);
         _lateSettings = ObserveLateSettingsAsync(settingsTask);
@@ -425,6 +431,46 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping) return;
         Submit(paths, origin);
         await EnsurePumpAsync();
+    }
+
+    internal Task ReopenRecentAsync(RecentItem item) => !_stopping && IsWelcomeVisible && RecentItems.Contains(item)
+        ? OpenFilesAsync([item.FullPath], OpenOrigin.Menu)
+        : Task.CompletedTask;
+
+    internal Task RemoveRecentAsync(string? itemPath)
+    {
+        if (_stopping || recentHistory is null) return Task.CompletedTask;
+        var sources = Tabs.Select(tab => tab.FullPath).ToArray();
+        var workspace = WorkspacePath;
+        return _recentWork = UpdateRecentAsync(_recentWork,
+            () => recentHistory.RemoveAsync(itemPath, sources, workspace, CancellationToken.None), reportFailure: true);
+    }
+
+    private void RecordRecent(List<RecentItem>? opened)
+    {
+        if (_stopping || recentHistory is null || opened is not { Count: > 0 }) return;
+        var sources = Tabs.Select(tab => tab.FullPath).ToArray();
+        var workspace = WorkspacePath;
+        _recentWork = UpdateRecentAsync(_recentWork,
+            () => recentHistory.RecordAsync(opened, sources, workspace, CancellationToken.None), reportFailure: false);
+    }
+
+    private async Task UpdateRecentAsync(Task previous, Func<Task<IReadOnlyList<RecentItem>>> update, bool reportFailure)
+    {
+        await previous;
+        try
+        {
+            var items = await Task.Run(update);
+            if (_stopping) return;
+            RecentItems = items;
+            Changed(nameof(RecentItems), nameof(HasRecentItems));
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException
+            or ArgumentException or System.Text.Json.JsonException or Win32Exception)
+        {
+            if (reportFailure && !_stopping) SetStatus("最近開いたものを更新できませんでした。履歴ファイルを確認してください。");
+        }
     }
 
     public Task OpenDropAsync(IDataTransfer data, Action? accepted = null)
@@ -472,10 +518,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                     var skippedFolders = 0;
                     var failedPaths = 0;
                     string? firstFailure = null;
+                    List<RecentItem>? opened = recentHistory is null ? null : [];
                     foreach (var path in request!.Paths)
                     {
                         if (_stopping) break;
-                        var (isFolder, failure) = await OpenPathAsync(path, !folderSeen);
+                        var (isFolder, failure) = await OpenPathAsync(path, !folderSeen, opened);
                         if (isFolder)
                         {
                             if (folderSeen) skippedFolders++;
@@ -487,6 +534,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                             firstFailure ??= failure;
                         }
                     }
+                    RecordRecent(opened);
                     if (!_stopping && (firstFailure is not null || skippedFolders > 0))
                     {
                         var notice = firstFailure ?? Status;
@@ -507,7 +555,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
     }
 
-    private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(string input, bool allowFolder)
+    private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(string input, bool allowFolder, List<RecentItem>? opened)
     {
         SourcePath path;
         try { path = SourcePath.Create(input, _baseDirectory); }
@@ -520,12 +568,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             return (false, ErrorText(inspected.Error!.Code));
         if (inspected.Value.Kind == SourceEntryKind.Directory)
         {
-            return (true, allowFolder ? await OpenFolderAsync(path) : null);
+            return (true, allowFolder ? await OpenFolderAsync(path, opened) : null);
         }
-        return (false, await LoadAsync(path));
+        return (false, await LoadAsync(path, opened));
     }
 
-    private async Task<string?> OpenFolderAsync(SourcePath path)
+    private async Task<string?> OpenFolderAsync(SourcePath path, List<RecentItem>? opened = null)
     {
         var settings = operations.Startup.Settings?.Snapshot;
         if (settings is null || _stopping) return null;
@@ -548,6 +596,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (result.Status == OperationStatus.Cancelled) return null;
         var failure = result.Status == OperationStatus.Failure
             ? "フォルダを読み込めません。 " + ErrorText(result.Error!.Code) : null;
+        if (result.Status == OperationStatus.Success) AppendRecent(opened, path, isFolder: true);
         SetStatus(failure ?? "フォルダを開きました。");
         return failure;
     }
@@ -681,7 +730,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             SetStatus("読込待ちが上限に達しました。");
     }
 
-    private async Task<string?> LoadAsync(SourcePath path)
+    private async Task<string?> LoadAsync(SourcePath path, List<RecentItem>? opened)
     {
         if (_stopping) return null;
         var work = _tabManager.OpenAsync(path);
@@ -692,9 +741,17 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping) return null;
         SyncTabs();
         if (ReferenceEquals(_tabManager.ActiveTab, target)) DisplayActiveTab();
-        if (result.Status != OperationStatus.Failure) return null;
+        if (result.Status != OperationStatus.Failure)
+        {
+            if (result.Status == OperationStatus.Success) AppendRecent(opened, path, isFolder: false);
+            return null;
+        }
         return result.Error!.Code == ErrorCode.QueueFull ? "読込待ちが上限に達しました。" : FileErrorText(result.Error.Code);
     }
+
+    private void AppendRecent(List<RecentItem>? opened, SourcePath path, bool isFolder) =>
+        opened?.Add(new(Path.TrimEndingDirectorySeparator(path.FullPath), isFolder,
+            (timeProvider ?? TimeProvider.System).GetUtcNow()));
 
     private void SyncTabs()
     {
