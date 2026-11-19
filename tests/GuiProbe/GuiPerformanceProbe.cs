@@ -212,6 +212,8 @@ internal sealed partial class GuiPerformanceProbe
             await _viewModel.RecentWork.WaitAsync(timeout.Token);
             if (_viewModel.HasRecentItems)
             {
+                var history = _window.FindControl<StackPanel>("RecentHistoryPanel")!;
+                while (!history.IsEffectivelyVisible) await Frame(timeout.Token);
                 await Frame(timeout.Token);
                 await Frame(timeout.Token);
                 _welcomeHistoryMilliseconds = Startup.Elapsed.TotalMilliseconds;

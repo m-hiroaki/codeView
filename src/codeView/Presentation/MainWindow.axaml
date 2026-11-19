@@ -235,7 +235,8 @@
                 <Button Classes="ink" Classes.welcome-action="{Binding IsWelcomeVisible}" x:Name="EmptyOpenFolderButton"
                         Content="フォルダを開く" Click="OpenFolderClicked" />
             </StackPanel>
-            <Grid IsVisible="{Binding IsWelcomeVisible}">
+            <Grid x:Name="RecentHistoryHost" IsVisible="False">
+              <Grid IsVisible="{Binding IsWelcomeVisible}">
                 <StackPanel x:Name="RecentHistoryPanel" IsVisible="{Binding HasRecentItems}" MinWidth="280" MaxWidth="460" Margin="0,12,0,0">
                     <Grid ColumnDefinitions="*,Auto" Margin="8,0,0,4">
                         <TextBlock Text="最近開いたもの" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource MutedForeground}" />
@@ -266,6 +267,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
+              </Grid>
             </Grid>
         </StackPanel>
             </Grid>

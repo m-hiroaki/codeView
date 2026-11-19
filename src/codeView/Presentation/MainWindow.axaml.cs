@@ -268,6 +268,11 @@ internal sealed partial class MainWindow : Window
         };
         Opened += async (_, _) =>
         {
+            // Let the welcome actions paint before measuring and drawing the history rows.
+            RequestAnimationFrame(_ => RequestAnimationFrame(_ =>
+            {
+                if (!_closing) this.FindControl<Grid>("RecentHistoryHost")!.IsVisible = true;
+            }));
             await RunAsync(() => viewModel.InitializeAsync(args));
             if (!_closing) ConfigureWelcomeBackground();
 #if CODEVIEW_PERFORMANCE_PROBE
