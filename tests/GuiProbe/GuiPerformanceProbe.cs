@@ -36,6 +36,9 @@ internal sealed partial class GuiPerformanceProbe
     private double? _attachmentMilliseconds;
     private double? _openedMilliseconds;
     private double? _emptyWindowTwoTicksMilliseconds;
+    private double? _welcomeReadyMilliseconds;
+    private double? _welcomeHistoryMilliseconds;
+    private readonly bool _welcomeStartup = Environment.GetEnvironmentVariable("CODEVIEW_WELCOME_STARTUP") == "1";
     private double? _documentTwoTicksMilliseconds;
     private long _previousTick;
     private bool _finished;
@@ -195,9 +198,35 @@ internal sealed partial class GuiPerformanceProbe
             {
                 probe._emptyWindowTwoTicksMilliseconds = Startup.Elapsed.TotalMilliseconds;
                 if (probe._visualChecks) probe._readOnlyWork = probe.RunRowVisualChecksAsync();
+                else if (!hasInput && probe._welcomeStartup) probe._readOnlyWork = probe.FinishWelcomeStartupAsync();
                 else if (!hasInput && !probe._referenceChecks) probe.Finish();
             }));
         };
+    }
+
+    private async Task FinishWelcomeStartupAsync()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        try
+        {
+            await _viewModel.RecentWork.WaitAsync(timeout.Token);
+            if (_viewModel.HasRecentItems)
+            {
+                await Frame(timeout.Token);
+                await Frame(timeout.Token);
+                _welcomeHistoryMilliseconds = Startup.Elapsed.TotalMilliseconds;
+            }
+            var background = _window.FindControl<Border>("WelcomeBackground")!;
+            while (background.Background is null) await Frame(timeout.Token);
+            await Frame(timeout.Token);
+            await Frame(timeout.Token);
+            _welcomeReadyMilliseconds = Startup.Elapsed.TotalMilliseconds;
+            Finish();
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+        {
+            Finish("welcome-startup-timeout");
+        }
     }
 
     internal static void InitializationFinished(bool hasDocument)
@@ -856,6 +885,10 @@ internal sealed partial class GuiPerformanceProbe
             SourceLineCount = _sourceDocument?.LineCount, DisplayLineCount = _editor.Document?.LineCount,
             ViewportSamples = _viewportSamples,
             OpenedMilliseconds = _openedMilliseconds, WindowTwoTicksMilliseconds = _emptyWindowTwoTicksMilliseconds,
+            WelcomeReadyMilliseconds = _welcomeReadyMilliseconds,
+            WelcomeHistoryMilliseconds = _welcomeHistoryMilliseconds,
+            WelcomeRecentItems = _window.FindControl<StackPanel>("RecentHistoryPanel") is { IsEffectivelyVisible: true }
+                ? _viewModel.RecentItems.Count : 0,
             StartupStages = StartupStages.Snapshot(),
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,

@@ -89,6 +89,33 @@ def summarize(rows):
     return result
 
 
+def compare_welcome(baseline_app, candidate_app, source, output, baseline_commit, commit, expected_os, rounds):
+    output.mkdir(parents=True, exist_ok=False)
+    record = {"os": expected_os, "baselineCommit": baseline_commit, "commit": commit,
+              "rounds": rounds, "baseline": [], "candidate": []}
+    apps = {"baseline": (baseline_app, baseline_commit), "candidate": (candidate_app, commit)}
+    for number in range(1, rounds + 1):
+        for variant in apps if number % 2 else reversed(apps):
+            app, sha = apps[variant]
+            folder = output / f"{variant}-{number:02d}"
+            collect(app, source, folder, 1, sha, expected_os, welcome=variant == "candidate")
+            record[variant].extend(json.loads((folder / "runs.json").read_text())["runs"])
+    summary = record["summary"] = {}
+    for variant in apps:
+        summary[variant] = {}
+        for scenario in ("empty", "history", "file"):
+            rows = [row["report"] for row in record[variant] if row["scenario"] == scenario]
+            measurements = summary[variant][scenario] = {}
+            for metric in ("OpenedMilliseconds", "WindowTwoTicksMilliseconds", "WelcomeReadyMilliseconds",
+                           "WelcomeHistoryMilliseconds", "DocumentTwoTicksMilliseconds",
+                           "CpuMilliseconds", "SampledPeakMemory"):
+                values = [row[metric] for row in rows if row.get(metric) is not None]
+                if values:
+                    measurements[metric] = {"median": statistics.median(values), "max": max(values)}
+    (output / "welcome-comparison.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+
+
 def assess(baseline, candidate, search):
     # Fixed before measurement: >=5% startup reduction in both scenarios,
     # <=5% median CPU/memory increase, all first-show synchronous samples <=100ms.
@@ -144,9 +171,16 @@ def main():
     parser.add_argument("--rounds", type=int, default=10)
     parser.add_argument("--functional-rounds", type=int, default=3)
     parser.add_argument("--functional-only", action="store_true")
+    parser.add_argument("--welcome", action="store_true")
     args = parser.parse_args()
     if not all(re.fullmatch(r"[0-9a-f]{40}", sha) for sha in (args.baseline_commit, args.commit)):
         parser.error("Use complete lowercase commits")
+    if args.welcome:
+        if not 10 <= args.rounds <= 30:
+            parser.error("Use 10..30 comparison rounds")
+        compare_welcome(args.baseline_app.resolve(), args.candidate_app.resolve(), args.input.resolve(),
+                        args.output.resolve(), args.baseline_commit, args.commit, args.os, args.rounds)
+        return
     if args.functional_only:
         search_checks(args.candidate_app.resolve(), args.input.resolve(), args.output.resolve(), args.commit, args.os, args.functional_rounds)
         raise SystemExit(0)

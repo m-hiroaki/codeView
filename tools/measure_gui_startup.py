@@ -83,7 +83,7 @@ def validate_report(report, scenario, characters, lines, commit, expected_os):
         raise ValueError("Invalid scroll/frame interval")
 
 
-def collect(app, input_file, output, rounds, commit, expected_os):
+def collect(app, input_file, output, rounds, commit, expected_os, *, welcome=None):
     if not 1 <= rounds <= 100:
         raise ValueError("Rounds must be 1..100 per scenario")
     if not app.is_file():
@@ -98,7 +98,8 @@ def collect(app, input_file, output, rounds, commit, expected_os):
               "expectedLines": lines, "runs": [],
               "limits": "Probe build, native window only; Main-entry-relative callbacks are not OS launch-to-physical-paint or physical-input acceptance. Whole process includes scroll and shutdown."}
     for number in range(1, rounds + 1):
-        for scenario in ("empty", "file"):
+        scenarios = ("empty", "history", "file") if welcome is not None else ("empty", "file")
+        for scenario in scenarios:
             label = f"{scenario}-{number:02d}"
             report_file = output / (label + ".json")
             command = [str(app)] + ([str(input_file)] if scenario == "file" else [])
@@ -108,6 +109,13 @@ def collect(app, input_file, output, rounds, commit, expected_os):
             env = {key: value for key, value in os.environ.items() if not key.startswith("CODEVIEW_GUI_")}
             env.update(CODEVIEW_GUI_PERF_REPORT=str(report_file),
                        CODEVIEW_PERF_CACHE="Warm; fixture hashed before each process start" if scenario == "file" else "not-applicable; empty launch")
+            if welcome:
+                env["CODEVIEW_WELCOME_STARTUP"] = "1"
+                if scenario == "history":
+                    items = [{"path": str(input_file.with_name(f"Recent-{index}.cs")), "kind": "file",
+                              "openedAt": f"2026-11-19T03:00:0{index}Z"} for index in range(6)]
+                    Path(str(report_file) + ".recent.json").write_text(
+                        json.dumps({"version": 1, "items": items}), encoding="utf-8")
             row = {"scenario": scenario, "number": number, "command": command}
             record["runs"].append(row)
             started = time.perf_counter()
@@ -120,7 +128,19 @@ def collect(app, input_file, output, rounds, commit, expected_os):
                     raise RuntimeError("Native process failed: " + label)
                 report = json.loads(report_file.read_text(encoding="utf-8-sig"))
                 row["report"] = report
-                validate_report(report, scenario, characters, lines, commit, expected_os)
+                validate_report(report, "empty" if scenario == "history" else scenario,
+                                characters, lines, commit, expected_os)
+                if welcome:
+                    ready = report["WelcomeReadyMilliseconds"]
+                    history = report["WelcomeHistoryMilliseconds"]
+                    if scenario == "file":
+                        if ready is not None or report["WelcomeRecentItems"]:
+                            raise ValueError("Welcome screen was shown for a file launch")
+                    elif (not nonnegative(ready) or ready < report["WindowTwoTicksMilliseconds"]
+                          or report["WelcomeRecentItems"] != (6 if scenario == "history" else 0)):
+                        raise ValueError("Welcome screen did not show the expected number of items")
+                    if scenario == "history" and (not nonnegative(history) or history > ready):
+                        raise ValueError("No history drawing callbacks were recorded")
                 if sha256(input_file) != initial_hash:
                     raise ValueError("Input changed during native GUI run")
                 row["validated"] = True

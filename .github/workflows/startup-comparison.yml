@@ -2,6 +2,11 @@ name: Deferred search startup comparison
 
 on:
   workflow_dispatch:
+    inputs:
+      compare_welcome:
+        description: Compare startup before and after the welcome screen update
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -34,7 +39,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: 94bbefdf1582b63940f9303ab3abac076c480a07
+          ref: ${{ inputs.compare_welcome && 'ff779112f810b4526af46ba129c2c8d695c37bf4' || '94bbefdf1582b63940f9303ab3abac076c480a07' }}
           path: baseline
           persist-credentials: false
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
@@ -46,7 +51,8 @@ jobs:
       - name: Record environment and isolated fixture
         run: |
           New-Item -ItemType Directory -Force artifacts/startup-comparison/input | Out-Null
-          "Candidate: $env:GITHUB_SHA; baseline: 94bbefdf1582b63940f9303ab3abac076c480a07" | Out-File artifacts/startup-comparison/environment.txt
+          $baseline = git -C baseline rev-parse HEAD
+          "Candidate: $env:GITHUB_SHA; baseline: $baseline" | Out-File artifacts/startup-comparison/environment.txt
           dotnet --info | Out-File artifacts/startup-comparison/environment.txt -Append
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if ($IsWindows) { Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version | Out-File artifacts/startup-comparison/environment.txt -Append }
@@ -64,6 +70,7 @@ jobs:
           dotnet build src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/startup-comparison/candidate -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compare startup and check first search use
+        if: ${{ !inputs.compare_welcome }}
         run: |
           python -m unittest discover -s tools -p test_compare_startup.py -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -72,6 +79,14 @@ jobs:
           python tools/compare_gui_startup.py --functional-only --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit 94bbefdf1582b63940f9303ab3abac076c480a07 --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/functional-pilot --os $platform --functional-rounds 3
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/compare_gui_startup.py --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit 94bbefdf1582b63940f9303ab3abac076c480a07 --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/comparison --os $platform --rounds 10 --functional-rounds 3
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare welcome startup with empty, populated and command-line launches
+        if: inputs.compare_welcome
+        run: |
+          $app = if ($IsWindows) { 'codeView.exe' } else { 'codeView' }
+          $platform = if ($IsWindows) { 'windows' } else { 'macos' }
+          $baseline = git -C baseline rev-parse HEAD
+          python tools/compare_gui_startup.py --welcome --baseline-app "artifacts/startup-comparison/baseline/$app" --candidate-app "artifacts/startup-comparison/candidate/$app" --baseline-commit $baseline --commit $env:GITHUB_SHA --input artifacts/startup-comparison/input/起動確認.cs --output artifacts/startup-comparison/welcome --os $platform --rounds 10
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload comparison including rejection evidence
         if: always()
@@ -85,3 +100,4 @@ jobs:
             artifacts/startup-comparison/input/
             artifacts/startup-comparison/comparison/
             artifacts/startup-comparison/functional-pilot/
+            artifacts/startup-comparison/welcome/
