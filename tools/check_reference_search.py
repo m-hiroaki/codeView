@@ -103,6 +103,11 @@ STICKY_SCROLL_CHECKS = [
     'sticky-scroll-fits-minimum-width', 'sticky-scroll-definition-target-visible',
     'sticky-scroll-active-before-toggle', 'sticky-scroll-menu-off-preserves-offset',
     'sticky-scroll-menu-on-restores-header', 'sticky-scroll-off-suppresses-in-flight-analysis',
+    'sticky-c-struct-original-declaration', 'sticky-c-standalone-function-line',
+    'sticky-c-uses-source-colors', 'sticky-cpp-qualified-function-line',
+    'sticky-cpp-guarded-header-two-original-lines', 'sticky-cpp-header-uses-source-colors',
+    'sticky-cpp-off-keeps-viewport', 'sticky-cpp-on-restores-viewport-header',
+    'sticky-cpp-leaving-class-clears-header', 'sticky-cpp-f12-target-visible',
 ]
 
 

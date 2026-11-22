@@ -8,8 +8,8 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
-using CodeView.Documents;
 using CodeView.Navigation;
+using CodeView.Operations;
 
 namespace CodeView.Presentation;
 
@@ -70,13 +70,13 @@ internal sealed partial class MainWindow
         _stickyTarget = null;
         _stickyIndex = -1;
         _stickyHeader!.IsVisible = false;
-        if (_closing || !_viewModel.StickyScrollEnabled || _viewModel.StickyDocument is not { } document) return;
+        if (_closing || !_viewModel.StickyScrollEnabled || _viewModel.StickyFile is not { } file) return;
         var cancellation = new CancellationTokenSource();
         _stickyCancellation = cancellation;
-        _stickyWork = ReadStickyScopesAsync(_stickyWork, editor, document, cancellation);
+        _stickyWork = ReadStickyScopesAsync(_stickyWork, editor, file, cancellation);
     }
 
-    private async Task ReadStickyScopesAsync(Task previous, TextEditor editor, DocumentHandle document,
+    private async Task ReadStickyScopesAsync(Task previous, TextEditor editor, LoadedFile file,
         CancellationTokenSource cancellation)
     {
         var ct = cancellation.Token;
@@ -88,9 +88,11 @@ internal sealed partial class MainWindow
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.StickyAnalysisStarted();
 #endif
-            using var lease = document.AcquireReadView();
-            var ranges = await Task.Run(() => StickyScopeRanges.ReadCSharp(lease, ct), ct);
-            if (ct.IsCancellationRequested || _closing || !ReferenceEquals(document, _viewModel.StickyDocument)) return;
+            using var lease = file.Document.AcquireReadView();
+            var isCpp = CppDeclarationScanner.IncludesPath(file.Path.FullPath);
+            var ranges = await Task.Run(() => isCpp
+                ? CppDeclarationScanner.ReadScopes(lease, ct) : StickyScopeRanges.ReadCSharp(lease, ct), ct);
+            if (ct.IsCancellationRequested || _closing || !ReferenceEquals(file, _viewModel.StickyFile)) return;
             _stickyRanges = ranges;
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.StickyAnalysisCompleted(ranges is { Ranges.Count: > 0 });
@@ -121,7 +123,7 @@ internal sealed partial class MainWindow
             if (index >= 0)
             {
                 var active = ranges.Ranges[index];
-                _stickyMethod.Row.IsVisible = active.Kind == DeclarationKind.Method;
+                _stickyMethod.Row.IsVisible = active.Kind is DeclarationKind.Method or DeclarationKind.Function && active.Parent >= 0;
                 var type = _stickyMethod.Row.IsVisible ? ranges.Ranges[active.Parent] : active;
                 SetDeclaration(_stickyType, type);
                 if (_stickyMethod.Row.IsVisible) SetDeclaration(_stickyMethod, active);

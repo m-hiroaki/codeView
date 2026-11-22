@@ -18,8 +18,9 @@ internal sealed class BundledGrammars : IRegistryOptions
         return Path.GetExtension(path).ToLowerInvariant() switch
         {
             ".cs" => "source.cs",
-            ".c" => "source.c",
-            ".cpp" or ".h" => "source.cpp",
+            ".c" or ".i" => "source.c",
+            ".h" or ".ii" or ".cc" or ".cp" or ".cpp" or ".cxx" or ".c++" or ".hh" or ".hpp"
+                or ".hxx" or ".h++" or ".ipp" or ".inl" or ".tpp" or ".ixx" or ".cppm" => "source.cpp",
             ".json" => "source.json",
             ".xml" or ".config" or ".csproj" or ".props" or ".targets" or ".xaml" => "text.xml",
             ".md" or ".markdown" => "text.html.markdown",

@@ -48,7 +48,22 @@ public sealed class BundledGrammarsTests
 
     [TestCase("file.cs", "source.cs")]
     [TestCase("file.c", "source.c")]
+    [TestCase("file.i", "source.c")]
     [TestCase("file.CPP", "source.cpp")]
+    [TestCase("file.cc", "source.cpp")]
+    [TestCase("file.cp", "source.cpp")]
+    [TestCase("file.cxx", "source.cpp")]
+    [TestCase("file.c++", "source.cpp")]
+    [TestCase("file.ii", "source.cpp")]
+    [TestCase("file.hpp", "source.cpp")]
+    [TestCase("file.hh", "source.cpp")]
+    [TestCase("file.hxx", "source.cpp")]
+    [TestCase("file.h++", "source.cpp")]
+    [TestCase("file.ipp", "source.cpp")]
+    [TestCase("file.inl", "source.cpp")]
+    [TestCase("file.tpp", "source.cpp")]
+    [TestCase("file.ixx", "source.cpp")]
+    [TestCase("file.cppm", "source.cpp")]
     [TestCase("c-header.h", "source.cpp")]
     [TestCase("cpp-header.H", "source.cpp")]
     [TestCase("file.json", "source.json")]
@@ -74,7 +89,6 @@ public sealed class BundledGrammarsTests
     [TestCase("no-extension")]
     [TestCase("file.unknown")]
     [TestCase("README")]
-    [TestCase("file.hpp")]
     public void UnknownPathsRemainPlainAndDoNotInitializeAssets(string path)
     {
         var catalog = new BundledGrammars();

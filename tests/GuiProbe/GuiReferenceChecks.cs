@@ -431,6 +431,7 @@ internal sealed partial class GuiPerformanceProbe
             if (Environment.GetEnvironmentVariable("CODEVIEW_CHROME_CAPTURE") == "1")
             {
                 await CheckStickyScrollAsync(Require, ct);
+                await CheckCppStickyScrollAsync(Require, ct);
                 await CaptureChromeAsync(ct);
             }
             _referenceResults = new { Passed = true, Checks = checks, Scope = "Native routed keys/menu/bindings and original-source selection; not physical keys/IME or performance acceptance." };

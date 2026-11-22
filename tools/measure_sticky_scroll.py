@@ -9,33 +9,63 @@ import subprocess
 from measure_gui_startup import sha256
 
 
-CASES = {"empty": None, "normal": 64 * 1024, "eligible": 1024 * 1024, "large": 50 * 1024 * 1024}
+CSHARP_CASES = {
+    "empty": (None, None, False),
+    "normal": ("normal.cs", 64 * 1024, True),
+    "eligible": ("eligible.cs", 1024 * 1024, True),
+    "large": ("large.cs", 50 * 1024 * 1024, False),
+}
+CPP_CASES = {
+    "empty": (None, None, False),
+    "c": ("functions.c", 64 * 1024, True),
+    "cpp": ("members.cpp", 64 * 1024, True),
+    "header": ("reader.hpp", 64 * 1024, True),
+    "eligible": ("eligible.cpp", 1024 * 1024, True),
+    "large": ("large.cpp", 50 * 1024 * 1024, False),
+    "large-c": ("large.c", 50 * 1024 * 1024, False),
+    "large-header": ("large.hpp", 50 * 1024 * 1024, False),
+}
 MODES = ("baseline", "off", "on")
 
 
 def make_source(path, length):
+    if path.suffix == ".c":
+        opening, closing, declaration = "", "", "unsigned scan{number:06d}(unsigned value)"
+    elif path.suffix in (".cpp", ".hpp"):
+        opening, closing, declaration = "struct Reader\n{\n", "};\n", "    unsigned scan{number:06d}(unsigned value)"
+        if path.suffix == ".hpp":
+            opening = "#ifndef READER_FIXTURE_HPP\n#define READER_FIXTURE_HPP\n" + opening
+            closing += "#endif\n"
+    else:
+        opening, closing, declaration = "sealed class Reader\n{\n", "}\n", "    public void Scan{number:06d}()"
+    indentation = "    " if path.suffix != ".c" else ""
+    body = indentation + "    // A page of source text passes the declaration.\n"
+    if path.suffix != ".cs":
+        body = body * 32 + indentation + "    return value + 1;\n"
+    else:
+        body *= 32
+    closing_bytes = closing.encode()
     with path.open("xb") as output:
-        output.write(b"sealed class Reader\n{\n")
+        output.write(opening.encode())
         counter = 0
         while True:
-            method = (f"    public void Scan{counter:06d}()\n    {{\n"
-                      + "        // A page of source text passes the declaration.\n" * 32
-                      + "    }\n\n").encode()
-            if output.tell() + len(method) + 2 > length:
+            method = (declaration.format(number=counter) + "\n" + indentation + "{\n"
+                      + body + indentation + "}\n\n").encode()
+            if output.tell() + len(method) + len(closing_bytes) > length:
                 break
             output.write(method)
             counter += 1
-        output.write(b"}\n")
+        output.write(closing_bytes)
         output.write(b" " * (length - output.tell()))
     return sha256(path)
 
 
-def collect(baseline, candidate, output, baseline_commit, commit, rounds):
+def collect(baseline, candidate, output, baseline_commit, commit, rounds, cases=CSHARP_CASES):
     output.mkdir(parents=True)
     sources = {}
-    for case, size in CASES.items():
-        if size is not None:
-            path = output / f"{case}.cs"
+    for case, (filename, size, _) in cases.items():
+        if filename is not None:
+            path = output / filename
             sources[case] = (path, make_source(path, size))
     baseline_settings = baseline.parent / "codeview.settings.json"
     try:
@@ -48,7 +78,7 @@ def collect(baseline, candidate, output, baseline_commit, commit, rounds):
               "sources": {name: digest for name, (_, digest) in sources.items()}, "runs": []}
     for index in range(rounds):
         order = MODES[index % len(MODES):] + MODES[:index % len(MODES)]
-        for case in CASES:
+        for case, (_, size, eligible) in cases.items():
             for mode in order:
                 label = f"{case}-{mode}-{index + 1}"
                 destination = output / (label + ".json")
@@ -71,12 +101,12 @@ def collect(baseline, candidate, output, baseline_commit, commit, rounds):
                 expected_commit = baseline_commit if mode == "baseline" else commit
                 if (result["Failure"] or result["InputInterrupted"]
                         or not result["ProductInformationalVersion"].endswith("+" + expected_commit)
-                        or result["DocumentChars"] not in ((None, 0) if case == "empty" else (CASES[case],))
+                        or result["DocumentChars"] not in ((None, 0) if size is None else (size,))
                         or len(result["AnimationTickIntervalsMilliseconds"]) != (0 if case == "empty" else 64)):
                     raise RuntimeError("Invalid native report: " + label)
                 if mode != "baseline":
                     sticky = result["StickyScroll"]
-                    should_scan = mode == "on" and case in ("normal", "eligible")
+                    should_scan = mode == "on" and eligible
                     if (sticky["Enabled"] != (mode == "on") or sticky["RangesFound"] != should_scan
                             or (sticky["CompletedMilliseconds"] is not None) != should_scan
                             or (sticky["StartedMilliseconds"] is not None) != should_scan
@@ -84,14 +114,14 @@ def collect(baseline, candidate, output, baseline_commit, commit, rounds):
                         raise RuntimeError("Unexpected Sticky Scroll execution: " + label)
                 record["runs"].append({"mode": mode, "case": case, "file": destination.name, "report": result})
                 print(label + " verified", flush=True)
-    record["summary"] = summarize(record["runs"])
+    record["summary"] = summarize(record["runs"], cases)
     (output / "comparison.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
     print(json.dumps(record["summary"], indent=2))
 
 
-def summarize(runs):
+def summarize(runs, cases=CSHARP_CASES):
     summary = {}
-    for case in CASES:
+    for case in cases:
         summary[case] = {}
         for mode in MODES:
             runs_by_case = [run["report"] for run in runs if run["case"] == case and run["mode"] == mode]
@@ -126,8 +156,9 @@ if __name__ == "__main__":
     parser.add_argument("--baseline-commit", required=True)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--cpp", action="store_true", help="Measure C/C++ source and header cases")
     args = parser.parse_args()
     if not 1 <= args.rounds <= 10:
         parser.error("rounds must be 1..10")
     collect(args.baseline_app.resolve(), args.candidate_app.resolve(), args.output.resolve(),
-            args.baseline_commit, args.commit, args.rounds)
+            args.baseline_commit, args.commit, args.rounds, CPP_CASES if args.cpp else CSHARP_CASES)

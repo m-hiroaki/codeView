@@ -11,6 +11,10 @@ on:
         description: Compare Sticky Scroll on/off with the pre-feature build on both OSes
         type: boolean
         default: false
+      compare_cpp_sticky_scroll:
+        description: Compare C/C++ Sticky Scroll on/off against the C#-only build on both OSes
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -101,14 +105,16 @@ jobs:
             }
           }
       - name: Check out the pre-Sticky Scroll baseline
-        if: inputs.compare_sticky_scroll
+        if: inputs.compare_sticky_scroll || inputs.compare_cpp_sticky_scroll
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: 290caf7739695809b69169c5acec53b31f766248
+          ref: ${{ inputs.compare_cpp_sticky_scroll && '41a6ab0512310a6c39022dd7a6306c6c90a61ac8' || '290caf7739695809b69169c5acec53b31f766248' }}
           path: sticky-baseline
           persist-credentials: false
       - name: Compare native Sticky Scroll metrics on the same host
-        if: inputs.compare_sticky_scroll
+        if: inputs.compare_sticky_scroll || inputs.compare_cpp_sticky_scroll
+        env:
+          COMPARE_CPP_STICKY_SCROLL: ${{ inputs.compare_cpp_sticky_scroll }}
         run: |
           $commit = git -C sticky-baseline rev-parse HEAD
           dotnet restore sticky-baseline/src/codeView/codeView.csproj --locked-mode -p:PublishAot=false -m:1 -nr:false
@@ -116,7 +122,9 @@ jobs:
           dotnet build sticky-baseline/src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/reference-search/sticky-baseline-app -m:1 -nr:false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $hostName = if ($IsWindows) { 'codeView.exe' } else { 'codeView' }
-          python tools/measure_sticky_scroll.py --baseline-app "artifacts/reference-search/sticky-baseline-app/$hostName" --candidate-app "artifacts/reference-search/app/$hostName" --baseline-commit $commit --commit $env:GITHUB_SHA --output artifacts/reference-search/sticky --rounds 3
+          $options = @()
+          if ($env:COMPARE_CPP_STICKY_SCROLL -eq 'true') { $options += '--cpp' }
+          python tools/measure_sticky_scroll.py --baseline-app "artifacts/reference-search/sticky-baseline-app/$hostName" --candidate-app "artifacts/reference-search/app/$hostName" --baseline-commit $commit --commit $env:GITHUB_SHA --output artifacts/reference-search/sticky --rounds 3 @options
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload native search evidence
         if: always()
