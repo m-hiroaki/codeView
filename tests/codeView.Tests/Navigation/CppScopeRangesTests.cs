@@ -127,6 +127,23 @@ internal sealed class CppScopeRangesTests
     public void RejectsUnrecoverableSource(string text) => Assert.That(Read(text), Is.Null);
 
     [Test]
+    public void RemovesMembersOfATypedScopeWithAMacroName()
+    {
+        var ranges = Read("""
+            #define TYPE Actual
+            class TYPE {
+            public:
+                void hidden() {
+                }
+            };
+            int after() {
+                return 0;
+            }
+            """)!;
+        Assert.That(ranges.Ranges.Select(range => range.Name), Is.EqualTo(new[] { "after" }));
+    }
+
+    [Test]
     public void BoundsCharactersRangesAndCancellation()
     {
         const string function = "int read() {}\n";

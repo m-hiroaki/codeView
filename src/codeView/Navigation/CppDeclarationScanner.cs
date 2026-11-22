@@ -276,13 +276,10 @@ internal sealed class CppDeclarationScanner
     {
         tracked = false;
         if (_ranges is null || name < 0) return true;
-        if (_macros!.Contains(_header[name].Text) || _header.Any(token => _structuralMacros!.Contains(token.Text)))
-        {
-            _ranges.InvalidateCurrent();
-            return true;
-        }
         tracked = _ranges.Begin(kind, _header[name].Text, _header[0].Range.Start.Line, _header[^1].Range.Start.Line);
         _tooManyRanges = !tracked;
+        if (tracked && (_macros!.Contains(_header[name].Text) || _header.Any(token => _structuralMacros!.Contains(token.Text))))
+            _ranges.InvalidateCurrent();
         return tracked;
     }
 
