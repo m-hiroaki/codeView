@@ -25,7 +25,7 @@ internal sealed class CSharpDeclarationScanner(FileReader files)
     }
 }
 
-internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, bool> consume)
+internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, bool> consume, CSharpScopeBuilder? ranges = null)
 {
     internal const int MaximumTokens = 256;
     internal const int MaximumChars = 16 * 1024;
@@ -34,6 +34,7 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
     private readonly Stack<string> _groups = new();
     private bool _body, _hasAccessor;
     private CSharpToken? _property;
+    private bool _bodyRange;
     public DeclarationScanError Error { get; private set; }
 
     private enum Scope { Namespace, Type }
@@ -48,6 +49,11 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             if (!TrackGroup(token.Text)) return false;
             if (_groups.Count != 0) return true;
             _body = false;
+            if (_bodyRange)
+            {
+                ranges!.End(token);
+                _bodyRange = false;
+            }
             return !_hasAccessor || _property is not { } property || Emit(DeclarationKind.Property, property);
         }
 
@@ -57,12 +63,13 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
         switch (token.Text)
         {
             case "}":
-                if (_header.Count != 0 || !_scopes.TryPop(out _)) return Fail(DeclarationScanError.Incomplete);
+                if (_header.Count != 0 || !_scopes.TryPop(out var scope)) return Fail(DeclarationScanError.Incomplete);
+                if (scope == Scope.Type) ranges?.End(token);
                 return true;
             case "{":
                 return StartBody(token);
             case ";":
-                if (!WithinBudget(token) || !FinishHeader()) return false;
+                if (!WithinBudget(token) || !FinishHeader(token)) return false;
                 _header.Clear();
                 return true;
             default:
@@ -88,8 +95,18 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
         if (header.TryType(out var type, out var keyword))
         {
             if (!Emit(DeclarationKind.Type, type)) return false;
+            if (!BeginRange(DeclarationKind.Type, type, _header[^1])) return false;
             _header.Clear();
             if (keyword != "enum") return PushScope(Scope.Type);
+            _bodyRange = ranges is not null;
+            return SkipBody(token, null);
+        }
+        if (InType && ranges?.CurrentTypeName is { } typeName
+            && header.TryConstructor(typeName, out var constructor, out var signatureEnd)
+            && signatureEnd == _header.Count)
+        {
+            if (!BeginRange(DeclarationKind.Method, constructor, _header[^1])) return false;
+            _bodyRange = true;
             return SkipBody(token, null);
         }
         if (InType && header.TryMember(out var member, out var tail, out var method))
@@ -97,6 +114,11 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             if (tail == _header.Count)
             {
                 if (method && !Emit(DeclarationKind.Method, member)) return false;
+                if (method && ranges is not null)
+                {
+                    if (!BeginRange(DeclarationKind.Method, member, _header[^1])) return false;
+                    _bodyRange = true;
+                }
                 return SkipBody(token, method ? null : member);
             }
             // Object/collection initializers, lambdas, switch expressions and accessor initializers.
@@ -115,7 +137,7 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
         return TrackGroup(token.Text);
     }
 
-    private bool FinishHeader()
+    private bool FinishHeader(CSharpToken terminator)
     {
         var header = new Header(_header);
         if (header.TryType(out var type, out _))
@@ -123,12 +145,25 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
         if (header.TryDelegate(out var delegated))
             return Emit(DeclarationKind.Delegate, delegated);
         if (!InType) return true;
+        if (ranges?.CurrentTypeName is { } typeName
+            && header.TryConstructor(typeName, out var constructor, out var signatureEnd) && header.IsArrow(signatureEnd))
+        {
+            if (signatureEnd + 2 == _header.Count) return Fail(DeclarationScanError.Incomplete);
+            if (!BeginRange(DeclarationKind.Method, constructor, _header[signatureEnd + 1])) return false;
+            ranges.End(terminator);
+            return true;
+        }
         var fixedBuffer = header.FixedBufferStart;
         if (fixedBuffer >= 0) return FinishFixedBuffers(header, fixedBuffer);
         if (!header.TryMember(out var member, out var tail, out var method)) return true;
         if (header.IsArrow(tail))
         {
             if (tail + 2 == _header.Count) return Fail(DeclarationScanError.Incomplete);
+            if (method && ranges is not null)
+            {
+                if (!BeginRange(DeclarationKind.Method, member, _header[tail + 1])) return false;
+                ranges.End(terminator);
+            }
             return Emit(method ? DeclarationKind.Method : DeclarationKind.Property, member);
         }
         if (method)
@@ -155,6 +190,9 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             if (!Emit(DeclarationKind.Field, field)) return false;
         return true;
     }
+
+    private bool BeginRange(DeclarationKind kind, CSharpToken nameToken, CSharpToken headerEnd) =>
+        ranges is null || ranges.Begin(kind, nameToken, _header[0], headerEnd) || Fail(DeclarationScanError.DeclarationLimit);
 
     private bool FinishFixedBuffers(Header header, int index)
     {
@@ -296,6 +334,20 @@ internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, boo
             for (var i = prefix - 1; firstContextual >= 0 && i >= firstContextual; i--)
                 if (IsContextualModifier(At(i)) && TryMemberAt(i, out name, out tail, out method)) return true;
             return false;
+        }
+
+        public bool TryConstructor(string typeName, out CSharpToken name, out int tail)
+        {
+            name = default;
+            tail = Prefix();
+            if (!IsName(tail) || At(tail + 1) != "(" ||
+                !string.Equals(At(tail)!.TrimStart('@'), typeName.TrimStart('@'), StringComparison.Ordinal))
+                return false;
+            name = tokens[tail];
+            tail = SkipGroup(tail + 1);
+            if (At(tail) == ":" && At(tail + 1) is "this" or "base" && At(tail + 2) == "(")
+                tail = SkipGroup(tail + 2);
+            return true;
         }
 
         private bool TryMemberAt(int start, out CSharpToken name, out int tail, out bool method)

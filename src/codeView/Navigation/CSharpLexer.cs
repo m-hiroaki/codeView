@@ -14,7 +14,7 @@ internal enum CSharpLexError { None, Incomplete, InvalidText, Unsupported, Token
 /// Serialized, bounded declaration lexer, not a compiler/parser. Literal bodies and interpolation
 /// expressions are excluded from declaration tokens. All emitted tokens remain provisional until EOF.
 /// </summary>
-internal sealed class CSharpLexer
+internal sealed class CSharpLexer(bool rejectConditionalDirectives = false)
 {
     internal const int TokenChars = 4096;
     internal const int MaximumDepth = 1024;
@@ -24,6 +24,7 @@ internal sealed class CSharpLexer
     private readonly Stack<Frame> _frames = new();
     private TextCursor _cursor = new();
     private int _start, _count, _tokenCount, _depth;
+    private int _directiveLength;
     private bool _executing, _lineStart = true, _identifierFirst;
     private Mode _mode;
     private long _tokenOffset, _literalOffset;
@@ -136,6 +137,7 @@ internal sealed class CSharpLexer
                     if (!EmitToken(consume)) return false;
                     continue;
                 }
+                if (_mode == Mode.Directive && IsConditionalDirective()) return Fail(CSharpLexError.Unsupported);
                 if (_mode is Mode.LineComment or Mode.Directive) _mode = Mode.Code;
                 return _mode == Mode.Code && _frames.Count == 0 || Fail(CSharpLexError.Incomplete);
             }
@@ -167,6 +169,19 @@ internal sealed class CSharpLexer
             }
             if (_mode is Mode.LineComment or Mode.Directive)
             {
+                if (rejectConditionalDirectives && _mode == Mode.Directive && _directiveLength >= 0)
+                {
+                    if (c is >= 'a' and <= 'z')
+                    {
+                        if (_directiveLength == 5) _directiveLength = -1;
+                        else _token[_directiveLength++] = (char)c;
+                    }
+                    else if (_directiveLength != 0 || !Rune.IsWhiteSpace(rune) || IsNewLine(c))
+                    {
+                        if (IsConditionalDirective()) return Fail(CSharpLexError.Unsupported);
+                        _directiveLength = -1;
+                    }
+                }
                 if (IsNewLine(c)) _mode = Mode.Code;
                 Consume(size);
                 continue;
@@ -274,6 +289,7 @@ internal sealed class CSharpLexer
             if (c == '#')
             {
                 if (!_lineStart) return Fail(CSharpLexError.Unsupported);
+                _directiveLength = 0;
                 _mode = Mode.Directive; Consume(1); continue;
             }
             if (c == '/')
@@ -342,6 +358,9 @@ internal sealed class CSharpLexer
         }
         return false;
     }
+
+    private bool IsConditionalDirective() => rejectConditionalDirectives && _directiveLength > 0
+        && _token.AsSpan(0, _directiveLength) is "if" or "elif" or "else" or "endif";
 
     // 0=needs lookahead, 1=started literal, 2=identifier prefix, -1=failed.
     private int StartLiteral(bool eof)
