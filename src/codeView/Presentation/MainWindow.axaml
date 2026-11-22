@@ -90,6 +90,8 @@
             </MenuItem>
             <MenuItem Header="表示">
                 <MenuItem Header="ファイルツリー" ToggleType="CheckBox" IsChecked="{Binding IsTreeVisible, Mode=TwoWay}" IsEnabled="{Binding HasWorkspace}" />
+                <MenuItem x:Name="StickyScrollMenu" Header="Sticky Scroll" ToggleType="CheckBox"
+                          IsChecked="{Binding StickyScrollEnabled, Mode=OneWay}" Click="ToggleStickyScrollClicked" />
                 <MenuItem Header="検索結果パネル" ToggleType="CheckBox" IsChecked="{Binding SearchPanel.IsVisible, Mode=TwoWay}" />
                 <MenuItem x:Name="HideSearchMenu" Header="検索結果パネルを閉じる" IsEnabled="{Binding SearchPanel.IsVisible}" Click="HideSearchClicked" />
             </MenuItem>

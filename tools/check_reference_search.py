@@ -101,6 +101,8 @@ STICKY_SCROLL_CHECKS = [
     'sticky-scroll-boundary-6', 'sticky-scroll-clears-unsupported-tab',
     'sticky-scroll-follows-restored-tab', 'sticky-scroll-follows-reload',
     'sticky-scroll-fits-minimum-width', 'sticky-scroll-definition-target-visible',
+    'sticky-scroll-active-before-toggle', 'sticky-scroll-menu-off-preserves-offset',
+    'sticky-scroll-menu-on-restores-header', 'sticky-scroll-off-suppresses-in-flight-analysis',
 ]
 
 

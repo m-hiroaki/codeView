@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Rendering;
@@ -100,6 +101,30 @@ internal sealed partial class GuiPerformanceProbe
         var caretY = view.GetVisualPosition(_editor.TextArea.Caret.Position, VisualYPosition.LineTop).Y - view.VerticalOffset;
         require(_editor.SelectedText == "Second" && _editor.TextArea.Caret.Line == 9
             && caretY >= (header.IsVisible ? header.Height - 1 : 0), "sticky-scroll-definition-target-visible");
+        await ExpectAsync(6, "Example › Renamed", "sticky-scroll-active-before-toggle");
+        var menu = _window.FindControl<MenuItem>("StickyScrollMenu")!;
+        var offset = view.VerticalOffset;
+        menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        await _viewModel.PendingStickySettings.WaitAsync(ct);
+        await Frame(ct);
+        require(!menu.IsChecked && !_viewModel.StickyScrollEnabled && !header.IsVisible && view.VerticalOffset == offset,
+            "sticky-scroll-menu-off-preserves-offset");
+        menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        await _viewModel.PendingStickySettings.WaitAsync(ct);
+        await ((MainWindow)_window).StickyScrollWork.WaitAsync(ct);
+        await Frame(ct);
+        require(menu.IsChecked && _viewModel.StickyScrollEnabled && header.IsVisible && view.VerticalOffset == offset,
+            "sticky-scroll-menu-on-restores-header");
+
+        await _viewModel.OpenFilesAsync([other], OpenOrigin.Menu).WaitAsync(ct);
+        await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu).WaitAsync(ct);
+        menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        await ((MainWindow)_window).StickyScrollWork.WaitAsync(ct);
+        await _viewModel.PendingStickySettings.WaitAsync(ct);
+        await Frame(ct);
+        require(!_viewModel.StickyScrollEnabled && !header.IsVisible, "sticky-scroll-off-suppresses-in-flight-analysis");
+        menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        await _viewModel.PendingStickySettings.WaitAsync(ct);
 
         async Task ExpectAsync(int line, string? text, string? check = null)
         {

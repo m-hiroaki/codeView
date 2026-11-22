@@ -109,6 +109,7 @@ internal sealed class SettingsStore(SettingsLocations locations, ISourceAccess? 
             writer.WriteStartArray("excludedDirectoryNames");
             foreach (var name in snapshot.ExcludedDirectoryNames) writer.WriteStringValue(name);
             writer.WriteEndArray();
+            if (!snapshot.StickyScrollEnabled) writer.WriteBoolean("stickyScrollEnabled", false);
             writer.WriteEndObject();
         }
         var json = bytes.ToArray();

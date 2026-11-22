@@ -36,6 +36,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private bool _initialized;
     private SettingsLoadResult? _settingsForSave;
     private bool _savingSettings;
+    private bool _stickyPreferenceChanged;
+    private Task _settingsWrite = Task.CompletedTask;
+    private Task _stickySettingsWrite = Task.CompletedTask;
     private long _interactionEpoch;
     private long _selectionInteractionEpoch = -1;
     private SearchResultRow? _selectionRow;
@@ -122,7 +125,9 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public InFileSearchViewModel InFileSearch { get; } = new(operations);
     public string SyntaxStatus { get; private set; } = "";
     public event Action<SyntaxHighlighting?>? SyntaxChanged;
-    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, _syntaxFailure, _recentWork, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork, operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
+    public Task PendingWork => Task.WhenAll(new[] { _pump, _lateSettings, _syntaxFailure, _recentWork, _settingsWrite,
+        _stickySettingsWrite, operations.PendingTreeWork, operations.PendingTabWork, operations.PendingSearchWork,
+        operations.PendingResultMoveWork, SearchPanel.PendingWork, InFileSearch.PendingWork }.Concat(_manualWork));
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FatalFailure;
     public event Action<int, int>? RestoreCaret;
@@ -412,12 +417,14 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping) return;
         operations.Startup.CompleteSettings(settings);
         _settingsForSave = settings;
+        if (!_stickyPreferenceChanged) SetStickyScroll(settings.Snapshot.StickyScrollEnabled);
         Changed(nameof(CanSaveSettings));
         await EnsurePumpAsync();
         // Keep the fallback notice visible after queued files finish loading instead
         // of immediately replacing it with their loading/completion status.
         if (!_stopping && settings.Warning is not null)
             SetStatus((Status + " 設定を読み込めないため、既定値を使用します。").TrimStart());
+        if (_stickyPreferenceChanged) await PersistStickyScrollAsync();
     }
 
     private async Task ObserveLateSettingsAsync(Task<SettingsLoadResult> task)
@@ -621,30 +628,77 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
 
     internal SettingsSnapshot? EditableSettings => CanSaveSettings ? _settingsForSave?.Snapshot : null;
 
-    internal Task SaveExcludedNamesAsync(string[] names) => TrackManualAsync(SaveSettingsAsync(names));
+    internal Task SaveExcludedNamesAsync(string[] names) => CanSaveSettings
+        ? TrackManualAsync(_settingsWrite = SaveSettingsAsync(_settingsWrite, names, null)) : Task.CompletedTask;
 
-    private async Task SaveSettingsAsync(string[] names)
+    internal Task ToggleStickyScrollAsync()
     {
-        if (!CanSaveSettings || _settingsForSave is not { } loaded) return;
-        if (!operations.PendingResultMoveWork.IsCompleted)
+        if (_stopping) return Task.CompletedTask;
+        _stickyPreferenceChanged = true;
+        SetStickyScroll(!StickyScrollEnabled);
+        return _settingsForSave is null ? Task.CompletedTask : PersistStickyScrollAsync();
+    }
+
+    private void SetStickyScroll(bool enabled)
+    {
+        if (StickyScrollEnabled == enabled) return;
+        StickyScrollEnabled = enabled;
+        Changed(nameof(StickyScrollEnabled));
+    }
+
+    internal Task PendingStickySettings => _stickySettingsWrite;
+
+    private Task PersistStickyScrollAsync() => _stickySettingsWrite.IsCompleted
+        ? _stickySettingsWrite = SaveLatestStickyScrollAsync() : _stickySettingsWrite;
+
+    private async Task SaveLatestStickyScrollAsync()
+    {
+        while (!_stopping)
+        {
+            var enabled = StickyScrollEnabled;
+            await (_settingsWrite = SaveSettingsAsync(_settingsWrite, null, enabled));
+            if (StickyScrollEnabled == enabled) return;
+        }
+    }
+
+    private async Task SaveSettingsAsync(Task previous, string[]? names, bool? stickyScroll)
+    {
+        await previous;
+        if (stickyScroll is not null)
+        {
+            while (!_stopping && (_pumping || !operations.PendingResultMoveWork.IsCompleted))
+                await Task.WhenAll(_pump, operations.PendingResultMoveWork);
+        }
+        else if (!operations.PendingResultMoveWork.IsCompleted)
         {
             SetStatus("検索結果への移動が完了してから設定を保存してください。");
             return;
         }
-        if (loaded.Snapshot.ExcludedDirectoryNames.SequenceEqual(names, StringComparer.Ordinal)) return;
+        if (_stopping || _settingsForSave is not { } loaded) return;
+        if (!loaded.CanSave)
+        {
+            if (stickyScroll.HasValue) SetStatus("Sticky Scrollの設定を保存できません。切替はこのセッションに適用されます。");
+            return;
+        }
+        var snapshot = names is null
+            ? new SettingsSnapshot(loaded.Snapshot.ExcludedDirectoryNames, stickyScroll!.Value)
+            : new SettingsSnapshot(names, loaded.Snapshot.StickyScrollEnabled);
+        if (stickyScroll == loaded.Snapshot.StickyScrollEnabled
+            || names is not null && loaded.Snapshot.ExcludedDirectoryNames.SequenceEqual(names, StringComparer.Ordinal)) return;
         _savingSettings = true;
         try
         {
             Changed(nameof(CanSaveSettings));
             var openSources = _tabManager.Tabs.Select(tab => tab.Path.FullPath).ToArray();
-            var snapshot = new SettingsSnapshot(names);
             var saved = await Task.Run(() => settingsStore.SaveAsync(loaded, snapshot, openSources, _lifetime.Token));
             if (_stopping) return;
             if (saved.Status == OperationStatus.Success)
             {
                 _settingsForSave = saved.Value;
-                SetStatus("除外フォルダの設定を保存しました。再起動後に適用されます。");
+                if (names is not null) SetStatus("除外フォルダの設定を保存しました。再起動後に適用されます。");
             }
+            else if (stickyScroll.HasValue)
+                SetStatus("Sticky Scrollの設定を保存できません。切替はこのセッションに適用されます。");
             else if (saved.Error?.Code == ErrorCode.ChangedDuringRead)
                 SetStatus("設定が外部で変更されたか、保存先を確認できません。再起動してからお試しください。");
             else

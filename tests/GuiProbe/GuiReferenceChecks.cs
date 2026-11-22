@@ -24,8 +24,9 @@ internal sealed partial class GuiPerformanceProbe
     internal static SettingsLocations SelectSettingsLocations(SettingsLocations normal)
     {
         var output = Environment.GetEnvironmentVariable("CODEVIEW_GUI_PERF_REPORT");
-        return Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" &&
-            Environment.GetEnvironmentVariable("CODEVIEW_GUI_REFERENCE_CHECKS") == "1" &&
+        return (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" &&
+            Environment.GetEnvironmentVariable("CODEVIEW_GUI_REFERENCE_CHECKS") == "1"
+            || Environment.GetEnvironmentVariable("CODEVIEW_GUI_STICKY_MEASURE") == "1") &&
             !string.IsNullOrWhiteSpace(output)
             ? new(output + ".portable-settings.json", output + ".user-settings.json") : normal;
     }

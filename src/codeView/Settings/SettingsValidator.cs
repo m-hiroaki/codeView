@@ -33,15 +33,23 @@ internal static class SettingsValidator
             {
                 if (!properties.Add(property.Name))
                     return Invalid();
-                hasUnknown |= property.Name is not ("schemaVersion" or "excludedDirectoryNames");
+                hasUnknown |= property.Name is not ("schemaVersion" or "excludedDirectoryNames" or "stickyScrollEnabled");
             }
 
             if (root.TryGetProperty("schemaVersion", out var version) &&
                 (version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out var number) || number != 1))
                 return Invalid();
 
+            var stickyScrollEnabled = true;
+            if (root.TryGetProperty("stickyScrollEnabled", out var stickyScroll))
+            {
+                if (stickyScroll.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) return Invalid();
+                stickyScrollEnabled = stickyScroll.GetBoolean();
+            }
+
             if (!root.TryGetProperty("excludedDirectoryNames", out var names))
-                return new(SettingsSnapshot.Default, true, !hasUnknown);
+                return new(stickyScrollEnabled ? SettingsSnapshot.Default : new(SettingsSnapshot.Default.ExcludedDirectoryNames, false),
+                    true, !hasUnknown);
             if (names.ValueKind != JsonValueKind.Array || names.GetArrayLength() > MaxNames)
                 return Invalid();
 
@@ -58,7 +66,7 @@ internal static class SettingsValidator
                     values.Add(name);
             }
 
-            return new(new SettingsSnapshot(values), true, !hasUnknown);
+            return new(new SettingsSnapshot(values, stickyScrollEnabled), true, !hasUnknown);
         }
         catch (JsonException)
         {

@@ -7,6 +7,10 @@ on:
         description: Collect the pre-redesign window comparison on both OSes
         type: boolean
         default: false
+      compare_sticky_scroll:
+        description: Compare Sticky Scroll on/off with the pre-feature build on both OSes
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -96,6 +100,24 @@ jobs:
               }
             }
           }
+      - name: Check out the pre-Sticky Scroll baseline
+        if: inputs.compare_sticky_scroll
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: 290caf7739695809b69169c5acec53b31f766248
+          path: sticky-baseline
+          persist-credentials: false
+      - name: Compare native Sticky Scroll metrics on the same host
+        if: inputs.compare_sticky_scroll
+        run: |
+          $commit = git -C sticky-baseline rev-parse HEAD
+          dotnet restore sticky-baseline/src/codeView/codeView.csproj --locked-mode -p:PublishAot=false -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build sticky-baseline/src/codeView/codeView.csproj -c Release --no-restore -p:PublishAot=false -p:PublishTrimmed=false -p:CodeViewPerformanceProbe=true --output artifacts/reference-search/sticky-baseline-app -m:1 -nr:false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $hostName = if ($IsWindows) { 'codeView.exe' } else { 'codeView' }
+          python tools/measure_sticky_scroll.py --baseline-app "artifacts/reference-search/sticky-baseline-app/$hostName" --candidate-app "artifacts/reference-search/app/$hostName" --baseline-commit $commit --commit $env:GITHUB_SHA --output artifacts/reference-search/sticky --rounds 3
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload native search evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -107,3 +129,5 @@ jobs:
             artifacts/reference-search/environment.txt
             artifacts/reference-search/results/
             artifacts/reference-search/baseline/
+            artifacts/reference-search/sticky/*.json
+            artifacts/reference-search/sticky/*.log

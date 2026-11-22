@@ -308,7 +308,7 @@ internal sealed partial class MainWindow : Window
                 pending = Task.WhenAll(pending, GuiPerformanceProbe.PendingCopyWork);
 #endif
                 return pending;
-            }, Program.MarkFailed);
+            }, Program.MarkFailed, beforeStop: viewModel.PendingStickySettings);
 #if CODEVIEW_PERFORMANCE_PROBE
             GuiPerformanceProbe.ConfirmRowShutdown(viewModel);
 #endif
@@ -321,14 +321,21 @@ internal sealed partial class MainWindow : Window
     }
 
     internal static async Task StopAndWaitAsync(Action stop, Func<Task> getPending, Action markFailed,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null, Task? beforeStop = null)
     {
+        var clock = timeProvider ?? TimeProvider.System;
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2), clock);
+        if (beforeStop is { IsCompleted: false })
+        {
+            try { await beforeStop.WaitAsync(TimeSpan.FromMilliseconds(250), clock, deadline.Token); }
+            catch (TimeoutException) when (!beforeStop.IsCompleted) { }
+            catch (Exception) { markFailed(); }
+        }
         try { stop(); }
         catch (Exception) { markFailed(); }
         try
         {
             var pending = getPending();
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2), timeProvider ?? TimeProvider.System);
             try { await pending.WaitAsync(deadline.Token); }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested && !pending.IsCompleted)
             {

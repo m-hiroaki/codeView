@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Rendering;
@@ -21,6 +22,9 @@ internal sealed partial class MainWindow
 #if CODEVIEW_PERFORMANCE_PROBE
     internal Task StickyScrollWork => _stickyWork;
 #endif
+
+    private async void ToggleStickyScrollClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(() => _viewModel.ToggleStickyScrollAsync());
 
     private void ConfigureStickyScroll(TextEditor editor)
     {
@@ -59,10 +63,16 @@ internal sealed partial class MainWindow
             await previous;
             // Give the newly attached document time to paint and coalesce rapid tab changes.
             await Task.Delay(125, ct);
+#if CODEVIEW_PERFORMANCE_PROBE
+            GuiPerformanceProbe.StickyAnalysisStarted();
+#endif
             using var lease = document.AcquireReadView();
             var ranges = await Task.Run(() => CSharpScopeRanges.Read(lease, ct), ct);
             if (ct.IsCancellationRequested || _closing || !ReferenceEquals(document, _viewModel.StickyDocument)) return;
             _stickyRanges = ranges;
+#if CODEVIEW_PERFORMANCE_PROBE
+            GuiPerformanceProbe.StickyAnalysisCompleted(ranges is { Ranges.Count: > 0 });
+#endif
             UpdateStickyHeader(editor);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }

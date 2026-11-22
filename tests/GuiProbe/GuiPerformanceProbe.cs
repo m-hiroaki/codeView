@@ -774,6 +774,9 @@ internal sealed partial class GuiPerformanceProbe
         var (line, column) = ScrollProbePlan.Target(index, document.LineCount, document.GetLineByNumber(1).Length);
         Phase($"scroll-{index}");
         var start = Stopwatch.GetTimestamp();
+        var stickyPhase = _measuringStickyScroll && _stickyStarted is not null
+            ? _stickyCompleted is null ? "analysis" : "ready"
+            : "before-analysis";
         if (_windowed)
         {
             if (_selectionProbe) ApplyNavigationSelection(index);
@@ -791,6 +794,7 @@ internal sealed partial class GuiPerformanceProbe
         {
             var now = Stopwatch.GetTimestamp();
             _tickIntervals.Add(Stopwatch.GetElapsedTime(_previousTick, now).TotalMilliseconds);
+            if (_measuringStickyScroll) _stickyScrollPhases.Add(stickyPhase);
             _previousTick = now;
             ScrollStep(index + 1);
         });
@@ -894,6 +898,12 @@ internal sealed partial class GuiPerformanceProbe
             StartupStages = StartupStages.Snapshot(),
             DocumentAttachmentMilliseconds = _attachmentMilliseconds, DocumentTwoTicksMilliseconds = _documentTwoTicksMilliseconds,
             ScrollSynchronousMilliseconds = _scrollTimes, AnimationTickIntervalsMilliseconds = _tickIntervals,
+            StickyScroll = _measuringStickyScroll ? new
+            {
+                Enabled = _viewModel.StickyScrollEnabled, StartedMilliseconds = _stickyStarted,
+                CompletedMilliseconds = _stickyCompleted, RangesFound = _stickyScopesFound,
+                FramePhases = _stickyScrollPhases
+            } : null,
             DocumentChars = _editor.Document?.TextLength, DocumentLines = _editor.Document?.LineCount,
             EditorReadOnly = _editor.IsReadOnly, TextDragDropEnabled = _editor.Options.EnableTextDragDrop,
             UndoCanUndo = _editor.Document?.UndoStack.CanUndo, UndoCanRedo = _editor.Document?.UndoStack.CanRedo,
