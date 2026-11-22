@@ -50,7 +50,8 @@ internal sealed class GuiSemanticChecks(Window _window, MainWindowViewModel _vie
         await _viewModel.OpenFilesAsync([native, Path.Combine(native, "Caller.c")], OpenOrigin.Menu);
         await _viewModel.PendingWork.WaitAsync(ct);
         require(!IsRunning(roslyn) && _viewModel.SemanticServerProcessIds.Length == 0
-            && _viewModel.DefinitionMenuLabel.Contains("簡易"), "semantic-workspace-switch-stops-server");
+            && _viewModel.ReferencesMenuLabel.Contains("名前一致")
+            && _viewModel.DefinitionMenuLabel == "定義へジャンプ", "semantic-workspace-switch-stops-server");
 
         config = await OpenOptionsAsync();
         Set(config, "ClangdDatabase", Path.Combine(native, "compile_commands.json"));
