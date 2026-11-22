@@ -130,6 +130,7 @@ internal sealed partial class MainWindow : Window
             }
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
+        ConfigureStickyScroll(editor);
         ConfigureIdentifierClicks(editor);
         // AvaloniaEdit can consume Escape even without a selection.
         AddHandler(KeyDownEvent, (_, key) =>
@@ -239,6 +240,7 @@ internal sealed partial class MainWindow : Window
             // The candidate's ScrollTo*Offset methods are no-ops in 12.0.0.
             var scrollable = (IScrollable)editor.TextArea.TextView;
             scrollable.Offset = EditorViewport.Constrain(horizontal, vertical, scrollable.Extent, scrollable.Viewport);
+            KeepStickyTargetVisible(editor);
         }, DispatcherPriority.Loaded);
         viewModel.SelectSearchRange += (offset, length) =>
         {
@@ -256,6 +258,7 @@ internal sealed partial class MainWindow : Window
                 // 12.0.0 ScrollTo resets targetX to zero; reveal the actual shaped caret rectangle.
                 editor.TextArea.TextView.EnsureVisualLines();
                 editor.TextArea.Caret.BringCaretToView(40);
+                KeepStickyTargetVisible(editor);
                 editor.TextArea.Focus();
             }, DispatcherPriority.Loaded);
         };
@@ -292,6 +295,7 @@ internal sealed partial class MainWindow : Window
             eventArgs.Cancel = true;
             if (_closing) return;
             _closing = true;
+            _stickyCancellation?.Cancel();
             recentStartupGate?.TrySetResult();
             await StopAndWaitAsync(() =>
             {
@@ -299,7 +303,7 @@ internal sealed partial class MainWindow : Window
                 finally { viewModel.Stop(); }
             }, () =>
             {
-                var pending = Task.WhenAll(viewModel.PendingWork, _copies?.PendingWork ?? Task.CompletedTask);
+                var pending = Task.WhenAll(viewModel.PendingWork, _copies?.PendingWork ?? Task.CompletedTask, _stickyWork);
 #if CODEVIEW_PERFORMANCE_PROBE
                 pending = Task.WhenAll(pending, GuiPerformanceProbe.PendingCopyWork);
 #endif
@@ -722,6 +726,7 @@ internal sealed partial class MainWindow : Window
         editor.ScrollTo(location.Line, location.Column);
         editor.TextArea.TextView.EnsureVisualLines();
         editor.TextArea.Caret.BringCaretToView(40);
+        KeepStickyTargetVisible(editor);
     }
 
     private void ShowInFileSearchClicked(object? sender, RoutedEventArgs args) => Run(ShowInFileSearch);

@@ -221,6 +221,12 @@
                 <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" HighlightCurrentLine="True" />
             </editor:TextEditor.Options>
         </editor:TextEditor>
+        <Border x:Name="StickyScrollHeader" Grid.Row="2" IsVisible="False" IsHitTestVisible="False"
+                VerticalAlignment="Top" ClipToBounds="True" Background="{StaticResource PanelBackground}"
+                Padding="8,0">
+            <TextBlock x:Name="StickyScrollLabel" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+        </Border>
         <vm:IdentifierScrollMarkers Grid.Row="2" x:Name="IdentifierMarkers" IsHitTestVisible="False" />
         <Border Grid.Row="2" x:Name="WelcomeBackground" IsVisible="{Binding IsWelcomeVisible}" IsHitTestVisible="False" />
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"

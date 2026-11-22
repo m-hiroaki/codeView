@@ -94,6 +94,16 @@ CHECKS = [
 ]
 
 
+STICKY_SCROLL_CHECKS = [
+    'sticky-scroll-pins-method', 'sticky-scroll-one-hit-transparent-line',
+    'sticky-scroll-boundary-8', 'sticky-scroll-boundary-11', 'sticky-scroll-boundary-14',
+    'sticky-scroll-reverse', 'sticky-scroll-boundary-2', 'sticky-scroll-preserves-viewport-and-selection',
+    'sticky-scroll-boundary-6', 'sticky-scroll-clears-unsupported-tab',
+    'sticky-scroll-follows-restored-tab', 'sticky-scroll-follows-reload',
+    'sticky-scroll-fits-minimum-width', 'sticky-scroll-definition-target-visible',
+]
+
+
 SEMANTIC_CHECKS = [
     'semantic-startup-uses-simple-search', 'semantic-folder-open-enables-roslyn', 'semantic-folder-open-starts-roslyn-before-f12',
     'semantic-cs-f12-selects-original-definition', 'semantic-cs-f1-finds-symbol-reference',
@@ -246,6 +256,8 @@ def collect(app, output, commit, rounds=3, semantic=False, measure=False, native
             last_file.write_bytes('日本語の本文'.encode('cp932'))
             inputs = [first_file, last_file]
             checks = SEMANTIC_CHECKS if semantic else CHECKS
+            if not semantic and env.get('CODEVIEW_CHROME_CAPTURE') == '1':
+                checks = checks + STICKY_SCROLL_CHECKS
             if semantic:
                 root = output / f'semantic-{number}'
                 inputs.extend(create_semantic_fixture(root, measure))
