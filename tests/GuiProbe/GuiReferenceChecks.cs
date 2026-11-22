@@ -52,6 +52,13 @@ internal sealed partial class GuiPerformanceProbe
         try
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_sampling.Token);
+            if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_CPP_TAG_MEASURE") is { } tagMode)
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(150));
+                await MeasureCppTagsAsync(tagMode, deadline.Token);
+                Finish();
+                return;
+            }
             deadline.CancelAfter(TimeSpan.FromSeconds(45));
             var ct = deadline.Token;
             if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_ROOT") is { } semanticRoot)

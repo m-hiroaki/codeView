@@ -12,6 +12,7 @@
     <ItemGroup Condition="'$(CodeViewPerformanceProbe)' == 'true'">
         <Compile Include="../../tests/GuiProbe/*.cs" Link="PerformanceProbe/%(Filename)%(Extension)" />
         <Compile Include="../../tests/codeView.Tests/Performance/ProcessMemory.cs" Link="PerformanceProbe/ProcessMemory.cs" />
+        <Compile Include="../../tests/codeView.Tests/Performance/ProcessIo.cs" Link="PerformanceProbe/ProcessIo.cs" />
     </ItemGroup>
     <PropertyGroup Condition="'$(CodeViewSemanticProbe)' == 'true'">
         <DefineConstants>$(DefineConstants);CODEVIEW_SEMANTIC_PROBE</DefineConstants>

@@ -15,6 +15,10 @@ on:
         description: Compare C/C++ Sticky Scroll on/off against the C#-only build on both OSes
         type: boolean
         default: false
+      measure_cpp_tags:
+        description: Measure C/C++ tag creation, reuse and search on moderate and L1 fixtures
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -35,7 +39,7 @@ jobs:
   references:
     name: Reference search (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -126,6 +130,12 @@ jobs:
           if ($env:COMPARE_CPP_STICKY_SCROLL -eq 'true') { $options += '--cpp' }
           python tools/measure_sticky_scroll.py --baseline-app "artifacts/reference-search/sticky-baseline-app/$hostName" --candidate-app "artifacts/reference-search/app/$hostName" --baseline-commit $commit --commit $env:GITHUB_SHA --output artifacts/reference-search/sticky --rounds 3 @options
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Measure C/C++ tag creation and navigation
+        if: ${{ !cancelled() && inputs.measure_cpp_tags }}
+        run: |
+          $app = if ($IsWindows) { 'artifacts/reference-search/app/codeView.exe' } else { 'artifacts/reference-search/app/codeView' }
+          python tools/measure_cpp_tags.py --app $app --output artifacts/reference-search/cpp-tags --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload native search evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -139,3 +149,5 @@ jobs:
             artifacts/reference-search/baseline/
             artifacts/reference-search/sticky/*.json
             artifacts/reference-search/sticky/*.log
+            artifacts/reference-search/cpp-tags/*.json
+            artifacts/reference-search/cpp-tags/*.log
