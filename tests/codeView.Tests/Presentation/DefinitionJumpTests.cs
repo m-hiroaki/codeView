@@ -1,5 +1,6 @@
 using CodeView.Documents;
 using CodeView.Files;
+using CodeView.Navigation;
 using CodeView.Operations;
 using CodeView.Presentation;
 using CodeView.Search;
@@ -244,6 +245,85 @@ internal sealed class DefinitionJumpTests
 
     private static Task Find(MainWindowViewModel view) => view.FindDefinitionsAsync(27, 26, 6);
 
+    [Test]
+    public void CppTagsAreManualRankQualifiedNamesAndKeepReferencesAndFallbackAvailable() => WithView(async (view, folder, _) =>
+    {
+        const string callerText = "int caller() { return ns::Target(); }";
+        var caller = Path.Combine(folder, "caller.cpp");
+        var preferred = Path.Combine(folder, "preferred.cpp");
+        var other = Path.Combine(folder, "other.cpp");
+        var extra = Path.Combine(folder, "reference.txt");
+        await File.WriteAllTextAsync(caller, callerText);
+        await File.WriteAllTextAsync(preferred, "namespace ns { int Target() { return 1; } }");
+        await File.WriteAllTextAsync(other, "namespace other { int Target() { return 2; } }");
+        await File.WriteAllTextAsync(extra, "Target");
+        await view.OpenFilesAsync([caller], OpenOrigin.Menu);
+        var offset = callerText.IndexOf("Target", StringComparison.Ordinal);
+        Task FindCpp() => view.FindDefinitionsAsync(offset, offset, 0);
+
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("簡易"));
+        Assert.That(view.SearchPanel.Rows, Has.Count.EqualTo(2));
+        Assert.That(Directory.Exists(Path.Combine(Path.GetDirectoryName(folder)!, "cpp-cache")), Is.False);
+
+        view.PropertyChanged += CancelBeforeBuild;
+        await view.UpdateCppIndexAsync(rebuild: false);
+        view.PropertyChanged -= CancelBeforeBuild;
+        Assert.That(view.Status, Does.Contain("取り消し"));
+        Assert.That(Directory.Exists(Path.Combine(Path.GetDirectoryName(folder)!, "cpp-cache")), Is.False);
+
+        await view.UpdateCppIndexAsync(rebuild: false);
+        Assert.That(view.Status, Does.Contain("タグを保存しました"));
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("定義タグ"));
+        Assert.That(view.SearchPanel.Rows.Select(row => row.FullPath), Is.EqualTo(new[] { preferred, other }));
+        Assert.That(view.FilePath, Is.EqualTo(caller));
+        Assert.That(view.SearchPanel.IsVisible, Is.True);
+        await view.FindReferencesAsync(offset, offset, 0);
+        Assert.That(view.SearchPanel.Rows.Select(row => row.FullPath), Does.Contain(extra));
+
+        File.Delete(other);
+        await view.RefreshWorkspaceAsync();
+        await view.PendingWork;
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("簡易"));
+        Assert.That(view.FilePath, Is.EqualTo(preferred));
+
+        await view.OpenFilesAsync([caller], OpenOrigin.Menu);
+        await view.UpdateCppIndexAsync(rebuild: false);
+        await view.RefreshWorkspaceAsync();
+        await view.PendingWork;
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("定義タグ"));
+        Assert.That(view.FilePath, Is.EqualTo(preferred));
+        Assert.That(view.SearchPanel.IsVisible, Is.False);
+
+        await view.OpenFilesAsync([caller], OpenOrigin.Menu);
+        // The default database lookup must leave this folder on the tag path.
+        Assert.That(view.ConfigureSemanticNavigation(view.WorkspaceEpoch, new SemanticWorkspaceOptions(null, null,
+            caller, null)), Is.True);
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("定義タグ"));
+        Assert.That(view.SearchPanel.Summary, Does.Contain("コンパイルデータベース"));
+        Assert.That(view.FilePath, Is.EqualTo(preferred));
+
+        var unreadableDatabase = Path.Combine(Path.GetDirectoryName(folder)!, "compile_commands.json");
+        await File.WriteAllTextAsync(unreadableDatabase, "not JSON");
+        await view.OpenFilesAsync([caller], OpenOrigin.Menu);
+        Assert.That(view.ConfigureSemanticNavigation(view.WorkspaceEpoch, new SemanticWorkspaceOptions(null, null,
+            caller, unreadableDatabase)), Is.True);
+        await FindCpp();
+        Assert.That(view.SearchPanel.Description, Does.Contain("定義タグ"));
+        Assert.That(view.SearchPanel.Summary, Does.Contain("clangd"));
+        Assert.That(view.FilePath, Is.EqualTo(preferred));
+
+        void CancelBeforeBuild(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == nameof(MainWindowViewModel.IsUpdatingCppIndex) && view.IsUpdatingCppIndex)
+                view.CancelCppIndex();
+        }
+    });
+
     private static void WithView(Func<MainWindowViewModel, string, string, Task> run, Action? onYield = null)
         => SingleThreadTestContext.Run(async () =>
     {
@@ -252,7 +332,8 @@ internal sealed class DefinitionJumpTests
         var body = Path.Combine(folder, "body.cs");
         await File.WriteAllTextAsync(body, "class Caller { object F = Target; }");
         var source = new SourceAccess();
-        using var operations = new AppOperations(new(source), new AvaloniaEditDocumentAdapter(), new(source));
+        using var operations = new AppOperations(new(source), new AvaloniaEditDocumentAdapter(), new(source),
+            cppCacheDirectory: Path.Combine(root.FullName, "cpp-cache"));
         var view = new MainWindowViewModel(operations, new SettingsStore(new(
             Path.Combine(root.FullName, "portable.json"), Path.Combine(root.FullName, "user.json"))), YieldAsync);
         try

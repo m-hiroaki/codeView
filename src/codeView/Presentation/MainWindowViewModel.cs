@@ -27,6 +27,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private DocumentHandle? _displayedHandle;
     private bool _originalSourceOffsetsAvailable = true;
     private CancellationTokenSource? _syntaxRequest;
+    private CancellationTokenSource? _cppIndexRequest;
     private bool _syncingTabs;
     private bool _attaching;
     private int _line = 1;
@@ -115,7 +116,10 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public string Position => _position;
     public bool HasWorkspace => operations.Workspace is not null;
     public bool CanSearchWorkspace => operations.Workspace?.CanSearch == true;
-    public string DefinitionMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "定義へジャンプ（意味解析）" : "定義へジャンプ（簡易）";
+    public bool CanUpdateCppIndex => !_stopping && CanSearchWorkspace && !IsUpdatingCppIndex;
+    public bool IsUpdatingCppIndex => _cppIndexRequest is not null;
+    public string DefinitionMenuLabel => CppDeclarationScanner.IncludesPath(FilePath) ? "定義へジャンプ"
+        : operations.UsesSemanticNavigation(FilePath) ? "定義へジャンプ（意味解析）" : "定義へジャンプ（簡易）";
     public string ReferencesMenuLabel => operations.UsesSemanticNavigation(FilePath) ? "参照を検索（意味解析）" : "参照を検索（名前一致）";
     internal SemanticWorkspaceOptions? SemanticOptions => operations.SemanticOptions;
 #if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
@@ -139,6 +143,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public void RecordUserInteraction() => _interactionEpoch = checked(_interactionEpoch + 1);
     public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
         && _interactionEpoch == _selectionInteractionEpoch && _selectionRow is { } row && SearchPanel.CanActivate(row)
+        && (row.Hit.CppIndexGeneration is not { } generation || operations.IsCppIndexCurrent(generation))
         && _selectionRequest is { } request && _selectionMove is { } move && operations.ResultNavigator.CanAdopt(request, move);
 
     public Task FindReferencesAsync(int caret, int selectionStart, int selectionLength)
@@ -199,7 +204,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             || selectionLength > document.TextLength - selectionStart)
         { SetStatus("4,096文字以内の識別子を1つ選択してください。"); return; }
         var center = selectionLength > 0 ? selectionStart : caret;
-        if (operations.UsesSemanticNavigation(FilePath) && operations.CurrentFile is { } file)
+        var cpp = definitions && CppDeclarationScanner.IncludesPath(FilePath);
+        if (!cpp && operations.UsesSemanticNavigation(FilePath) && operations.CurrentFile is { } file)
         {
             if (operations.PrepareSemanticSearch(file, center, ViewEpoch, definitions) is not { } worker)
             {
@@ -221,7 +227,6 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         var end = (int)Math.Min(document.TextLength, (long)center + IdentifierExtractor.MaximumChars + 2);
         var context = document.GetText(origin, end - origin);
         var isCSharp = string.Equals(Path.GetExtension(FilePath), ".cs", StringComparison.OrdinalIgnoreCase);
-        var cpp = definitions && CppDeclarationScanner.IncludesPath(FilePath);
         if (definitions && !isCSharp && !cpp) { SetStatus("簡易定義ジャンプはC#、C、C++のファイルに対応しています。"); return; }
         // Selection is authoritative even if the native caret is at its other end.
         var localCaret = selectionLength > 0 ? selectionStart - origin : caret - origin;
@@ -236,8 +241,11 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             return;
         }
 
-        SetStatus("定義を検索しています（簡易・名前一致）。");
-        await StartDefinitionAsync(() => SearchPanel.StartDefinitionsAsync(name, cpp));
+        SetStatus(cpp ? "C/C++の定義を検索しています…" : "定義を検索しています（簡易・名前一致）。");
+        var cppWorker = cpp
+            ? operations.PrepareCppDefinitions(operations.CurrentFile, center, ViewEpoch, CppDefinitionSearch.QualifierAt(context, start))
+            : null;
+        await StartDefinitionAsync(() => SearchPanel.StartDefinitionsAsync(name, cpp, cppWorker));
     }
 
     private async Task StartDefinitionAsync(Func<Task> startSearch)
@@ -262,6 +270,12 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     private async Task ActivateSearchResultCoreAsync(SearchResultRow row, bool hidePanelOnSuccess = false)
     {
         if (_stopping || _savingSettings || !SearchPanel.CanActivate(row) || SearchPanel.CurrentOperation is not { } source) return;
+        var tagGeneration = row.Hit.CppIndexGeneration;
+        if (tagGeneration is { } generation && !operations.IsCppIndexCurrent(generation))
+        {
+            SetStatus("タグ作成後にファイルが変更されました。F12で再検索できます。");
+            return;
+        }
         var interaction = _interactionEpoch;
         var origin = CaptureJumpLocation();
         ClearSearchSelection?.Invoke();
@@ -285,7 +299,17 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         DisplayActiveTab(updateStatus: OwnsMoveStatus());
         if (!IsCurrentMove()) return;
         if (result.Status == OperationStatus.Failure)
-        { SetStatus(FileErrorText(result.Error!.Code) + " 再読み込み・再検索してください。"); return; }
+        {
+            if (tagGeneration is not null && result.Error!.Code == ErrorCode.ChangedDuringRead)
+                operations.InvalidateCppIndex();
+            SetStatus(FileErrorText(result.Error!.Code) + " 再読み込み・再検索してください。");
+            return;
+        }
+        if (tagGeneration is { } current && !operations.IsCppIndexCurrent(current))
+        {
+            SetStatus("タグ作成後にファイルが変更されました。F12で再検索できます。");
+            return;
+        }
         if (result.Status != OperationStatus.Success || !navigator.CanAdopt(request, result.Value)) return;
         var move = result.Value.Move;
         if (hidePanelOnSuccess && move.Warning == DocumentMoveWarning.None && SearchPanel.IsVisible)
@@ -620,6 +644,46 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             await TrackManualAsync(OpenFolderAsync(workspace.RequestedPath));
     }
 
+    public Task UpdateCppIndexAsync(bool rebuild) => TrackManualAsync(UpdateCppIndexCoreAsync(rebuild));
+
+    public void CancelCppIndex() => _cppIndexRequest?.Cancel();
+
+    private async Task UpdateCppIndexCoreAsync(bool rebuild)
+    {
+        if (!CanUpdateCppIndex || operations.Workspace is not { } workspace) return;
+        using var request = CancellationTokenSource.CreateLinkedTokenSource(workspace.Token, _lifetime.Token);
+        _cppIndexRequest = request;
+        Changed(nameof(CanUpdateCppIndex), nameof(IsUpdatingCppIndex));
+        var owner = new Progress<CppIndexUpdate>(progress =>
+        {
+            if (IsCurrent() && !request.IsCancellationRequested)
+                SetStatus($"C/C++のタグを作成中… {progress.Files:N0} ファイル、{progress.Definitions:N0} 件。");
+        });
+        SetStatus("C/C++のタグを作成中…");
+        try
+        {
+            var stats = await operations.UpdateCppIndexAsync(rebuild, ((IProgress<CppIndexUpdate>)owner).Report, request.Token);
+            if (IsCurrent()) SetStatus($"C/C++のタグを保存しました。{stats.Files:N0} ファイル、{stats.Definitions:N0} 件。"
+                + (stats.Complete ? "" : " 未評価のファイルがあります。"));
+        }
+        catch (OperationCanceledException) when (request.IsCancellationRequested)
+        {
+            if (IsCurrent()) SetStatus("C/C++のタグ作成を取り消しました。");
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or System.ComponentModel.Win32Exception)
+        {
+            if (IsCurrent()) SetStatus("C/C++のタグを保存できませんでした。フォルダの変更、保存先、他の起動中のアプリを確認してください。");
+        }
+        finally
+        {
+            if (ReferenceEquals(_cppIndexRequest, request)) _cppIndexRequest = null;
+            if (!_stopping) Changed(nameof(CanUpdateCppIndex), nameof(IsUpdatingCppIndex));
+        }
+
+        bool IsCurrent() => !_stopping && ReferenceEquals(_cppIndexRequest, request) && ReferenceEquals(operations.Workspace, workspace);
+    }
+
     private async Task TrackManualAsync(Task operation)
     {
         _manualWork.Add(operation);
@@ -752,7 +816,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     {
         SearchPanel.RefreshWorkspace();
         Changed(nameof(HasWorkspace), nameof(IsWelcomeVisible), nameof(CanSearchWorkspace), nameof(WorkspacePath), nameof(IsTreeVisible),
-            nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel), nameof(Breadcrumb), nameof(BreadcrumbPath));
+            nameof(DefinitionMenuLabel), nameof(ReferencesMenuLabel), nameof(Breadcrumb), nameof(BreadcrumbPath), nameof(CanUpdateCppIndex));
     }
 
     private static string ErrorText(ErrorCode code) => code switch

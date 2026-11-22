@@ -6,7 +6,8 @@ namespace CodeView.Navigation;
 internal sealed record CppIndexUpdate(int Files, int Parsed, int Definitions, bool Complete);
 
 internal sealed class CppDefinitionIndex(SourcePath root, ExclusionPolicy policy, EncodingChoice encoding,
-    DirectoryReader directories, FileReader files, CppDefinitionCache cache, CancellationToken lifetime) : IDisposable
+    DirectoryReader directories, FileReader files, CppDefinitionCache cache, CancellationToken lifetime,
+    Func<bool>? searchBusy = null) : IDisposable
 {
     internal readonly record struct Match(CppIndexedFile File, CppDefinition Definition);
     private sealed record Published(long Generation, bool Complete, Dictionary<string, List<Match>> ByName);
@@ -107,6 +108,7 @@ internal sealed class CppDefinitionIndex(SourcePath root, ExclusionPolicy policy
         {
             if (item.Kind == DirectoryWalkKind.Failed) complete = false;
             if (item.Kind != DirectoryWalkKind.File || !CppDeclarationScanner.IncludesPath(item.Path.FullPath)) continue;
+            WaitForSearch(ct);
             if (current.Count >= CppDefinitionCache.MaximumFiles)
             {
                 complete = false;
@@ -141,6 +143,7 @@ internal sealed class CppDefinitionIndex(SourcePath root, ExclusionPolicy policy
         foreach (var currentFile in current.Values)
         {
             ct.ThrowIfCancellationRequested();
+            WaitForSearch(ct);
             var file = currentFile;
             memory += file.EstimatedBytes;
             if (memory > CppDefinitionCache.MaximumEstimatedBytes)
@@ -179,6 +182,12 @@ internal sealed class CppDefinitionIndex(SourcePath root, ExclusionPolicy policy
         var snapshot = new CppDefinitionSnapshot(result, complete);
         stats = new(processed, parsed, definitions, snapshot.IsComplete);
         return snapshot;
+    }
+
+    private void WaitForSearch(CancellationToken ct)
+    {
+        while (searchBusy?.Invoke() == true)
+            if (ct.WaitHandle.WaitOne(25)) ct.ThrowIfCancellationRequested();
     }
 
     private CppIndexedFile Parse(CppIndexedFile file, CppDeclarationScanner collector, int remaining, long available, CancellationToken ct)
@@ -250,12 +259,18 @@ internal sealed class CppDefinitionIndex(SourcePath root, ExclusionPolicy policy
 
     private void Changed(object sender, FileSystemEventArgs change)
     {
-        if (IsIncludedChange(change.FullPath)) Invalidate();
+        if (IsIncludedChange(change.FullPath)) InvalidateObserved(sender);
     }
 
     private void Renamed(object sender, RenamedEventArgs change)
     {
-        if (IsIncludedChange(change.FullPath) || IsIncludedChange(change.OldFullPath)) Invalidate();
+        if (IsIncludedChange(change.FullPath) || IsIncludedChange(change.OldFullPath)) InvalidateObserved(sender);
+    }
+
+    private void InvalidateObserved(object sender)
+    {
+        lock (_stateGate)
+            if (ReferenceEquals(sender, _watcher)) Invalidate();
     }
 
     private bool IsIncludedChange(string path)

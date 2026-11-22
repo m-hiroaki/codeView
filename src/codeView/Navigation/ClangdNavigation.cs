@@ -21,7 +21,8 @@ internal sealed class ClangdNavigation(string root, string? database, string cac
     }
 
     public async Task<SemanticReply> SearchAsync(LanguageServerSession session, SemanticOperation operation, string uri,
-        string languageId, long revision, string text, Func<string, LspPosition> position, CancellationToken ct)
+        string languageId, long revision, string text, Func<string, LspPosition> position, CancellationToken ct,
+        bool requireCompilationDatabase = false)
     {
         var source = LspFilePath.Resolve(new Uri(uri).LocalPath);
         uri = new Uri(source).AbsoluteUri;
@@ -29,6 +30,8 @@ internal sealed class ClangdNavigation(string root, string? database, string cac
         _arguments[^1] = "--compile-commands-dir=" + _compilation.CacheDirectory;
         if (configurationChanged)
             await session.RestartAsync(ct).ConfigureAwait(false);
+        if (requireCompilationDatabase && !_compilation.HasCommands)
+            throw new InvalidDataException("利用できるコンパイルコマンドがありません。");
         return await session.UseAsync(async (transport, token) =>
         {
             await session.SynchronizeAsync(transport, uri, languageId, revision, text, token).ConfigureAwait(false);

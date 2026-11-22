@@ -1346,6 +1346,24 @@ internal sealed partial class GuiPerformanceProbe
             && _editor.SelectedText == "Compute" && _editor.TextArea.IsFocused,
             "cpp-candidate-enter-opens-original-header-position");
 
+        var tagMenu = _window.FindControl<MenuItem>("UpdateCppTagsMenu")!;
+        require(tagMenu.IsEnabled && panel.Description.Contains("簡易", StringComparison.Ordinal), "cpp-tags-wait-for-menu");
+        tagMenu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await Frame(ct);
+        require(_viewModel.Status.Contains("タグを保存しました", StringComparison.Ordinal), "cpp-tags-created-by-menu");
+        await OpenAndSelectAsync(cpp, cppCall);
+        key = await PressAsync();
+        require(key.Handled && panel.Description.Contains("定義タグ", StringComparison.Ordinal)
+            && panel.Rows.Count == 2 && panel.Rows[0].FullPath == header && panel.IsVisible
+            && _viewModel.FilePath == cpp, "cpp-tags-rank-explicit-qualifiers");
+        await _viewModel.RefreshWorkspaceAsync();
+        await _viewModel.PendingWork.WaitAsync(ct);
+        await OpenAndSelectAsync(cpp, cppCall);
+        key = await PressAsync();
+        require(key.Handled && panel.Description.Contains("定義タグ", StringComparison.Ordinal)
+            && panel.Rows.Count == 2 && panel.Rows[0].FullPath == header, "cpp-tags-reused-after-workspace-reopen");
+
         async Task<string> WriteAsync(string file, string contents)
         {
             var path = Path.Combine(workspace, file);

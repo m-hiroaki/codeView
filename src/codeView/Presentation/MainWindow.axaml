@@ -100,6 +100,11 @@
                 <MenuItem x:Name="WorkspaceSearchMenu" Header="フォルダを検索…" IsEnabled="{Binding CanSearchWorkspace}" Click="ShowSearchClicked" />
                 <MenuItem x:Name="FindDefinitionsMenu" Header="{Binding DefinitionMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindDefinitionsClicked" />
                 <MenuItem x:Name="FindReferencesMenu" Header="{Binding ReferencesMenuLabel}" IsEnabled="{Binding HasDocument}" Click="FindReferencesClicked" />
+                <MenuItem Header="C/C++のタグ">
+                    <MenuItem x:Name="UpdateCppTagsMenu" Header="C/C++のタグを作成・更新" IsEnabled="{Binding CanUpdateCppIndex}" Click="UpdateCppTagsClicked" />
+                    <MenuItem x:Name="RebuildCppTagsMenu" Header="タグを全件再作成" IsEnabled="{Binding CanUpdateCppIndex}" Click="RebuildCppTagsClicked" />
+                    <MenuItem x:Name="CancelCppTagsMenu" Header="タグ作成を取り消す" IsEnabled="{Binding IsUpdatingCppIndex}" Click="CancelCppTagsClicked" />
+                </MenuItem>
                 <MenuItem x:Name="SemanticSettingsMenu" Header="意味解析の設定…" IsEnabled="{Binding CanSearchWorkspace}" Click="EditSemanticNavigationClicked" />
                 <MenuItem Header="検索を取り消す" IsEnabled="{Binding SearchPanel.IsRunning}" Click="CancelSearchClicked" />
             </MenuItem>

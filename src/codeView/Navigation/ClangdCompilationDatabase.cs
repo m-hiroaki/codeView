@@ -15,13 +15,14 @@ internal sealed class ClangdCompilationDatabase(string root, string? selected, s
     public string CacheDirectory { get; private set; } = "";
     public string Description => _snapshot?.Path is { } path ? Path.GetRelativePath(root, path) : "コンパイル条件未設定";
     public bool IsComplete { get; private set; }
+    internal bool HasCommands => _sources.Count != 0;
     public bool HasCommand(string path) => _sources.Contains(path);
 
     // clangd writes index files beside the database. Copy it out of the source folder, keeping the
     // original compile directories and source paths, so the cache can be reused across app launches.
     public async Task<bool> RefreshAsync(CancellationToken ct)
     {
-        var source = FindDatabase();
+        var source = FindDatabase(root, selected);
         var snapshot = (source?.FullName, source?.Length ?? -1, source?.LastWriteTimeUtc ?? default);
         if (_snapshot == snapshot) return false;
         var sources = new HashSet<string>(PathComparer);
@@ -91,7 +92,7 @@ internal sealed class ClangdCompilationDatabase(string root, string? selected, s
         return changed;
     }
 
-    private FileInfo? FindDatabase()
+    internal static FileInfo? FindDatabase(string root, string? selected)
     {
         if (selected is not null)
             return File.Exists(selected) ? new FileInfo(selected) : null;

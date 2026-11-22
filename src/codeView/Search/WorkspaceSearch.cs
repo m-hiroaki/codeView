@@ -14,7 +14,7 @@ internal sealed record SemanticSearchSummary(string Configuration, bool IsPartia
 internal sealed record SemanticOrigin(SourcePath Path, SourceStamp Stamp);
 
 internal sealed record SearchHit(long FileScanId, SourcePath Path, TextRange Range, SearchSnippet Snippet, SourceStamp Stamp,
-    SemanticOrigin? Origin = null);
+    SemanticOrigin? Origin = null, long? CppIndexGeneration = null);
 
 internal abstract record SearchEvent<T>
 {
@@ -32,7 +32,7 @@ internal enum SearchEndReason { Completed, Cancelled, LimitReached, Failed }
 internal sealed record SearchCompletion(SearchEndReason Reason, OperationError? Error, long? UncommittedFileScanId,
     long GeneratedHits, long ReturnedHits, long CommittedHits, SearchProgress Progress,
     IReadOnlyDictionary<ErrorCode, long> ErrorCounts, IReadOnlyList<OperationError> ErrorSamples,
-    SemanticSearchSummary? Semantic = null)
+    SemanticSearchSummary? Semantic = null, string? DefinitionSource = null, string? DefinitionNotice = null)
 {
     public bool IsPartial => Reason != SearchEndReason.Completed || Progress.FailedEntries > 0
         || Progress.SkippedLongLines > 0 || Progress.SkippedScalarMatches > 0 || Semantic?.IsPartial == true;

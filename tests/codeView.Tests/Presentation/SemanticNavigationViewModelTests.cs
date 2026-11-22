@@ -176,11 +176,11 @@ internal sealed class SemanticNavigationViewModelTests
             try
             {
                 await view.InitializeAsync([root, caller]);
-                Assert.That(view.DefinitionMenuLabel, Does.Contain("簡易"));
+                Assert.That(view.DefinitionMenuLabel, Is.EqualTo(csharp ? "定義へジャンプ（簡易）" : "定義へジャンプ"));
                 var config = csharp ? new SemanticWorkspaceOptions(executable, setup, null, null)
                     : new SemanticWorkspaceOptions(null, null, executable, setup);
                 Assert.That(view.ConfigureSemanticNavigation(view.WorkspaceEpoch, config), Is.True);
-                Assert.That(view.DefinitionMenuLabel, Does.Contain("意味解析"));
+                Assert.That(view.DefinitionMenuLabel, Is.EqualTo(csharp ? "定義へジャンプ（意味解析）" : "定義へジャンプ"));
                 var selections = new List<(long Offset, int Length)>();
                 view.SelectSearchRange += (offset, length) => selections.Add((offset, length));
                 var caret = text.IndexOf("Run", StringComparison.Ordinal);

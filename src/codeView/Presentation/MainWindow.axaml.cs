@@ -909,6 +909,14 @@ internal sealed partial class MainWindow : Window
     private async void ClearRecentClicked(object? sender, RoutedEventArgs args) =>
         await RunAsync(() => _viewModel.RemoveRecentAsync(null));
 
+    private async void UpdateCppTagsClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(() => _viewModel.UpdateCppIndexAsync(rebuild: false));
+
+    private async void RebuildCppTagsClicked(object? sender, RoutedEventArgs args) =>
+        await RunAsync(() => _viewModel.UpdateCppIndexAsync(rebuild: true));
+
+    private void CancelCppTagsClicked(object? sender, RoutedEventArgs args) => _viewModel.CancelCppIndex();
+
     private async void EditSemanticNavigationClicked(object? sender, RoutedEventArgs args) =>
         await RunAsync(async () =>
         {

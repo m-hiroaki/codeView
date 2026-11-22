@@ -55,6 +55,7 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
 
     public WorkspaceSearchOperation? Current { get; private set; }
     public bool CanStart => !_disposed && !_faulted && workspace()?.CanSearch == true;
+    internal bool HasSearchWork => Volatile.Read(ref _active) is not null || Volatile.Read(ref _waiting) is not null;
     public Task PendingWork => ObservePendingAsync();
 
     public OperationResult<WorkspaceSearchOperation> Start(string? query, SearchOptions options = default,
@@ -65,9 +66,10 @@ internal sealed class SearchCoordinator(Func<WorkspaceSearchRequest, Cancellatio
         StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
             definitions: false, findReferences ?? start);
 
-    internal OperationResult<WorkspaceSearchOperation> StartCppDefinitions(string name) =>
+    internal OperationResult<WorkspaceSearchOperation> StartCppDefinitions(string name,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? worker = null) =>
         StartCore(name, new(MatchCase: true, WholeWord: true), EncodingChoice.Auto,
-            definitions: true, findCppDefinitions ?? throw new InvalidOperationException());
+            definitions: true, worker ?? findCppDefinitions ?? throw new InvalidOperationException());
 
     internal OperationResult<WorkspaceSearchOperation> StartSemantic(bool definitions,
         Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> startWorker) =>

@@ -30,22 +30,23 @@ internal sealed class SimpleSymbolNavigator(TextSearch search, FileReader files,
             bool Publish(DeclarationMatch match)
             {
                 var spelling = match.Range.Length > name.Length ? "@" + name : name;
-                var label = match.Kind switch
-                {
-                    DeclarationKind.Type => "型",
-                    DeclarationKind.Delegate => "デリゲート",
-                    DeclarationKind.Method => "メソッド",
-                    DeclarationKind.Property => "プロパティ",
-                    DeclarationKind.Function => "関数",
-                    DeclarationKind.Variable => "変数",
-                    DeclarationKind.Macro => "マクロ",
-                    DeclarationKind.Enumerator => "列挙子",
-                    _ => "フィールド"
-                };
-                var snippet = SearchSnippet.Capture(spelling + "  · " + label, 0, spelling.Length);
+                var snippet = SearchSnippet.Capture(spelling + "  · " + Label(match.Kind), 0, spelling.Length);
                 return consume(match.Range, snippet);
             }
         }, cpp ? CppDeclarationScanner.IncludesPath
             : static path => string.Equals(Path.GetExtension(path), ".cs", StringComparison.OrdinalIgnoreCase));
     }
+
+    internal static string Label(DeclarationKind kind) => kind switch
+    {
+        DeclarationKind.Type => "型",
+        DeclarationKind.Delegate => "デリゲート",
+        DeclarationKind.Method => "メソッド",
+        DeclarationKind.Property => "プロパティ",
+        DeclarationKind.Function => "関数",
+        DeclarationKind.Variable => "変数",
+        DeclarationKind.Macro => "マクロ",
+        DeclarationKind.Enumerator => "列挙子",
+        _ => "フィールド"
+    };
 }

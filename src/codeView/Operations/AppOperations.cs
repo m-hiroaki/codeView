@@ -12,7 +12,7 @@ namespace CodeView.Operations;
 internal sealed record LoadedFile(SourcePath Path, SourceStamp Stamp, string EncodingName, DocumentHandle Document);
 
 internal sealed class AppOperations(FileReader reader, IDocumentAdapter documents, DirectoryReader directories,
-    string? semanticCacheDirectory = null, string? semanticAppDirectory = null) : IDisposable
+    string? semanticCacheDirectory = null, string? semanticAppDirectory = null, string? cppCacheDirectory = null) : IDisposable
 {
     private readonly SemaphoreSlim _loadSlot = new(1, 1);
     private bool _stopping;
@@ -33,6 +33,8 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     private Task _roslynPreparation = Task.CompletedTask;
     private RoslynNavigation? _roslyn;
     private ClangdNavigation? _clangd;
+    private CppDefinitionIndex? _cppIndex;
+    private Task _cppRestore = Task.CompletedTask;
     internal SemanticWorkspaceOptions? SemanticOptions { get; private set; }
 #if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
     internal int[] SemanticServerProcessIds => _languageServers?.Values.Select(server => server.ProcessId)
@@ -58,6 +60,40 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
 
     private WorkspaceSearchSession StartCppDefinitions(WorkspaceSearchRequest request, CancellationToken ct) =>
         new SimpleSymbolNavigator(new TextSearch(directories, reader), reader, cpp: true).FindDefinitions(request, ct);
+
+    internal Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession> PrepareCppDefinitions(
+        LoadedFile? file, int offset, long revision, string? qualifier)
+    {
+        var index = _cppIndex;
+        var origin = file is null ? null : new SemanticOrigin(file.Path, file.Stamp);
+        var semantic = file is null ? null : PrepareSemanticSearch(file, offset, revision, definitions: true,
+            requireCppCompilationDatabase: true);
+        var database = SemanticOptions?.CompilationDatabase;
+        return (request, ct) => CppDefinitionSearch.Start(request, reader, index, origin, qualifier,
+            () => StartCppDefinitions(request, ct), semantic is null ? null : () => semantic(request, ct),
+            semantic is null ? null : () => ClangdCompilationDatabase.FindDatabase(request.Root.FullPath, database) is not null, ct);
+    }
+
+    internal Task<CppIndexUpdate> UpdateCppIndexAsync(bool rebuild, Action<CppIndexUpdate> progress, CancellationToken ct) =>
+        _cppIndex?.UpdateAsync(rebuild, progress, ct) ?? Task.FromCanceled<CppIndexUpdate>(new CancellationToken(true));
+
+    internal bool IsCppIndexCurrent(long generation) => _cppIndex?.IsCurrent(generation) == true;
+
+    internal void InvalidateCppIndex() => _cppIndex?.Invalidate();
+
+    private void PrepareCppIndex(WorkspaceState owner, SourcePath root)
+    {
+        var cache = new CppDefinitionCache(cppCacheDirectory ?? Path.Combine(UserCacheDirectory(), "codeView", "cpp-definitions"),
+            root, EncodingChoice.Auto, owner.Settings.ExcludedDirectoryNames);
+        _cppIndex = new(root, owner.Policy, EncodingChoice.Auto, directories, reader, cache, owner.Token,
+            () => Volatile.Read(ref _searches)?.HasSearchWork == true);
+        var restore = _cppIndex.RestoreAsync();
+        _cppRestore = _cppRestore.IsCompletedSuccessfully ? restore : Task.WhenAll(_cppRestore, restore);
+    }
+
+    private static string UserCacheDirectory() => OperatingSystem.IsMacOS()
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Caches")
+        : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
     private ISymbolNavigator CreateNavigator(TextSearch search) => new SimpleSymbolNavigator(search, reader);
 
@@ -90,8 +126,9 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     }
 
     public Task PendingSearchWork => _retiredLanguageServers.IsCompletedSuccessfully && _roslynPreparation.IsCompletedSuccessfully
+        && _cppRestore.IsCompletedSuccessfully
         ? _searches?.PendingWork ?? Task.CompletedTask
-        : Task.WhenAll(_searches?.PendingWork ?? Task.CompletedTask, _retiredLanguageServers, _roslynPreparation);
+        : Task.WhenAll(_searches?.PendingWork ?? Task.CompletedTask, _retiredLanguageServers, _roslynPreparation, _cppRestore);
 
     // Register on the same serialized context that owns Workspace, before starting a search worker.
     internal LanguageServerSession GetLanguageServer(WorkspaceState owner, SemanticLanguage language,
@@ -128,7 +165,7 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         LanguageOf(path) is { } language && SemanticOptions?.Executable(language) is not null;
 
     internal Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? PrepareSemanticSearch(
-        LoadedFile file, int offset, long revision, bool definitions)
+        LoadedFile file, int offset, long revision, bool definitions, bool requireCppCompilationDatabase = false)
     {
         if (Workspace is not { CanSearch: true, ResolvedPath: { } root } owner
             || LanguageOf(file.Path.FullPath) is not { } language || SemanticOptions is not { } options
@@ -153,14 +190,12 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
         }
         else
         {
-            var cache = OperatingSystem.IsMacOS()
-                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Caches")
-                : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var clangd = _clangd ??= new(root.FullPath, options.CompilationDatabase,
-                semanticCacheDirectory ?? Path.Combine(cache, "codeView", "clangd"));
+                semanticCacheDirectory ?? Path.Combine(UserCacheDirectory(), "codeView", "clangd"));
             var session = GetLanguageServer(owner, language, () => clangd.CreateSession(executable));
             var languageId = Path.GetExtension(file.Path.FullPath) is ".c" or ".i" ? "c" : "cpp";
-            query = (text, position, ct) => clangd.SearchAsync(session, operation, uri, languageId, revision, text, position, ct);
+            query = (text, position, ct) => clangd.SearchAsync(session, operation, uri, languageId, revision, text, position, ct,
+                requireCompilationDatabase: requireCppCompilationDatabase);
         }
         return (request, ct) => new SemanticSearchWorker(reader, documents).Start(request, origin, file.Document, offset, ct,
             async (text, position, token) =>
@@ -266,7 +301,11 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
             if (!CanAdopt()) return OperationResult<WorkspaceState>.Cancelled();
             workspace.Complete(listing);
             workspace.Tree = new TreeSession(directories, _treeSlot, workspace.Policy, workspace.Token, listing);
-            if (listing.IsComplete) PrepareAutomaticCSharp(workspace, listing);
+            if (listing.IsComplete)
+            {
+                PrepareAutomaticCSharp(workspace, listing);
+                PrepareCppIndex(workspace, resolved.Value);
+            }
             return listing.IsComplete ? OperationResult<WorkspaceState>.Success(workspace)
                 : OperationResult<WorkspaceState>.Failure(listing.Error!);
         }
@@ -303,6 +342,8 @@ internal sealed class AppOperations(FileReader reader, IDocumentAdapter document
     {
         List<Exception>? failures = null;
         ConfigureSemanticNavigation(null);
+        _cppIndex?.Dispose();
+        _cppIndex = null;
         if (Workspace?.Tree is { } tree)
         {
             try { tree.Dispose(); }

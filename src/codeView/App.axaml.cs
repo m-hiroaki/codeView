@@ -33,8 +33,11 @@ internal sealed partial class App : Application
             var source = new SourceAccess();
             var documents = new AvaloniaEditDocumentAdapter();
             string? semanticCacheDirectory = null;
+            string? cppCacheDirectory = null;
 #if CODEVIEW_PERFORMANCE_PROBE
             semanticCacheDirectory = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_CACHE");
+            if (Environment.GetEnvironmentVariable("CODEVIEW_GUI_PERF_REPORT") is { } tagReport)
+                cppCacheDirectory = Environment.GetEnvironmentVariable("CODEVIEW_GUI_CPP_TAG_CACHE") ?? tagReport + ".cpp-tags";
             var rows = Environment.GetEnvironmentVariable("CODEVIEW_GUI_ROWS") == "1";
             documents = new AvaloniaEditDocumentAdapter(rows,
                 collectGraphemeIndex: rows && Environment.GetEnvironmentVariable("CODEVIEW_GUI_GRAPHEME_INDEX") == "1");
@@ -51,7 +54,8 @@ internal sealed partial class App : Application
                 semanticCacheDirectory = Environment.GetEnvironmentVariable("CODEVIEW_GUI_SEMANTIC_CACHE");
             }
 #endif
-            var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source), semanticCacheDirectory);
+            var operations = new AppOperations(new FileReader(source), documents, new DirectoryReader(source), semanticCacheDirectory,
+                cppCacheDirectory: cppCacheDirectory);
             var settings = new SettingsStore(locations);
 #if CODEVIEW_PERFORMANCE_PROBE || CODEVIEW_SEMANTIC_PROBE
             var recentHistory = (Environment.GetEnvironmentVariable("CODEVIEW_CHROME_CAPTURE") == "1"

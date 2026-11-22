@@ -65,9 +65,12 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
     }
 
     public Task StartReferencesAsync(string name) => StartSymbolSearchAsync(name, definitions: false);
-    public Task StartDefinitionsAsync(string name, bool cpp) => StartSymbolSearchAsync(name, definitions: true, cpp);
+    public Task StartDefinitionsAsync(string name, bool cpp,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? worker = null) =>
+        StartSymbolSearchAsync(name, definitions: true, cpp, worker);
 
-    private Task StartSymbolSearchAsync(string name, bool definitions, bool cpp = false)
+    private Task StartSymbolSearchAsync(string name, bool definitions, bool cpp = false,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? worker = null)
     {
         if (_stopping) return Task.CompletedTask;
         Query = name;
@@ -76,7 +79,7 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         UseRegex = false;
         var description = definitions ? "定義へジャンプ（簡易・名前一致）"
             : "参照検索（名前一致）：宣言・コメント・文字列も含みます。意味解析は行いません。";
-        return StartCoreAsync(description, definitions, references: !definitions, cpp: cpp);
+        return StartCoreAsync(description, definitions, references: !definitions, cpp: cpp, worker: worker);
     }
 
     public Task StartAsync() => StartCoreAsync("フォルダ内のテキスト検索", definitions: false);
@@ -100,12 +103,13 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         return CanActivate(row) ? row : null;
     }
 
-    private Task StartCoreAsync(string description, bool definitions, bool references = false, bool cpp = false)
+    private Task StartCoreAsync(string description, bool definitions, bool references = false, bool cpp = false,
+        Func<WorkspaceSearchRequest, CancellationToken, WorkspaceSearchSession>? worker = null)
     {
         if (!CanStart) return Task.CompletedTask;
         _coordinator ??= coordinator();
         var accepted = references ? _coordinator.StartReferences(Query)
-            : cpp ? _coordinator.StartCppDefinitions(Query!)
+            : cpp ? _coordinator.StartCppDefinitions(Query!, worker)
             : _coordinator.Start(Query, new(MatchCase, WholeWord, UseRegex), definitions: definitions);
         return Adopt(accepted, description, definitions);
     }
@@ -306,6 +310,19 @@ internal sealed class SearchPanelViewModel(Func<SearchCoordinator> coordinator, 
         };
         if (end.Progress.FailedEntries > 0 || end.Progress.SkippedLongLines > 0 || end.Progress.SkippedScalarMatches > 0)
             _notice += $" 読取等の失敗 {end.Progress.FailedEntries:N0}件、長行未評価 {end.Progress.SkippedLongLines:N0}行、スカラー境界での除外 {end.Progress.SkippedScalarMatches:N0}件。";
+        if (end.DefinitionSource is { } source)
+        {
+            Description = $"定義へジャンプ（{source}）";
+            Changed(nameof(Description));
+            _notice = end.Reason == SearchEndReason.LimitReached ? "タグ候補は10,000件で打ち切りました。"
+                : end.IsPartial ? "タグが未評価のファイルがあります。定義候補の部分結果です。" : "タグから取得した定義候補です。";
+        }
+        else if (request.Definitions && !request.Semantic && end.Semantic is not null)
+        {
+            Description = "定義へジャンプ（意味解析）";
+            Changed(nameof(Description));
+        }
+        if (end.DefinitionNotice is { } notice) _notice += " " + notice;
     }
 
     private string SemanticNotice(SearchCompletion end, SemanticSearchSummary semantic, bool definitions)
