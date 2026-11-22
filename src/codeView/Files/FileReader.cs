@@ -15,16 +15,21 @@ internal sealed class PreparedText : IDisposable
     public SourceStamp Stamp { get; }
     public Encoding Encoding { get; }
     public int BomBytes { get; }
+    internal long MaximumBytes { get; }
 
-    internal PreparedText(FileStream stream, SourcePath path, SourceStamp stamp, Encoding encoding, int bomBytes)
-        => (Stream, Path, Stamp, Encoding, BomBytes) = (stream, path, stamp, encoding, bomBytes);
+    internal PreparedText(FileStream stream, SourcePath path, SourceStamp stamp, Encoding encoding, int bomBytes,
+        long maximumBytes = long.MaxValue)
+        => (Stream, Path, Stamp, Encoding, BomBytes, MaximumBytes) = (stream, path, stamp, encoding, bomBytes, maximumBytes);
 
     public void Dispose() => Stream.Dispose();
 }
 
 internal sealed class FileReader(ISourceAccess access)
 {
-    public Task<OperationResult<SourceStamp>> CheckStampAsync(SourcePath path, CancellationToken ct) => Task.Run(() =>
+    public Task<OperationResult<SourceStamp>> CheckStampAsync(SourcePath path, CancellationToken ct) =>
+        Task.Run(() => CheckStamp(path, ct));
+
+    internal OperationResult<SourceStamp> CheckStamp(SourcePath path, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         try
@@ -38,13 +43,14 @@ internal sealed class FileReader(ISourceAccess access)
         catch (UnauthorizedAccessException) { return Failure(ErrorCode.AccessDenied); }
         catch (IOException) { return Failure(ErrorCode.IoFailure); }
         OperationResult<SourceStamp> Failure(ErrorCode code) => OperationResult<SourceStamp>.Failure(new(code, path.DisplayPath, true));
-    });
+    }
 
     internal const int SampleBytes = 8 * 1024;
     internal const int ChunkChars = 16 * 1024;
     private const int DecodeBytes = 64 * 1024;
 
-    public OperationResult<PreparedText> Prepare(SourcePath path, EncodingChoice choice, CancellationToken ct)
+    public OperationResult<PreparedText> Prepare(SourcePath path, EncodingChoice choice, CancellationToken ct,
+        long maximumBytes = long.MaxValue)
     {
         var opened = access.OpenRead(path, ct);
         if (opened.Status != OperationStatus.Success)
@@ -55,6 +61,8 @@ internal sealed class FileReader(ISourceAccess access)
         try
         {
             var stamp = access.GetStamp(path);
+            if (maximumBytes != long.MaxValue && (stamp.LengthBytes > maximumBytes || stream.Length > maximumBytes))
+                return Fail(ErrorCode.UnsupportedSize);
             sample = ArrayPool<byte>.Shared.Rent(SampleBytes);
             var length = stream.ReadAtLeast(sample.AsSpan(0, SampleBytes), SampleBytes, false);
             var bytes = sample.AsSpan(0, length);
@@ -67,25 +75,26 @@ internal sealed class FileReader(ISourceAccess access)
 
             var selected = bomChoice ?? (choice == EncodingChoice.Auto ? EncodingChoice.Utf8 : choice);
             var encoding = StrictEncoding(selected);
-            if (!Validate(stream, encoding, bomLength, ct))
+            if (!Validate(stream, encoding, bomLength, ct, maximumBytes))
             {
                 if (choice != EncodingChoice.Auto || bomChoice is not null)
                     return Fail(ErrorCode.DecodeFailed);
                 encoding = StrictEncoding(EncodingChoice.Cp932);
-                if (!Validate(stream, encoding, 0, ct))
+                if (!Validate(stream, encoding, 0, ct, maximumBytes))
                     return Fail(ErrorCode.DecodeFailed);
             }
 
             if (access.GetStamp(path) != stamp)
                 return Fail(ErrorCode.ChangedDuringRead);
             stream.Position = bomLength;
-            var prepared = new PreparedText(stream, path, stamp, encoding, bomLength);
+            var prepared = new PreparedText(stream, path, stamp, encoding, bomLength, maximumBytes);
             transferred = true;
             return OperationResult<PreparedText>.Success(prepared);
         }
         catch (FileNotFoundException) { return Fail(ErrorCode.ChangedDuringRead); }
         catch (DirectoryNotFoundException) { return Fail(ErrorCode.ChangedDuringRead); }
         catch (UnauthorizedAccessException) { return Fail(ErrorCode.AccessDenied); }
+        catch (ReadLimitExceeded) { return Fail(ErrorCode.UnsupportedSize); }
         catch (IOException) { return Fail(ErrorCode.IoFailure); }
         finally
         {
@@ -103,7 +112,7 @@ internal sealed class FileReader(ISourceAccess access)
         ArgumentNullException.ThrowIfNull(consume);
         try
         {
-            var count = Decode(prepared.Stream, prepared.Encoding, prepared.BomBytes, consume, ct);
+            var count = Decode(prepared.Stream, prepared.Encoding, prepared.BomBytes, consume, ct, prepared.MaximumBytes);
             if (access.GetStamp(prepared.Path) != prepared.Stamp)
                 return OperationResult<long>.Failure(new(ErrorCode.ChangedDuringRead, prepared.Path.DisplayPath));
             return OperationResult<long>.Success(count);
@@ -120,24 +129,30 @@ internal sealed class FileReader(ISourceAccess access)
         {
             return OperationResult<long>.Failure(new(ErrorCode.AccessDenied, prepared.Path.DisplayPath));
         }
+        catch (ReadLimitExceeded)
+        {
+            return OperationResult<long>.Failure(new(ErrorCode.UnsupportedSize, prepared.Path.DisplayPath));
+        }
         catch (IOException)
         {
             return OperationResult<long>.Failure(new(ErrorCode.IoFailure, prepared.Path.DisplayPath));
         }
     }
 
-    private static bool Validate(FileStream stream, Encoding encoding, int bomBytes, CancellationToken ct)
+    private sealed class ReadLimitExceeded : IOException;
+
+    private static bool Validate(FileStream stream, Encoding encoding, int bomBytes, CancellationToken ct, long maximumBytes)
     {
         try
         {
-            Decode(stream, encoding, bomBytes, null, ct);
+            Decode(stream, encoding, bomBytes, null, ct, maximumBytes);
             return true;
         }
         catch (DecoderFallbackException) { return false; }
     }
 
     private static long Decode(FileStream stream, Encoding encoding, int bomBytes,
-        Action<ReadOnlyMemory<char>>? consume, CancellationToken ct)
+        Action<ReadOnlyMemory<char>>? consume, CancellationToken ct, long maximumBytes)
     {
         stream.Position = bomBytes;
         var bytes = ArrayPool<byte>.Shared.Rent(DecodeBytes);
@@ -151,6 +166,7 @@ internal sealed class FileReader(ISourceAccess access)
             {
                 ct.ThrowIfCancellationRequested();
                 var read = stream.Read(bytes, 0, DecodeBytes);
+                if (maximumBytes != long.MaxValue && stream.Position > maximumBytes) throw new ReadLimitExceeded();
                 var offset = 0;
                 bool completed;
                 do

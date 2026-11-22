@@ -73,7 +73,8 @@ internal sealed class DirectoryReader(ISourceAccess source)
     }
 
     /// <summary>Enumerate on a worker. The supplied root is already resolved; no recursive arrays or prescan.</summary>
-    public IEnumerable<DirectoryWalkEvent> WalkFiles(SourcePath root, ExclusionPolicy policy, CancellationToken ct)
+    public IEnumerable<DirectoryWalkEvent> WalkFiles(SourcePath root, ExclusionPolicy policy, CancellationToken ct,
+        Func<bool>? acceptEntry = null)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(policy);
@@ -97,6 +98,7 @@ internal sealed class DirectoryReader(ISourceAccess source)
                         yield return new(DirectoryWalkKind.Failed, frame.Path, step.Error, frame.IsRoot);
                     continue;
                 }
+                if (acceptEntry is not null && !acceptEntry()) yield break;
                 var entry = step.Entry;
                 if (entry.IsLink) { yield return new(DirectoryWalkKind.SkippedLink, entry.Path); continue; }
                 if (entry.Kind == SourceEntryKind.Directory)
