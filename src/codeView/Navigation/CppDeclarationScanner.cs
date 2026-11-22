@@ -4,6 +4,9 @@ using CodeView.Files;
 
 namespace CodeView.Navigation;
 
+internal readonly record struct CppDefinition(string Name, DeclarationKind Kind, string? Qualifier, TextRange Range,
+    bool HasBody);
+
 internal sealed class CppDeclarationScanner
 {
     private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
@@ -31,9 +34,12 @@ internal sealed class CppDeclarationScanner
     private string? _macroName;
     private bool _tooManyRanges;
     private Func<DeclarationMatch, bool> _consume = null!;
+    private Func<CppDefinition, bool>? _collect;
+    private readonly Stack<(int Depth, bool HasElse)>? _definitionBranches;
     private int _groupTokens;
     private enum ScopeKind { Namespace, Type, Enum, Function, Initializer }
-    private readonly record struct Scope(ScopeKind Kind, string? Resume, string? TypeName = null, bool Tracked = false);
+    private readonly record struct Scope(ScopeKind Kind, string? Resume, string? TypeName = null, bool Tracked = false,
+        string? Qualifier = null);
 
     private sealed class ConditionalBranch(int depth, int rangeCount, int enclosing, bool suspended)
     {
@@ -47,7 +53,7 @@ internal sealed class CppDeclarationScanner
 
     internal CppDeclarationScanner(string name) : this(name, null) { }
 
-    private CppDeclarationScanner(string name, StickyScopeBuilder? ranges)
+    private CppDeclarationScanner(string name, StickyScopeBuilder? ranges, bool collect = false)
     {
         _name = name;
         _ranges = ranges;
@@ -57,14 +63,26 @@ internal sealed class CppDeclarationScanner
             _macros = new(StringComparer.Ordinal);
             _structuralMacros = new(StringComparer.Ordinal);
         }
+        if (collect) _definitionBranches = new();
+        Func<string, bool>? directive = ranges is not null ? ConditionalDirective : collect ? DefinitionDirective : null;
         _lexer = new(ranges is null ? Push : PushStickyToken,
             () => _scopes.TryPeek(out var scope) && scope.Kind is ScopeKind.Function or ScopeKind.Initializer,
-            ranges is null ? null : ConditionalDirective,
+            directive,
             ranges is null ? null : ObserveStructuralWord,
             ranges is null ? null : RememberMacroBrace);
     }
 
     public static bool IncludesPath(string path) => Extensions.Contains(Path.GetExtension(path));
+
+    internal static CppDeclarationScanner CreateDefinitionCollector() => new("", null, collect: true);
+
+    // A file's candidates are provisional until the reader confirms decoding and completeness.
+    internal OperationError? CollectDefinitions(FileReader files, PreparedText source,
+        Func<CppDefinition, bool> collect, CancellationToken ct)
+    {
+        _collect = collect;
+        return ReadCore(files, source, ct);
+    }
 
     internal static StickyScopeRanges? ReadScopes(DocumentReadLease source, CancellationToken ct)
     {
@@ -82,6 +100,11 @@ internal sealed class CppDeclarationScanner
     internal OperationError? Read(FileReader files, PreparedText source, Func<DeclarationMatch, bool> consume, CancellationToken ct)
     {
         _consume = consume;
+        return ReadCore(files, source, ct);
+    }
+
+    private OperationError? ReadCore(FileReader files, PreparedText source, CancellationToken ct)
+    {
         var unsupported = new OperationError(ErrorCode.UnsupportedDeclaration, source.Path.DisplayPath);
         try
         {
@@ -95,6 +118,7 @@ internal sealed class CppDeclarationScanner
                 return read.Error ?? unsupported;
             }
             return _lexer.Complete(ct) && _groups.Count == 0 && _scopes.Count == 0 && _header.Count == 0
+                && (_definitionBranches is null || _definitionBranches.Count == 0)
                 ? null : unsupported;
         }
         catch (StopScan) { return unsupported; }
@@ -104,11 +128,30 @@ internal sealed class CppDeclarationScanner
             _header.Clear();
             _groups.Clear();
             _scopes.Clear();
+            _definitionBranches?.Clear();
+            _collect = null;
             _consume = null!;
         }
     }
 
     private sealed class StopScan : Exception;
+
+    private bool DefinitionDirective(string directive)
+    {
+        var branches = _definitionBranches!;
+        // Declarators that cross conditional boundaries cannot be collected reliably.
+        if (_groups.Count != 0 || _header.Count != 0) return false;
+        if (directive is "if" or "ifdef" or "ifndef")
+        {
+            if (branches.Count >= CSharpLexer.MaximumDepth) return false;
+            branches.Push((_scopes.Count, false));
+            return true;
+        }
+        if (!branches.TryPop(out var branch) || _scopes.Count != branch.Depth || branch.HasElse && directive != "endif")
+            return false;
+        if (directive != "endif") branches.Push((branch.Depth, directive == "else"));
+        return true;
+    }
 
     private bool PushStickyToken(CppToken token)
     {
@@ -198,6 +241,8 @@ internal sealed class CppDeclarationScanner
         switch (token.Text)
         {
             case "}":
+                if (_definitionBranches is not null && _definitionBranches.TryPeek(out var branch)
+                    && _scopes.Count <= branch.Depth) return false;
                 if (!_scopes.TryPop(out var closed)) return false;
                 if (closed.Kind == ScopeKind.Enum && !FinishEnumerator()) return false;
                 if (closed.Tracked) _ranges!.End(token.Range.Start.Line);
@@ -242,7 +287,7 @@ internal sealed class CppDeclarationScanner
                 _scopes.Push(new(ScopeKind.Initializer, null));
                 return TrackGroup("{");
             }
-            if (!Emit(_header[function], DeclarationKind.Function)) return false;
+            if (!Emit(function, DeclarationKind.Function, hasBody: true)) return false;
             if (!StartStickyRange(DeclarationKind.Function, function, out var tracked)) return false;
             _header.Clear();
             _scopes.Push(new(ScopeKind.Function, null, Tracked: tracked));
@@ -251,20 +296,22 @@ internal sealed class CppDeclarationScanner
         if (At(start, "namespace") || At(start, "inline") && At(start + 1, "namespace")
             || At(start, "extern") && At(start + 1, "<literal>") || _header.Count == 1 && At(0, "export"))
         {
+            var qualifier = _collect is null ? null : NamespaceQualifier(At(start, "inline") ? start + 2 : start + 1);
             _header.Clear();
-            _scopes.Push(new(ScopeKind.Namespace, null));
+            _scopes.Push(new(ScopeKind.Namespace, null, Qualifier: qualifier));
             return true;
         }
         var tag = Tag(start, out var tagName);
         if (tag >= 0)
         {
-            if (tagName >= 0 && !Emit(_header[tagName], DeclarationKind.Type)) return false;
+            if (tagName >= 0 && !Emit(tagName, DeclarationKind.Type)) return false;
             var placeholder = At(start, "typedef") ? "<typedef>" : "<type>";
             var kind = At(tag, "enum") ? ScopeKind.Enum : ScopeKind.Type;
             var typeName = tagName >= 0 ? _header[tagName].Text : null;
+            var qualifier = _collect is null ? null : typeName is null ? "" : JoinQualifier(CurrentQualifier(), typeName);
             if (!StartStickyRange(DeclarationKind.Type, tagName, out var tracked)) return false;
             _header.Clear();
-            _scopes.Push(new(kind, placeholder, typeName, tracked));
+            _scopes.Push(new(kind, placeholder, typeName, tracked, qualifier));
             return true;
         }
         // Keep the declarator until ';', but skip arbitrary nested initializer contents.
@@ -288,14 +335,14 @@ internal sealed class CppDeclarationScanner
         if (_header.Count == 0 || scope is ScopeKind.Function or ScopeKind.Enum) return true;
         var start = DeclarationStart();
         if (At(start, "using"))
-            return !At(start + 2, "=") || !IsName(start + 1) || Emit(_header[start + 1], DeclarationKind.Type);
+            return !At(start + 2, "=") || !IsName(start + 1) || Emit(start + 1, DeclarationKind.Type);
 
         var function = FunctionName(start, out var tail);
         if (function >= 0)
         {
-            if (At(start, "typedef")) return Emit(_header[function], DeclarationKind.Type);
+            if (At(start, "typedef")) return Emit(function, DeclarationKind.Type);
             return !(At(tail, "=") && (At(tail + 1, "default") || At(tail + 1, "delete")))
-                || Emit(_header[function], DeclarationKind.Function);
+                || Emit(function, DeclarationKind.Function);
         }
 
         if (At(start, "extern") && !_header.Exists(token => token.Text is "=" or "<initializer>")) return true;
@@ -328,7 +375,7 @@ internal sealed class CppDeclarationScanner
             }
             var tagOnly = At(first, "struct") || At(first, "class") || At(first, "union") || At(first, "enum");
             var minimum = index == first ? first + (tagOnly || At(first, "typedef") ? 2 : 1) : index;
-            if (declarator >= minimum && !Emit(_header[declarator], kind)) return false;
+            if (declarator >= minimum && !Emit(declarator, kind)) return false;
             while (end < _header.Count && !At(end, ","))
             {
                 var after = At(end, "<") ? SkipAngles(end) : end;
@@ -399,12 +446,75 @@ internal sealed class CppDeclarationScanner
         return start;
     }
 
-    private bool FinishEnumerator() => _header.Count == 0 || !_header[0].Word || Emit(_header[0], DeclarationKind.Enumerator);
+    private bool FinishEnumerator() => _header.Count == 0 || !_header[0].Word || Emit(0, DeclarationKind.Enumerator);
     private bool At(int index, string text) => (uint)index < _header.Count && _header[index].Text == text;
     private bool IsPointer(int index) => (uint)index < _header.Count && _header[index].Text is "*" or "&" or "&&";
     private bool IsName(int index) => (uint)index < _header.Count && _header[index].Word && !NonNames.Contains(_header[index].Text);
-    private bool Emit(CppToken token, DeclarationKind kind) => !string.Equals(_name, token.Text, StringComparison.Ordinal)
-        || token.Range.Length == _name.Length && _consume(new(kind, token.Range));
+    private bool Emit(int index, DeclarationKind kind, bool hasBody = false)
+    {
+        var token = _header[index];
+        var qualifier = _collect is null ? null : DeclarationQualifier(index);
+        return Emit(token, kind, qualifier is { Length: > 0 } ? qualifier : null, hasBody);
+    }
+
+    private bool Emit(CppToken token, DeclarationKind kind, string? qualifier = null, bool hasBody = false) =>
+        _collect is not null ? token.Range.Length != token.Text.Length
+            || _collect(new(token.Text, kind, qualifier, token.Range, hasBody))
+        : !string.Equals(_name, token.Text, StringComparison.Ordinal)
+            || token.Range.Length == _name.Length && _consume(new(kind, token.Range));
+
+    private string? CurrentQualifier() => _scopes.TryPeek(out var scope) ? scope.Qualifier : null;
+
+    private string? NamespaceQualifier(int start)
+    {
+        var qualifier = CurrentQualifier();
+        for (var index = start; IsName(index); index += 2)
+        {
+            qualifier = JoinQualifier(qualifier, _header[index].Text);
+            if (qualifier.Length == 0 || !At(index + 1, "::")) break;
+        }
+        return qualifier;
+    }
+
+    private string? DeclarationQualifier(int index)
+    {
+        var separator = (At(index - 1, "~") ? index - 1 : index) - 1;
+        if (!At(separator, "::")) return CurrentQualifier();
+        var components = new Stack<string>();
+        var absolute = false;
+        while (At(separator, "::"))
+        {
+            var part = separator - 1;
+            if (At(part, ">"))
+            {
+                var depth = 1;
+                while (--part >= 0 && depth > 0)
+                {
+                    if (At(part, ">")) depth++;
+                    else if (At(part, "<")) depth--;
+                    if (depth == 0) { part--; break; }
+                }
+            }
+            if (!IsName(part))
+            {
+                absolute = true;
+                break;
+            }
+            components.Push(_header[part].Text);
+            separator = part - 1;
+        }
+        var qualifier = absolute ? null : CurrentQualifier();
+        foreach (var component in components)
+        {
+            qualifier = JoinQualifier(qualifier, component);
+            if (qualifier.Length == 0) break;
+        }
+        return qualifier;
+    }
+
+    private static string JoinQualifier(string? prefix, string name) =>
+        prefix == "" || (prefix?.Length + 2 ?? 0) + name.Length > IdentifierExtractor.MaximumChars
+            ? "" : prefix is null ? name : prefix + "::" + name;
 
     private bool Append(CppToken token)
     {

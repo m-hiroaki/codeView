@@ -136,4 +136,82 @@ internal sealed class CppDefinitionTests
     }
 
     private sealed record Found(string File, string Source, DeclarationKind Kind, TextRange Range);
+
+    [Test]
+    public void CollectsQualifiedDefinitionsAtOriginalPositions()
+    {
+        const string source = """
+            /* 日本語 🚀 */
+            #ifndef SAMPLE_HPP
+            #define SAMPLE_HPP 1
+            namespace app::net {
+              struct Client {
+                int open() { return 1; }
+                int close();
+              };
+              struct Other { int open() { return 2; } };
+            }
+            int app::net::Client::close() { return 0; }
+            template<class T> void app::net::Box<T>::open() {}
+            #endif
+            """;
+        var (definitions, error) = Collect(source);
+        Assert.That(error, Is.Null);
+        Assert.That(definitions.Select(entry => (entry.Name, entry.Qualifier, entry.HasBody)),
+            Is.EqualTo(new (string, string?, bool)[]
+            {
+                ("SAMPLE_HPP", null, false),
+                ("Client", "app::net", false),
+                ("open", "app::net::Client", true),
+                ("Other", "app::net", false),
+                ("open", "app::net::Other", true),
+                ("close", "app::net::Client", true),
+                ("open", "app::net::Box", true)
+            }));
+        foreach (var entry in definitions)
+            Assert.That(source.Substring((int)entry.Range.Offset, (int)entry.Range.Length), Is.EqualTo(entry.Name));
+    }
+
+    [TestCase("#if WIN\nint open() {}\n#else\nint open() {}\n#endif\n", false, 2)]
+    [TestCase("#if WIN\nnamespace a {\n#else\nnamespace b {\n#endif\nint open() {}\n}\n", true, 0)]
+    [TestCase("int open() {}\nvoid broken() {", true, 2)]
+    public void ReportsTheCompletenessOfConditionalAndMalformedSources(string source, bool partial, int observed)
+    {
+        var (definitions, error) = Collect(source);
+        Assert.That(error is not null, Is.EqualTo(partial));
+        Assert.That(definitions, Has.Count.EqualTo(observed));
+    }
+
+    [Test]
+    public void StopsCollectionWhenBudgetIsReachedAndHonorsCancellation()
+    {
+        var (_, error) = Collect("int first() {} int second() {}", budget: 1);
+        Assert.That(error?.Code, Is.EqualTo(ErrorCode.UnsupportedDeclaration));
+        using var cancelled = new CancellationTokenSource();
+        Assert.That(() => Collect("int first() {}", cancellation: cancelled),
+            Throws.InstanceOf<OperationCanceledException>());
+    }
+
+    private static (List<CppDefinition> Definitions, OperationError? Error) Collect(string body, int budget = int.MaxValue,
+        CancellationTokenSource? cancellation = null)
+    {
+        var root = Directory.CreateTempSubdirectory("codeview-cpp-definition-collection-");
+        try
+        {
+            var path = SourcePath.Create("sample.hpp", root.FullName);
+            File.WriteAllText(path.FullPath, body);
+            var files = new FileReader(new SourceAccess());
+            using var source = files.Prepare(path, EncodingChoice.Auto, default).Value;
+            cancellation?.Cancel();
+            var definitions = new List<CppDefinition>();
+            var error = CppDeclarationScanner.CreateDefinitionCollector().CollectDefinitions(files, source, entry =>
+            {
+                if (definitions.Count >= budget) return false;
+                definitions.Add(entry);
+                return true;
+            }, cancellation?.Token ?? default);
+            return (definitions, error);
+        }
+        finally { root.Delete(recursive: true); }
+    }
 }
