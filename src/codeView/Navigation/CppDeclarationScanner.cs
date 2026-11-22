@@ -1,4 +1,5 @@
 using CodeView.Contracts;
+using CodeView.Documents;
 using CodeView.Files;
 
 namespace CodeView.Navigation;
@@ -23,18 +24,60 @@ internal sealed class CppDeclarationScanner
     private readonly Stack<Scope> _scopes = new();
     private readonly CppLexer _lexer;
     private readonly string _name;
+    private readonly StickyScopeBuilder? _ranges;
+    private readonly Stack<ConditionalBranch>? _branches;
+    private readonly HashSet<string>? _macros;
+    private readonly HashSet<string>? _structuralMacros;
+    private string? _macroName;
+    private bool _tooManyRanges;
     private Func<DeclarationMatch, bool> _consume = null!;
     private int _groupTokens;
     private enum ScopeKind { Namespace, Type, Enum, Function, Initializer }
-    private readonly record struct Scope(ScopeKind Kind, string? Resume, string? TypeName = null);
+    private readonly record struct Scope(ScopeKind Kind, string? Resume, string? TypeName = null, bool Tracked = false);
 
-    internal CppDeclarationScanner(string name)
+    private sealed class ConditionalBranch(int depth, int rangeCount, int enclosing, bool suspended)
+    {
+        internal int Depth { get; } = depth;
+        internal int RangeCount { get; set; } = rangeCount;
+        internal int Enclosing { get; } = enclosing;
+        internal bool Suspended { get; } = suspended;
+        internal bool Invalid { get; set; }
+        internal bool HasElse { get; set; }
+    }
+
+    internal CppDeclarationScanner(string name) : this(name, null) { }
+
+    private CppDeclarationScanner(string name, StickyScopeBuilder? ranges)
     {
         _name = name;
-        _lexer = new(Push, () => _scopes.TryPeek(out var scope) && scope.Kind is ScopeKind.Function or ScopeKind.Initializer);
+        _ranges = ranges;
+        if (ranges is not null)
+        {
+            _branches = new();
+            _macros = new(StringComparer.Ordinal);
+            _structuralMacros = new(StringComparer.Ordinal);
+        }
+        _lexer = new(ranges is null ? Push : PushStickyToken,
+            () => _scopes.TryPeek(out var scope) && scope.Kind is ScopeKind.Function or ScopeKind.Initializer,
+            ranges is null ? null : ConditionalDirective,
+            ranges is null ? null : ObserveStructuralWord,
+            ranges is null ? null : RememberMacroBrace);
     }
 
     public static bool IncludesPath(string path) => Extensions.Contains(Path.GetExtension(path));
+
+    internal static StickyScopeRanges? ReadScopes(DocumentReadLease source, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (source.Length > StickyScopeRanges.MaximumChars) return null;
+        var ranges = new StickyScopeBuilder();
+        var scanner = new CppDeclarationScanner("", ranges);
+        var accepted = true;
+        source.VisitChunks(chunk => accepted = scanner._lexer.Push(chunk.Span, ct), ct);
+        return accepted && scanner._lexer.Complete(ct) && !scanner._tooManyRanges && scanner._branches!.Count == 0
+            && scanner._groups.Count == 0 && scanner._scopes.Count == 0 && scanner._header.Count == 0
+            ? ranges.Build() : null;
+    }
 
     internal OperationError? Read(FileReader files, PreparedText source, Func<DeclarationMatch, bool> consume, CancellationToken ct)
     {
@@ -66,6 +109,64 @@ internal sealed class CppDeclarationScanner
     }
 
     private sealed class StopScan : Exception;
+
+    private bool PushStickyToken(CppToken token)
+    {
+        if (token.Macro)
+        {
+            _macroName = token.Text;
+            if (_macros!.Count == StickyScopeRanges.MaximumRanges) return _macros.Contains(token.Text);
+            _macros.Add(token.Text);
+            return true;
+        }
+        if (!_branches!.TryPeek(out var branch)) return Push(token);
+        if (branch.Suspended || branch.Invalid) return true;
+        // Branches may add temporary scopes but may not close a scope opened before the directive.
+        if ((token.Text != "}" || _groups.Count > 0 || _scopes.Count > branch.Depth) && Push(token)) return true;
+        branch.Invalid = true;
+        return !_tooManyRanges;
+    }
+
+    private bool ConditionalDirective(string directive)
+    {
+        var branches = _branches!;
+        if (directive is "if" or "ifdef" or "ifndef")
+        {
+            var suspended = branches.TryPeek(out var outer) && (outer.Suspended || outer.Invalid);
+            if (branches.Count >= CSharpLexer.MaximumDepth || !suspended && (_header.Count != 0 || _groups.Count != 0))
+                return false;
+            branches.Push(new(_scopes.Count, _ranges!.Count, _ranges.Current, suspended));
+            return true;
+        }
+        if (!branches.TryPeek(out var branch) || directive != "endif" && branch.HasElse) return false;
+        if (!branch.Suspended)
+        {
+            if (branch.Invalid || _scopes.Count != branch.Depth || _groups.Count != 0 || _header.Count != 0)
+            {
+                while (_scopes.Count > branch.Depth) _scopes.Pop();
+                _groups.Clear();
+                _header.Clear();
+                _ranges!.DiscardBranch(branch.RangeCount, branch.Enclosing);
+            }
+            branch.RangeCount = _ranges!.Count;
+            branch.Invalid = false;
+        }
+        if (directive == "endif") branches.Pop();
+        else branch.HasElse = directive == "else";
+        return true;
+    }
+
+    private void RememberMacroBrace()
+    {
+        if (_macroName is { } name) _structuralMacros!.Add(name);
+    }
+
+    private bool ObserveStructuralWord(ReadOnlySpan<char> word)
+    {
+        if (_structuralMacros!.GetAlternateLookup<ReadOnlySpan<char>>().Contains(word))
+            _ranges!.InvalidateCurrent();
+        return true;
+    }
 
     private bool Push(CppToken token)
     {
@@ -99,6 +200,7 @@ internal sealed class CppDeclarationScanner
             case "}":
                 if (!_scopes.TryPop(out var closed)) return false;
                 if (closed.Kind == ScopeKind.Enum && !FinishEnumerator()) return false;
+                if (closed.Tracked) _ranges!.End(token.Range.Start.Line);
                 _header.Clear();
                 return closed.Resume is not { } resume || Append(token with { Text = resume });
             case "{":
@@ -141,8 +243,9 @@ internal sealed class CppDeclarationScanner
                 return TrackGroup("{");
             }
             if (!Emit(_header[function], DeclarationKind.Function)) return false;
+            if (!StartStickyRange(DeclarationKind.Function, function, out var tracked)) return false;
             _header.Clear();
-            _scopes.Push(new(ScopeKind.Function, null));
+            _scopes.Push(new(ScopeKind.Function, null, Tracked: tracked));
             return true;
         }
         if (At(start, "namespace") || At(start, "inline") && At(start + 1, "namespace")
@@ -159,13 +262,28 @@ internal sealed class CppDeclarationScanner
             var placeholder = At(start, "typedef") ? "<typedef>" : "<type>";
             var kind = At(tag, "enum") ? ScopeKind.Enum : ScopeKind.Type;
             var typeName = tagName >= 0 ? _header[tagName].Text : null;
+            if (!StartStickyRange(DeclarationKind.Type, tagName, out var tracked)) return false;
             _header.Clear();
-            _scopes.Push(new(kind, placeholder, typeName));
+            _scopes.Push(new(kind, placeholder, typeName, tracked));
             return true;
         }
         // Keep the declarator until ';', but skip arbitrary nested initializer contents.
         _scopes.Push(new(ScopeKind.Initializer, null));
         return TrackGroup("{");
+    }
+
+    private bool StartStickyRange(DeclarationKind kind, int name, out bool tracked)
+    {
+        tracked = false;
+        if (_ranges is null || name < 0) return true;
+        if (_macros!.Contains(_header[name].Text) || _header.Any(token => _structuralMacros!.Contains(token.Text)))
+        {
+            _ranges.InvalidateCurrent();
+            return true;
+        }
+        tracked = _ranges.Begin(kind, _header[name].Text, _header[0].Range.Start.Line, _header[^1].Range.Start.Line);
+        _tooManyRanges = !tracked;
+        return tracked;
     }
 
     private bool FinishStatement(ScopeKind scope)

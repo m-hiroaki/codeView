@@ -25,7 +25,7 @@ internal sealed class CSharpDeclarationScanner(FileReader files)
     }
 }
 
-internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, bool> consume, CSharpScopeBuilder? ranges = null)
+internal sealed class CSharpDeclarations(string name, Func<DeclarationMatch, bool> consume, StickyScopeBuilder? ranges = null)
 {
     internal const int MaximumTokens = 256;
     internal const int MaximumChars = 16 * 1024;

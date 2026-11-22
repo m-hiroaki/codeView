@@ -37,10 +37,10 @@ internal sealed class CSharpScopeRangesTests
             """)!;
         Assert.That(ranges.Ranges, Is.EqualTo(new[]
         {
-            new CSharpScopeRange(DeclarationKind.Type, "Outer", 2, 2, 14, -1),
-            new CSharpScopeRange(DeclarationKind.Type, "Inner", 4, 4, 13, 0),
-            new CSharpScopeRange(DeclarationKind.Method, "First", 6, 7, 10, 1),
-            new CSharpScopeRange(DeclarationKind.Method, "Second", 11, 11, 12, 1)
+            new StickyScopeRange(DeclarationKind.Type, "Outer", 2, 2, 14, -1),
+            new StickyScopeRange(DeclarationKind.Type, "Inner", 4, 4, 13, 0),
+            new StickyScopeRange(DeclarationKind.Method, "First", 6, 7, 10, 1),
+            new StickyScopeRange(DeclarationKind.Method, "Second", 11, 11, 12, 1)
         }));
         foreach (var (line, expected) in new (int, string?)[]
         {
@@ -76,11 +76,11 @@ internal sealed class CSharpScopeRangesTests
     public void CharacterAndScopeLimitsAreInclusive()
     {
         const string header = "class C {}\n";
-        var atCharacterLimit = header.PadRight(CSharpScopeRanges.MaximumChars);
+        var atCharacterLimit = header.PadRight(StickyScopeRanges.MaximumChars);
         Assert.That(Read(atCharacterLimit)?.Ranges, Has.Count.EqualTo(1));
         Assert.That(Read(atCharacterLimit + " "), Is.Null);
-        var atScopeLimit = string.Concat(Enumerable.Repeat(header, CSharpScopeRanges.MaximumRanges));
-        Assert.That(Read(atScopeLimit)?.Ranges, Has.Count.EqualTo(CSharpScopeRanges.MaximumRanges));
+        var atScopeLimit = string.Concat(Enumerable.Repeat(header, StickyScopeRanges.MaximumRanges));
+        Assert.That(Read(atScopeLimit)?.Ranges, Has.Count.EqualTo(StickyScopeRanges.MaximumRanges));
         Assert.That(Read(atScopeLimit + header.TrimEnd()), Is.Null);
     }
 
@@ -92,9 +92,9 @@ internal sealed class CSharpScopeRangesTests
         Assert.Throws<OperationCanceledException>(() => Read("class C {}", cancellation.Token));
     }
 
-    private static CSharpScopeRanges? Read(string text, CancellationToken ct = default)
+    private static StickyScopeRanges? Read(string text, CancellationToken ct = default)
     {
         using var lease = new DocumentReadLease(new StringTextSource(text), static () => { });
-        return CSharpScopeRanges.Read(lease, ct);
+        return StickyScopeRanges.ReadCSharp(lease, ct);
     }
 }

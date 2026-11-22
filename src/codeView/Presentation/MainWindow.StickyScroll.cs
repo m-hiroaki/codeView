@@ -17,7 +17,7 @@ internal sealed partial class MainWindow
 {
     private Task _stickyWork = Task.CompletedTask;
     private CancellationTokenSource? _stickyCancellation;
-    private CSharpScopeRanges? _stickyRanges;
+    private StickyScopeRanges? _stickyRanges;
     private Border? _stickyHeader;
     private (Grid Row, TextBlock Number, TextBlock Code) _stickyType;
     private (Grid Row, TextBlock Number, TextBlock Code) _stickyMethod;
@@ -89,7 +89,7 @@ internal sealed partial class MainWindow
             GuiPerformanceProbe.StickyAnalysisStarted();
 #endif
             using var lease = document.AcquireReadView();
-            var ranges = await Task.Run(() => CSharpScopeRanges.Read(lease, ct), ct);
+            var ranges = await Task.Run(() => StickyScopeRanges.ReadCSharp(lease, ct), ct);
             if (ct.IsCancellationRequested || _closing || !ReferenceEquals(document, _viewModel.StickyDocument)) return;
             _stickyRanges = ranges;
 #if CODEVIEW_PERFORMANCE_PROBE
@@ -142,14 +142,14 @@ internal sealed partial class MainWindow
             if (target == StickyTarget(editor)) RevealBelowStickyHeader(editor, view);
         }
 
-        void SetDeclaration((Grid Row, TextBlock Number, TextBlock Code) row, CSharpScopeRange range)
+        void SetDeclaration((Grid Row, TextBlock Number, TextBlock Code) row, StickyScopeRange range)
         {
             row.Number.Text = range.StartLine.ToString(System.Globalization.CultureInfo.InvariantCulture);
             SetStickyDeclaration(row.Code, editor.Document, range, _stickySyntax);
         }
     }
 
-    internal static void SetStickyDeclaration(TextBlock code, TextDocument document, CSharpScopeRange range,
+    internal static void SetStickyDeclaration(TextBlock code, TextDocument document, StickyScopeRange range,
         SyntaxColorizer? syntax)
     {
         const int maximumLength = 512;

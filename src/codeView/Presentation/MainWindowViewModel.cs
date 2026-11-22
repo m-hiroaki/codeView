@@ -65,7 +65,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public bool StickyScrollEnabled { get; private set; } = true;
     internal DocumentHandle? StickyDocument => _originalSourceOffsetsAvailable && operations.CurrentFile is { } file
         && Path.GetExtension(file.Path.FullPath).Equals(".cs", StringComparison.OrdinalIgnoreCase)
-        && file.Document.Length <= CSharpScopeRanges.MaximumChars ? file.Document : null;
+        && file.Document.Length <= StickyScopeRanges.MaximumChars ? file.Document : null;
     public bool CanReopenEncoding => _tabManager.ActiveTab is not null;
     public bool CanReload => _tabManager.ActiveTab is not null;
     public bool CanJumpBack => !_stopping && !_restoringJump && _jumpIndex > 0;

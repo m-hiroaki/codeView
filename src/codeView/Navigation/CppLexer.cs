@@ -5,7 +5,10 @@ namespace CodeView.Navigation;
 internal readonly record struct CppToken(string Text, TextRange Range, bool Word = false, bool Macro = false);
 
 // The buffer retains only enough lookahead for a raw-string delimiter across read boundaries.
-internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structuralOnly)
+internal delegate bool CppStructuralWord(ReadOnlySpan<char> text);
+
+internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structuralOnly,
+    Func<string, bool>? directive = null, CppStructuralWord? structuralWord = null, Action? macroBrace = null)
 {
     private const int Lookahead = 20;
     private readonly char[] _input = new char[16 * 1024 + Lookahead];
@@ -19,6 +22,7 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
     private char _quote, _numberEnd;
     private Mode _mode;
     private Directive _directive;
+    private bool _macroBody;
     private enum Mode { Code, Word, Number, LineComment, BlockComment, Quoted, Raw }
     private enum Directive { None, Name, MacroName, Body }
 
@@ -27,6 +31,7 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
         _index = _end = 0;
         _mode = Mode.Code;
         _directive = Directive.None;
+        _macroBody = false;
         _lineStart = true;
         _cursor = new();
     }
@@ -159,6 +164,7 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
                     }
                     else
                     {
+                        if (_macroBody && value is '{' or '}') macroBrace?.Invoke();
                         if (value == '\\' && _directive == Directive.None) return false;
                         var symbol = (value, next) switch
                         {
@@ -186,6 +192,8 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
         {
             _directive = spelling is "define" ? Directive.MacroName : Directive.Body;
             if (spelling is "error" or "warning") _mode = Mode.LineComment;
+            if (directive is not null && spelling is "if" or "ifdef" or "ifndef" or "elif" or "elifdef" or "elifndef" or "else" or "endif")
+                return directive(spelling.ToString());
             return true;
         }
         if (_directive == Directive.Body) return true;
@@ -193,9 +201,10 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
         if (_directive == Directive.MacroName)
         {
             _directive = Directive.Body;
+            _macroBody = macroBrace is not null;
             return consume(new(spelling.ToString(), new(_offset, length, _position), Word: true, Macro: true));
         }
-        return structuralOnly() || Emit(spelling.ToString(), length, word: true);
+        return structuralOnly() ? structuralWord?.Invoke(spelling) ?? true : Emit(spelling.ToString(), length, word: true);
     }
 
     private bool StartQuoted(char quote)
@@ -240,6 +249,7 @@ internal sealed class CppLexer(Func<CppToken, bool> consume, Func<bool> structur
     {
         _lineStart = true;
         _directive = Directive.None;
+        _macroBody = false;
     }
 
     private static bool IsRawPrefix(ReadOnlySpan<char> word) => word is "R" or "u8R" or "uR" or "UR" or "LR";
