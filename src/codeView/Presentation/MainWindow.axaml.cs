@@ -169,6 +169,7 @@ internal sealed partial class MainWindow : Window
             syntaxColorizer = highlighting is not null && viewModel.Document is { } document
                 ? new(document, highlighting) : null;
             if (syntaxColorizer is not null) textView.LineTransformers.Add(syntaxColorizer);
+            SetStickySyntax(editor, syntaxColorizer);
             textView.Redraw();
         };
         InFileMatchRenderer? searchRenderer = null;

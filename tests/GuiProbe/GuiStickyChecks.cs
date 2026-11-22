@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Documents;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Rendering;
@@ -22,7 +24,8 @@ internal sealed partial class GuiPerformanceProbe
         await File.WriteAllTextAsync(other, "plain text", ct);
         await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu).WaitAsync(ct);
         var header = _window.FindControl<Border>("StickyScrollHeader")!;
-        var label = _window.FindControl<TextBlock>("StickyScrollLabel")!;
+        var typeCode = _window.FindControl<TextBlock>("StickyScrollTypeCode")!;
+        var methodCode = _window.FindControl<TextBlock>("StickyScrollMethodCode")!;
         var view = _editor.TextArea.TextView;
         var scrollable = (IScrollable)view;
 
@@ -31,10 +34,13 @@ internal sealed partial class GuiPerformanceProbe
         ScrollToLine(6);
         await ((MainWindow)_window).StickyScrollWork.WaitAsync(ct);
         await Frame(ct);
-        require(header.IsVisible && label.Text == "Example › First", "sticky-scroll-pins-method");
+        require(Shows("Example › First"), "sticky-scroll-pins-method");
         await Frame(ct);
-        require(!header.IsHitTestVisible && Math.Abs(header.Bounds.Height - view.DefaultLineHeight) <= 1,
-            "sticky-scroll-one-hit-transparent-line");
+        require(!header.IsHitTestVisible && Math.Abs(header.Bounds.Height - 2 * view.DefaultLineHeight) <= 1,
+            "sticky-scroll-two-hit-transparent-lines");
+        for (var retry = 0; retry < 50 && !HasSyntaxColor(); retry++) await Task.Delay(20, ct);
+        require(HasSyntaxColor() && _window.FindControl<TextBlock>("StickyScrollMethodNumber")!.Text == "4",
+            "sticky-scroll-retains-syntax-colors-and-lines");
         var editorSize = _editor.Bounds.Size;
         var selection = (_editor.SelectionStart, _editor.SelectionLength, _editor.CaretOffset);
         await ExpectAsync(8, "Example");
@@ -51,12 +57,14 @@ internal sealed partial class GuiPerformanceProbe
         await _viewModel.OpenFilesAsync([path], OpenOrigin.Menu).WaitAsync(ct);
         await ((MainWindow)_window).StickyScrollWork.WaitAsync(ct);
         await Frame(ct);
-        require(header.IsVisible && label.Text == "Example › First", "sticky-scroll-follows-restored-tab");
+        require(Shows("Example › First"), "sticky-scroll-follows-restored-tab");
         await File.WriteAllTextAsync(path, _editor.Document.Text.Replace("First", "Renamed", StringComparison.Ordinal), ct);
         await _viewModel.ReloadAsync().WaitAsync(ct);
         await ((MainWindow)_window).StickyScrollWork.WaitAsync(ct);
         await Frame(ct);
-        require(header.IsVisible && label.Text == "Example › Renamed", "sticky-scroll-follows-reload");
+        require(Shows("Example › Renamed"), "sticky-scroll-follows-reload");
+        for (var retry = 0; retry < 75 && !HasSyntaxColor(); retry++) await Task.Delay(20, ct);
+        require(HasSyntaxColor(), "sticky-scroll-renewed-syntax-colors");
         var normalSize = (_window.Width, _window.Height, _window.MaxWidth, _window.MaxHeight);
         try
         {
@@ -131,8 +139,25 @@ internal sealed partial class GuiPerformanceProbe
             ScrollToLine(line);
             await Frame(ct);
             await Frame(ct);
-            require(text is null ? !header.IsVisible : header.IsVisible && label.Text == text,
+            require(Shows(text),
                 check ?? $"sticky-scroll-boundary-{line}");
+        }
+
+        bool HasSyntaxColor() => KeywordIsColored(typeCode, "class") && KeywordIsColored(methodCode, "void");
+
+        static bool KeywordIsColored(TextBlock label, string keyword) =>
+            label.Foreground is ISolidColorBrush defaultBrush && label.Inlines!.OfType<Run>().Any(run =>
+                run.Text == keyword && run.Foreground is ISolidColorBrush brush && brush.Color != defaultBrush.Color);
+
+        bool Shows(string? text)
+        {
+            if (text is null) return !header.IsVisible;
+            var methods = text.Split(" › ");
+            var type = string.Concat(typeCode.Inlines!.OfType<Run>().Select(run => run.Text));
+            var method = string.Concat(methodCode.Inlines!.OfType<Run>().Select(run => run.Text));
+            return header.IsVisible && type == "class " + methods[0]
+                && (methods.Length == 1 ? !methodCode.IsEffectivelyVisible
+                    : methodCode.IsEffectivelyVisible && method.TrimStart() == "void " + methods[1] + "()");
         }
 
         void ScrollToLine(int line) =>

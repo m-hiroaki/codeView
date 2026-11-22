@@ -44,19 +44,6 @@ internal sealed class CSharpScopeRanges
         return -1;
     }
 
-    internal string Format(int index)
-    {
-        var names = new Stack<string>();
-        string? method = null;
-        for (; index >= 0; index = _ranges[index].Parent)
-        {
-            var range = _ranges[index];
-            if (range.Kind == DeclarationKind.Method) method = range.Name;
-            else names.Push(range.Name);
-        }
-        var types = string.Join(".", names);
-        return method is null ? types : types + " › " + method;
-    }
 }
 
 internal sealed class CSharpScopeBuilder

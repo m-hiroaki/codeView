@@ -95,11 +95,11 @@ CHECKS = [
 
 
 STICKY_SCROLL_CHECKS = [
-    'sticky-scroll-pins-method', 'sticky-scroll-one-hit-transparent-line',
+    'sticky-scroll-pins-method', 'sticky-scroll-two-hit-transparent-lines', 'sticky-scroll-retains-syntax-colors-and-lines',
     'sticky-scroll-boundary-8', 'sticky-scroll-boundary-11', 'sticky-scroll-boundary-14',
     'sticky-scroll-reverse', 'sticky-scroll-boundary-2', 'sticky-scroll-preserves-viewport-and-selection',
     'sticky-scroll-boundary-6', 'sticky-scroll-clears-unsupported-tab',
-    'sticky-scroll-follows-restored-tab', 'sticky-scroll-follows-reload',
+    'sticky-scroll-follows-restored-tab', 'sticky-scroll-follows-reload', 'sticky-scroll-renewed-syntax-colors',
     'sticky-scroll-fits-minimum-width', 'sticky-scroll-definition-target-visible',
     'sticky-scroll-active-before-toggle', 'sticky-scroll-menu-off-preserves-offset',
     'sticky-scroll-menu-on-restores-header', 'sticky-scroll-off-suppresses-in-flight-analysis',

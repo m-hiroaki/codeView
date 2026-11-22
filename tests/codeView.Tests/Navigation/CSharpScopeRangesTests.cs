@@ -11,8 +11,8 @@ internal sealed class CSharpScopeRangesTests
     {
         var ranges = Read("class Example\n{\npublic Example(int arg) : this()\n{\n}\n"
             + "private Example() =>\n Init();\n}")!;
-        Assert.That(ranges.Format(ranges.Find(4)), Is.EqualTo("Example › Example"));
-        Assert.That(ranges.Format(ranges.Find(7)), Is.EqualTo("Example › Example"));
+        Assert.That(ranges.Ranges[ranges.Find(4)].Kind, Is.EqualTo(DeclarationKind.Method));
+        Assert.That(ranges.Ranges[ranges.Find(7)].Kind, Is.EqualTo(DeclarationKind.Method));
     }
 
     [Test]
@@ -44,14 +44,14 @@ internal sealed class CSharpScopeRangesTests
         }));
         foreach (var (line, expected) in new (int, string?)[]
         {
-            (2, null), (3, "Outer"), (4, "Outer"), (5, "Outer.Inner"),
-            (7, "Outer.Inner"), (8, "Outer.Inner › First"), (10, "Outer.Inner › First"),
-            (11, "Outer.Inner"), (12, "Outer.Inner › Second"), (13, "Outer.Inner"),
-            (14, "Outer"), (15, null), (8, "Outer.Inner › First"), (2, null)
+            (2, null), (3, "Outer"), (4, "Outer"), (5, "Inner"),
+            (7, "Inner"), (8, "First"), (10, "First"),
+            (11, "Inner"), (12, "Second"), (13, "Inner"),
+            (14, "Outer"), (15, null), (8, "First"), (2, null)
         })
         {
             var index = ranges.Find(line);
-            Assert.That(index < 0 ? null : ranges.Format(index), Is.EqualTo(expected), $"line {line}");
+            Assert.That(index < 0 ? null : ranges.Ranges[index].Name, Is.EqualTo(expected), $"line {line}");
         }
     }
 
@@ -62,8 +62,8 @@ internal sealed class CSharpScopeRangesTests
             + "/* #if ignored: { } */\r\nvoid Abstract();\r\n}\r\n#endregion\r\n"
             + "enum Choice\r\n{\r\nA\r\n}\r\n}")!;
         Assert.That(ranges.Ranges.Select(range => range.Name), Is.EqualTo(new[] { "I", "Choice" }));
-        Assert.That(ranges.Format(ranges.Find(5)), Is.EqualTo("I"));
-        Assert.That(ranges.Format(ranges.Find(10)), Is.EqualTo("Choice"));
+        Assert.That(ranges.Ranges[ranges.Find(5)].Name, Is.EqualTo("I"));
+        Assert.That(ranges.Ranges[ranges.Find(10)].Name, Is.EqualTo("Choice"));
     }
 
     [TestCase("class C { void M() {")]

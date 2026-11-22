@@ -224,10 +224,21 @@
             </editor:TextEditor.Options>
         </editor:TextEditor>
         <Border x:Name="StickyScrollHeader" Grid.Row="2" IsVisible="False" IsHitTestVisible="False"
-                VerticalAlignment="Top" ClipToBounds="True" Background="{StaticResource PanelBackground}"
-                Padding="8,0">
-            <TextBlock x:Name="StickyScrollLabel" FontSize="12" VerticalAlignment="Center"
-                       Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+                VerticalAlignment="Top" ClipToBounds="True" Background="{StaticResource PanelBackground}">
+            <StackPanel>
+                <Grid x:Name="StickyScrollTypeRow" ColumnDefinitions="0,*">
+                    <TextBlock x:Name="StickyScrollTypeNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedForeground}" />
+                    <TextBlock x:Name="StickyScrollTypeCode" Grid.Column="1" VerticalAlignment="Center"
+                               Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+                </Grid>
+                <Grid x:Name="StickyScrollMethodRow" ColumnDefinitions="0,*">
+                    <TextBlock x:Name="StickyScrollMethodNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedForeground}" />
+                    <TextBlock x:Name="StickyScrollMethodCode" Grid.Column="1" VerticalAlignment="Center"
+                               Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </StackPanel>
         </Border>
         <vm:IdentifierScrollMarkers Grid.Row="2" x:Name="IdentifierMarkers" IsHitTestVisible="False" />
         <Border Grid.Row="2" x:Name="WelcomeBackground" IsVisible="{Binding IsWelcomeVisible}" IsHitTestVisible="False" />
