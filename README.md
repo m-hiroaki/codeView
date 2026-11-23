@@ -1,11 +1,11 @@
-# codeView
+# codeView v1.0
 
 <img src="docs/codeView-icon.png" width="96" height="96" alt="codeView アプリアイコン">
 
-Windows / macOS向けの、コードリーディングに特化したソースコードビューア。
-読み取り専用で、大量のコードを快適に閲覧できる速度・応答性・メモリ効率を重視します。
+codeViewは、WindowsとmacOSでソースコードを読むための軽量な読み取り専用ビューアです。
+ファイルツリーとタブでコードを開き、検索・定義ジャンプ・参照検索・ジャンプ履歴で読み進められます。
 
-現在は開発途中です。大容量表示の性能評価と配布物の受け入れを進めています。[実装計画](docs/implementation-plan.md)・[検証記録](docs/development-log.md)
+C/C++では、ビルド設定がなくてもフォルダの定義タグを作成してF12で検索できます。Native AOTビルドには、意味解析用のRoslynとclangdを同梱します。
 
 ## 機能一覧
 
@@ -95,6 +95,11 @@ test-windows.bat --performance
 ```
 
 ## Native AOT発行
+
+| 対象 | 出力先 |
+| --- | --- |
+| macOS（Apple Silicon・Intel） | `artifacts/publish/<RID>/codeView.app` |
+| Windows x64 | `artifacts\publish\win-x64\codeView\codeView.exe` |
 
 ### macOS
 
