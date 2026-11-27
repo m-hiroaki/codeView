@@ -139,6 +139,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
     public event Action<double, double, long>? RestoreViewport;
     public event Action<long, int>? SelectSearchRange;
     public event Action? ClearSearchSelection;
+    internal event Action? RevealSource;
     internal long InteractionEpoch => _interactionEpoch;
     public void RecordUserInteraction() => _interactionEpoch = checked(_interactionEpoch + 1);
     public bool CanApplyResultSelection(long epoch) => !_stopping && HasDocument && ViewEpoch == epoch
@@ -400,6 +401,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             var position = destination.Position;
             ClearSearchSelection?.Invoke();
             SetPosition((int)Math.Min(position.Line, int.MaxValue), (int)Math.Min(position.Column, int.MaxValue));
+            RevealSource?.Invoke();
             RestoreCaret?.Invoke(_line, _column);
             SetViewport(destination.Horizontal, destination.Vertical);
             RestoreViewport?.Invoke(destination.Horizontal, destination.Vertical, ViewEpoch);
@@ -559,7 +561,7 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
                     foreach (var path in request!.Paths)
                     {
                         if (_stopping) break;
-                        var (isFolder, failure) = await OpenPathAsync(path, !folderSeen, opened);
+                        var (isFolder, failure) = await OpenPathAsync(path, !folderSeen, opened, request.Origin);
                         if (isFolder)
                         {
                             if (folderSeen) skippedFolders++;
@@ -592,7 +594,8 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         }
     }
 
-    private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(string input, bool allowFolder, List<RecentItem>? opened)
+    private async Task<(bool IsFolder, string? Failure)> OpenPathAsync(
+        string input, bool allowFolder, List<RecentItem>? opened, OpenOrigin origin)
     {
         SourcePath path;
         try { path = SourcePath.Create(input, _baseDirectory); }
@@ -603,11 +606,13 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
         if (_stopping || inspected.Status == OperationStatus.Cancelled) return (false, null);
         if (inspected.Status == OperationStatus.Failure)
             return (false, ErrorText(inspected.Error!.Code));
+        var fromMarkdown = origin == OpenOrigin.MarkdownLink;
         if (inspected.Value.Kind == SourceEntryKind.Directory)
         {
+            if (fromMarkdown) return (false, "リンク先がフォルダのため、タブでは開けません。");
             return (true, allowFolder ? await OpenFolderAsync(path, opened) : null);
         }
-        return (false, await LoadAsync(path, opened));
+        return (false, await LoadAsync(path, opened, discardFailedTab: fromMarkdown));
     }
 
     private async Task<string?> OpenFolderAsync(SourcePath path, List<RecentItem>? opened = null)
@@ -854,17 +859,26 @@ internal sealed class MainWindowViewModel(AppOperations operations, SettingsStor
             SetStatus("読込待ちが上限に達しました。");
     }
 
-    private async Task<string?> LoadAsync(SourcePath path, List<RecentItem>? opened)
+    private async Task<string?> LoadAsync(SourcePath path, List<RecentItem>? opened, bool discardFailedTab)
     {
         if (_stopping) return null;
+        var previous = _tabManager.ActiveTab;
+        var tabCount = _tabManager.Tabs.Count;
         var work = _tabManager.OpenAsync(path);
         var target = _tabManager.ActiveTab;
+        var created = _tabManager.Tabs.Count > tabCount;
         SyncTabs();
         DisplayActiveTab();
         var result = await work;
         if (_stopping) return null;
+        var targetIsActive = ReferenceEquals(_tabManager.ActiveTab, target);
+        if (discardFailedTab && created && result.Status == OperationStatus.Failure && target is { Status: TabStatus.Failed })
+        {
+            _tabManager.Close(target);
+            if (targetIsActive && previous is not null) _tabManager.Select(previous);
+        }
         SyncTabs();
-        if (ReferenceEquals(_tabManager.ActiveTab, target)) DisplayActiveTab();
+        if (targetIsActive) DisplayActiveTab();
         if (result.Status != OperationStatus.Failure)
         {
             if (result.Status == OperationStatus.Success) AppendRecent(opened, path, isFolder: false);

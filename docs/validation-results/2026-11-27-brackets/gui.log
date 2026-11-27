@@ -1,0 +1,2 @@
+1000 guide draws: 33.918 ms, allocation=10134200
+PASS: colors/guides, viewport clipping, horizontal scroll, plain tab, restored tab, reload

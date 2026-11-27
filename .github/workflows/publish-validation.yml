@@ -16,9 +16,13 @@ on:
       - tools/package_language_servers.py
       - tools/test_package_language_servers.py
       - tools/check_windows_launch.ps1
+      - tests/Fixtures/MarkdownPreview.md
       - tools/check_windows_picker.ps1
       - src/codeView/Presentation/MainWindow.axaml.cs
       - src/codeView/Presentation/MainWindow.axaml
+      - src/codeView/Presentation/*Markdown*
+      - src/codeView/Presentation/PlantUmlPreview.cs
+      - src/codeView/packages.lock.json
       - src/codeView/codeView.csproj
       - src/codeView/Program.cs
       - src/codeView/App.axaml.cs
@@ -90,6 +94,13 @@ jobs:
             'upstream/Tinymist.txt',
             'upstream/Unicode.txt',
             'upstream/README.md',
+            'upstream/MarkView.txt',
+            'upstream/Markdig.txt',
+            'upstream/Mermaider.txt',
+            'upstream/Svg.Skia.txt',
+            'upstream/Svg.Custom.txt',
+            'upstream/ExCSS.txt',
+            'upstream/ObjectPool.txt',
             'Avalonia.Angle.Windows.Natives/LICENSE',
             'HarfBuzzSharp.NativeAssets.Win32/LICENSE.txt',
             'HarfBuzzSharp.NativeAssets.Win32/THIRD-PARTY-NOTICES.txt',
@@ -107,6 +118,10 @@ jobs:
             if ($source.Hash -ne $published.Hash) { throw "Notice content differs: $name" }
           }
           ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile artifacts/publish-validation/起動確認.cs -Output artifacts/publish-validation/launch.json
+      - name: Verify Markdown opens as a rendered document in the distribution
+        run: |
+          $markdownFile = 'tests/Fixtures/MarkdownPreview.md'
+          ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -InputFile $markdownFile -ExpectedText 'Markdown AOT fixture' -Output artifacts/publish-validation/markdown.json
       - name: Check Ctrl+W exits from an empty window
         run: ./tools/check_windows_launch.ps1 -App artifacts/publish/win-x64/codeView/codeView.exe -EmptyCloseShortcut -Output artifacts/publish-validation/empty-close.json
       - name: Verify the native Windows file and folder pickers

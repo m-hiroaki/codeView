@@ -1,0 +1,94 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Themes.Fluent;
+using Avalonia.Threading;
+using AvaloniaEdit;
+using CodeView.Documents;
+using CodeView.Files;
+using CodeView.Operations;
+using CodeView.Presentation;
+using CodeView.Settings;
+
+internal class PreviewApp : Application
+{
+    [STAThread]
+    static void Main(string[] args) => AppBuilder.Configure<PreviewApp>().UsePlatformDetect().StartWithClassicDesktopLifetime(args);
+    public override void Initialize()
+    {
+        RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+        Styles.Add(new FluentTheme());
+        Styles.Add(new StyleInclude(new Uri("avares://AvaloniaEdit/")) { Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml") });
+    }
+    public override void OnFrameworkInitializationCompleted()
+    {
+        var desktop = (IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!;
+        var source = new SourceAccess();
+        var operations = new AppOperations(new FileReader(source), new AvaloniaEditDocumentAdapter(), new DirectoryReader(source));
+        var settings = new SettingsStore(new("/tmp/codeview-bracket-preview/portable.json", "/tmp/codeview-bracket-preview/user.json"));
+        var vm = new MainWindowViewModel(operations, settings);
+        var path = "/tmp/codeview-bracket-preview/Example.cs";
+        File.WriteAllText(path, "class Example\n{\n    void Read()\n    {\n        while (true) {\n            if (ready) {\n                Console.WriteLine(new[] { 1, 2, 3 });\n                // Ignore brackets: } ) ]\n                var text = \"{not a bracket}\";\n" + string.Concat(Enumerable.Range(1, 80).Select(i => $"                // Reading line {i}\n")) + "            }\n        }\n    }\n}\n");
+        File.WriteAllText("/tmp/codeview-bracket-preview/Plain.txt", "plain text");
+        var window = new MainWindow(vm, [path]) { Width = 1100, Height = 720 };
+        desktop.MainWindow = window;
+        window.Opened += async (_, _) =>
+        {
+            try
+            {
+                var editor = window.FindControl<TextEditor>("SourceEditor") ?? window.GetLogicalDescendants().OfType<TextEditor>().Single();
+                var view = editor.TextArea.TextView;
+                async Task WaitBracket()
+                {
+                    for (var i = 0; i < 150 && !view.LineTransformers.OfType<BracketColorizer>().Any(); i++) await Task.Delay(20);
+                    if (view.LineTransformers.OfType<BracketColorizer>().Count() != 1 || view.BackgroundRenderers.OfType<BracketColorizer>().Count() != 1)
+                        throw new Exception("Missing or duplicate bracket renderer");
+                    await Task.Delay(100);
+                }
+                void Save(string name)
+                {
+                    view.EnsureVisualLines();
+                    using var bitmap = new RenderTargetBitmap(new PixelSize((int)window.Bounds.Width, (int)window.Bounds.Height));
+                    bitmap.Render(window);
+                    bitmap.Save($"/tmp/codeview-bracket-preview/{name}.png", PngBitmapEncoderOptions.Default);
+                }
+                await WaitBracket();
+                Save("top");
+                editor.ScrollToLine(45);
+                await Task.Delay(100);
+                Save("middle");
+                editor.ScrollToLine(92);
+                await Task.Delay(100);
+                Save("bottom");
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var allocated = GC.GetAllocatedBytesForCurrentThread();
+                var renderer = view.BackgroundRenderers.OfType<BracketColorizer>().Single();
+                for (var i = 0; i < 1000; i++)
+                {
+                    using var drawing = new DrawingGroup().Open();
+                    renderer.Draw(view, drawing);
+                }
+                Console.WriteLine($"1000 guide draws: {watch.Elapsed.TotalMilliseconds:F3} ms, allocation={GC.GetAllocatedBytesForCurrentThread() - allocated}");
+                await vm.OpenFilesAsync(["/tmp/codeview-bracket-preview/Plain.txt"], OpenOrigin.Menu);
+                await Task.Delay(100);
+                if (view.BackgroundRenderers.OfType<BracketColorizer>().Any() || view.LineTransformers.OfType<BracketColorizer>().Any()) throw new Exception("Stale bracket renderer after tab switch");
+                await vm.OpenFilesAsync([path], OpenOrigin.Menu);
+                await WaitBracket();
+                await vm.ReloadAsync();
+                await WaitBracket();
+                ((IScrollable)view).Offset = new Vector(120, view.VerticalOffset);
+                await Task.Delay(100);
+                Save("horizontal");
+                Console.WriteLine("PASS: colors/guides, viewport clipping, horizontal scroll, plain tab, restored tab, reload");
+            }
+            catch (Exception ex) { Console.Error.WriteLine(ex); Environment.ExitCode = 1; }
+            finally { desktop.Shutdown(Environment.ExitCode); }
+        };
+        base.OnFrameworkInitializationCompleted();
+    }
+}

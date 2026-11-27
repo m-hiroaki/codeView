@@ -1,0 +1,6 @@
+Windows: 10.0.26300.0
+Host architecture: ARM64
+PE machine: 0x8664
+exe_sha256: 5D6F166084C953D91CFD8EC5B6CC1DC68F36A2CF5BA27E3BB2B4A4FE3963031F
+fixture_sha256: 43E7F5E97755E7CD0B7ADAFA1D19130CA5B6C69169215860B81636F41FF0BBF2
+Window title: %TEMP%\codeview-markdown-validation\source\tests\Fixtures\MarkdownPreview.md — codeView

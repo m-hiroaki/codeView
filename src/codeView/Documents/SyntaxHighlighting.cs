@@ -8,6 +8,8 @@ internal readonly record struct SyntaxSpan(int Offset, int Length, int Foregroun
 
 internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IReadOnlyDictionary<int, string> Palette)
 {
+    internal BracketHighlighting Brackets { get; init; } = new();
+
     internal const int MaximumChars = 2 * 1024 * 1024;
     internal const int MaximumLineChars = 8192;
     private const int MaximumSpans = 100_000;
@@ -34,6 +36,8 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
             var theme = registry.GetTheme();
             var palette = theme.GetColorMap().ToDictionary(color => theme.GetColorId(color));
             var spans = new List<SyntaxSpan>();
+            var brackets = new BracketHighlighting();
+            var lineNumber = 0;
             var line = new StringBuilder();
             IStateStack? state = null;
             var offset = 0;
@@ -51,6 +55,7 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
                     return false;
                 }
 
+                lineNumber++;
                 var text = line.ToString();
                 line.Clear();
                 var lineBudget = remaining < LineTimeout ? remaining : LineTimeout;
@@ -70,6 +75,11 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
                     var end = Math.Min(token.EndIndex, text.Length);
                     if (start >= end || char.IsLowSurrogate(text[start])
                         || (end < text.Length && char.IsLowSurrogate(text[end]))) continue;
+
+                    if (text.AsSpan(start, end - start).IndexOfAny("()[]{}") >= 0
+                        && !token.Scopes.Any(scope => scope.StartsWith("comment", StringComparison.Ordinal)
+                        || scope.StartsWith("string", StringComparison.Ordinal)))
+                        brackets.ReadToken(text, start, end, lineOffset, lineNumber);
 
                     var foreground = 0;
                     foreach (var rule in theme.Match(token.Scopes))
@@ -127,7 +137,11 @@ internal sealed record SyntaxHighlighting(IReadOnlyList<SyntaxSpan> Spans, IRead
             if (failure is not null) return (null, failure);
             if (clock.GetElapsedTime(started) >= TotalTimeout)
                 return (null, "構文色なし（処理時間上限）");
-            return (new(spans, palette), "");
+            brackets.Complete();
+            ct.ThrowIfCancellationRequested();
+            if (clock.GetElapsedTime(started) >= TotalTimeout)
+                return (null, "構文色なし（処理時間上限）");
+            return (new(spans, palette) { Brackets = brackets }, "");
         }
         catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
         {

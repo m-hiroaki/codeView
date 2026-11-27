@@ -34,6 +34,58 @@ internal sealed class MainWindowTabTests
     });
 
     [Test]
+    public void MarkdownLinkOpensTextInAnotherTabAndReusesAnOpenTab() => WithView(async fixture =>
+    {
+        var view = fixture.View;
+        var markdown = Path.Combine(fixture.Root, "README.md");
+        var target = Path.Combine(fixture.Root, "linked file");
+        await File.WriteAllTextAsync(markdown, "[file](linked%20file)");
+        await File.WriteAllTextAsync(target, "extensionless text");
+        await view.InitializeAsync([markdown]);
+        var original = view.SelectedTab;
+
+        var resolved = MainWindow.ResolveMarkdownFileLink(markdown, "linked%20file");
+        Assert.That(resolved, Is.EqualTo(target));
+        await view.OpenFilesAsync([resolved!], OpenOrigin.MarkdownLink);
+        var linkedTab = view.SelectedTab;
+        Assert.That(view.Tabs, Has.Count.EqualTo(2));
+        Assert.That(view.Document!.Text, Is.EqualTo("extensionless text"));
+
+        view.SelectedTab = original;
+        await view.OpenFilesAsync([resolved!], OpenOrigin.MarkdownLink);
+        Assert.That(view.SelectedTab, Is.SameAs(linkedTab));
+        Assert.That(view.Tabs, Has.Count.EqualTo(2));
+    });
+
+    [TestCase("folder")]
+    [TestCase("missing")]
+    [TestCase("binary")]
+    public void MarkdownLinkFailureKeepsTheOriginalTab(string kind) => WithView(async fixture =>
+    {
+        var view = fixture.View;
+        var markdown = Path.Combine(fixture.Root, "README.md");
+        var target = Path.Combine(fixture.Root, kind);
+        await File.WriteAllTextAsync(markdown, "[file](" + kind + ")");
+        if (kind == "folder") Directory.CreateDirectory(target);
+        if (kind == "binary") await File.WriteAllBytesAsync(target, [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+        await view.InitializeAsync([markdown, fixture.First, fixture.Second]);
+        view.SelectedTab = view.Tabs[0];
+        var original = view.SelectedTab;
+        var originalDocument = view.Document;
+
+        await view.OpenFilesAsync([target], OpenOrigin.MarkdownLink);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.Tabs, Has.Count.EqualTo(3));
+            Assert.That(view.SelectedTab, Is.SameAs(original));
+            Assert.That(view.Document, Is.SameAs(originalDocument));
+            Assert.That(view.HasWorkspace, Is.False);
+            Assert.That(view.Status, Is.Not.Empty);
+        });
+    });
+
+    [Test]
     public void SwitchingRestoresIndependentPositionViewportAndGuardsBindingResets() => WithView(async fixture =>
     {
         var view = fixture.View;

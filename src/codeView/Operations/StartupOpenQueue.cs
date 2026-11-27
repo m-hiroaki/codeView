@@ -5,7 +5,7 @@ using CodeView.Settings;
 namespace CodeView.Operations;
 
 internal enum StartupState { WaitingSettings, Ready, Stopping }
-internal enum OpenOrigin { CommandLine, Menu, Drop, Tree }
+internal enum OpenOrigin { CommandLine, Menu, Drop, Tree, MarkdownLink }
 
 internal sealed record OpenRequest(long Id, ReadOnlyCollection<string> Paths, OpenOrigin Origin);
 

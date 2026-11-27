@@ -131,6 +131,7 @@ internal sealed partial class MainWindow : Window
         };
         var editor = this.FindControl<TextEditor>("Editor")!;
         ConfigureStickyScroll(editor);
+        ConfigureMarkdownView(modifier);
         ConfigureIdentifierClicks(editor);
         // AvaloniaEdit can consume Escape even without a selection.
         AddHandler(KeyDownEvent, (_, key) =>
@@ -158,6 +159,7 @@ internal sealed partial class MainWindow : Window
             if (change.PropertyName == nameof(MainWindowViewModel.Document)) _copies?.Invalidate();
         };
         SyntaxColorizer? syntaxColorizer = null;
+        BracketColorizer? bracketColorizer = null;
         viewModel.SyntaxChanged += highlighting =>
         {
 #if CODEVIEW_PERFORMANCE_PROBE
@@ -166,9 +168,21 @@ internal sealed partial class MainWindow : Window
             var textView = editor.TextArea.TextView;
             if (syntaxColorizer is null && highlighting is null) return;
             if (syntaxColorizer is not null) textView.LineTransformers.Remove(syntaxColorizer);
+            if (bracketColorizer is not null)
+            {
+                textView.LineTransformers.Remove(bracketColorizer);
+                textView.BackgroundRenderers.Remove(bracketColorizer);
+                bracketColorizer = null;
+            }
             syntaxColorizer = highlighting is not null && viewModel.Document is { } document
                 ? new(document, highlighting) : null;
             if (syntaxColorizer is not null) textView.LineTransformers.Add(syntaxColorizer);
+            if (highlighting is not null && viewModel.Document is { } bracketDocument)
+            {
+                bracketColorizer = new(bracketDocument, highlighting.Brackets);
+                textView.LineTransformers.Add(bracketColorizer);
+                textView.BackgroundRenderers.Add(bracketColorizer);
+            }
             SetStickySyntax(editor, syntaxColorizer);
             textView.Redraw();
         };
@@ -252,6 +266,7 @@ internal sealed partial class MainWindow : Window
 #if CODEVIEW_PERFORMANCE_PROBE
                 if (GuiPerformanceProbe.TrySelectOriginal(offset, length)) { editor.TextArea.Focus(); return; }
 #endif
+                ShowMarkdownPreview(false);
                 editor.Select(checked((int)offset), length);
                 editor.CaretOffset = checked((int)offset);
                 var location = editor.Document.GetLocation(checked((int)offset));
@@ -673,6 +688,7 @@ internal sealed partial class MainWindow : Window
     private void ShowInFileSearch()
     {
         if (!_viewModel.InFileSearch.CanOpen) return;
+        ShowMarkdownPreview(false);
         var interaction = _viewModel.InteractionEpoch;
         _viewModel.InFileSearch.IsVisible = true;
         var input = this.FindControl<TextBox>("InFileQuery")!;

@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)][string]$App,
     [Parameter(Mandatory, ParameterSetName='File')][string]$InputFile,
     [Parameter(Mandatory)][string]$Output,
+    [Parameter(ParameterSetName='File')][string]$ExpectedText,
     [Parameter(Mandatory, ParameterSetName='EmptyShortcut')][switch]$EmptyCloseShortcut
 )
 $ErrorActionPreference = 'Stop'
@@ -71,6 +72,20 @@ try {
     $report.modules = @($process.Modules | ForEach-Object { $_.ModuleName } | Sort-Object)
     if ($report.modules | Where-Object { $_ -in @('coreclr.dll', 'clrjit.dll', 'hostfxr.dll', 'hostpolicy.dll') }) {
         throw 'Managed JIT runtime loaded'
+    }
+    if ($ExpectedText) {
+        Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+        $element = [System.Windows.Automation.AutomationElement]::FromHandle($window)
+        $match = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $ExpectedText)
+        $deadline = [DateTime]::UtcNow.AddSeconds(10)
+        do {
+            $rendered = $element.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $match)
+            if ($null -ne $rendered) { break }
+            Start-Sleep -Milliseconds 100
+        } while ([DateTime]::UtcNow -lt $deadline)
+        if ($null -eq $rendered) { throw "Expected rendered text was not found: $ExpectedText" }
+        $report.rendered_text = $ExpectedText
     }
     Add-Type -AssemblyName System.Windows.Forms
     $shell = New-Object -ComObject WScript.Shell

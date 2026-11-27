@@ -89,6 +89,7 @@
                 <MenuItem Header="終了" Click="ExitClicked" />
             </MenuItem>
             <MenuItem Header="表示">
+                <MenuItem x:Name="MarkdownViewMenu" Header="Markdownを表示" IsEnabled="False" Click="ToggleMarkdownViewClicked" />
                 <MenuItem Header="ファイルツリー" ToggleType="CheckBox" IsChecked="{Binding IsTreeVisible, Mode=TwoWay}" IsEnabled="{Binding HasWorkspace}" />
                 <MenuItem x:Name="StickyScrollMenu" Header="Sticky Scroll" ToggleType="CheckBox"
                           IsChecked="{Binding StickyScrollEnabled, Mode=OneWay}" Click="ToggleStickyScrollClicked" />
@@ -218,34 +219,37 @@
                         <TextBlock Text="{Binding InFileSearch.Summary}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
-        <editor:TextEditor Grid.Row="2" x:Name="Editor"
-                           IsVisible="{Binding HasDocument}"
-                           Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
-                           WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
-                           Background="{StaticResource ReadingBackground}" Foreground="{StaticResource ReadingForeground}" LineNumbersForeground="{StaticResource MutedForeground}"
-                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <editor:TextEditor.Options>
-                <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" HighlightCurrentLine="True" />
-            </editor:TextEditor.Options>
-        </editor:TextEditor>
-        <Border x:Name="StickyScrollHeader" Grid.Row="2" IsVisible="False" IsHitTestVisible="False"
-                VerticalAlignment="Top" ClipToBounds="True" Background="{StaticResource PanelBackground}">
-            <StackPanel>
-                <Grid x:Name="StickyScrollTypeRow" ColumnDefinitions="0,*">
-                    <TextBlock x:Name="StickyScrollTypeNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
-                               Foreground="{StaticResource MutedForeground}" />
-                    <TextBlock x:Name="StickyScrollTypeCode" Grid.Column="1" VerticalAlignment="Center"
-                               Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
-                </Grid>
-                <Grid x:Name="StickyScrollMethodRow" ColumnDefinitions="0,*">
-                    <TextBlock x:Name="StickyScrollMethodNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
-                               Foreground="{StaticResource MutedForeground}" />
-                    <TextBlock x:Name="StickyScrollMethodCode" Grid.Column="1" VerticalAlignment="Center"
-                               Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
-                </Grid>
-            </StackPanel>
-        </Border>
-        <vm:IdentifierScrollMarkers Grid.Row="2" x:Name="IdentifierMarkers" IsHitTestVisible="False" />
+        <Grid x:Name="SourceSurface" Grid.Row="2">
+            <editor:TextEditor x:Name="Editor"
+                               IsVisible="{Binding HasDocument}"
+                               Document="{Binding Document}" IsReadOnly="True" ShowLineNumbers="True"
+                               WordWrap="False" FontFamily="Menlo,Consolas,monospace" FontSize="14"
+                               Background="{StaticResource ReadingBackground}" Foreground="{StaticResource ReadingForeground}" LineNumbersForeground="{StaticResource MutedForeground}"
+                               HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <editor:TextEditor.Options>
+                    <editor:TextEditorOptions EnableHyperlinks="False" EnableEmailHyperlinks="False" EnableTextDragDrop="False" HighlightCurrentLine="True" />
+                </editor:TextEditor.Options>
+            </editor:TextEditor>
+            <Border x:Name="StickyScrollHeader" IsVisible="False" IsHitTestVisible="False"
+                    VerticalAlignment="Top" ClipToBounds="True" Background="{StaticResource PanelBackground}">
+                <StackPanel>
+                    <Grid x:Name="StickyScrollTypeRow" ColumnDefinitions="0,*">
+                        <TextBlock x:Name="StickyScrollTypeNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
+                                   Foreground="{StaticResource MutedForeground}" />
+                        <TextBlock x:Name="StickyScrollTypeCode" Grid.Column="1" VerticalAlignment="Center"
+                                   Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                    <Grid x:Name="StickyScrollMethodRow" ColumnDefinitions="0,*">
+                        <TextBlock x:Name="StickyScrollMethodNumber" Margin="0,0,16,0" TextAlignment="Right" VerticalAlignment="Center"
+                                   Foreground="{StaticResource MutedForeground}" />
+                        <TextBlock x:Name="StickyScrollMethodCode" Grid.Column="1" VerticalAlignment="Center"
+                                   Foreground="{StaticResource ReadingForeground}" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <vm:IdentifierScrollMarkers x:Name="IdentifierMarkers" IsHitTestVisible="False" />
+        </Grid>
+        <Border x:Name="MarkdownSurface" Grid.Row="2" IsVisible="False" />
         <Border Grid.Row="2" x:Name="WelcomeBackground" IsVisible="{Binding IsWelcomeVisible}" IsHitTestVisible="False" />
         <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
                     IsVisible="{Binding !HasDocument}">
